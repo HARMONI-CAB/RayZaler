@@ -51,7 +51,6 @@ GenericComponentParamEvaluator::assign()
 
   switch (type) {
     case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
-      std::cout << "Set " << param << " = " << value << " to " << element->name() << std::endl;
       element->set(param, value);
       break;
 
@@ -213,13 +212,10 @@ GenericCompositeModel::delayedCreationLoop()
     resolvePorts();           // Resolve element ports
     createFrames(nullptr);    // Create frames that may be defined on these ports
     createDelayedElements();  // Create elements depending on the previous frames
-    std::cout << std::endl;
     
-    std::cout << "Completed elements: " << m_completedElements << "/" << elCount << std::endl;
     if (m_completedElements < elCount && m_completedElements == prevElements)
       throw std::runtime_error("Some elements are self-contained");
     
-    std::cout << "Completed frames: " << m_completedFrames << "/" << ctxCount << std::endl;
     if (m_completedFrames < ctxCount && m_completedFrames == prevFrames)
       throw std::runtime_error("Some reference frames are self-contained");
   }
@@ -272,11 +268,8 @@ GenericCompositeModel::resolvePorts()
             + "' has no port `" 
             + contexts[i]->port 
             + "'");
-        std::cout << "Resolved port " << contexts[i]->port << " of " << contexts[i]->element->name << std::endl;
         ++m_completedFrames;
         m_frames[i] = frame;
-      } else {
-        std::cout << "Cannot resolve port " << contexts[i]->port << " because " << contexts[i]->element->name << " is not yet created" << std::endl;
       }
     }
   }
@@ -323,11 +316,8 @@ GenericCompositeModel::createFrames(ReferenceFrame *parent)
     ReferenceFrame *pFrame = getFrameOfContext(contexts[i]->parent);
 
     // If we do not have this parent or it has been already created, skip
-    if (pFrame == nullptr || m_frames[i] != nullptr) {
-      if (m_frames[i] == nullptr)
-        std::cout << "Cannot create " + contexts[i]->currNS() + " because it depends on " + contexts[i]->parent->currNS() << std::endl;
+    if (pFrame == nullptr || m_frames[i] != nullptr)
       continue;
-    }
     
     name = m_prefix + contexts[i]->name;
 
@@ -367,7 +357,6 @@ GenericCompositeModel::createElementInside(
   if (factory == nullptr)
     std::runtime_error("Undefined element class `" + step->factory + "'");
 
-  std::cout << "Create element " << step->name << " in index " << index << std::endl;
   m_elements[index] = factory->make(name, pFrame, m_parent);
   ++m_completedElements;
 
@@ -393,11 +382,8 @@ GenericCompositeModel::createElements(ReferenceFrame *parent)
   for (size_t i = 0; i < elements.size(); ++i) {
     if (elements[i]->delayedCreation) {
       // This one is created during a plug step
-      std::cout << "Skip " << elements[i]->name << " as it is delayed" << std::endl;
       m_elements[i] = nullptr;
       continue;
-    } else {
-      std::cout << "Create " << elements[i]->name << " now" << std::endl;
     }
 
     ReferenceFrame *pFrame = getFrameOfContext(elements[i]->parent);
@@ -426,11 +412,8 @@ GenericCompositeModel::createDelayedElements()
     if (elements[i]->delayedCreation && element == nullptr) {
       ReferenceFrame *pFrame = getFrameOfContext(elements[i]->parent);
 
-      if (pFrame != nullptr) {
+      if (pFrame != nullptr)
         createElementInside(elements[i], pFrame);
-      } else {
-        std::cout << "Cannot create " + elements[i]->name + " because it depends on " + elements[i]->parent->currNS() << std::endl;
-      }
     }
   }
 }
@@ -456,7 +439,6 @@ GenericCompositeModel::createParams()
 
   for (auto dof : dofs) {
     auto genP = allocateParam();
-    std::cout << "Got desc for " << dof.first << ": " << dof.second.min << ", " << dof.second.max << std::endl;
     genP->description = &dofs[dof.first];
     genP->value       = genP->description->defaultVal;
     m_dofs[dof.first] = genP;
@@ -487,16 +469,10 @@ GenericCompositeModel::makeExpression(
   // Update dependencies
   auto deps = evaluator->dependencies();
 
-  std::cout << "Creating expression: \"" << expr << "\"" << std::endl;
-  std::cout << "Symbol dictionary is " << dict->size() << " elements in length." << std::endl;
   for (auto dep : deps) {
     auto it = dict->find(dep);
-    if (it != dict->end()) {
-      std::cout << "  Found in symbol dict: " << dep << " = " << it->second->value << std::endl;
+    if (it != dict->end())
       (*dict)[dep]->dependencies.push_back(paramEvaluator);
-    } else {
-      std::cout << "THIS DEPENDENCY (" << dep << ") IS UNKNOWN!!!" << std::endl;
-    }
   }
 
   return paramEvaluator;
