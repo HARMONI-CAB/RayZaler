@@ -118,6 +118,9 @@ ParserContext::lex()
 
   m_buf.clear();
   
+  m_tokLine = m_line;
+  m_tokChar = m_char;
+
   do {
     int c = getChar();
 
@@ -157,9 +160,13 @@ ParserContext::lex()
   yylval = token();
   m_buf.clear();
 
-  // printf("LEXER: %s (%d)\n", m_lastToken.c_str(), tokenType());
-
   return tokenType();
+}
+
+void
+ParserContext::setFile(std::string const &file)
+{
+  m_file = file;
 }
 
 int
@@ -335,11 +342,31 @@ ParserContext::token() const
 void
 ParserContext::error(const char *msg)
 {
-  fprintf(stderr, "line %d: column %d: %s\n", m_line + 1, m_char + 1, msg);
+  throw std::runtime_error(msg);
 }
 
 ParserContext::ParserContext(Recipe *recipe) :
   m_recipe(recipe)
 {
 
+}
+
+bool
+ParserContext::parse()
+{
+  try {
+    yyparse(this);
+  } catch (std::runtime_error const &e) {
+    fprintf(
+      stderr,
+      "%s:%d:%d: %s\n",
+      m_file.c_str(),
+      m_tokLine + 1,
+      m_tokChar + 1,
+      e.what());
+    
+    return false;
+  }
+
+  return true;
 }

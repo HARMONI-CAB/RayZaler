@@ -87,11 +87,14 @@ namespace RZ {
   };
 
   class ParserContext {
+      std::string m_file = "<no file>";
       Recipe *m_recipe = nullptr;
       std::string m_buf;
       std::string m_lastToken;
       int m_line = 0;
       int m_char = 0;
+      int m_tokLine = 0;
+      int m_tokChar = 0;
       bool m_commentFound = false;
 
       bool m_havePrevious = false;
@@ -116,6 +119,7 @@ namespace RZ {
 
       
     protected:
+      void setFile(std::string const &);
       int  tokenType() const;
       std::string token() const;
       int  lex();
@@ -193,6 +197,7 @@ namespace RZ {
 
     public:
       ParserContext(Recipe *recipe);
+      bool parse();
       virtual int read() = 0;
 
   };

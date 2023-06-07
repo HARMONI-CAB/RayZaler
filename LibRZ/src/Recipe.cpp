@@ -270,8 +270,6 @@ Recipe::makeElementParameter(
   curr->parent     = m_currContext;
   curr->s_index    = index;
 
-  std::cout << "Make " << name << " with target index " << elem->s_index << std::endl;
-  
   curr->s_target   = elem->s_index;
 
   m_elemParameters[index] = curr;
