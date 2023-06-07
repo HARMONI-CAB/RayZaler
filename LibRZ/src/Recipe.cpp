@@ -1,7 +1,41 @@
 #include <Recipe.h>
 #include <iostream>
+#include <algorithm>
 
 using namespace RZ;
+
+void
+RecipeParamListProto::set(std::string const &name, std::string const &value)
+{
+  if (name.size() == 0) {
+    // Positional
+
+    if (nonPositionalNdx >= params.size())
+      throw std::runtime_error("Too many parameters");
+    if (nonPositionalNdx > 0)
+      throw std::runtime_error("Cannot set positional parameters after key-value arguments");
+
+    auto name = params[positionalNdx++];
+    defined.push_back(name);
+    values[name] = value;
+  } else {
+    if (std::find(params.begin(), params.end(), name) == params.end())
+      throw std::runtime_error("Unknown parameter `" + name + "'");
+
+    if (isSet(name))
+      throw std::runtime_error("Parameter `" + name + "' set twice");
+    
+    defined.push_back(name);
+    values[name] = value;
+    ++nonPositionalNdx;
+  }
+}
+
+bool
+RecipeParamListProto::isSet(std::string const &name) const
+{
+  return std::find(defined.begin(), defined.end(), name) != defined.end();
+}
 
 std::string
 RecipeContext::to_string() const
@@ -100,7 +134,21 @@ Recipe::lookupElement(std::string const &name) const
 
   return it->second;
 }
-      
+
+RecipeElementStep *
+Recipe::resolveElement(std::string const &name) const
+{
+  std::string fullyQualifiedName;
+  
+  fullyQualifiedName = m_currContext->currNS() + "." + name;
+
+  auto element = lookupElement(fullyQualifiedName);
+  if (element != nullptr)
+    return element;
+
+  return lookupElement(name);
+}
+
 std::string
 Recipe::genElementName(std::string const &parent, std::string const &type)
 {
@@ -378,10 +426,7 @@ Recipe::addElement(
 {
   std::string fullyQualifiedName;
   
-  if (m_currContext == m_rootContext)
-    fullyQualifiedName = name;
-  else
-    fullyQualifiedName = m_currContext->currNS() + "." + name;
+  fullyQualifiedName = m_currContext->currNS() + "." + name;
 
   if (lookupElement(fullyQualifiedName) != nullptr)
     throw std::runtime_error("Element `" + fullyQualifiedName + "' redefined");

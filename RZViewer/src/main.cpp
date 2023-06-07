@@ -2,8 +2,23 @@
 #include <TopLevelModel.h>
 #include <GLUTEngine.h>
 #include <RZGLModel.h>
+#include <ParserContext.h>
 
 using namespace RZ;
+
+class FileParserContext : public ParserContext {
+    using ParserContext::ParserContext;
+
+  public:
+    virtual int read() override;
+};
+
+int
+FileParserContext::read()
+{
+  return getchar();
+}
+
 
 class MyEventListener : public GLModelEventListener {
     TopLevelModel *m_model = nullptr;
@@ -25,31 +40,17 @@ MyEventListener::tick()
   m_model->setDof("t", m_count++);
 }
 
+
 int
 main(void)
 {
   Recipe *recipe = new Recipe();
-
-  ////////////////////////////// SCRIPT START /////////////////////////////////
   recipe->addDof("t", 0, 0, 1e6);
 
-  auto bench = recipe->addElement("bench", "BenchElement");
-  bench->set("height", "1");
 
-  recipe->pushPort(bench, "surface");
-    recipe->pushTranslation("0", "0", "2.5");
-      auto detector = recipe->addElement("detector", "Detector");
-    recipe->pop();
+  FileParserContext *ctx = new FileParserContext(recipe);
 
-    recipe->pushTranslation("0", "0", ".5");
-      recipe->pushRotation(".4 * cos(t)", "1", "0", "0");
-        auto mirror = recipe->addElement("mirror", "ConcaveMirror");
-        mirror->set("radius", "0.25");
-        printf("Mirror created with index %d\n", mirror->s_index);
-      recipe->pop();
-    recipe->pop();
-  recipe->pop();
-  /////////////////////////////// SCRIPT END /////////////////////////////////
+  yyparse(ctx);
 
   recipe->debug();
 
