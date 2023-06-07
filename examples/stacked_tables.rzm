@@ -1,0 +1,13 @@
+BenchElement bench(height = 1);              # Create a bench
+                                             # Define stuff on top on this bench
+on surface of bench {
+  BenchElement bench2(height = 0.25);        # Stack another bench on top
+
+  on surface of bench2 {                     # And, on its surface
+    translate (dx = 2.5) Detector;           # Create a detector on the right
+
+    translate (dz = 0.5)                     # On top of the second bench
+      rotate (0.4 * cos(0.1 * t), 1, 0, 0)   # Rotate around the X axis
+        ConcaveMirror mirror(radius = 0.25); # And place a mirror there
+  }
+}
