@@ -188,22 +188,13 @@ GenericCompositeModel::setDof(std::string const &name, Real value)
   if (dof == nullptr)
     throw std::runtime_error("Unknown parameter `" + name + "'");
 
-  if (!dof->test(value)) {
-    std::cout << "DOF " << name << " out of range." << std::endl;
-    std::cout << "Limits are " << dof->description->min << ", " << dof->description->max << std::endl;
-    std::cout << "Value was " << value << std::endl;
+  if (!dof->test(value))
     return false;
-  }
 
   dof->value = value;
 
-  std::cout << "Set DOF: " << name << " to " << value << std::endl;
-  std::cout << "  Dependencies: " << dof->dependencies.size() << std::endl;
-
-  for (auto p : dof->dependencies) {
-    std::cout << "  Re-evaluating " << p->description->expression << std::endl;
+  for (auto p : dof->dependencies)
     p->assign();
-  }
 
   return true;
 }

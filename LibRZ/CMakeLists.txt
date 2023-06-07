@@ -73,7 +73,8 @@ add_library(
   SHARED
   ${LIBRZ_SOURCES}
   ${LIBRZ_HEADERS}
-  ${BISON_OMFParser_OUTPUTS})
+  ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/parser.h)
 
-target_include_directories(RZ PRIVATE ${LIBRZ_INCLUDEDIR} ${PNG++_INCLUDE_DIRS})
+target_include_directories(RZ PRIVATE ${LIBRZ_INCLUDEDIR} ${PNG++_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(RZ PRIVATE ${PNG++_LIBRARIES})

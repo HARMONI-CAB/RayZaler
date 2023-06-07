@@ -22,6 +22,30 @@ namespace RZ {
     RecipeContext *parent = nullptr;
   };
 
+  struct RecipeParamListProto {
+    std::vector<std::string> params;
+    std::map<std::string, std::string> values;
+    std::list<std::string> defined;
+
+    unsigned int positionalNdx = 0;
+    unsigned int nonPositionalNdx = 0;
+    
+    void pushParam(std::string const &name, std::string const &value = "") {
+      params.push_back(name);
+      values[name] = value;
+    }
+
+    std::string &
+    operator[](std::string const &name)
+    {
+      return values[name];
+    }
+
+    bool isSet(std::string const &name) const;
+
+    void set(std::string const &, std::string const &);
+  };
+
   struct RecipeElementStep {
     std::string name;
     std::string factory;
@@ -157,6 +181,8 @@ namespace RZ {
       RecipeContext *lookupReferenceFrame(std::string const &) const;
       RecipeElementStep *lookupElement(std::string const &) const;
       RecipeOpticalPath *lookupOpticalPath(std::string const &) const;
+
+      RecipeElementStep *resolveElement(std::string const &) const;
 
       void pushRotation(
         std::string const &angle,
