@@ -98,7 +98,6 @@ GLUTEngine::keyPress(int c, int x, int y)
     case GLUT_KEY_RIGHT:
       m_curRot[2] += 10 * GLUT_ENGINE_SHIFT_DELTA;
       break;
-
   }
 }
 

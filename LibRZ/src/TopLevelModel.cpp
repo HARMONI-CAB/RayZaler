@@ -16,6 +16,8 @@ class TopLevelEvaluator : public GenericEvaluator {
 
   public:
     TopLevelEvaluator(GenericEvaluatorSymbolDict *dict);
+    virtual ~TopLevelEvaluator();
+
     virtual bool compile(std::string const &name) override;
     virtual Real evaluate() override;
     virtual std::list<std::string> dependencies() const override;
@@ -33,6 +35,10 @@ TopLevelEvaluator::TopLevelEvaluator(GenericEvaluatorSymbolDict *dict)
 
   // To retrieve the symbol list
   m_parser.dec().collect_variables() = true;
+}
+
+TopLevelEvaluator::~TopLevelEvaluator()
+{
 }
 
 bool
@@ -74,6 +80,11 @@ TopLevelModel::TopLevelModel(Recipe *recipe) :
   GenericCompositeModel(recipe, this)
 {
   build(world());
+}
+
+TopLevelModel::~TopLevelModel()
+{
+  
 }
 
 void

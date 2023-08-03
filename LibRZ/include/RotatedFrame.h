@@ -11,8 +11,6 @@ namespace RZ {
       
       Matrix3 m_rotMatrix;
 
-      ReferenceFrame *m_parent;
-
     protected:
       void recalculateFrame();
 

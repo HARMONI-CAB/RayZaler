@@ -77,6 +77,7 @@ namespace RZ {
 
     public:
       virtual ~Element();
+      
       // Get name
       std::string const &
       name() const

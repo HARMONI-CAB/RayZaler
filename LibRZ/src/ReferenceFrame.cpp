@@ -294,3 +294,8 @@ ReferenceFrame::ReferenceFrame(std::string const &name, ReferenceFrame *parent)
   m_parent   = parent;
   parent->addChild(this);
 }
+
+ReferenceFrame::~ReferenceFrame()
+{
+  
+}

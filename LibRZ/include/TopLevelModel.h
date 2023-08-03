@@ -6,8 +6,6 @@
 
 namespace RZ {
   class TopLevelModel : public GenericCompositeModel, public OMModel {
-      OMModel *m_model = nullptr;
-
     protected:
       // Interface methods
       virtual void registerDof(

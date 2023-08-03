@@ -34,6 +34,16 @@ GenericEvaluator::GenericEvaluator(GenericEvaluatorSymbolDict *dict)
   m_dict = dict;
 }
 
+GenericEvaluator::~GenericEvaluator()
+{
+}
+
+GenericComponentParamEvaluator::~GenericComponentParamEvaluator()
+{
+  if (evaluator != nullptr)
+    delete evaluator;
+}
+
 void
 GenericComponentParamEvaluator::assign()
 {
@@ -105,7 +115,11 @@ GenericCompositeModel::GenericCompositeModel(
 
 GenericCompositeModel::~GenericCompositeModel()
 {
+  for (auto p : m_expressions)
+    delete p;
 
+  for (auto p : m_genParamStorage)
+    delete p;
 }
 
 std::list<std::string>
@@ -431,21 +445,22 @@ GenericCompositeModel::allocateParam()
 void
 GenericCompositeModel::createParams()
 {
-  auto dofs   = m_recipe->dofs();
-  auto params = m_recipe->params();
+  auto &dofs   = m_recipe->dofs();
+  auto &params = m_recipe->params();
 
   // This creates the parameters for DOFs and model parameters. This is
   // something that should be available in the global scope.
 
-  for (auto dof : dofs) {
+  // The usage of references is mandatory here.
+  for (auto &dof : dofs) {
     auto genP = allocateParam();
-    genP->description = &dofs[dof.first];
+    genP->description = &dof.second;
     genP->value       = genP->description->defaultVal;
     m_dofs[dof.first] = genP;
     registerDof(dof.first, genP);
   }
 
-  for (auto param : params) {
+  for (auto &param : params) {
     auto genP = allocateParam();
     genP->description     = &param.second;
     genP->value           = genP->description->defaultVal;
@@ -459,9 +474,10 @@ GenericCompositeModel::makeExpression(
   std::string const &expr,
   GenericEvaluatorSymbolDict *dict)
 {
-  auto evaluator = allocateEvaluator(expr, dict);
   GenericComponentParamEvaluator *paramEvaluator = new GenericComponentParamEvaluator();
 
+  auto evaluator = allocateEvaluator(expr, dict);
+  
   paramEvaluator->evaluator = evaluator;
   
   m_expressions.push_back(paramEvaluator);

@@ -96,7 +96,7 @@ namespace RZ {
 
 
       RayTracingEngine();
-      ~RayTracingEngine();
+      virtual ~RayTracingEngine();
 
       // This clears all the rays
       void clear();

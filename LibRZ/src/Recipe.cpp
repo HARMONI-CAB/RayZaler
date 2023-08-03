@@ -101,7 +101,20 @@ Recipe::Recipe()
 
 Recipe::~Recipe()
 {
+  for (auto p : m_contexts)
+    delete p;
 
+  for (auto p : m_elementSteps)
+    delete p;
+
+  for (auto p : m_pathSteps)
+    delete p;
+
+  for (auto p : m_elemParameters)
+    delete p;
+
+  for (auto p : m_frameParameters)
+    delete p;
 }
 
 std::string

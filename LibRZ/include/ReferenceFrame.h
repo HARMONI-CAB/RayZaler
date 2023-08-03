@@ -71,6 +71,8 @@ namespace RZ{
       void setOrientation(Matrix3 const &);
       
     public:
+      virtual ~ReferenceFrame();
+
       // These are added by the dependants or elements. Let us say that
       // this frame was used to create a rotated frame around certain axis
       // defined in this frame. In this case, the dependent would have

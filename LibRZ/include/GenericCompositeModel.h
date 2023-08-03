@@ -38,6 +38,7 @@ namespace RZ {
 
     public:
       GenericEvaluator(GenericEvaluatorSymbolDict *);
+      virtual ~GenericEvaluator();
 
       virtual std::list<std::string> dependencies() const = 0;
       virtual bool compile(std::string const &) = 0;
@@ -50,7 +51,7 @@ namespace RZ {
   struct GenericComponentParamEvaluator {
     GenericModelParamType type; // What type of object we need to update
     ParamAssignExpression *description = nullptr; // Already contains an index
-    GenericEvaluator      *evaluator = nullptr;
+    GenericEvaluator      *evaluator = nullptr; // Owned
 
     union {
       Element         *element = nullptr;
@@ -59,11 +60,12 @@ namespace RZ {
     };
 
     void assign();
+    ~GenericComponentParamEvaluator();
   };
 
   // This describes what depends on what. This is what is exposed
   struct GenericModelParam {
-    RecipeParameter *description = nullptr;
+    const RecipeParameter *description = nullptr;
     Real value = 0.; // Current value
 
     // What needs to be evaluated
@@ -74,23 +76,23 @@ namespace RZ {
 
   // Serves as storage
   class GenericCompositeModel {
-      OMModel                      *m_model = nullptr;
-      Recipe                       *m_recipe = nullptr;
-      Element                      *m_parent = nullptr;
+      OMModel                      *m_model = nullptr;           // Borrowed
+      Recipe                       *m_recipe = nullptr;          // Borrowed
+      Element                      *m_parent = nullptr;          // Borrowed
 
-      std::vector<ReferenceFrame *> m_frames;
-      std::vector<Element *>        m_elements;
-      std::list<GenericComponentParamEvaluator *> m_expressions;
+      std::vector<ReferenceFrame *> m_frames;                    // Borrowed (m_model)
+      std::vector<Element *>        m_elements;                  // Borrowed (m_model)
+      std::list<GenericComponentParamEvaluator *> m_expressions; // Owned
 
       unsigned int m_completedFrames = 0;
       unsigned int m_completedElements = 0;
 
       // Generic parameter storage (dofs and params)
-      std::list<GenericModelParam *> m_genParamStorage;
+      std::list<GenericModelParam *> m_genParamStorage;          // Owned
 
       // What is dof and what is param
-      std::map<std::string, GenericModelParam *> m_params;
-      std::map<std::string, GenericModelParam *> m_dofs;
+      std::map<std::string, GenericModelParam *> m_params;       // Borrowed
+      std::map<std::string, GenericModelParam *> m_dofs;         // Borrowed
 
       std::string m_prefix;
 
@@ -142,7 +144,7 @@ namespace RZ {
 
     public:
       GenericCompositeModel(Recipe *, OMModel *, Element *parent = nullptr);
-      ~GenericCompositeModel();
+      virtual ~GenericCompositeModel();
 
       std::list<std::string> params() const;
       std::list<std::string> dofs() const;

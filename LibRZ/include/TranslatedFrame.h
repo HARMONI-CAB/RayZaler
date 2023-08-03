@@ -7,7 +7,6 @@ namespace RZ {
   class TranslatedFrame : public ReferenceFrame {
       Vec3 m_distance;
       int m_distanceIndex = -1;
-      ReferenceFrame *m_parent;
 
     protected:
       void recalculateFrame();
