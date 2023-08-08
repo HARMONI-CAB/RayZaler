@@ -126,6 +126,10 @@ main(int argc, char **argv)
     model->pushOptoMechanicalModel(tlModel);
     model->setEventListener(&listener);
 
+    auto defPath = tlModel->lookupOpticalPath();
+    if (defPath != nullptr)
+      fprintf(stderr, "%s: note: model exposes a default optical path\n", argv[0]);
+
     engine->setModel(model);
     engine->start();
     engine->setModel(nullptr);

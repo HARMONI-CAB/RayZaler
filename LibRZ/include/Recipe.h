@@ -107,6 +107,7 @@ namespace RZ {
   };
 
   struct RecipeOpticalPath {
+    std::string name;
     std::list<std::string> steps;
     RecipeContext *parent = nullptr;
 
@@ -180,7 +181,7 @@ namespace RZ {
       
       RecipeContext *lookupReferenceFrame(std::string const &) const;
       RecipeElementStep *lookupElement(std::string const &) const;
-      RecipeOpticalPath *lookupOpticalPath(std::string const &) const;
+      RecipeOpticalPath *lookupOpticalPath(std::string const & = "") const;
 
       RecipeElementStep *resolveElement(std::string const &) const;
 

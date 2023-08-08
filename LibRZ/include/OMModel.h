@@ -202,14 +202,14 @@ namespace RZ {
       Element *lookupElement(std::string const &) const;
       OpticalElement *lookupOpticalElement(std::string const &) const;
       Detector *lookupDetector(std::string const &) const;
-      const OpticalPath *lookupOpticalPath(std::string const &) const;
+      const OpticalPath *lookupOpticalPath(std::string const & = "") const;
 
       // Lookup methods (raise exception)
       ReferenceFrame *lookupReferenceFrameOrEx(std::string const &) const;
       Element *lookupElementOrEx(std::string const &) const;
       OpticalElement *lookupOpticalElementOrEx(std::string const &) const;
       Detector *lookupDetectorOrEx(std::string const &) const;
-      const OpticalPath *lookupOpticalPathOrEx(std::string const &) const;
+      const OpticalPath *lookupOpticalPathOrEx(std::string const & = "") const;
 
       // Raytracing methods
       bool trace(

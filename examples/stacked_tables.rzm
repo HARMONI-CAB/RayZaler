@@ -1,5 +1,7 @@
 BenchElement bench(height = 1);              # Create a bench
                                              # Define stuff on top on this bench
+path mirror to Detector;
+
 on surface of bench {
   BenchElement bench2(height = 0.25);        # Stack another bench on top
 
@@ -11,3 +13,4 @@ on surface of bench {
         ConcaveMirror mirror(radius = 0.25); # And place a mirror there
   }
 }
+

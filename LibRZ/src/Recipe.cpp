@@ -474,6 +474,7 @@ Recipe::allocatePath(std::string const &name)
 
   RecipeOpticalPath *path = makeOpticalPathStep(m_currContext);
 
+  path->name = name;
   m_paths[name] = path;
 
   return path;

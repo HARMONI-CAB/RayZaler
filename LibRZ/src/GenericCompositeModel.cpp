@@ -253,13 +253,10 @@ GenericCompositeModel::build(
 
   createFrames(parent);
   createElements(parent);
-
   delayedCreationLoop();
-
   createParams();
   createExpressions();
   exposeOpticalPaths();
-
   assignEverything();
 }
 
@@ -623,5 +620,6 @@ GenericCompositeModel::getLastDottedElement(
 void
 GenericCompositeModel::exposeOpticalPaths()
 {
-
+  for (auto path : m_recipe->paths())
+    m_model->addOpticalPath(path->name, path->steps);
 }
