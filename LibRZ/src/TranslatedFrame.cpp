@@ -46,5 +46,5 @@ void
 TranslatedFrame::recalculateFrame()
 {
   setOrientation(parent()->getOrientation());
-  setCenter(parent()->getCenter() + m_distance);
+  setCenter(parent()->getCenter() + parent()->getOrientation().t() * m_distance);
 }

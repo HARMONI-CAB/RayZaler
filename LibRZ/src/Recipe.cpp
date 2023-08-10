@@ -1,6 +1,7 @@
 #include <Recipe.h>
 #include <iostream>
 #include <algorithm>
+#include <Singleton.h>
 
 using namespace RZ;
 
@@ -91,12 +92,24 @@ RecipeElementStep::set(std::string const &name, std::string const &expr)
     owner->makeElementParameter(this, name, expr);
 }
 
-Recipe::Recipe()
+Recipe *
+Recipe::parent() const
+{
+  return m_parent;
+}
+
+Recipe::Recipe(std::string const &name, Recipe *parent)
 {
   // Create root context
   m_rootContext       = makeContext(nullptr);
-  m_rootContext->name = "world";
+  m_rootContext->name = name;
   m_currContext       = m_rootContext;
+  m_parent            = parent;
+}
+
+Recipe::Recipe() : Recipe("world", nullptr)
+{
+
 }
 
 Recipe::~Recipe()
@@ -114,6 +127,9 @@ Recipe::~Recipe()
     delete p;
 
   for (auto p : m_frameParameters)
+    delete p;
+
+  for (auto p: m_subRecipes)
     delete p;
 }
 
@@ -146,6 +162,27 @@ Recipe::lookupElement(std::string const &name) const
     return nullptr;
 
   return it->second;
+}
+
+Recipe *
+Recipe::makeCustomElement(std::string const &name)
+{
+  // Make sure element has not been defined twice
+  auto it = m_customElements.find(name);
+  if (it != m_customElements.end())
+    return nullptr;
+
+  // Make sure we are not attempting to override an existing element factory
+  Singleton *sing = Singleton::instance();
+  if (sing->lookupElementFactory(name) != nullptr)
+    return nullptr;
+  
+  Recipe *recipe = new Recipe(name, this);
+  m_customElements[name] = recipe;
+
+  m_subRecipes.push_back(recipe);
+
+  return recipe;
 }
 
 RecipeElementStep *
@@ -391,7 +428,7 @@ Recipe::pushTranslation(
 }
 
 void
-Recipe::pushPort(RecipeElementStep *step, std::string const &port)
+Recipe::pushPortContext(RecipeElementStep *step, std::string const &port)
 {
   RecipeContext *context = makeContext(m_currContext);
 
@@ -480,6 +517,18 @@ Recipe::allocatePath(std::string const &name)
   return path;
 }
 
+std::map<std::string, Recipe *> const &
+Recipe::customElements() const
+{
+  return m_customElements;
+}
+
+std::map<std::string, RecipeContext *> const &
+Recipe::ports() const
+{
+  return m_ports;
+}
+
 std::map<std::string, RecipeParameter> const &
 Recipe::dofs() const
 {
@@ -490,6 +539,15 @@ std::map<std::string, RecipeParameter> const &
 Recipe::params() const
 {
   return m_parameters;
+}
+
+void
+Recipe::addPort(std::string const &name)
+{
+  if (m_ports.find(name) != m_ports.end())
+    throw std::runtime_error("Port `" + name + "' redefined");
+
+  m_ports[name] = m_currContext;
 }
 
 bool

@@ -10,7 +10,7 @@
 %define api.value.type {RZ::ValueType}
 %token  NUM         "number"
 %token  IDENTIFIER  "identifier"
-%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD
+%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD
 %nterm  expr
 
 %precedence '='
@@ -33,7 +33,9 @@ statement:
   | element_stmt        
   | path_stmt           
   | dof_stmt            
+  | port_stmt
   | compound_stmt       
+  | element_def_stmt
   | error               { YYERROR; }
   ;
 
@@ -46,8 +48,19 @@ element_stmt:
   | IDENTIFIER IDENTIFIER '(' param_list ')' ';'  { ctx->defineElement($2, $1, $4); }
   ;
 
+element_def_stmt:
+    element_def_decl statement                    { ctx->popElementDefinition(); }
+  ;
+
+element_def_decl:
+    ELEMENT_KEYWORD IDENTIFIER                    { ctx->pushElementDefinition($2); }
+  ;
 
 compound_stmt: '{' statement_set '}';             //  no-op
+
+port_stmt:
+    PORT_KEYWORD IDENTIFIER ';'                   { ctx->pushPort($2); }
+  ;
 
 ref_frame_stmt:                                   // ACTION: pop
     ref_frame_decl statement { ctx->popFrame(); }
@@ -56,7 +69,7 @@ ref_frame_stmt:                                   // ACTION: pop
 ref_frame_decl:                                   // ACTION: Push and set
     ref_frame_keyword '(' param_list ')'            { ctx->pushFrame($1, "", $3); }
   | ref_frame_keyword IDENTIFIER '(' param_list ')' { ctx->pushFrame($1, $2, $4); }
-  | ON_KEYWORD IDENTIFIER OF_KEYWORD IDENTIFIER     { ctx->pushPort($4, $2);      }
+  | ON_KEYWORD IDENTIFIER OF_KEYWORD IDENTIFIER     { ctx->pushOnPort($4, $2);    }
   ;
 
 ref_frame_keyword:                                // Type: enum

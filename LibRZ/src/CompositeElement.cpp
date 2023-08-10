@@ -74,6 +74,10 @@ CompositeElement::propertyChanged(
     return true;
   } catch (std::runtime_error &e) { }
 
+  printf("Param set!\n");
+
+  m_model->world()->recalculate();
+
   return false;
 }
 

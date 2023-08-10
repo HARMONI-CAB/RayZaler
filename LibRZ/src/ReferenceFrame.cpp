@@ -292,6 +292,9 @@ ReferenceFrame::ReferenceFrame(std::string const &name, ReferenceFrame *parent)
 : ReferenceFrame(name)
 {
   m_parent   = parent;
+  if (parent != nullptr)
+    m_name = parent->name() + "." + m_name;
+  
   parent->addChild(this);
 }
 

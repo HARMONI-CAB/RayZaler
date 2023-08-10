@@ -41,7 +41,7 @@ namespace RZ {
         Element *parent = nullptr);
 
     public:
-      OpticalPath opticalPath() const;
+      virtual OpticalPath opticalPath() const;
       OpticalPath plug(OpticalElement *) const;
       virtual ~OpticalElement();
       

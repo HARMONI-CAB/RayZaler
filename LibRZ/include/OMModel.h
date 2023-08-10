@@ -195,7 +195,7 @@ namespace RZ {
       std::list<std::string> opticalPaths() const;
 
       // Convenience methods (fast enumeration)
-      std::list<Element *> elementList() const;
+      std::list<Element *> const &elementList() const;
 
       // Lookup methods
       ReferenceFrame *lookupReferenceFrame(std::string const &) const;

@@ -29,33 +29,32 @@ RZGLModel::popElementMatrix()
 }
 
 void
+RZGLModel::displayModel(OMModel *model)
+{
+  for (auto p : model->elementList()) {
+    pushElementMatrix(p);
+    p->renderOpenGL();
+    popElementMatrix();
+
+    if (p->nestedModel() != nullptr)
+      displayModel(p->nestedModel());
+  }
+}
+
+void
 RZGLModel::display()
 {
   tick();
   
   glGetFloatv(GL_MODELVIEW_MATRIX, m_refMatrix);
 
-  for (auto p : m_elements) {
-    pushElementMatrix(p);
-    p->renderOpenGL();
-    popElementMatrix();
-  }
+  displayModel(m_model);
 }
 
-void
-RZGLModel::pushElement(Element *element)
-{
-  m_elements.push_back(element);
-}
 
 void
 RZGLModel::pushOptoMechanicalModel(OMModel *om)
 {
-  om->recalculate();
-
-  for (auto p : om->elementList())
-    if (p != om->beam())
-      pushElement(p);
-
-  pushElement(om->beam());
+  m_model = om;
+  m_model->recalculate();
 }

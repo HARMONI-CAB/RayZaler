@@ -98,6 +98,7 @@ namespace RZ {
 
       bool m_constructed = false;
 
+      void registerCustomElements();
       void createFrames(ReferenceFrame *);
       void resolvePorts();
       void createDelayedElements();
@@ -111,6 +112,8 @@ namespace RZ {
       void delayedCreationLoop();
       void createExpressions();
       void exposeOpticalPaths();
+      void exposePorts();
+      
       GenericComponentParamEvaluator *makeExpression(
         std::string const &expr,
         GenericEvaluatorSymbolDict *dict);
@@ -139,6 +142,10 @@ namespace RZ {
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
         GenericEvaluatorSymbolDict *dict) = 0;
+
+      virtual void exposePort(
+        std::string const &name,
+        ReferenceFrame *frame);
 
       ReferenceFrame *getFrameOfContext(const RecipeContext *) const;
 

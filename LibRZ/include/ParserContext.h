@@ -88,6 +88,7 @@ namespace RZ {
 
   class ParserContext {
       std::string m_file = "<no file>";
+      Recipe *m_rootRecipe = nullptr;
       Recipe *m_recipe = nullptr;
       std::string m_buf;
       std::string m_lastToken;
@@ -129,7 +130,10 @@ namespace RZ {
       void registerDOF(ParserDOFDecl const &);
       void registerPath(std::string const &name, std::list<std::string> const &);
       void pushFrame(RecipeContextType, std::string const &name, ParserAssignList const & );
-      void pushPort(std::string const &name, std::string const &port);
+      void pushOnPort(std::string const &name, std::string const &port);
+      void pushPort(std::string const &port);
+      void pushElementDefinition(std::string const &);
+      void popElementDefinition();
       void popFrame();
       void defineElement(std::string const &name, std::string const &factory, ParserAssignList const & = ParserAssignList());
       void debugParamList(ParserAssignList const &);

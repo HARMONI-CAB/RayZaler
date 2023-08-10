@@ -17,6 +17,7 @@
 //  5. Define several properties
 
 namespace RZ {
+  class OMModel;
   struct UndefinedProperty {};
   typedef std::variant<UndefinedProperty, int64_t, Real, bool, std::string> BasePropertyVariant;
   class PropertyValue : public BasePropertyVariant {
@@ -40,6 +41,20 @@ namespace RZ {
       template<typename T>
       inline operator T() const
       {
+        switch (index()) {
+          case 1:
+            return std::get<int64_t>(*this);
+            break;
+
+          case 2:
+            return std::get<Real>(*this);
+            break;
+
+          case 3:
+            return std::get<bool>(*this);
+            break;
+        }
+        
         return std::get<T>(*this);
       }
   };
@@ -63,6 +78,9 @@ namespace RZ {
       // Takes ownership
       ReferenceFrame *registerPort(std::string const &, ReferenceFrame *);
 
+      // Does not take ownership
+      bool addPort(std::string const &, ReferenceFrame *);
+      
       template <class T>
       inline T *
       registerPort(std::string const &name, T *frame)
@@ -139,6 +157,7 @@ namespace RZ {
       }
 
       virtual void renderOpenGL();
+      virtual OMModel *nestedModel() const;
   };
 
   class ElementFactory {

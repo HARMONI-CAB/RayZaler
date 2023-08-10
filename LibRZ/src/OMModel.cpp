@@ -515,12 +515,11 @@ OMModel::opticalPaths() const
 }
 
 // Convenience methods (fast enumeration)
-std::list<Element *>
+std::list<Element *> const &
 OMModel::elementList() const
 {
   return m_elements;
 }
-
 
 Element *
 OMModel::beam() const

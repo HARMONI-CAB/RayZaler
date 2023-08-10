@@ -4,6 +4,8 @@
 #include <TranslatedFrame.h>
 #include <Singleton.h>
 #include <OMModel.h>
+#include <CompositeElement.h>
+#include <cassert>
 
 using namespace RZ;
 
@@ -66,7 +68,7 @@ GenericComponentParamEvaluator::assign()
 
     case GENERIC_MODEL_PARAM_TYPE_ROTATED_FRAME:
       if (param == "angle")
-        rotation->setAngle(value);
+        rotation->setAngle(deg2rad(value));
       else if (param == "eX")
         rotation->setAxisX(value);
       else if (param == "eY")
@@ -111,6 +113,8 @@ GenericCompositeModel::GenericCompositeModel(
   m_recipe = recipe;
   m_model  = model;
   m_parent = parent;
+
+  assert(m_model != nullptr);
 }
 
 GenericCompositeModel::~GenericCompositeModel()
@@ -251,12 +255,14 @@ GenericCompositeModel::build(
 
   m_prefix = prefix;
 
+  registerCustomElements();
   createFrames(parent);
   createElements(parent);
   delayedCreationLoop();
   createParams();
   createExpressions();
   exposeOpticalPaths();
+  exposePorts();
   assignEverything();
 }
 
@@ -302,6 +308,18 @@ GenericCompositeModel::getFrameOfContext(const RecipeContext *ctx) const
   }
   
   return nullptr;
+}
+
+void
+GenericCompositeModel::registerCustomElements()
+{
+  Singleton *sing = Singleton::instance();
+  auto elements = m_recipe->customElements();
+
+  for (auto p : elements)
+    if (sing->lookupElementFactory(p.first) == nullptr)
+      sing->registerElementFactory(
+        new CompositeElementFactory(p.first, p.second));
 }
 
 void
@@ -622,4 +640,19 @@ GenericCompositeModel::exposeOpticalPaths()
 {
   for (auto path : m_recipe->paths())
     m_model->addOpticalPath(path->name, path->steps);
+}
+
+void
+GenericCompositeModel::exposePorts()
+{
+  for (auto port : m_recipe->ports()) {
+    ReferenceFrame *frame = getFrameOfContext(port.second);
+    exposePort(port.first, frame);
+  }
+}
+
+void
+GenericCompositeModel::exposePort(std::string const &, ReferenceFrame *)
+{
+  // NO-OP
 }

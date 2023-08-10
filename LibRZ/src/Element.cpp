@@ -35,11 +35,26 @@ Element::refreshProperties()
     propertyChanged(p.first, p.second);
 }
 
+bool
+Element::addPort(
+  std::string const &name,
+  ReferenceFrame *frame)
+{
+  if (m_nameToPort.find(name) != m_nameToPort.end())
+    return false;
+
+  m_nameToPort[name] = frame;
+
+  return true;
+}
+
 ReferenceFrame *
 Element::registerPort(std::string const &name, ReferenceFrame *frame)
 {
+  if (!addPort(name, frame))
+    return nullptr;
+  
   m_portList.push_back(frame);
-  m_nameToPort[name] = frame;
   
   return frame;
 }
@@ -139,3 +154,8 @@ Element::renderOpenGL()
   // NO-OP
 }
 
+OMModel *
+Element::nestedModel() const
+{
+  return nullptr; // No nested models
+}

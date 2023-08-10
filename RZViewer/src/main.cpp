@@ -127,8 +127,16 @@ main(int argc, char **argv)
     model->setEventListener(&listener);
 
     auto defPath = tlModel->lookupOpticalPath();
-    if (defPath != nullptr)
-      fprintf(stderr, "%s: note: model exposes a default optical path\n", argv[0]);
+    if (defPath != nullptr) {
+      fprintf(
+        stderr, 
+        "%s: note: model exposes a default optical path with %d stages\n",
+        argv[0],
+        defPath->m_sequence.size());
+      int i = 0;
+      for (auto p : defPath->m_sequence)
+        fprintf(stderr, "  %2d. %s\n", ++i, p.name.c_str());
+    }
 
     engine->setModel(model);
     engine->start();

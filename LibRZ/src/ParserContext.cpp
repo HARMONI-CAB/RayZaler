@@ -192,6 +192,10 @@ ParserContext::tokenType() const
       return ON_KEYWORD;
     else if (m_lastToken == "of")
       return OF_KEYWORD;
+    else if (m_lastToken == "element")
+      return ELEMENT_KEYWORD;
+    else if (m_lastToken == "port")
+      return PORT_KEYWORD;
     else
       return IDENTIFIER;
   } else if (isOperatorChar(m_lastToken[0])) {
@@ -206,12 +210,12 @@ ParserContext::parseDOFDecl(ParserDOFDecl const &decl, Real &min, Real &max, Rea
 {
   if (decl.min_expr.size() == 0)
     min = -INFINITY;
-  else if (sscanf(decl.min_expr.c_str(), "%g", &min) < 1)
+  else if (sscanf(decl.min_expr.c_str(), "%lg", &min) < 1)
     throw std::runtime_error("Invalid real literal `" + decl.min_expr + "'");
   
   if (decl.max_expr.size() == 0)
     max = +INFINITY;
-  else if (sscanf(decl.max_expr.c_str(), "%g", &max) < 1)
+  else if (sscanf(decl.max_expr.c_str(), "%lg", &max) < 1)
     throw std::runtime_error("Invalid real literal `" + decl.max_expr + "'");
   
   if (decl.min_expr > decl.max_expr)
@@ -219,7 +223,7 @@ ParserContext::parseDOFDecl(ParserDOFDecl const &decl, Real &min, Real &max, Rea
   
   if (decl.assign_expr.size() == 0)
     defVal = 0;
-  else if (sscanf(decl.assign_expr.c_str(), "%g", &defVal) < 1)
+  else if (sscanf(decl.assign_expr.c_str(), "%lg", &defVal) < 1)
     throw std::runtime_error("Invalid real literal `" + decl.assign_expr + "'");
   else if (defVal < min || defVal > max)
     throw std::runtime_error("Default value out of bounds");
@@ -300,20 +304,46 @@ ParserContext::pushFrame(RecipeContextType type, std::string const &name, Parser
 }
 
 void
-ParserContext::pushPort(std::string const &name, std::string const &port)
+ParserContext::pushOnPort(std::string const &name, std::string const &port)
 {
   auto element = m_recipe->resolveElement(name);
 
   if (element == nullptr)
     throw std::runtime_error("Element `" + name + "' does not exist");
 
-  m_recipe->pushPort(element, port);
+  m_recipe->pushPortContext(element, port);
 }
 
 void
 ParserContext::popFrame()
 {
   m_recipe->pop();
+}
+
+void
+ParserContext::pushPort(std::string const &port)
+{
+  m_recipe->addPort(port);
+}
+
+void
+ParserContext::pushElementDefinition(std::string const &name)
+{
+  Recipe *recipe = m_recipe->makeCustomElement(name);
+
+  if (recipe == nullptr)
+    throw std::runtime_error("Element class `" + name + "' redefined");
+
+  m_recipe = recipe;
+}
+
+void
+ParserContext::popElementDefinition()
+{
+  if (m_rootRecipe == m_recipe)
+    throw std::runtime_error("Internal error: attempting to leave root recipe!");
+
+  m_recipe = m_recipe->parent();
 }
 
 void
@@ -346,9 +376,9 @@ ParserContext::error(const char *msg)
 }
 
 ParserContext::ParserContext(Recipe *recipe) :
-  m_recipe(recipe)
+  m_rootRecipe(recipe)
 {
-
+  m_recipe = m_rootRecipe;
 }
 
 bool

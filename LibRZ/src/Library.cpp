@@ -4,6 +4,7 @@
 #include <BenchElement.h>
 #include <CircularMirror.h>
 #include <ConcaveMirror.h>
+#include <BlockElement.h>
 #include <RayBeamElement.h>
 #include <Detector.h>
 
@@ -19,6 +20,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new ConcaveMirrorFactory);
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
-
+  Singleton::instance()->registerElementFactory(new BlockElementFactory);
+  
   registerRayProcessors();
 }

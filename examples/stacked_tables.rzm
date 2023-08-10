@@ -13,4 +13,3 @@ on surface of bench {
         ConcaveMirror mirror(radius = 0.25); # And place a mirror there
   }
 }
-

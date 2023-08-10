@@ -9,15 +9,16 @@ namespace RZ {
   class OMModel;
 
   class RZGLModel : public GLModel {
-      std::list<Element *> m_elements;
+      OMModel *m_model = nullptr; // Borrowed
       GLfloat m_refMatrix[16];
       
       void pushElementMatrix(Element *);
       void popElementMatrix();
 
+      void displayModel(OMModel *);
+
     public:
       virtual void display() override;
-      void pushElement(Element *);
       void pushOptoMechanicalModel(OMModel *);
   };
 }

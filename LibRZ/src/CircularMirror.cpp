@@ -22,7 +22,6 @@ CircularMirror::propertyChanged(
     m_thickness = value;
     recalcModel();
   } else if (name == "radius") {
-    printf("Radius was %g, now is %g\n", m_radius, value);
     m_radius = value;
     recalcModel();
   } else {

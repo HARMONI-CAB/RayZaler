@@ -13,11 +13,14 @@ include(FindPNG++)
 
 set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/BenchElement.cpp
+  ${LIBRZ_SRCDIR}/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Detector.cpp
   ${LIBRZ_SRCDIR}/CircularMirror.cpp
+  ${LIBRZ_SRCDIR}/CompositeElement.cpp
   ${LIBRZ_SRCDIR}/ConcaveMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
+  ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
@@ -38,11 +41,14 @@ set(LIBRZ_SOURCES
 
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/BenchElement.h
+  ${LIBRZ_INCLUDEDIR}/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/CircularMirror.h
+  ${LIBRZ_INCLUDEDIR}/CompositeElement.h
   ${LIBRZ_INCLUDEDIR}/ConcaveMirror.h
   ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
+  ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h

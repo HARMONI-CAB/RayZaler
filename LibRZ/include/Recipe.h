@@ -120,21 +120,24 @@ namespace RZ {
 
   class Recipe {
       RecipeContext *m_rootContext = nullptr;
+      Recipe *m_parent = nullptr;
 
       // Allocation
       std::vector<RecipeContext *>       m_contexts;        // Tracks frames
       std::vector<RecipeElementStep *>   m_elementSteps;    // Tracks elements
       std::vector<RecipeOpticalPath *>   m_pathSteps;       // Optical paths
+      std::vector<Recipe *>              m_subRecipes;      // Subrecipes to construct elements
 
       std::vector<ParamAssignExpression *> m_elemParameters;  // Tracks how to configure elements
       std::vector<ParamAssignExpression *> m_frameParameters; // Tracks how to configure frames
       
-      std::map<std::string, RecipeContext *> m_frames;
+      std::map<std::string, RecipeContext *>     m_frames;
       std::map<std::string, RecipeElementStep *> m_elements;
-      
-      std::map<std::string, RecipeOpticalPath *> m_paths;   // Tracks optical paths
-      std::map<std::string, RecipeParameter> m_parameters;
-      std::map<std::string, RecipeParameter> m_dofs;
+      std::map<std::string, Recipe *>            m_customElements; // Tracks composite elements
+      std::map<std::string, RecipeOpticalPath *> m_paths;             // Tracks optical paths
+      std::map<std::string, RecipeParameter>     m_parameters;
+      std::map<std::string, RecipeParameter>     m_dofs;
+      std::map<std::string, RecipeContext *>     m_ports;
 
       // Set during edition
       RecipeContext *m_currContext = nullptr;
@@ -167,24 +170,28 @@ namespace RZ {
       void push(RecipeContext *ctx);
 
     public:
+      Recipe(std::string const &, Recipe *);
       Recipe();
       ~Recipe();
 
+      Recipe *parent() const;
       std::vector<RecipeContext *> const &contexts() const;
       std::vector<RecipeElementStep *> const &elements() const;
       std::vector<RecipeOpticalPath *> const &paths() const;
       std::vector<ParamAssignExpression *> const &ctxExpr() const;
       std::vector<ParamAssignExpression *> const &elemExpr() const;
-      
+      std::map<std::string, RecipeContext *> const &ports() const;
+
+      std::map<std::string, Recipe *> const &customElements() const;
       std::map<std::string, RecipeParameter> const &dofs() const;
       std::map<std::string, RecipeParameter> const &params() const;
       
-      RecipeContext *lookupReferenceFrame(std::string const &) const;
+      RecipeContext     *lookupReferenceFrame(std::string const &) const;
       RecipeElementStep *lookupElement(std::string const &) const;
       RecipeOpticalPath *lookupOpticalPath(std::string const & = "") const;
-
       RecipeElementStep *resolveElement(std::string const &) const;
-
+      Recipe            *makeCustomElement(std::string const &);
+      
       void pushRotation(
         std::string const &angle,
         std::string const &eX,
@@ -198,7 +205,7 @@ namespace RZ {
         std::string const &dZ,
         std::string const &name = "");
 
-      void pushPort(RecipeElementStep *, std::string const &port);
+      void pushPortContext(RecipeElementStep *, std::string const &port);
 
       bool pop();
 
@@ -210,6 +217,8 @@ namespace RZ {
       
       RecipeOpticalPath *allocatePath(std::string const &name = "");
 
+      void addPort(std::string const &name);
+      
       bool addDof(
         std::string const &name,
         Real defVal,
@@ -228,36 +237,5 @@ namespace RZ {
   };
 
   class GenericCompositeModel;
-
-  class CompositeElement : public OpticalElement {
-      GenericCompositeModel *m_compositeModel;
-
-    protected:
-      CompositeElement(std::string const &, ReferenceFrame *, Element *parent = nullptr);
-      virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
-      void setRecipe(Recipe *m_recipe);
-
-    public:
-      ~CompositeElement();
-      
-      // Trigger creation of elements
-      void generate(OMModel *om);
-  };
-
-  // Factory for a given recipe
-  class CompositeElementFactory : public ElementFactory {
-      Recipe *m_recipe;
-
-    public:
-      CompositeElementFactory(Recipe *);
-
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-
-    friend class CompositeElement;
-  };
 }
 #endif // _RECIPE_H
