@@ -43,19 +43,19 @@ InfiniteMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) con
 }
 
 std::string
-CircularMirrorProcessor::name() const
+FlatMirrorProcessor::name() const
 {
-  return "CircularMirror";
+  return "FlatMirror";
 }
 
 void
-CircularMirrorProcessor::setRadius(Real R)
+FlatMirrorProcessor::setRadius(Real R)
 {
   m_radius = R;
 }
 
 void
-CircularMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
@@ -89,7 +89,7 @@ CircularMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) con
 std::string
 SphericalMirrorProcessor::name() const
 {
-  return "ConcaveMirror";
+  return "SphericalMirror";
 }
 
 void

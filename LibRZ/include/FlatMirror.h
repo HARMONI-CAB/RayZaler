@@ -1,5 +1,5 @@
-#ifndef _CIRCULAR_MIRROR_H
-#define _CIRCULAR_MIRROR_H
+#ifndef _FLAT_MIRROR_H
+#define _FLAT_MIRROR_H
 
 #include <OpticalElement.h>
 #include <RayProcessors.h>
@@ -8,9 +8,9 @@
 namespace RZ {
   class TranslatedFrame;
 
-  class CircularMirror : public OpticalElement {
+  class FlatMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
-      CircularMirrorProcessor *m_processor;
+      FlatMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
       Real m_thickness = 1e-2;
       Real m_radius = 1e-2;
@@ -21,13 +21,13 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      CircularMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
-      ~CircularMirror();
+      FlatMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      ~FlatMirror();
 
       virtual void renderOpenGL() override;
   };
 
-  class CircularMirrorFactory : public ElementFactory {
+  class FlatMirrorFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -37,4 +37,4 @@ namespace RZ {
   };
 }
 
-#endif // _CIRCULAR_MIRROR_H
+#endif // _FLAT_MIRROR_H

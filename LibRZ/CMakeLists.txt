@@ -15,9 +15,9 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/BenchElement.cpp
   ${LIBRZ_SRCDIR}/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Detector.cpp
-  ${LIBRZ_SRCDIR}/CircularMirror.cpp
+  ${LIBRZ_SRCDIR}/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
-  ${LIBRZ_SRCDIR}/ConcaveMirror.cpp
+  ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
@@ -42,9 +42,9 @@ set(LIBRZ_SOURCES
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/BenchElement.h
   ${LIBRZ_INCLUDEDIR}/BlockElement.h
-  ${LIBRZ_INCLUDEDIR}/CircularMirror.h
+  ${LIBRZ_INCLUDEDIR}/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
-  ${LIBRZ_INCLUDEDIR}/ConcaveMirror.h
+  ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h

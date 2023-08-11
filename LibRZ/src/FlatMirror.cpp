@@ -1,22 +1,20 @@
-#include <ConcaveMirror.h>
+#include <FlatMirror.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;
 
 void
-ConcaveMirror::recalcModel()
+FlatMirror::recalcModel()
 {
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
   m_processor->setRadius(m_radius);
-  m_processor->setFocalLength(m_flength);
-
   m_reflectiveSurfaceFrame->setDistance(m_thickness * Vec3::eZ());
 }
 
 bool
-ConcaveMirror::propertyChanged(
+FlatMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
@@ -26,9 +24,6 @@ ConcaveMirror::propertyChanged(
   } else if (name == "radius") {
     m_radius = value;
     recalcModel();
-  } else if (name == "flength") {
-    m_flength = value;
-    recalcModel();
   } else {
     return false;
   }
@@ -37,16 +32,15 @@ ConcaveMirror::propertyChanged(
 }
 
 
-ConcaveMirror::ConcaveMirror(
+FlatMirror::FlatMirror(
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(name, frame, parent)
 {
-  m_processor = new SphericalMirrorProcessor;
+  m_processor = new FlatMirrorProcessor;
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
-  registerProperty("flength",       1.);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
@@ -54,17 +48,17 @@ ConcaveMirror::ConcaveMirror(
 
   m_cylinder.setVisibleCaps(true, true);
   
-  refreshProperties();
+  recalcModel();
 }
 
-ConcaveMirror::~ConcaveMirror()
+FlatMirror::~FlatMirror()
 {
   if (m_processor != nullptr)
     delete m_processor;
 }
 
 void
-ConcaveMirror::renderOpenGL()
+FlatMirror::renderOpenGL()
 {
   GLVectorStorage vec;
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
@@ -76,16 +70,16 @@ ConcaveMirror::renderOpenGL()
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-ConcaveMirrorFactory::name() const
+FlatMirrorFactory::name() const
 {
-  return "ConcaveMirror";
+  return "FlatMirror";
 }
 
 Element *
-ConcaveMirrorFactory::make(
+FlatMirrorFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new ConcaveMirror(name, pFrame, parent);
+  return new FlatMirror(name, pFrame, parent);
 }

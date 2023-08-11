@@ -81,7 +81,7 @@ element SOSM {
     rotate (90, 0, 0, 1) {
       SmarActGoniometer gonY(alpha = y);
       on platform of gonY
-        CircularMirror mirror(radius = 20e-3, thickness = 5e-3);
+        FlatMirror mirror(radius = 20e-3, thickness = 5e-3);
     }
   }
 

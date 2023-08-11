@@ -17,7 +17,7 @@ namespace RZ {
     virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
 
-  class CircularMirrorProcessor : public RayTransferProcessor {
+  class FlatMirrorProcessor : public RayTransferProcessor {
     Real m_radius = .5;
     public:
       void setRadius(Real);

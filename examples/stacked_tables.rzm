@@ -10,6 +10,6 @@ on surface of bench {
 
     translate (dz = 0.5)                     # On top of the second bench
       rotate (0.4 * cos(0.1 * t), 1, 0, 0)   # Rotate around the X axis
-        ConcaveMirror mirror(radius = 0.25); # And place a mirror there
+        SphericalMirror mirror(radius = 0.25); # And place a mirror there
   }
 }

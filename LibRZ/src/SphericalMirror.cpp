@@ -1,20 +1,22 @@
-#include <CircularMirror.h>
+#include <SphericalMirror.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;
 
 void
-CircularMirror::recalcModel()
+SphericalMirror::recalcModel()
 {
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
   m_processor->setRadius(m_radius);
+  m_processor->setFocalLength(m_flength);
+
   m_reflectiveSurfaceFrame->setDistance(m_thickness * Vec3::eZ());
 }
 
 bool
-CircularMirror::propertyChanged(
+SphericalMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
@@ -24,6 +26,9 @@ CircularMirror::propertyChanged(
   } else if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "flength") {
+    m_flength = value;
+    recalcModel();
   } else {
     return false;
   }
@@ -32,15 +37,16 @@ CircularMirror::propertyChanged(
 }
 
 
-CircularMirror::CircularMirror(
+SphericalMirror::SphericalMirror(
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(name, frame, parent)
 {
-  m_processor = new CircularMirrorProcessor;
+  m_processor = new SphericalMirrorProcessor;
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
+  registerProperty("flength",       1.);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
@@ -48,17 +54,17 @@ CircularMirror::CircularMirror(
 
   m_cylinder.setVisibleCaps(true, true);
   
-  recalcModel();
+  refreshProperties();
 }
 
-CircularMirror::~CircularMirror()
+SphericalMirror::~SphericalMirror()
 {
   if (m_processor != nullptr)
     delete m_processor;
 }
 
 void
-CircularMirror::renderOpenGL()
+SphericalMirror::renderOpenGL()
 {
   GLVectorStorage vec;
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
@@ -70,16 +76,16 @@ CircularMirror::renderOpenGL()
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-CircularMirrorFactory::name() const
+SphericalMirrorFactory::name() const
 {
-  return "CircularMirror";
+  return "SphericalMirror";
 }
 
 Element *
-CircularMirrorFactory::make(
+SphericalMirrorFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new CircularMirror(name, pFrame, parent);
+  return new SphericalMirror(name, pFrame, parent);
 }

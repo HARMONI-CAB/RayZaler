@@ -1,5 +1,5 @@
-#ifndef _Concave_MIRROR_H
-#define _Concave_MIRROR_H
+#ifndef _SPHERICAL_MIRROR_H
+#define _SPHERICAL_MIRROR_H
 
 #include <OpticalElement.h>
 #include <RayProcessors.h>
@@ -8,7 +8,7 @@
 namespace RZ {
   class TranslatedFrame;
 
-  class ConcaveMirror : public OpticalElement {
+  class SphericalMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
       SphericalMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
@@ -22,13 +22,13 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      ConcaveMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
-      ~ConcaveMirror();
+      SphericalMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      ~SphericalMirror();
 
       virtual void renderOpenGL() override;
   };
 
-  class ConcaveMirrorFactory : public ElementFactory {
+  class SphericalMirrorFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -38,4 +38,4 @@ namespace RZ {
   };
 }
 
-#endif // _Concave_MIRROR_H
+#endif // _SPHERICAL_MIRROR_H
