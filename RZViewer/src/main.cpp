@@ -135,7 +135,7 @@ main(int argc, char **argv)
         defPath->m_sequence.size());
       int i = 0;
       for (auto p : defPath->m_sequence)
-        fprintf(stderr, "  %2d. %s\n", ++i, p.name.c_str());
+        fprintf(stderr, "  %2d. %s\n", ++i, p.frame->name().c_str());
     }
 
     engine->setModel(model);

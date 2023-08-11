@@ -43,6 +43,12 @@ BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
 void
 BlockElement::initSides()
 {
+  const char *names[] = {
+    "front", "back",
+    "right", "left",
+    "top",   "bottom"
+  };
+
   Real rotations[][4] = {
     {+90, 0, 1, 0},
     {-90, 0, 1, 0},
@@ -54,7 +60,7 @@ BlockElement::initSides()
 
   for (int i = 0; i < 6; ++i)
     m_rotatedSides[i] = new RotatedFrame(
-      "side-rot-" + std::to_string(i),
+      std::string(names[i]) + "_rotation",
       parentFrame(),
       Vec3(rotations[i][1], rotations[i][2], rotations[i][3]),
       rotations[i][0]);

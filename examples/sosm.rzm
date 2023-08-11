@@ -44,10 +44,10 @@
 element SmarActGoniometer {
   dof alpha = 0;
 
-  translate origin (dz = 4.25e-3)
+  translate act_center (dz = 4.25e-3)
     BlockElement base(length = 50e-3, width  = 50e-3, height = 8.5e-3);
 
-  on top_side of origin.base {
+  on top_side of act_center.base {
     translate (dz = 69e-3) {  # 60.5 mm + 8.5 mm
       rotate (alpha, 1, 0, 0) {
         translate (dz = -60.5e-3) {
