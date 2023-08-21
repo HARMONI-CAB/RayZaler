@@ -387,12 +387,10 @@ ParserContext::parse()
   try {
     yyparse(this);
   } catch (std::runtime_error const &e) {
-    fprintf(
-      stderr,
-      "%s:%d:%d: %s\n",
-      m_file.c_str(),
-      m_tokLine + 1,
-      m_tokChar + 1,
+    throw std::runtime_error(
+      m_file + ":" +
+      std::to_string(m_tokLine + 1) + ":" +
+      std::to_string(m_tokChar + 1) + ":" +
       e.what());
     
     return false;

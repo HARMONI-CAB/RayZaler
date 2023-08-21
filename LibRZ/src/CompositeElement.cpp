@@ -74,8 +74,6 @@ CompositeElement::propertyChanged(
     return true;
   } catch (std::runtime_error &e) { }
 
-  printf("Param set!\n");
-
   m_model->world()->recalculate();
 
   return false;
@@ -90,12 +88,14 @@ CompositeElement::CompositeElement(
   std::string const &name, 
   ReferenceFrame *pFrame,
   Recipe *recipe,
+  GenericCompositeModel *parentCompositeModel,
   Element *parent) : 
   IHateCPlusPlus(new OMModel()),
   OpticalElement(name, pFrame, parent),
-  GenericCompositeModel(recipe, model())
+  GenericCompositeModel(recipe, model(), parentCompositeModel)
 {
   m_model = model();
+
   build(pFrame);
 }
 
@@ -130,8 +130,9 @@ CompositeElement::~CompositeElement()
 /////////////////////////// CompositeElementFactory ////////////////////////////
 CompositeElementFactory::CompositeElementFactory(
   std::string const &name,
-  Recipe *recipe)
-  : m_name(name), m_recipe(recipe)
+  Recipe *recipe,
+  GenericCompositeModel *owner)
+  : m_name(name), m_recipe(recipe), m_owner(owner)
 {
 }
 
@@ -147,5 +148,5 @@ CompositeElementFactory::make(
     ReferenceFrame *pFrame,
     Element *parent)
 {
-  return new CompositeElement(name, pFrame, m_recipe, parent);
+  return new CompositeElement(name, pFrame, m_recipe, m_owner, parent);
 }

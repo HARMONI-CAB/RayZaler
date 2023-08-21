@@ -75,13 +75,20 @@ namespace RZ {
   };
 
   // Serves as storage
+  class CompositeElementFactory;
+  class ElementFactory;
+  
   class GenericCompositeModel {
       OMModel                      *m_model = nullptr;           // Borrowed
       Recipe                       *m_recipe = nullptr;          // Borrowed
       Element                      *m_parent = nullptr;          // Borrowed
-
+      GenericCompositeModel        *m_parentModel = nullptr;     // Borrowed
+      
       std::vector<ReferenceFrame *> m_frames;                    // Borrowed (m_model)
       std::vector<Element *>        m_elements;                  // Borrowed (m_model)
+      
+      std::list<CompositeElementFactory *> m_customFactoryList;  // Owned
+      std::map<std::string, CompositeElementFactory *> m_customFactories;
       std::list<GenericComponentParamEvaluator *> m_expressions; // Owned
 
       unsigned int m_completedFrames = 0;
@@ -97,6 +104,9 @@ namespace RZ {
       std::string m_prefix;
 
       bool m_constructed = false;
+
+      bool registerCustomFactory(CompositeElementFactory *);
+      ElementFactory *lookupElementFactory(const std::string &) const;
 
       void registerCustomElements();
       void createFrames(ReferenceFrame *);
@@ -150,7 +160,11 @@ namespace RZ {
       ReferenceFrame *getFrameOfContext(const RecipeContext *) const;
 
     public:
-      GenericCompositeModel(Recipe *, OMModel *, Element *parent = nullptr);
+      GenericCompositeModel(
+        Recipe *,
+        OMModel *,
+        GenericCompositeModel *parentModel = nullptr,
+        Element *parent = nullptr);
       virtual ~GenericCompositeModel();
 
       std::list<std::string> params() const;
@@ -158,7 +172,7 @@ namespace RZ {
 
       GenericModelParam *lookupParam(std::string const &);
       GenericModelParam *lookupDof(std::string const &);
-
+      GenericCompositeModel *parentCompositeModel() const;
       bool setParam(std::string const &, Real);
       bool setDof(std::string const &, Real);
 

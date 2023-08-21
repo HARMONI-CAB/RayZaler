@@ -174,7 +174,8 @@ Recipe::makeCustomElement(std::string const &name)
 
   // Make sure we are not attempting to override an existing element factory
   Singleton *sing = Singleton::instance();
-  if (sing->lookupElementFactory(name) != nullptr)
+  if (sing->lookupElementFactory(name) != nullptr
+    || m_customElements.find(name) != m_customElements.end())
     return nullptr;
   
   Recipe *recipe = new Recipe(name, this);

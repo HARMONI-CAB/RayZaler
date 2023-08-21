@@ -76,7 +76,7 @@ GenericComponentParamEvaluator::assign()
       else if (param == "eZ")
         rotation->setAxisZ(value);
       else
-        std::runtime_error("Unknown rotation parameter `" + param + "'");
+        throw std::runtime_error("Unknown rotation parameter `" + param + "'");
       
       rotation->recalculate();
       break;
@@ -89,7 +89,7 @@ GenericComponentParamEvaluator::assign()
       else if (param == "dZ")
         translation->setDistanceZ(value);
       else
-        std::runtime_error("Unknown translation parameter `" + param + "'");
+        throw std::runtime_error("Unknown translation parameter `" + param + "'");
 
       translation->recalculate();
       break;
@@ -108,11 +108,13 @@ GenericModelParam::test(Real val)
 GenericCompositeModel::GenericCompositeModel(
   Recipe *recipe,
   OMModel *model,
+  GenericCompositeModel *parentModel,
   Element *parent)
 {
-  m_recipe = recipe;
-  m_model  = model;
-  m_parent = parent;
+  m_recipe      = recipe;
+  m_model       = model;
+  m_parentModel = parentModel;
+  m_parent      = parent;
 
   assert(m_model != nullptr);
 }
@@ -123,6 +125,9 @@ GenericCompositeModel::~GenericCompositeModel()
     delete p;
 
   for (auto p : m_genParamStorage)
+    delete p;
+
+  for (auto p : m_customFactoryList)
     delete p;
 }
 
@@ -169,6 +174,12 @@ GenericCompositeModel::lookupDof(std::string const &dof)
     return nullptr;
 
   return m_dofs[dof];
+}
+
+GenericCompositeModel *
+GenericCompositeModel::parentCompositeModel() const
+{
+  return m_parentModel;
 }
 
 void
@@ -310,16 +321,48 @@ GenericCompositeModel::getFrameOfContext(const RecipeContext *ctx) const
   return nullptr;
 }
 
+bool
+GenericCompositeModel::registerCustomFactory(CompositeElementFactory *factory)
+{
+  // Check if factory already exists
+  if (m_customFactories.find(factory->name()) != m_customFactories.cend())
+    return false;
+
+  m_customFactoryList.push_back(factory);
+  m_customFactories[factory->name()] = factory;
+
+  return true;
+}
+
+ElementFactory *
+GenericCompositeModel::lookupElementFactory(const std::string &name) const
+{
+  auto p = m_customFactories.find(name);
+  if (p != m_customFactories.end()) {
+    return p->second;
+  } else {
+    if (m_parentModel == nullptr) {
+      Singleton *sing = Singleton::instance();
+      return sing->lookupElementFactory(name);
+    } else {
+      return m_parentModel->lookupElementFactory(name);
+    }
+  }
+}
+
 void
 GenericCompositeModel::registerCustomElements()
 {
   Singleton *sing = Singleton::instance();
   auto elements = m_recipe->customElements();
 
-  for (auto p : elements)
-    if (sing->lookupElementFactory(p.first) == nullptr)
-      sing->registerElementFactory(
-        new CompositeElementFactory(p.first, p.second));
+  for (auto p : elements) {
+    auto factory = new CompositeElementFactory(p.first, p.second, this);
+    if (!registerCustomFactory(factory)) {
+      delete factory;
+      throw std::runtime_error("Attempting to register custom factory `" + p.first + "' twice. THIS IS A BUG.");
+    }
+  }
 }
 
 void
@@ -352,7 +395,7 @@ GenericCompositeModel::createFrames(ReferenceFrame *parent)
 
     switch (contexts[i]->type) {
       case RECIPE_CONTEXT_TYPE_ROOT:
-        std::runtime_error("Root context in wrong place");
+        throw std::runtime_error("Root context in wrong place");
         break;
 
       case RECIPE_CONTEXT_TYPE_PORT:
@@ -369,7 +412,7 @@ GenericCompositeModel::createFrames(ReferenceFrame *parent)
 
     ++m_completedFrames;
     if (!m_model->registerFrame(m_frames[i]))
-      std::runtime_error("Reference frame `" + name + "' already exists");
+      throw std::runtime_error("Reference frame `" + name + "' already exists");
   }
 }
 
@@ -379,18 +422,17 @@ GenericCompositeModel::createElementInside(
   ReferenceFrame *pFrame)
 {
   std::string name = m_prefix + step->name;
-  Singleton *sing = Singleton::instance();
   int index = step->s_index;
 
-  auto factory = sing->lookupElementFactory(step->factory);
+  auto factory = lookupElementFactory(step->factory);
   if (factory == nullptr)
-    std::runtime_error("Undefined element class `" + step->factory + "'");
+    throw std::runtime_error("Undefined element class `" + step->factory + "'");
 
   m_elements[index] = factory->make(name, pFrame, m_parent);
   ++m_completedElements;
 
   if (!m_model->autoRegisterElement(m_elements[index]))
-    std::runtime_error("Element`" + name + "' already exists");
+    throw std::runtime_error("Element`" + name + "' already exists");
 }
 
 void
@@ -567,11 +609,11 @@ GenericCompositeModel::createLocalExpressions(
 
     switch (localFrame->type) {
       case RECIPE_CONTEXT_TYPE_ROOT:
-        std::runtime_error("Root context must have no params");
+        throw std::runtime_error("Root context must have no params");
         break;
 
       case RECIPE_CONTEXT_TYPE_PORT:
-        std::runtime_error("Port contexts must have no params");
+        throw std::runtime_error("Port contexts must have no params");
         break;
 
       case RECIPE_CONTEXT_TYPE_ROTATION:

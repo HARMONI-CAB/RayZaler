@@ -13,4 +13,4 @@ add_subdirectory(lib/Catch2)
 add_subdirectory(LibRZ)
 add_subdirectory(LibRZTests)
 add_subdirectory(RZViewer)
-
+add_subdirectory(RZGUI)

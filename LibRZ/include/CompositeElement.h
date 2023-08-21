@@ -56,6 +56,7 @@ namespace RZ {
         std::string const &name, 
         ReferenceFrame *pFrame,
         Recipe *recipe,
+        GenericCompositeModel *parentCompositeModel,
         Element *parent = nullptr);
       virtual OpticalPath opticalPath() const override;
       ~CompositeElement();
@@ -66,10 +67,14 @@ namespace RZ {
 
   class CompositeElementFactory : public ElementFactory {
       Recipe *m_recipe = nullptr;
+      GenericCompositeModel *m_owner = nullptr;
       std::string m_name;
 
     public:
-      CompositeElementFactory(std::string const &, Recipe *);
+      CompositeElementFactory(
+        std::string const &,
+        Recipe *,
+        GenericCompositeModel *owner);
       virtual std::string name() const override;
       virtual Element *make(
         std::string const &name,

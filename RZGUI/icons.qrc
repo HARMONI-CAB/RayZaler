@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/toolbar">
+        <file>icons/folder-open.svg</file>
+    </qresource>
+</RCC>
