@@ -38,9 +38,10 @@ SphericalMirror::propertyChanged(
 
 
 SphericalMirror::SphericalMirror(
+  ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
-  Element *parent) : OpticalElement(name, frame, parent)
+  Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_processor = new SphericalMirrorProcessor;
 
@@ -87,5 +88,5 @@ SphericalMirrorFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new SphericalMirror(name, pFrame, parent);
+  return new SphericalMirror(this, name, pFrame, parent);
 }

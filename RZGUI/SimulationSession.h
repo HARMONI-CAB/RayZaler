@@ -4,6 +4,8 @@
 #include <QObject>
 #include <Recipe.h>
 #include <TopLevelModel.h>
+#include <SimpleExpressionEvaluator.h>
+#include <QTimer>
 
 //
 // A Simulation Session is an object that keeps the current state of the
@@ -20,6 +22,101 @@
 // + getFileName(): gets the filename
 
 class FileParserContext;
+class QAbstractTableModel;
+
+#define BLOCKSIG_BEGIN(object)                   \
+  do {                                           \
+    QObject *obj = object;                       \
+    bool blocked = (object)->blockSignals(true)
+
+#define BLOCKSIG_END()                           \
+    obj->blockSignals(blocked);                  \
+  } while (false)
+
+#define BLOCKSIG(object, op)                     \
+  do {                                           \
+    bool blocked = (object)->blockSignals(true); \
+    (object)->op;                                \
+    (object)->blockSignals(blocked);             \
+  } while (false)
+
+
+enum SimulationType {
+  SIM_TYPE_ONE_SHOT,
+  SIM_TYPE_1D_SWEEP,
+  SIM_TYPE_2D_SWEEP
+};
+
+enum BeamType {
+  BEAM_TYPE_COLLIMATED,
+  BEAM_TYPE_CONVERGING,
+  BEAM_TYPE_DIVERGING
+};
+
+struct SimulationProperties {
+  SimulationType type = SIM_TYPE_ONE_SHOT;
+  BeamType       beam = BEAM_TYPE_COLLIMATED;
+
+  QString diameter    = "1";       // m
+  QString fNum        = "17.37";
+  QString azimuth     = "0";       // deg
+  QString elevation   = "0";       // deg
+  QString offsetX     = "0";       // m
+  QString offsetY     = "0";       // m
+
+  int rays            = 1000;
+  int Ni              = 10;
+  int Nj              = 10;
+
+  QString detector;
+  QString path;
+
+  std::map<std::string, std::string> dofs;
+};
+
+class SimulationState {
+  SimulationProperties       m_properties;
+  RZ::TopLevelModel         *m_topLevelModel = nullptr;
+
+  SimpleExpressionEvaluator *m_diamExpr      = nullptr;
+  SimpleExpressionEvaluator *m_fNumExpr      = nullptr;
+
+  SimpleExpressionEvaluator *m_azimuthExpr   = nullptr;
+  SimpleExpressionEvaluator *m_elevationExpr = nullptr;
+
+  SimpleExpressionEvaluator *m_offsetXExpr   = nullptr;
+  SimpleExpressionEvaluator *m_offsetYExpr   = nullptr;
+
+  std::map<std::string, SimpleExpressionEvaluator *> m_dofExprs;
+  std::map<std::string, RZ::Real> m_dofValues;
+
+  // Evaluated members
+  RZ::Real m_i,  m_j;
+  RZ::Real m_Ni, m_Nj;
+  RZ::Real m_D,  m_fNum;
+
+  RZ::Real m_azimuth, m_elevation;
+  RZ::Real m_offsetX, m_offsetY;
+
+  SimpleExpressionDict m_dictionary;
+
+  std::string m_lastCompileError = "";
+  bool m_complete = false;
+
+  void clearAll();
+  bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
+
+
+public:
+  SimulationState(RZ::TopLevelModel *);
+  ~SimulationState();
+
+  bool canRun() const;
+  bool setProperties(SimulationProperties const &);
+  std::string getFirstInvalidExpr() const;
+  std::string getLastError() const;
+  SimulationProperties properties() const;
+};
 
 class SimulationSession : public QObject
 {
@@ -27,20 +124,41 @@ class SimulationSession : public QObject
 
   QString            m_path;
   QString            m_fileName;
-  FileParserContext *m_context       = nullptr;
-  RZ::Recipe        *m_recipe        = nullptr;
-  RZ::TopLevelModel *m_topLevelModel = nullptr;
+  FileParserContext *m_context           = nullptr;
+  RZ::Recipe        *m_recipe            = nullptr;
+  RZ::TopLevelModel *m_topLevelModel     = nullptr;
+  SimulationState   *m_simState          = nullptr;
+  QTimer            *m_timer             = nullptr;
+
+  qreal              m_t                 = 0;
+  bool               m_paused            = false;
+  bool               m_playing           = false;
+
+  void               updateAnim();
 
 public:
   explicit SimulationSession(QString const &path, QObject *parent = nullptr);
   virtual ~SimulationSession() override;
 
-  RZ::Recipe        *recipe() const;
-  RZ::TopLevelModel *topLevelModel() const;
-  QString            fileName() const;
+  SimulationState     *state() const;
+  RZ::Recipe          *recipe() const;
+  RZ::TopLevelModel   *topLevelModel() const;
+  QString              fileName() const;
+
+  void                 animPause();
+  void                 animStop();
+  void                 animBegin();
+  void                 animEnd();
+  void                 animPlay();
+
+  bool                 playing() const;
+  bool                 stopped() const;
 
 signals:
+  void modelChanged();
 
+public slots:
+  void onTimerTick();
 };
 
 #endif // SIMULATIONSESSION_H

@@ -42,23 +42,27 @@ ParserContext::isTerminator(int c) const
     return false;
 
   // Check for numbers
-  if (isdigit(m_buf[0])) {
+  if (looksLikeNumber(m_buf)) {
     c = tolower(c);
-
     if (isdigit(c))
       return false;
 
     if (m_buf.find('e') == std::string::npos) {
+      // No exponent: exponent declaration and decimal point allowed
       if (c == 'e')
         return false;
       
       if (c == '.' && m_buf.find('.') == std::string::npos)
         return false;
     } else {
+      // Exponent part.
       if (m_buf[m_buf.size() - 1] == 'e') {
-        if (!isdigit(c) && c != '+' && c != '-')
-          return true;
+        // Signs and numbers are allowed right after the exponent
+        if (isdigit(c) || c == '+' || c == '-')
+          return false;
+        
       } else {
+        // Here, only numbers are allowed
         return !isdigit(c);
       }
     }
@@ -169,10 +173,22 @@ ParserContext::setFile(std::string const &file)
   m_file = file;
 }
 
+bool
+ParserContext::looksLikeNumber(std::string const &string)
+{
+  if (isdigit(string[0]))
+    return true;
+
+  if (string.size() > 1 && string[0] == '.' && isdigit(string[1]))
+    return true;
+
+  return false;
+}
+
 int
 ParserContext::tokenType() const
 {
-  if (isdigit(m_lastToken[0])) {
+  if (looksLikeNumber(m_lastToken)) {
     return NUM;
   } else if (isIdStartChar(m_lastToken[0])) {
     // Identify keyword

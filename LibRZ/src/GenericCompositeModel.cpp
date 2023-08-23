@@ -266,11 +266,12 @@ GenericCompositeModel::build(
 
   m_prefix = prefix;
 
+  createParams();
+  initGlobalScope();
   registerCustomElements();
   createFrames(parent);
   createElements(parent);
   delayedCreationLoop();
-  createParams();
   createExpressions();
   exposeOpticalPaths();
   exposePorts();
@@ -421,7 +422,10 @@ GenericCompositeModel::createElementInside(
   RecipeElementStep *step,
   ReferenceFrame *pFrame)
 {
-  std::string name = m_prefix + step->name;
+  std::string baseName = step->name;
+  if (baseName.size() == 0)
+    baseName = step->factory;
+  std::string name = m_prefix + baseName;
   int index = step->s_index;
 
   auto factory = lookupElementFactory(step->factory);
@@ -629,31 +633,47 @@ GenericCompositeModel::createLocalExpressions(
   }
 }
 
+GenericEvaluatorSymbolDict const &
+GenericCompositeModel::symbolDict() const
+{
+  return m_global;
+}
+
 void
-GenericCompositeModel::createExpressions()
+GenericCompositeModel::initGlobalScope()
 {
   // Start creation of global symbol table
-  GenericEvaluatorSymbolDict global;
-  auto ctx = m_recipe->contexts();
+  if (m_parentModel != nullptr) {
+    auto parentScope = m_parentModel->symbolDict();
+    for (auto p : parentScope)
+      m_global[p.first] = p.second;
+  }
 
   // Elements of the symbol table related to the DOFs and parameters
   for (auto p : m_params) {
     auto name = m_prefix + p.first;
     auto mPar = p.second;
 
-    global[name] = mPar;
+    m_global[name] = mPar;
   }
 
   for (auto p : m_dofs) {
     auto name = m_prefix + p.first;
     auto mPar = p.second;
 
-    global[name] = mPar;
+    m_global[name] = mPar;
   }
+
+}
+
+void
+GenericCompositeModel::createExpressions()
+{
+  auto ctx = m_recipe->contexts();
 
   // Context by context, create expressions
   for (auto p : ctx)
-    createLocalExpressions(global, p);
+    createLocalExpressions(m_global, p);
 }
 
 bool

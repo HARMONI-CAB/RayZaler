@@ -157,9 +157,10 @@ Detector::propertyChanged(
 
 
 Detector::Detector(
+  ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
-  Element *parent) : OpticalElement(name, frame, parent)
+  Element *parent) : OpticalElement(factory, name, frame, parent)
 {  
   registerProperty("width",  m_width);
   registerProperty("height", m_height);
@@ -224,5 +225,5 @@ DetectorFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new Detector(name, pFrame, parent);
+  return new Detector(this, name, pFrame, parent);
 }

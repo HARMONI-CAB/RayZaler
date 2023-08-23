@@ -77,13 +77,14 @@ namespace RZ {
   // Serves as storage
   class CompositeElementFactory;
   class ElementFactory;
-  
+
   class GenericCompositeModel {
       OMModel                      *m_model = nullptr;           // Borrowed
       Recipe                       *m_recipe = nullptr;          // Borrowed
       Element                      *m_parent = nullptr;          // Borrowed
       GenericCompositeModel        *m_parentModel = nullptr;     // Borrowed
       
+      GenericEvaluatorSymbolDict    m_global;
       std::vector<ReferenceFrame *> m_frames;                    // Borrowed (m_model)
       std::vector<Element *>        m_elements;                  // Borrowed (m_model)
       
@@ -108,6 +109,7 @@ namespace RZ {
       bool registerCustomFactory(CompositeElementFactory *);
       ElementFactory *lookupElementFactory(const std::string &) const;
 
+      void initGlobalScope();
       void registerCustomElements();
       void createFrames(ReferenceFrame *);
       void resolvePorts();
@@ -135,6 +137,7 @@ namespace RZ {
 
     protected:
       GenericModelParam *allocateParam();
+      GenericEvaluatorSymbolDict const &symbolDict() const;
 
       // Interface methods
       virtual void registerDof(
@@ -166,7 +169,7 @@ namespace RZ {
         GenericCompositeModel *parentModel = nullptr,
         Element *parent = nullptr);
       virtual ~GenericCompositeModel();
-
+    
       std::list<std::string> params() const;
       std::list<std::string> dofs() const;
 

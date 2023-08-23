@@ -81,7 +81,11 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-        Detector(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+        Detector(
+          ElementFactory *,
+          std::string const &,
+          ReferenceFrame *,
+          Element *parent = nullptr);
         ~Detector();
 
       virtual void renderOpenGL() override;

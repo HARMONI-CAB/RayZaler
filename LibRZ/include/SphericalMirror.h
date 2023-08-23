@@ -22,7 +22,12 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      SphericalMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      SphericalMirror(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
+      
       ~SphericalMirror();
 
       virtual void renderOpenGL() override;

@@ -21,7 +21,12 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      FlatMirror(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      FlatMirror(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
+      
       ~FlatMirror();
 
       virtual void renderOpenGL() override;

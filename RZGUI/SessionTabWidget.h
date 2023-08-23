@@ -17,12 +17,21 @@ class SessionTabWidget : public QWidget
   SimulationSession *m_session;  // Borrowed
   RZGUIGLWidget     *m_glWidget; // Borrowed
 
+  void connectAll();
+
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
-  ~SessionTabWidget();
+  ~SessionTabWidget() override;
+
+  SimulationSession *session() const;
+  void updateModel();
 
 private:
   Ui::SessionTabWidget *ui;
+
+public slots:
+  void onModelChanged();
+
 };
 
 #endif // SESSIONTABWIDGET_H

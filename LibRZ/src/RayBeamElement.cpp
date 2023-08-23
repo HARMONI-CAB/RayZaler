@@ -19,8 +19,12 @@ RayBeamElement::raysToVertices()
   }
 }
 
-RayBeamElement::RayBeamElement(std::string const &name, ReferenceFrame *pFrame, Element *parent)
-: Element(name, pFrame, parent)
+RayBeamElement::RayBeamElement(
+  ElementFactory *factory,
+  std::string const &name,
+  ReferenceFrame *pFrame,
+  Element *parent)
+: Element(factory, name, pFrame, parent)
 {
 
 }
@@ -72,5 +76,5 @@ RayBeamElementFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new RayBeamElement(name, pFrame, parent);
+  return new RayBeamElement(this, name, pFrame, parent);
 }

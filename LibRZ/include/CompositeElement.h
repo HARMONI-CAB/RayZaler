@@ -53,6 +53,7 @@ namespace RZ {
       
     public:
       CompositeElement(
+        ElementFactory *factory,
         std::string const &name, 
         ReferenceFrame *pFrame,
         Recipe *recipe,

@@ -3,8 +3,13 @@
 
 using namespace RZ;
 
-Element::Element(std::string const &name, ReferenceFrame *pFrame, Element *parent)
+Element::Element(
+  ElementFactory *factory,
+  std::string const &name,
+  ReferenceFrame *pFrame,
+  Element *parent)
 {
+  m_factory     = factory;
   m_name        = name;
   m_parent      = parent;
   m_parentFrame = pFrame;

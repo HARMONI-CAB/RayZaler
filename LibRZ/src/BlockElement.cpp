@@ -97,10 +97,11 @@ BlockElement::initSides()
 }
 
 BlockElement::BlockElement(
+  ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent)
-  : Element(name, frame, parent)
+  : Element(factory, name, frame, parent)
 {
   registerProperty("length",  BLOCK_DEFAULT_LENGTH);
   registerProperty("width",   BLOCK_DEFAULT_WIDTH);
@@ -163,5 +164,5 @@ BlockElementFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new BlockElement(name, pFrame, parent);
+  return new BlockElement(this, name, pFrame, parent);
 }

@@ -16,7 +16,12 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      BenchElement(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      BenchElement(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
+      
       virtual ~BenchElement();
       virtual void renderOpenGL() override;
   };

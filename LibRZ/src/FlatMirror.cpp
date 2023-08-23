@@ -33,9 +33,10 @@ FlatMirror::propertyChanged(
 
 
 FlatMirror::FlatMirror(
+  ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
-  Element *parent) : OpticalElement(name, frame, parent)
+  Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_processor = new FlatMirrorProcessor;
 
@@ -81,5 +82,5 @@ FlatMirrorFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new FlatMirror(name, pFrame, parent);
+  return new FlatMirror(this, name, pFrame, parent);
 }

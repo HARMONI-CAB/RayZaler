@@ -10,13 +10,13 @@ using namespace RZ;
 TEST_CASE("Bench instantiation", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
 }
 
 TEST_CASE("Bench identification of ports", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
 
   auto ports = element.ports();
   REQUIRE(ports.find("surface") != ports.end());
@@ -25,7 +25,7 @@ TEST_CASE("Bench identification of ports", "[libRZ]")
 TEST_CASE("Bench identification of properties", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
 
   auto props = element.properties();
   REQUIRE(props.find("height") != props.end());
@@ -34,7 +34,7 @@ TEST_CASE("Bench identification of properties", "[libRZ]")
 TEST_CASE("Bench surface access", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
   ReferenceFrame *surf = element.getPortFrame("surface");
 
   REQUIRE(surf !=  nullptr);
@@ -43,7 +43,7 @@ TEST_CASE("Bench surface access", "[libRZ]")
 TEST_CASE("Bench surface height access", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
   Point3 point(RZ_URANDSIGN, RZ_URANDSIGN, 1 + RZ_URANDSIGN);
   Real height = RZ_URANDSIGN + 1;
 
@@ -64,7 +64,7 @@ TEST_CASE("Bench surface height access", "[libRZ]")
 TEST_CASE("Bench stacking", "[libRZ]")
 {
   WorldFrame world("world");
-  BenchElement element("bench", &world);
+  BenchElement element(nullptr, "bench", &world);
   BenchElement *newElement;
   Singleton *singleton = Singleton::instance();
   Point3 point(RZ_URANDSIGN, RZ_URANDSIGN, 1 + RZ_URANDSIGN);

@@ -13,7 +13,11 @@ namespace RZ {
       void raysToVertices();
 
     public:
-      RayBeamElement(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      RayBeamElement(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
       virtual ~RayBeamElement();
 
       void setList(std::list<Ray> const &);

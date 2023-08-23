@@ -22,11 +22,23 @@ set(PROJECT_SOURCES
         MainWindow.cpp
         MainWindow.h
         MainWindow.ui
+        OMTreeModel.h
+        OMTreeModel.cpp
+        PropertyAndDofTableModel.h
+        PropertyAndDofTableModel.cpp
         RZGUIGLWidget.h
         RZGUIGLWidget.cpp
         SessionTabWidget.h
         SessionTabWidget.cpp
         SessionTabWidget.ui
+        SimpleExpressionEvaluator.h
+        SimpleExpressionEvaluator.cpp
+        SimulationProgressDialog.h
+        SimulationProgressDialog.cpp
+        SimulationProgressDialog.ui
+        SimulationPropertiesDialog.h
+        SimulationPropertiesDialog.cpp
+        SimulationPropertiesDialog.ui
         SimulationSession.h
         SimulationSession.cpp
 )

@@ -2,6 +2,9 @@
 #include "./ui_MainWindow.h"
 #include "SimulationSession.h"
 #include "SessionTabWidget.h"
+#include "PropertyAndDofTableModel.h"
+#include "OMTreeModel.h"
+
 #include <QFileDialog>
 #include <QMessageBox>
 
@@ -11,7 +14,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
+  m_propModel = new PropertyAndDofTableModel(nullptr);
+  m_omModel   = new OMTreeModel();
+
+  ui->propTableView->setModel(m_propModel);
+  ui->omTreeView->setModel(m_omModel);
+
   connectAll();
+  refreshCurrentSession();
 }
 
 void
@@ -22,6 +32,87 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onOpen()));
+
+  connect(
+        ui->sessionTabWidget,
+        SIGNAL(tabCloseRequested(int)),
+        this,
+        SLOT(onCloseTab(int)));
+
+  connect(
+        ui->sessionTabWidget,
+        SIGNAL(currentChanged(int)),
+        this,
+        SLOT(onTabChanged()));
+
+  connect(
+        m_propModel,
+        SIGNAL(modelReset()),
+        this,
+        SLOT(onModelsChanged()));
+
+  connect(
+        m_propModel,
+        SIGNAL(dataChanged(QModelIndex, QModelIndex, QList<int>)),
+        this,
+        SLOT(onDofChanged(QModelIndex, QModelIndex, QList<int>)));
+
+  connect(
+        m_omModel,
+        SIGNAL(modelReset()),
+        this,
+        SLOT(onModelsChanged()));
+
+  connect(
+        ui->actionAnimStart,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onAnimStart()));
+
+  connect(
+        ui->actionAnimStop,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onAnimStop()));
+
+  connect(
+        ui->actionAnimPlay,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onAnimPlay()));
+
+  connect(
+        ui->actionAnimPause,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onAnimPause()));
+
+  connect(
+        ui->actionAnimEnd,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onAnimEnd()));
+}
+
+void
+MainWindow::refreshCurrentSession()
+{
+  if (m_currSession != nullptr) {
+    // Refresh model, if applicable
+    m_propModel->setModel(m_currSession->topLevelModel());
+    m_omModel->setModel(m_currSession->topLevelModel());
+
+    ui->animationToolBar->setEnabled(true);
+    ui->actionAnimPause->setEnabled(m_currSession->playing());
+    ui->actionAnimStop->setEnabled(!m_currSession->stopped());
+    ui->actionAnimPlay->setEnabled(!m_currSession->playing());
+  } else {
+    m_propModel->setModel(nullptr);
+    m_omModel->setModel(nullptr);
+
+    ui->animationToolBar->setEnabled(false);
+    ui->propTableView->setModel(nullptr);
+  }
 }
 
 void
@@ -29,11 +120,14 @@ MainWindow::registerSession(SimulationSession *session)
 {
   SessionTabWidget *widget = new SessionTabWidget(session);
 
+  m_sessions.push_back(session);
+  m_sessionToTab.insert(session, widget);
+
   ui->sessionTabWidget->addTab(widget, session->fileName());
   ui->sessionTabWidget->setCurrentWidget(widget);
 
-  m_sessions.push_back(session);
-  m_sessionToTab.insert(session, widget);
+  m_currSession = session;
+  refreshCurrentSession();
 }
 
 void
@@ -85,3 +179,97 @@ MainWindow::onOpen()
 {
   doOpen();
 }
+
+void
+MainWindow::onCloseTab(int index)
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->widget(index));
+
+  SimulationSession *session = widget->session();
+
+  ui->sessionTabWidget->removeTab(index);
+
+  m_sessions.remove(session);
+  m_sessionToTab.remove(session);
+
+  delete session;
+}
+
+void
+MainWindow::onTabChanged()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr) {
+    m_currSession = widget->session();
+  } else {
+    m_currSession = nullptr;
+  }
+
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onAnimStart()
+{
+  m_currSession->animBegin();
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onAnimEnd()
+{
+  m_currSession->animEnd();
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onAnimPause()
+{
+  m_currSession->animPause();
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onAnimPlay()
+{
+  m_currSession->animPlay();
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onAnimStop()
+{
+  m_currSession->animStop();
+  refreshCurrentSession();
+}
+
+void
+MainWindow::onModelsChanged()
+{
+  ui->propTableView->setModel(nullptr);
+  ui->propTableView->setModel(m_propModel);
+
+  ui->propTableView->horizontalHeader()->resizeSections(QHeaderView::Stretch);
+  ui->propTableView->horizontalHeader()->setStretchLastSection(true);
+
+  ui->omTreeView->setModel(nullptr);
+  ui->omTreeView->setModel(m_omModel);
+}
+
+void
+MainWindow::onDofChanged(
+    const QModelIndex &,
+    const QModelIndex &,
+    const QList<int> &)
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->updateModel();
+}
+
+

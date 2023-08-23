@@ -169,8 +169,11 @@ OMModel::autoRegisterElement(Element *newElement)
 {
   Element *retElement = nullptr;
   bool ret;
+  auto fact = newElement->factory();
 
-  if (newElement->hasProperty("optical"))
+  if (fact != nullptr && fact->name() == "Detector")
+    ret = registerDetector(static_cast<Detector *>(newElement));
+  else if (newElement->hasProperty("optical"))
     ret = registerOpticalElement(static_cast<OpticalElement *>(newElement));
   else
     ret = registerElement(newElement);
@@ -432,7 +435,10 @@ OMModel::addDetector(
   Real width,
   Real height)
 {
-  Detector *detector = new Detector(name, frame);
+  auto sing = Singleton::instance();
+  auto factory = sing->lookupElementFactory("Detector");
+  Detector *detector = 
+    static_cast<Detector *>(factory->make(name, frame));
 
   detector->set("height", height);
   detector->set("width", width);
@@ -601,8 +607,13 @@ OMModel::addSkyBeam(
 
 OMModel::OMModel()
 {
+  auto sing = Singleton::instance();
+  auto factory = sing->lookupElementFactory("RayBeam");
+
   registerFrame(m_world = new WorldFrame("world"));
-  registerElement(m_beam = new RayBeamElement("beam", m_world));
+
+  m_beam = static_cast<RayBeamElement *>(factory->make("beam", m_world));
+  registerElement(m_beam);
 }
 
 OMModel::~OMModel()

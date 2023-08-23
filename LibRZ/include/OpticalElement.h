@@ -36,10 +36,11 @@ namespace RZ {
         ReferenceFrame *,
         const RayTransferProcessor *);
       OpticalElement(
+        ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
-
+      
     public:
       virtual OpticalPath opticalPath() const;
       OpticalPath plug(OpticalElement *) const;

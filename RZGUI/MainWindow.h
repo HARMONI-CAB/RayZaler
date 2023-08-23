@@ -11,14 +11,22 @@ QT_END_NAMESPACE
 
 class SimulationSession;
 class SessionTabWidget;
+class PropertyAndDofTableModel;
+class OMTreeModel;
 
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
+  SimulationSession *m_currSession = nullptr;
+
   std::list<SimulationSession *> m_sessions;
   QMap<SimulationSession *, SessionTabWidget *> m_sessionToTab;
 
+  PropertyAndDofTableModel *m_propModel = nullptr;
+  OMTreeModel              *m_omModel   = nullptr;
+
+  void refreshCurrentSession();
   void registerSession(SimulationSession *);
   void doOpen();
 
@@ -26,10 +34,24 @@ public:
   void connectAll();
 
   MainWindow(QWidget *parent = nullptr);
-  ~MainWindow();
+  ~MainWindow() override;
 
 public slots:
   void onOpen();
+  void onCloseTab(int);
+  void onTabChanged();
+
+  void onAnimStart();
+  void onAnimEnd();
+  void onAnimPause();
+  void onAnimPlay();
+  void onAnimStop();
+
+  void onModelsChanged();
+  void onDofChanged(
+      const QModelIndex &topLeft,
+      const QModelIndex &bottomRight,
+      const QList<int> &roles = QList<int>());
 
 private:
   Ui::MainWindow *ui;

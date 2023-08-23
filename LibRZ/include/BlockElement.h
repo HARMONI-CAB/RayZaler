@@ -20,7 +20,12 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      BlockElement(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      BlockElement(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
+      
       virtual ~BlockElement();
       virtual void renderOpenGL() override;
   };

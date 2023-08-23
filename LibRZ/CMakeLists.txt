@@ -49,6 +49,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
+  ${LIBRZ_INCLUDEDIR}/exprtk.hpp
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h

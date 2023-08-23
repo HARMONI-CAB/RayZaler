@@ -109,14 +109,20 @@ dof_stmt:                                         // ACTION: register dof or par
 
 dof_decl:                                         // Type: DOF pair + expr
     dof_definition
-  | dof_definition '=' NUM     { $$ = $1; $$.value<RZ::ParserDOFDecl>().assign_expr = $3.str(); }
+  | dof_definition '=' signednum     { $$ = $1; $$.value<RZ::ParserDOFDecl>().assign_expr = $3.str(); }
   ;
 
 dof_definition:                                   // Type: DOF pair
-    IDENTIFIER                         { $$ = ctx->dofDecl($1); }
-  | IDENTIFIER '(' NUM ',' NUM ')'     { $$ = ctx->dofDecl($1, $3, $5); }
+    IDENTIFIER                                 { $$ = ctx->dofDecl($1); }
+  | IDENTIFIER '(' signednum ',' signednum ')' { $$ = ctx->dofDecl($1, $3, $5); }
   ;
 
+signednum:
+        NUM
+  | '-' NUM                   { $$ = "-" + $2.str();                 }
+  | '+' NUM                   { $$ = $2.str();                       }
+  ;
+  
 expr:                                             // Type: string
      NUM                       
    | IDENTIFIER                

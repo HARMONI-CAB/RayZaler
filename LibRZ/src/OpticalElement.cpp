@@ -51,8 +51,11 @@ OpticalElement::pushOpticalSurface(
 }
 
 OpticalElement::OpticalElement(
-  std::string const &name, ReferenceFrame *parentFrame, Element *parent)
-  : Element(name, parentFrame, parent)
+  ElementFactory *factory,
+  std::string const &name,
+  ReferenceFrame *parentFrame,
+  Element *parent)
+  : Element(factory, name, parentFrame, parent)
 {
   registerProperty("optical", true);
 }

@@ -110,6 +110,7 @@ namespace RZ {
       static bool isIdChar(int);
       static bool isValidStartChar(int);
       static void parseDOFDecl(ParserDOFDecl const &, Real &, Real &, Real &);
+      static bool looksLikeNumber(std::string const &);
 
       int  getChar();
       bool returnChar();

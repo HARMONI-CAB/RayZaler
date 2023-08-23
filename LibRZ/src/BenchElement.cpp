@@ -29,10 +29,11 @@ BenchElement::propertyChanged(std::string const &name, PropertyValue const &val)
 }
 
 BenchElement::BenchElement(
+  ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent)
-  : Element(name, frame, parent)
+  : Element(factory, name, frame, parent)
 {
   registerProperty("height", 0.);
 
@@ -112,5 +113,5 @@ BenchElementFactory::make(
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new BenchElement(name, pFrame, parent);
+  return new BenchElement(this, name, pFrame, parent);
 }

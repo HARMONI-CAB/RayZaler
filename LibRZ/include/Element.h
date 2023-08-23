@@ -59,11 +59,14 @@ namespace RZ {
       }
   };
 
+  class ElementFactory;
+
   class Element {
       std::string     m_name;
       Element        *m_parent = nullptr;
       ReferenceFrame *m_parentFrame = nullptr;
-
+      ElementFactory *m_factory;
+      
       std::list<Element *> m_children;
       std::list<ReferenceFrame *> m_portList;
       std::map<std::string, ReferenceFrame *> m_nameToPort;
@@ -91,11 +94,21 @@ namespace RZ {
 
       virtual bool propertyChanged(std::string const &, PropertyValue const &);
 
-      Element(std::string const &, ReferenceFrame *, Element *parent = nullptr);
+      Element(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
 
     public:
       virtual ~Element();
       
+      ElementFactory *
+      factory()
+      {
+        return m_factory;
+      }
+
       // Get name
       std::string const &
       name() const

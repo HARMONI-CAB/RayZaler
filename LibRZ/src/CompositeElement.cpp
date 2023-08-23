@@ -85,13 +85,14 @@ IHateCPlusPlus::IHateCPlusPlus(OMModel *model)
 }
 
 CompositeElement::CompositeElement(
+  ElementFactory *factory,
   std::string const &name, 
   ReferenceFrame *pFrame,
   Recipe *recipe,
   GenericCompositeModel *parentCompositeModel,
   Element *parent) : 
   IHateCPlusPlus(new OMModel()),
-  OpticalElement(name, pFrame, parent),
+  OpticalElement(factory, name, pFrame, parent),
   GenericCompositeModel(recipe, model(), parentCompositeModel)
 {
   m_model = model();
@@ -148,5 +149,5 @@ CompositeElementFactory::make(
     ReferenceFrame *pFrame,
     Element *parent)
 {
-  return new CompositeElement(name, pFrame, m_recipe, m_owner, parent);
+  return new CompositeElement(this, name, pFrame, m_recipe, m_owner, parent);
 }
