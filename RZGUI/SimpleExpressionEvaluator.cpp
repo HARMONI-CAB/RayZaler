@@ -1,4 +1,6 @@
 #include "SimpleExpressionEvaluator.h"
+
+#define exprtk_disable_caseinsensitivity
 #include <exprtk.hpp>
 
 typedef exprtk::symbol_table<RZ::Real> exprtk_symtab_t;

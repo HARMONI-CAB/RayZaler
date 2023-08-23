@@ -194,16 +194,20 @@ GenericCompositeModel::setParam(std::string const &name, Real value)
 {
   GenericModelParam *param = lookupParam(name);
 
+  printf("Set param on composite called!\n");
+  
   if (param == nullptr)
     throw std::runtime_error("Unknown parameter `" + name + "'");
 
-  if (param->test(value))
+  if (!param->test(value))
     return false;
 
   param->value = value;
 
-  for (auto p : param->dependencies)
+  for (auto p : param->dependencies) {
+    printf("Set param %s: Set dependency %d\n", name.c_str(), p->type);
     p->assign();
+  }
 
   return true;
 }

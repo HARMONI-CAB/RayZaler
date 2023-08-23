@@ -74,6 +74,7 @@ CompositeElement::propertyChanged(
     return true;
   } catch (std::runtime_error &e) { }
 
+  refreshProperties();
   m_model->world()->recalculate();
 
   return false;

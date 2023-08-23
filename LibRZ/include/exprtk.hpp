@@ -234,7 +234,7 @@ namespace exprtk
       };
 
       #else
-      inline void case_normalise(std::string&)
+      inline void case_normalise(std::string& dep)
       {}
 
       inline bool imatch(const char_t c1, const char_t c2)
@@ -20831,10 +20831,12 @@ namespace exprtk
             else if (symbol_name_list_.empty())
                return 0;
 
+            #ifndef exprtk_disable_caseinsensitivity
             for (std::size_t i = 0; i < symbol_name_list_.size(); ++i)
             {
                details::case_normalise(symbol_name_list_[i].first);
             }
+            #endif
 
             std::sort(symbol_name_list_.begin(),symbol_name_list_.end());
 
@@ -20854,10 +20856,12 @@ namespace exprtk
             else if (assignment_name_list_.empty())
                return 0;
 
+            #ifndef exprtk_disable_caseinsensitivity
             for (std::size_t i = 0; i < assignment_name_list_.size(); ++i)
             {
                details::case_normalise(assignment_name_list_[i].first);
             }
+            #endif
 
             std::sort(assignment_name_list_.begin(),assignment_name_list_.end());
 
