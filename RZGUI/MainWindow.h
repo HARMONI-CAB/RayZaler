@@ -13,6 +13,7 @@ class SimulationSession;
 class SessionTabWidget;
 class PropertyAndDofTableModel;
 class OMTreeModel;
+class SimulationPropertiesDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -23,6 +24,7 @@ class MainWindow : public QMainWindow
   std::list<SimulationSession *> m_sessions;
   QMap<SimulationSession *, SessionTabWidget *> m_sessionToTab;
 
+  SimulationPropertiesDialog *m_simPropertiesDialog = nullptr;
   PropertyAndDofTableModel *m_propModel = nullptr;
   OMTreeModel              *m_omModel   = nullptr;
 
@@ -46,6 +48,10 @@ public slots:
   void onAnimPause();
   void onAnimPlay();
   void onAnimStop();
+
+  void onSimulationEditProperties();
+  void onSimulationRun();
+  void onSimulationShowResult();
 
   void onModelsChanged();
   void onDofChanged(

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <QTimer>
 #include <QFileInfo>
-
+#include <RayBeamElement.h>
 
 void
 SimulationState::clearAll()
@@ -164,10 +164,49 @@ SimulationState::setProperties(SimulationProperties const &prop)
   return true;
 }
 
+bool
+SimulationState::allocateRays()
+{
+  auto path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
+  if (path == nullptr) {
+    m_lastCompileError = "The defined optical path does not exist";
+    return false;
+  }
+
+  if (path->m_sequence.size() == 0) {
+    m_lastCompileError = "Optical path contains no elements";
+    return false;
+  }
+
+  auto element = path->m_sequence.begin()->parent;
+
+  m_beam.clear();
+
+  RZ::OMModel::addElementRelativeBeam(
+        m_beam,
+        element,
+        static_cast<unsigned>(m_properties.rays),
+        .5 * m_diamExpr->evaluate(),
+        m_azimuthExpr->evaluate(),
+        m_elevationExpr->evaluate(),
+        m_offsetXExpr->evaluate(),
+        m_offsetYExpr->evaluate(),
+        1);
+
+  return true;
+}
+
+
 SimulationProperties
 SimulationState::properties() const
 {
   return m_properties;
+}
+
+std::list<RZ::Ray> const &
+SimulationState::beam() const
+{
+  return m_beam;
 }
 
 SimulationState::SimulationState(RZ::TopLevelModel *model)
@@ -312,6 +351,23 @@ SimulationSession::fileName() const
   return m_fileName;
 }
 
+bool
+SimulationSession::runSimulation()
+{
+  if (!m_simState->canRun())
+    return false;
+
+  if (!m_simState->allocateRays())
+    return false;
+
+  RZ::RayBeamElement *element =
+      static_cast<RZ::RayBeamElement *>(m_topLevelModel->beam());
+
+  element->setList(m_simState->beam());
+  emit modelChanged();
+
+  return true;
+}
 
 void
 SimulationSession::animPause()

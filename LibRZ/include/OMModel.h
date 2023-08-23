@@ -229,6 +229,17 @@ namespace RZ {
         Real azimuth = 0,
         Real elevation = 90,
         Real distance = 10);
+
+      static void addElementRelativeBeam(
+        std::list<Ray> &dest,
+        Element *element,
+        unsigned int number = 1000,
+        Real radius = .5,
+        Real azimuth = 0,
+        Real elevation = 90,
+        Real offX = 0,
+        Real offY = 0,
+        Real distance = 10);
   };
 }
 

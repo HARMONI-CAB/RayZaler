@@ -604,6 +604,44 @@ OMModel::addSkyBeam(
     dest.push_back(ray);
   }
 }
+void
+OMModel::addElementRelativeBeam(
+  std::list<Ray> &dest,
+  Element *element,
+  unsigned int number,
+  Real radius,
+  Real azimuth,
+  Real elevation,
+  Real offX,
+  Real offY,
+  Real distance)
+{
+  ReferenceFrame *frame = element->parentFrame();
+  Matrix3 elOrient  = frame->getOrientation();
+  Vec3    elCenter  = frame->getCenter();
+  Matrix3 beamSys   = elOrient * Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
+
+  Vec3 sourceCenter = 
+      distance * beamSys.row.vz
+    + offX * elOrient.row.vx
+    + offY * elOrient.row.vy
+    + elCenter;
+
+  Vec3 direction  = -beamSys.row.vz;
+  Ray  ray;
+
+  for (auto i = 0; i < number; ++i) {
+    Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+    Real angle    = RZ_URANDSIGN * M_PI;
+    Vec3 source   = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy) + sourceCenter;
+    
+    ray.origin    = source;
+    ray.direction = direction;
+    ray.length    = distance;
+
+    dest.push_back(ray);
+  }
+}
 
 OMModel::OMModel()
 {

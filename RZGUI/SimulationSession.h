@@ -60,7 +60,7 @@ struct SimulationProperties {
   QString diameter    = "1";       // m
   QString fNum        = "17.37";
   QString azimuth     = "0";       // deg
-  QString elevation   = "0";       // deg
+  QString elevation   = "90";      // deg
   QString offsetX     = "0";       // m
   QString offsetY     = "0";       // m
 
@@ -103,19 +103,23 @@ class SimulationState {
   std::string m_lastCompileError = "";
   bool m_complete = false;
 
+  // Simulation objects
+  std::list<RZ::Ray> m_beam;
+
   void clearAll();
   bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
-
 
 public:
   SimulationState(RZ::TopLevelModel *);
   ~SimulationState();
 
   bool canRun() const;
+  bool allocateRays();
   bool setProperties(SimulationProperties const &);
   std::string getFirstInvalidExpr() const;
   std::string getLastError() const;
   SimulationProperties properties() const;
+  std::list<RZ::Ray> const &beam() const;
 };
 
 class SimulationSession : public QObject
@@ -144,6 +148,8 @@ public:
   RZ::Recipe          *recipe() const;
   RZ::TopLevelModel   *topLevelModel() const;
   QString              fileName() const;
+
+  bool                 runSimulation();
 
   void                 animPause();
   void                 animStop();

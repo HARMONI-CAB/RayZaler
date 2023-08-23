@@ -22,15 +22,16 @@ class SimulationPropertiesDialog : public QDialog
 
 public:
   explicit SimulationPropertiesDialog(QWidget *parent = nullptr);
-  ~SimulationPropertiesDialog();
+  ~SimulationPropertiesDialog() override;
 
   void setSession(SimulationSession *);
 
   void setProperties(SimulationProperties const &);
   SimulationProperties properties() const;
 
+  void accept() override;
+
 public slots:
-  void onAcceptProperties();
   void onExprEditChanged();
   void onDataChanged();
 

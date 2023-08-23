@@ -4,6 +4,7 @@
 #include "SessionTabWidget.h"
 #include "PropertyAndDofTableModel.h"
 #include "OMTreeModel.h"
+#include "SimulationPropertiesDialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -14,8 +15,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
   ui->setupUi(this);
 
-  m_propModel = new PropertyAndDofTableModel(nullptr);
-  m_omModel   = new OMTreeModel();
+  m_propModel           = new PropertyAndDofTableModel(nullptr);
+  m_omModel             = new OMTreeModel();
+  m_simPropertiesDialog = new SimulationPropertiesDialog(this);
 
   ui->propTableView->setModel(m_propModel);
   ui->omTreeView->setModel(m_omModel);
@@ -92,6 +94,24 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onAnimEnd()));
+
+  connect(
+        ui->actionSimProp,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onSimulationEditProperties()));
+
+  connect(
+        ui->actionRunSim,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onSimulationRun()));
+
+  connect(
+        ui->actionSimResult,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onSimulationShowResult()));
 }
 
 void
@@ -101,16 +121,21 @@ MainWindow::refreshCurrentSession()
     // Refresh model, if applicable
     m_propModel->setModel(m_currSession->topLevelModel());
     m_omModel->setModel(m_currSession->topLevelModel());
+    m_simPropertiesDialog->setSession(m_currSession);
 
     ui->animationToolBar->setEnabled(true);
     ui->actionAnimPause->setEnabled(m_currSession->playing());
     ui->actionAnimStop->setEnabled(!m_currSession->stopped());
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
+
+    ui->simToolBar->setEnabled(true);
   } else {
     m_propModel->setModel(nullptr);
     m_omModel->setModel(nullptr);
+    m_simPropertiesDialog->setSession(nullptr);
 
     ui->animationToolBar->setEnabled(false);
+    ui->simToolBar->setEnabled(false);
     ui->propTableView->setModel(nullptr);
   }
 }
@@ -244,6 +269,37 @@ MainWindow::onAnimStop()
 {
   m_currSession->animStop();
   refreshCurrentSession();
+}
+
+void
+MainWindow::onSimulationEditProperties()
+{
+  if (m_currSession != nullptr)
+    m_simPropertiesDialog->exec();
+}
+
+void
+MainWindow::onSimulationRun()
+{
+  if (m_currSession != nullptr) {
+    if (!m_currSession->state()->canRun())
+      m_simPropertiesDialog->exec();
+
+    if (m_currSession->state()->canRun()) {
+      if (!m_currSession->runSimulation()) {
+        QMessageBox::critical(
+              this,
+              "Simulation error",
+              "Simulation failed. See log window for details");
+      }
+    }
+  }
+}
+
+void
+MainWindow::onSimulationShowResult()
+{
+  // TODO: Show simulation result
 }
 
 void
