@@ -297,8 +297,12 @@ OMModel::lookupOpticalPathOrEx(std::string const &name) const
 {
   auto ret = lookupOpticalPath(name);
 
-  if (ret == nullptr)
-    throw std::runtime_error("Optical path `" + name + "` does not exist");
+  if (ret == nullptr) {
+    if (name.size() == 0)
+      throw std::runtime_error("Default optical path does not exist");
+    else
+      throw std::runtime_error("Optical path `" + name + "` does not exist");
+  }
 
   return ret;
 }
@@ -537,11 +541,18 @@ bool
 OMModel::trace(
         std::string const &pathName,
         std::list<Ray> const &rays,
-        bool updateBeamElement)
+        bool updateBeamElement,
+        RayTracingProcessListener *listener)
 {
   CPURayTracingEngine tracer;
+  unsigned int n, stages;
   const OpticalPath *path = lookupOpticalPathOrEx(pathName);
+  
+  m_intermediateRays.clear();
+
   recalculate();
+
+  tracer.setListener(listener);
 
   // Clear all detectors
   for (auto p : m_nameToDetector)
@@ -549,8 +560,21 @@ OMModel::trace(
   
   tracer.pushRays(rays);
 
+  stages = path->m_sequence.size();
+  n      = 0;
+
   for (auto p : path->m_sequence) {
+    if (listener != nullptr)
+      listener->stageProgress(
+        PROGRESS_TYPE_TRACE,
+        p.name,
+        n, 
+        stages);
+
     tracer.trace(p.frame);
+    if (listener != nullptr && listener->cancelled())
+      return false;
+
     if (updateBeamElement) {
       auto rays = tracer.getRays();
       m_intermediateRays.insert(
@@ -559,9 +583,22 @@ OMModel::trace(
         rays.end());
     }
 
+    ++n;
+
+    if (listener != nullptr)
+      listener->stageProgress(
+        PROGRESS_TYPE_TRANSFER,
+        p.name,
+        n, 
+        stages);
+
     tracer.transfer(p.processor);
+
+    if (listener != nullptr && listener->cancelled())
+      return false;
   }
 
+  // TODO: make beam thread-safe
   if (updateBeamElement)
     m_beam->setList(m_intermediateRays);
 
@@ -616,10 +653,18 @@ OMModel::addElementRelativeBeam(
   Real offY,
   Real distance)
 {
-  ReferenceFrame *frame = element->parentFrame();
+  const ReferenceFrame *frame;
+
+  if (element->hasProperty("optical")) {
+    OpticalElement *optEl = static_cast<OpticalElement *>(element);
+    frame = optEl->opticalPath().m_sequence.begin()->frame;
+  } else {
+     frame = element->parentFrame();
+  }
   Matrix3 elOrient  = frame->getOrientation();
   Vec3    elCenter  = frame->getCenter();
-  Matrix3 beamSys   = elOrient * Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
+  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
+  Matrix3 orient    = beamSys.t();
 
   Vec3 sourceCenter = 
       distance * beamSys.row.vz

@@ -9,5 +9,7 @@
         <file>icons/document-properties.svg</file>
         <file>icons/image-x-generic.svg</file>
         <file>icons/open-menu.svg</file>
+        <file>icons/draw-eraser.svg</file>
+        <file>icons/document-export.svg</file>
     </qresource>
 </RCC>

@@ -9,6 +9,8 @@ namespace Ui {
 
 class SimulationSession;
 class RZGUIGLWidget;
+class SimulationProgressDialog;
+class DetectorWindow;
 
 class SessionTabWidget : public QWidget
 {
@@ -17,6 +19,9 @@ class SessionTabWidget : public QWidget
   SimulationSession *m_session;  // Borrowed
   RZGUIGLWidget     *m_glWidget; // Borrowed
 
+  DetectorWindow    *m_detWindow = nullptr; // Owned
+  SimulationProgressDialog *m_progressDialog = nullptr; // Owned
+
   void connectAll();
 
 public:
@@ -24,14 +29,17 @@ public:
   ~SessionTabWidget() override;
 
   SimulationSession *session() const;
+  void showDetectorWindow();
+  void updateDetectorWindow();
   void updateModel();
+
 
 private:
   Ui::SessionTabWidget *ui;
 
 public slots:
   void onModelChanged();
-
+  void onSimulationTriggered(QString);
 };
 
 #endif // SESSIONTABWIDGET_H

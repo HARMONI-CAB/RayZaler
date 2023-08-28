@@ -71,6 +71,25 @@ namespace RZ {
     virtual void process(RayBeam &, const ReferenceFrame *) const = 0;
   };
 
+  enum RayTracingStageProgressType {
+    PROGRESS_TYPE_TRACE,     // Tracing rays to capture surface
+    PROGRESS_TYPE_TRANSFER,  // Transfering exit rays
+    PROGRESS_TYPE_CONFIG,    // Reconfigure model
+  };
+
+  class RayTracingProcessListener {
+    public:
+      virtual void stageProgress(
+        RayTracingStageProgressType,
+        std::string const &,
+        unsigned int num,
+        unsigned int total);
+      virtual void rayProgress(uint64_t num, uint64_t total);
+
+      virtual uint64_t rayNotifyInterval() const;
+      virtual bool cancelled() const;
+  };
+
   class RayTracingEngine {
       std::list<Ray> m_rays;
       bool m_raysDirty = false;
@@ -82,6 +101,8 @@ namespace RZ {
 
       void toBeam();  // From m_rays to beam->origins and beam->directions
       void toRays();  // From beam->destinations and beam->directions to rays
+
+      RayTracingProcessListener *m_listener = nullptr; // Always borrowed
 
     protected:
       virtual RayBeam *makeBeam();
@@ -98,6 +119,10 @@ namespace RZ {
       RayTracingEngine();
       virtual ~RayTracingEngine();
 
+      // This sets the event listener, to receive periodic updates
+      RayTracingProcessListener *listener() const;
+      void setListener(RayTracingProcessListener *);
+      
       // This clears all the rays
       void clear();
 

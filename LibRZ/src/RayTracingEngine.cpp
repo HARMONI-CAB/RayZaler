@@ -85,6 +85,35 @@ RayBeam::~RayBeam()
   deallocate();
 }
 
+//////////////////////////// RayTracingProcessListener /////////////////////////
+void
+RayTracingProcessListener::stageProgress(
+  RayTracingStageProgressType,
+  std::string const &,
+  unsigned int num,
+  unsigned int total)
+{
+  // NO-OP
+}
+
+void
+RayTracingProcessListener::rayProgress(uint64_t num, uint64_t total)
+{
+  // NO-OP
+}
+
+uint64_t
+RayTracingProcessListener::rayNotifyInterval() const
+{
+  return 10000;
+}
+
+bool
+RayTracingProcessListener::cancelled() const
+{
+  return false;
+}
+
 //////////////////////////////// RayTracingEngine //////////////////////////////
 RayTracingEngine::RayTracingEngine()
 {
@@ -102,6 +131,18 @@ RayTracingEngine::clear()
 {
   m_rays.clear();
   m_beamDirty = true;
+}
+
+RayTracingProcessListener *
+RayTracingEngine::listener() const
+{
+  return m_listener;
+}
+
+void
+RayTracingEngine::setListener(RayTracingProcessListener *listener)
+{
+  m_listener = listener;
 }
 
 void

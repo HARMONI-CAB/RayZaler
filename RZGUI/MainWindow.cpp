@@ -129,6 +129,9 @@ MainWindow::refreshCurrentSession()
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
 
     ui->simToolBar->setEnabled(true);
+    ui->actionSimResult->setEnabled(
+          m_currSession->topLevelModel()->detectors().size() > 0);
+    setWindowTitle("RayZaler - " + m_currSession->fileName());
   } else {
     m_propModel->setModel(nullptr);
     m_omModel->setModel(nullptr);
@@ -137,6 +140,7 @@ MainWindow::refreshCurrentSession()
     ui->animationToolBar->setEnabled(false);
     ui->simToolBar->setEnabled(false);
     ui->propTableView->setModel(nullptr);
+    setWindowTitle("RayZaler - No model file");
   }
 }
 
@@ -299,7 +303,11 @@ MainWindow::onSimulationRun()
 void
 MainWindow::onSimulationShowResult()
 {
-  // TODO: Show simulation result
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->showDetectorWindow();
 }
 
 void

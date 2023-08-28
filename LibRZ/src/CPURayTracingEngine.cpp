@@ -14,8 +14,14 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
   Real numDot, demDot, t;
   uint64_t i, N = 3 * beam->count, r = 0;
   uint64_t p = 0;
-
+  RayTracingProcessListener *listenerObj = listener();
+  uint64_t notifyInterval = 
+    listenerObj == nullptr 
+      ? 0 
+      : listenerObj->rayNotifyInterval();
+  
   numDot = demDot = 0;
+
   for (i = 0; i < N; ++i) {
     beam->destinations[i] = center.coords[p] - beam->origins[i];
 
@@ -32,5 +38,15 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
       beam->destinations[i - 0] = beam->origins[i - 0] + t * beam->directions[i - 0];
       beam->lengths[r++] = t;
     }
+
+    if (notifyInterval != 0 && --notifyInterval == 0) {
+      if (listenerObj->cancelled())
+        break;
+      listenerObj->rayProgress(i, N);
+      notifyInterval = listenerObj->rayNotifyInterval();
+    }
   }
+
+  if (notifyInterval != 0)
+    listenerObj->rayProgress(N, N);
 }

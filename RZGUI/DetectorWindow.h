@@ -1,0 +1,41 @@
+#ifndef DETECTORWINDOW_H
+#define DETECTORWINDOW_H
+
+#include <QMainWindow>
+
+namespace Ui {
+  class DetectorWindow;
+}
+
+namespace RZ {
+  class Detector;
+}
+
+class ImageNavWidget;
+class SimulationSession;
+
+class DetectorWindow : public QMainWindow
+{
+  Q_OBJECT
+
+  ImageNavWidget    *m_navWidget;
+  RZ::Detector      *m_detector;
+  SimulationSession *m_session = nullptr;
+
+  void connectAll();
+  void refreshUi();
+
+public:
+  explicit DetectorWindow(QWidget *parent = nullptr);
+  ~DetectorWindow() override;
+
+  void setSession(SimulationSession *session);
+  void refreshImage();
+
+  void closeEvent(QCloseEvent *event) override;
+
+private:
+  Ui::DetectorWindow *ui;
+};
+
+#endif // DETECTORWINDOW_H

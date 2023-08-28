@@ -53,6 +53,11 @@ namespace RZ {
 
       void clear();
       bool savePNG(std::string const &) const;
+
+      unsigned int    cols() const;
+      unsigned int    rows() const;
+      unsigned int    stride() const;
+      const uint32_t *data() const;
   };
 
   class DetectorProcessor : public PassThroughProcessor {
@@ -92,6 +97,11 @@ namespace RZ {
 
       void clear();
       virtual void savePNG(std::string const &) const;
+
+      unsigned int    cols() const;
+      unsigned int    rows() const;
+      unsigned int    stride() const;
+      const uint32_t *data() const;
   };
 
   class DetectorFactory : public ElementFactory {

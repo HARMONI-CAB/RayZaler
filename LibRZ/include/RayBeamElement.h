@@ -4,12 +4,14 @@
 #include <Element.h>
 #include <RayTracingEngine.h>
 #include <GLHelpers.h>
+#include <pthread.h>
 
 namespace RZ {
   class RayBeamElement : public Element {
-      std::list<Ray> m_rays;
+      pthread_mutex_t      m_rayMutex = PTHREAD_MUTEX_INITIALIZER;
+      std::list<Ray>       m_rays;
       std::vector<GLfloat> m_vertices;
-
+      std::vector<int>     m_stages;
       void raysToVertices();
 
     public:
@@ -21,7 +23,7 @@ namespace RZ {
       virtual ~RayBeamElement();
 
       void setList(std::list<Ray> const &);
-
+      
       virtual void renderOpenGL() override;
   };
 

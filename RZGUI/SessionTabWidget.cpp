@@ -3,7 +3,8 @@
 #include "ui_SessionTabWidget.h"
 
 #include "RZGUIGLWidget.h"
-
+#include "SimulationProgressDialog.h"
+#include "DetectorWindow.h"
 
 SessionTabWidget::SessionTabWidget(
     SimulationSession *session,
@@ -20,8 +21,14 @@ SessionTabWidget::SessionTabWidget(
 
   m_glWidget->setModel(session->topLevelModel());
 
-  connectAll();
+  m_progressDialog = new SimulationProgressDialog(session->tracer(), this);
+  m_progressDialog->setWindowTitle(
+        "Simulation progress - " + m_session->fileName());
 
+  m_detWindow = new DetectorWindow();
+  m_detWindow->setSession(m_session);
+
+  connectAll();
 }
 
 void
@@ -32,6 +39,12 @@ SessionTabWidget::connectAll()
         SIGNAL(modelChanged()),
         this,
         SLOT(onModelChanged()));
+
+  connect(
+        m_session,
+        SIGNAL(triggerSimulation(QString)),
+        this,
+        SLOT(onSimulationTriggered(QString)));
 }
 
 SessionTabWidget::~SessionTabWidget()
@@ -52,7 +65,27 @@ SessionTabWidget::updateModel()
 }
 
 void
+SessionTabWidget::showDetectorWindow()
+{
+  m_detWindow->show();
+}
+
+void
+SessionTabWidget::updateDetectorWindow()
+{
+  m_detWindow->refreshImage();
+}
+
+void
 SessionTabWidget::onModelChanged()
 {
+  updateDetectorWindow();
   updateModel();
+}
+
+void
+SessionTabWidget::onSimulationTriggered(QString path)
+{
+  m_progressDialog->setPath(path);
+  m_progressDialog->open();
 }

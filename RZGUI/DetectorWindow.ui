@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DetectorWindow</class>
+ <widget class="QMainWindow" name="DetectorWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>603</width>
+    <height>567</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>603</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuImage">
+    <property name="title">
+     <string>Image</string>
+    </property>
+    <addaction name="actionExportAs"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menuDetector">
+    <property name="title">
+     <string>Detector</string>
+    </property>
+    <widget class="QMenu" name="menuDetectorChange">
+     <property name="title">
+      <string>&amp;Change</string>
+     </property>
+     <addaction name="action_No_detector"/>
+    </widget>
+    <addaction name="actionClear"/>
+    <addaction name="menuDetectorChange"/>
+   </widget>
+   <addaction name="menuImage"/>
+   <addaction name="menuDetector"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionExportAs"/>
+   <addaction name="actionClear"/>
+  </widget>
+  <action name="actionExportAs">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/document-export.svg</normaloff>:/toolbar/icons/document-export.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Export as...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export as...</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/draw-eraser.svg</normaloff>:/toolbar/icons/draw-eraser.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Clear</string>
+   </property>
+  </action>
+  <action name="action_No_detector">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>(No detector)</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>

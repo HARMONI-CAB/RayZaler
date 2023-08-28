@@ -39,7 +39,26 @@ RZGUIGLWidget::popElementMatrix()
 void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
+  auto beam = model->beam();
+
   for (auto p : model->elementList()) {
+    if (p == beam)
+      continue;
+    pushElementMatrix(p);
+    p->renderOpenGL();
+    popElementMatrix();
+
+    if (p->nestedModel() != nullptr)
+      displayModel(p->nestedModel());
+  }
+
+  pushElementMatrix(beam);
+  beam->renderOpenGL();
+  popElementMatrix();
+
+  for (auto p : model->elementList()) {
+    if (p == beam)
+      continue;
     pushElementMatrix(p);
     p->renderOpenGL();
     popElementMatrix();
@@ -311,14 +330,17 @@ RZGUIGLWidget::paintGL()
   glRotatef(m_curRot[1], 1, 0, 0);
   glRotatef(m_curRot[2], 0, 0, 1);
 
+  glRotatef(-90, 1, 0, 0);
+  glRotatef(+90, 0, 0, 1);
+
   f->glGetFloatv(GL_MODELVIEW_MATRIX, m_refMatrix);
 
   if (m_fixedLight)
     configureLighting();
 
-  if (m_model != nullptr)
+  if (m_model != nullptr) {
     displayModel(m_model);
-  else {
+  } else {
     glRotatef(45, 1, 0, 0);
     glRotatef(45, 0, 1, 0);
     glutSolidCube(1);

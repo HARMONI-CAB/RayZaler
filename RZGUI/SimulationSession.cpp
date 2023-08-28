@@ -6,6 +6,9 @@
 #include <QTimer>
 #include <QFileInfo>
 #include <RayBeamElement.h>
+#include <QThread>
+
+#include "AsyncRayTracer.h"
 
 void
 SimulationState::clearAll()
@@ -180,10 +183,22 @@ SimulationState::allocateRays()
 
   auto element = path->m_sequence.begin()->parent;
 
-  m_beam.clear();
+  if (m_currBeam == m_beamAlloc.end())
+    m_currBeam = m_beamAlloc.begin();
+  else
+    ++m_currBeam;
+
+  if (m_currBeam == m_beamAlloc.end()) {
+    // End of the list, alloc new beam
+    m_beamAlloc.push_back(std::list<RZ::Ray>());
+    m_currBeam = m_beamAlloc.end();
+    --m_currBeam;
+  }
+
+  m_currBeam->clear();
 
   RZ::OMModel::addElementRelativeBeam(
-        m_beam,
+        *m_currBeam,
         element,
         static_cast<unsigned>(m_properties.rays),
         .5 * m_diamExpr->evaluate(),
@@ -196,6 +211,11 @@ SimulationState::allocateRays()
   return true;
 }
 
+void
+SimulationState::releaseRays()
+{
+  m_currBeam = m_beamAlloc.end();
+}
 
 SimulationProperties
 SimulationState::properties() const
@@ -206,12 +226,13 @@ SimulationState::properties() const
 std::list<RZ::Ray> const &
 SimulationState::beam() const
 {
-  return m_beam;
+  return *m_currBeam;
 }
 
 SimulationState::SimulationState(RZ::TopLevelModel *model)
 {
   m_topLevelModel = model;
+  m_currBeam      = m_beamAlloc.end();
 }
 
 SimulationState::~SimulationState()
@@ -306,10 +327,52 @@ SimulationSession::SimulationSession(
   }
 
   m_simState = new SimulationState(m_topLevelModel);
+  m_tracerThread = new QThread;
+  m_tracer       = new AsyncRayTracer(m_topLevelModel);
+
+  m_tracer->moveToThread(m_tracerThread);
+
+  connect(
+        m_tracerThread,
+        SIGNAL(finished()),
+        m_tracerThread,
+        SLOT(deleteLater()));
+
+  connect(
+        this,
+        SIGNAL(triggerSimulation(QString)),
+        m_tracer,
+        SLOT(onStartRequested(QString)));
+
+  connect(
+        m_tracer,
+        SIGNAL(finished()),
+        this,
+        SLOT(onSimulationDone()));
+
+  connect(
+        m_tracer,
+        SIGNAL(aborted()),
+        this,
+        SLOT(onSimulationDone()));
+
+  connect(
+        m_tracer,
+        SIGNAL(error(QString)),
+        this,
+        SLOT(onSimulationError(QString)));
+
+
+  m_tracerThread->start();
 }
 
 SimulationSession::~SimulationSession()
 {
+  if (m_tracerThread != nullptr) {
+    m_tracerThread->quit();
+    m_tracerThread->wait();
+  }
+
   if (m_topLevelModel != nullptr)
     delete m_topLevelModel;
 
@@ -331,6 +394,12 @@ SimulationState *
 SimulationSession::state() const
 {
   return m_simState;
+}
+
+AsyncRayTracer *
+SimulationSession::tracer() const
+{
+  return m_tracer;
 }
 
 RZ::Recipe *
@@ -363,8 +432,13 @@ SimulationSession::runSimulation()
   RZ::RayBeamElement *element =
       static_cast<RZ::RayBeamElement *>(m_topLevelModel->beam());
 
-  element->setList(m_simState->beam());
+  //element->setList(m_simState->beam());
+  tracer()->setBeam(m_simState->beam());
+
   emit modelChanged();
+
+  ++m_simPending;
+  emit triggerSimulation(m_simState->properties().path);
 
   return true;
 }
@@ -430,4 +504,28 @@ SimulationSession::onTimerTick()
     m_t += .5;
     updateAnim();
   }
+}
+
+void
+SimulationSession::onSimulationDone()
+{
+  if (m_simPending > 0)
+    --m_simPending;
+
+  if (m_simPending == 0)
+    m_simState->releaseRays();
+
+  emit modelChanged();
+}
+
+void
+SimulationSession::onSimulationError(QString err)
+{
+  if (m_simPending > 0)
+    --m_simPending;
+
+  if (m_simPending == 0)
+    m_simState->releaseRays();
+
+  emit simulationError(err);
 }

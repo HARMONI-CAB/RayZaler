@@ -99,7 +99,7 @@ path_stmt:                                        // ACTION: register path
 
 path_list:                                        // Type: string list
     IDENTIFIER                        { $$ = ctx->pathList($1); }
-  | path_list TO_KEYWORD IDENTIFIER   { $1.strList().push_back($3);  }
+  | path_list TO_KEYWORD IDENTIFIER   { $1.strList().push_back($3); $$ = $1; }
   ;
 
 dof_stmt:                                         // ACTION: register dof or parameter

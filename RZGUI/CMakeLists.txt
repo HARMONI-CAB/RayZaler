@@ -19,6 +19,13 @@ find_package(OpenGL REQUIRED)
 set(PROJECT_SOURCES
         icons.qrc
         main.cpp
+        AsyncRayTracer.h
+        AsyncRayTracer.cpp
+        DetectorWindow.h
+        DetectorWindow.cpp
+        DetectorWindow.ui
+        ImageNavWidget.h
+        ImageNavWidget.cpp
         MainWindow.cpp
         MainWindow.h
         MainWindow.ui

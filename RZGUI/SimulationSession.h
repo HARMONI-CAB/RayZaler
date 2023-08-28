@@ -21,6 +21,7 @@
 // + getModel(): gets the current, top-level, optomechanical model
 // + getFileName(): gets the filename
 
+class AsyncRayTracer;
 class FileParserContext;
 class QAbstractTableModel;
 
@@ -57,10 +58,10 @@ struct SimulationProperties {
   SimulationType type = SIM_TYPE_ONE_SHOT;
   BeamType       beam = BEAM_TYPE_COLLIMATED;
 
-  QString diameter    = "1";       // m
+  QString diameter    = "40e-3";       // m
   QString fNum        = "17.37";
-  QString azimuth     = "0";       // deg
-  QString elevation   = "90";      // deg
+  QString azimuth     = "90";      // deg
+  QString elevation   = "0";       // deg
   QString offsetX     = "0";       // m
   QString offsetY     = "0";       // m
 
@@ -104,7 +105,8 @@ class SimulationState {
   bool m_complete = false;
 
   // Simulation objects
-  std::list<RZ::Ray> m_beam;
+  std::list<std::list<RZ::Ray>> m_beamAlloc;
+  std::list<std::list<RZ::Ray>>::iterator m_currBeam;
 
   void clearAll();
   bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
@@ -115,6 +117,7 @@ public:
 
   bool canRun() const;
   bool allocateRays();
+  void releaseRays();
   bool setProperties(SimulationProperties const &);
   std::string getFirstInvalidExpr() const;
   std::string getLastError() const;
@@ -131,12 +134,15 @@ class SimulationSession : public QObject
   FileParserContext *m_context           = nullptr;
   RZ::Recipe        *m_recipe            = nullptr;
   RZ::TopLevelModel *m_topLevelModel     = nullptr;
+  AsyncRayTracer    *m_tracer            = nullptr;
+  QThread           *m_tracerThread      = nullptr;
   SimulationState   *m_simState          = nullptr;
   QTimer            *m_timer             = nullptr;
 
   qreal              m_t                 = 0;
   bool               m_paused            = false;
   bool               m_playing           = false;
+  int                m_simPending        = 0;
 
   void               updateAnim();
 
@@ -147,6 +153,8 @@ public:
   SimulationState     *state() const;
   RZ::Recipe          *recipe() const;
   RZ::TopLevelModel   *topLevelModel() const;
+  AsyncRayTracer      *tracer() const;
+
   QString              fileName() const;
 
   bool                 runSimulation();
@@ -162,9 +170,13 @@ public:
 
 signals:
   void modelChanged();
+  void triggerSimulation(QString);
+  void simulationError(QString);
 
 public slots:
   void onTimerTick();
+  void onSimulationDone();
+  void onSimulationError(QString);
 };
 
 #endif // SIMULATIONSESSION_H

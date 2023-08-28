@@ -59,6 +59,30 @@ DetectorStorage::setResolution(unsigned int cols, unsigned int rows)
   recalculate();
 }
 
+unsigned int
+DetectorStorage::cols() const
+{
+  return m_cols;
+}
+
+unsigned int
+DetectorStorage::rows() const
+{
+  return m_rows;
+}
+
+unsigned int
+DetectorStorage::stride() const
+{
+  return m_stride;
+}
+
+const uint32_t *
+DetectorStorage::data() const
+{
+  return m_photons.data();
+}
+
 void
 DetectorStorage::clear()
 {
@@ -102,12 +126,14 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 
   for (i = 0; i < count; ++i) {
     // Check intercept
-    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-    Real coordX = coord * tX;
-    Real coordY = coord * tY;
+    if (beam.hasRay(i)) {
+      Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
+      Real coordX = coord * tX;
+      Real coordY = coord * tY;
 
-    if (!m_storage->hit(coordX, coordY))
-      beam.prune(i);
+      if (!m_storage->hit(coordX, coordY))
+        beam.prune(i); 
+    }
   }
 
   PassThroughProcessor::process(beam, plane);
@@ -185,6 +211,30 @@ Detector::~Detector()
   if (m_processor != nullptr)
     delete m_processor;
 
+}
+
+unsigned int
+Detector::cols() const
+{
+  return m_storage->cols();
+}
+
+unsigned int
+Detector::rows() const
+{
+  return m_storage->rows();
+}
+
+unsigned int
+Detector::stride() const
+{
+  return m_storage->stride();
+}
+
+const uint32_t *
+Detector::data() const
+{
+  return m_storage->data();
 }
 
 void

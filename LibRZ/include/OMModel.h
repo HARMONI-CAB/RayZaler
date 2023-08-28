@@ -215,7 +215,8 @@ namespace RZ {
       bool trace(
         std::string const &path,
         std::list<Ray> const &rays,
-        bool updateBeamElement = false);
+        bool updateBeamElement = false,
+        RayTracingProcessListener *listener = nullptr);
 
       // Save images
       bool savePNG(

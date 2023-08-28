@@ -31,21 +31,26 @@ RayBeamElement::RayBeamElement(
 
 RayBeamElement::~RayBeamElement()
 {
-
+  pthread_mutex_destroy(&m_rayMutex);
 }
 
 void
 RayBeamElement::setList(std::list<Ray> const &list)
 {
+  pthread_mutex_lock(&m_rayMutex);
   m_rays = list;
   raysToVertices();
+  pthread_mutex_unlock(&m_rayMutex);
 }
 
 void
 RayBeamElement::renderOpenGL()
 {
   GLVectorStorage vec;
-  GLfloat transp = .125 * 2500. / m_rays.size();
+
+  pthread_mutex_lock(&m_rayMutex);
+  size_t size = m_vertices.size() / 6;
+  GLfloat transp = sqrt(.125 * 250. / size);
 
   glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -53,7 +58,8 @@ RayBeamElement::renderOpenGL()
     transp = 1;
   glColor4f(1.0, 1.0, 0.0, transp);
   glDisable(GL_LIGHTING);
-  glDisable(GL_DEPTH_TEST);
+  glDepthFunc(GL_ALWAYS);
+  glEnable(GL_DEPTH_TEST);
 
   glEnableClientState(GL_VERTEX_ARRAY);
   glVertexPointer(3, GL_FLOAT, 0, m_vertices.data());
@@ -61,6 +67,7 @@ RayBeamElement::renderOpenGL()
   glDisableClientState(GL_VERTEX_ARRAY);
 
   glPopAttrib();
+  pthread_mutex_unlock(&m_rayMutex);
 }
 
 /////////////////////////////////// Factory ////////////////////////////////////
