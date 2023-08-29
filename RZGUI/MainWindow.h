@@ -59,6 +59,8 @@ public slots:
       const QModelIndex &bottomRight,
       const QList<int> &roles = QList<int>());
 
+  void onChangeView();
+
 private:
   Ui::MainWindow *ui;
 };

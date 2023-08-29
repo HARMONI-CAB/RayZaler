@@ -112,6 +112,42 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onSimulationShowResult()));
+
+  connect(
+        ui->actionViewTop,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
+
+  connect(
+        ui->actionViewBottom,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
+
+  connect(
+        ui->actionViewFront,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
+
+  connect(
+        ui->actionViewRear,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
+
+  connect(
+        ui->actionViewLeft,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
+
+  connect(
+        ui->actionViewRight,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onChangeView()));
 }
 
 void
@@ -124,6 +160,7 @@ MainWindow::refreshCurrentSession()
     m_simPropertiesDialog->setSession(m_currSession);
 
     ui->animationToolBar->setEnabled(true);
+    ui->viewToolBar->setEnabled(true);
     ui->actionAnimPause->setEnabled(m_currSession->playing());
     ui->actionAnimStop->setEnabled(!m_currSession->stopped());
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
@@ -138,6 +175,7 @@ MainWindow::refreshCurrentSession()
     m_simPropertiesDialog->setSession(nullptr);
 
     ui->animationToolBar->setEnabled(false);
+    ui->viewToolBar->setEnabled(false);
     ui->simToolBar->setEnabled(false);
     ui->propTableView->setModel(nullptr);
     setWindowTitle("RayZaler - No model file");
@@ -336,4 +374,28 @@ MainWindow::onDofChanged(
     widget->updateModel();
 }
 
+void
+MainWindow::onChangeView()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
 
+  if (widget != nullptr) {
+    QAction *sender = qobject_cast<QAction *>(QObject::sender());
+
+#define ROTONSENDER(act, x, y, z) \
+  if (sender == ui->act) {        \
+    widget->setRotation(x, y, z); \
+    return;                       \
+  }
+
+    ROTONSENDER(actionViewFront,  0,     0, 0)
+    ROTONSENDER(actionViewRear,   180,   0, 0)
+    ROTONSENDER(actionViewTop,      0, +90, 0)
+    ROTONSENDER(actionViewBottom,   0, -90, 0)
+    ROTONSENDER(actionViewLeft,   +90,   0, 0)
+    ROTONSENDER(actionViewRight,  -90,   0, 0)
+  }
+
+#undef ROTONSENDER
+}

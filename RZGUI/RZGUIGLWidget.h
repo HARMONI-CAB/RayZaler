@@ -55,6 +55,8 @@ protected:
 public:
   RZGUIGLWidget(QWidget *);
   void setModel(RZ::OMModel *model);
+  void getCurrentRot(GLfloat *) const;
+  void setCurrentRot(const GLfloat *);
 };
 
 #endif // RZGUIGLWIDGET_H

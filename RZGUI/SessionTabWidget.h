@@ -32,7 +32,7 @@ public:
   void showDetectorWindow();
   void updateDetectorWindow();
   void updateModel();
-
+  void setRotation(qreal, qreal, qreal);
 
 private:
   Ui::SessionTabWidget *ui;

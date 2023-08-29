@@ -425,3 +425,16 @@ RZGUIGLWidget::setModel(RZ::OMModel *model)
   if (m_model != nullptr)
     m_model->recalculate();
 }
+
+void
+RZGUIGLWidget::getCurrentRot(GLfloat *rot) const
+{
+  memcpy(rot, m_curRot, sizeof(GLfloat) * 3);
+}
+
+void
+RZGUIGLWidget::setCurrentRot(const GLfloat *rot)
+{
+  memcpy(m_curRot, rot, sizeof(GLfloat) * 3);
+  update();
+}

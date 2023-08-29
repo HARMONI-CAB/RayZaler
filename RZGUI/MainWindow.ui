@@ -304,6 +304,23 @@
    <addaction name="actionRunSim"/>
    <addaction name="actionSimResult"/>
   </widget>
+  <widget class="QToolBar" name="viewToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionViewTop"/>
+   <addaction name="actionViewBottom"/>
+   <addaction name="actionViewFront"/>
+   <addaction name="actionViewRear"/>
+   <addaction name="actionViewLeft"/>
+   <addaction name="actionViewRight"/>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="icons.qrc">
@@ -396,6 +413,60 @@
    </property>
    <property name="text">
     <string>Simulation result</string>
+   </property>
+  </action>
+  <action name="actionViewTop">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-top.svg</normaloff>:/toolbar/icons/view-top.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Top</string>
+   </property>
+  </action>
+  <action name="actionViewBottom">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-bottom.svg</normaloff>:/toolbar/icons/view-bottom.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Bottom</string>
+   </property>
+  </action>
+  <action name="actionViewFront">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-front.svg</normaloff>:/toolbar/icons/view-front.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Front</string>
+   </property>
+  </action>
+  <action name="actionViewRear">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-rear.svg</normaloff>:/toolbar/icons/view-rear.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Rear</string>
+   </property>
+  </action>
+  <action name="actionViewLeft">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-left.svg</normaloff>:/toolbar/icons/view-left.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Left</string>
+   </property>
+  </action>
+  <action name="actionViewRight">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-right.svg</normaloff>:/toolbar/icons/view-right.svg</iconset>
+   </property>
+   <property name="text">
+    <string>View Right</string>
    </property>
   </action>
  </widget>

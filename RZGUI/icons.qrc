@@ -11,5 +11,11 @@
         <file>icons/open-menu.svg</file>
         <file>icons/draw-eraser.svg</file>
         <file>icons/document-export.svg</file>
+        <file>icons/view-bottom.svg</file>
+        <file>icons/view-front.svg</file>
+        <file>icons/view-left.svg</file>
+        <file>icons/view-rear.svg</file>
+        <file>icons/view-right.svg</file>
+        <file>icons/view-top.svg</file>
     </qresource>
 </RCC>

@@ -65,6 +65,17 @@ SessionTabWidget::updateModel()
 }
 
 void
+SessionTabWidget::setRotation(qreal x, qreal y, qreal z)
+{
+  GLfloat rot[3] = {
+    static_cast<GLfloat>(x),
+    static_cast<GLfloat>(y),
+    static_cast<GLfloat>(z)};
+
+  m_glWidget->setCurrentRot(rot);
+}
+
+void
 SessionTabWidget::showDetectorWindow()
 {
   m_detWindow->show();
