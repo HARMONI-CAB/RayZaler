@@ -64,7 +64,12 @@ public:
   void    setSelection(QPoint const &);
   void    updateSelectionFromEvent(QMouseEvent *, bool last = false);
 
+  QSize   imageSize() const;
+  QSizeF  viewSize() const;
+  QPointF currPoint() const;
+  qreal   zoom() const;
 
+  void    setCurrPoint(QPointF const &);
   void    paintEvent(QPaintEvent *) override;
   void    mousePressEvent(QMouseEvent *) override;
   void    mouseReleaseEvent(QMouseEvent *) override;
@@ -74,7 +79,7 @@ public:
 signals:
   void selChanged(bool);
   void mouseMoved(QPointF);
-
+  void viewChanged();
 };
 
 #endif // IMAGENAVWIDGET_H

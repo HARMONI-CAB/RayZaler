@@ -7,6 +7,7 @@
 
 using namespace RZ;
 
+//////////////////////////// GLCappedCylinder //////////////////////////////////
 GLCappedCylinder::GLCappedCylinder()
 {
   m_quadric = gluNewQuadric();

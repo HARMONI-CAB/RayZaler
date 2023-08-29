@@ -40,6 +40,18 @@ namespace RZ {
       void recalculateCaps();
 
     public:
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      GLdouble
+      radius() const
+      {
+        return m_radius;
+      }
+      
       void setHeight(GLdouble);
       void setRadius(GLdouble);
       void setSlices(GLint);

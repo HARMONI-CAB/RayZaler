@@ -6,6 +6,7 @@
 #include <TopLevelModel.h>
 #include <SimpleExpressionEvaluator.h>
 #include <QTimer>
+#include "GUIHelpers.h"
 
 //
 // A Simulation Session is an object that keeps the current state of the
@@ -24,23 +25,6 @@
 class AsyncRayTracer;
 class FileParserContext;
 class QAbstractTableModel;
-
-#define BLOCKSIG_BEGIN(object)                   \
-  do {                                           \
-    QObject *obj = object;                       \
-    bool blocked = (object)->blockSignals(true)
-
-#define BLOCKSIG_END()                           \
-    obj->blockSignals(blocked);                  \
-  } while (false)
-
-#define BLOCKSIG(object, op)                     \
-  do {                                           \
-    bool blocked = (object)->blockSignals(true); \
-    (object)->op;                                \
-    (object)->blockSignals(blocked);             \
-  } while (false)
-
 
 enum SimulationType {
   SIM_TYPE_ONE_SHOT,

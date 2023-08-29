@@ -11,6 +11,7 @@ namespace RZ {
   class Detector;
 }
 
+class QResizeEvent;
 class ImageNavWidget;
 class SimulationSession;
 
@@ -32,7 +33,13 @@ public:
   void setSession(SimulationSession *session);
   void refreshImage();
 
-  void closeEvent(QCloseEvent *event) override;
+  void closeEvent(QCloseEvent *) override;
+  void showEvent(QShowEvent *) override;
+
+public slots:
+  void onScrollBarsChanged();
+  void onViewChanged();
+  void resizeEvent(QResizeEvent *event) override;
 
 private:
   Ui::DetectorWindow *ui;

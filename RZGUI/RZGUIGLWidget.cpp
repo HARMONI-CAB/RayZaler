@@ -9,6 +9,11 @@
 
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+  m_axisCylinder.setHeight(1e-1);
+  m_axisCylinder.setRadius(5e-3);
+  m_axisCylinder.setSlices(24);
+  m_axisCylinder.setVisibleCaps(true, false);
+
   setMouseTracking(true);
 }
 
@@ -278,6 +283,7 @@ RZGUIGLWidget::configureViewPort()
   // Phase 2: Configure projection
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+
   glScalef(m_zoom, m_zoom, m_zoom);
   glTranslatef(
     +2 * m_currentCenter[0] / (m_zoom * m_width),
@@ -286,6 +292,7 @@ RZGUIGLWidget::configureViewPort()
 
   aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
   glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * m_zoom, 20 * m_zoom);
+  f->glGetFloatv(GL_MODELVIEW_MATRIX, m_viewPortMatrix);
 
   // Phase 3: Configure normals
   glMatrixMode (GL_MODELVIEW);
@@ -307,6 +314,68 @@ RZGUIGLWidget::resizeGL(int w, int h)
 }
 
 void
+RZGUIGLWidget::drawAxes()
+{
+  RZ::GLVectorStorage vec;
+  GLfloat aspect, axisHeight = m_axisCylinder.height();
+  QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+    glLoadIdentity();
+
+    aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
+    glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20, 20);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+      glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
+      glRotatef(m_curRot[0], 0, 1, 0);
+      glRotatef(m_curRot[1], 1, 0, 0);
+      glRotatef(m_curRot[2], 0, 0, 1);
+
+      glRotatef(-90, 1, 0, 0);
+      glRotatef(-90, 0, 0, 1);
+
+      glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
+
+      // Z-axis
+      glPushMatrix();
+        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, 1.));
+        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, .1));
+        m_axisCylinder.display();
+        glTranslatef(0, 0, axisHeight);
+        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+      glPopMatrix();
+
+      // Y-axis
+      glPushMatrix();
+        glRotatef(-90, 1, 0, 0);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 1, 0));
+        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, .1, 0));
+        m_axisCylinder.display();
+        glTranslatef(0, 0, axisHeight);
+        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+      glPopMatrix();
+
+      // X-axis
+      glPushMatrix();
+        glRotatef(+90, 0, 1, 0);
+
+        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(1, 0, 0));
+        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, 0, 0));
+        m_axisCylinder.display();
+        glTranslatef(0, 0, axisHeight);
+        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+      glPopMatrix();
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode (GL_MODELVIEW);
+}
+
+void
 RZGUIGLWidget::paintGL()
 {
   QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
@@ -325,13 +394,15 @@ RZGUIGLWidget::paintGL()
   if (!m_fixedLight)
     configureLighting();
 
+  drawAxes();
+
   glTranslatef(0, 0, -10.);
   glRotatef(m_curRot[0], 0, 1, 0);
   glRotatef(m_curRot[1], 1, 0, 0);
   glRotatef(m_curRot[2], 0, 0, 1);
 
   glRotatef(-90, 1, 0, 0);
-  glRotatef(+90, 0, 0, 1);
+  glRotatef(-90, 0, 0, 1);
 
   f->glGetFloatv(GL_MODELVIEW_MATRIX, m_refMatrix);
 

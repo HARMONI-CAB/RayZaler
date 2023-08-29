@@ -86,14 +86,14 @@ ImageNavWidget::px2imgcenter(QPoint p) const
 {
   return
         (p
-         - QPoint(m_image.width(), m_image.height()) / 2
+         - QPoint(width(), height()) / 2
          - m_currPos.toPoint()) / m_zoom;
 }
 
 QPoint
 ImageNavWidget::imgcenter2px(QPoint xy) const
 {
-  return (xy + QPoint(m_image.width(), m_image.height())) * m_zoom + m_currPos.toPoint();
+  return xy * m_zoom + m_currPos.toPoint() + QPoint(width(), height()) / 2;
 }
 
 
@@ -163,6 +163,7 @@ ImageNavWidget::setDetector(RZ::Detector *det)
   }
 
   recalcImage();
+  emit viewChanged();
   update();
 }
 
@@ -171,6 +172,7 @@ ImageNavWidget::setZoom(qreal zoom)
 {
   m_preferredZoom = zoom;
   m_zoom          = zoom;
+  emit viewChanged();
   update();
 }
 
@@ -179,6 +181,7 @@ ImageNavWidget::resetZoom()
 {
   m_zoom = m_preferredZoom;
   m_currPos = QPointF();
+  emit viewChanged();
   update();
 }
 
@@ -186,6 +189,7 @@ void
 ImageNavWidget::zoomToPoint(QPointF const & xy)
 {
   m_currPos = -xy * m_zoom;
+  emit viewChanged();
   update();
 }
 
@@ -208,6 +212,37 @@ ImageNavWidget::updateSelectionFromEvent(QMouseEvent *event, bool last)
   auto xy = px2img(event->pos());
   setSelection(xy);
   emit selChanged(last);
+  update();
+}
+
+QSize
+ImageNavWidget::imageSize() const
+{
+  return m_image.size();
+}
+
+QSizeF
+ImageNavWidget::viewSize() const
+{
+  return QSizeF(size()) / m_zoom;
+}
+
+QPointF
+ImageNavWidget::currPoint() const
+{
+  return m_currPos;
+}
+
+qreal
+ImageNavWidget::zoom() const
+{
+  return m_zoom;
+}
+
+void
+ImageNavWidget::setCurrPoint(QPointF const &p)
+{
+  m_currPos = p;
   update();
 }
 
@@ -252,12 +287,12 @@ void
 ImageNavWidget::mousePressEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::MouseButton::MiddleButton) {
-    m_move_ref_pos = event->pos();
+    m_move_ref_pos = event->position();
     m_have_ref_pos = true;
   }
 
   if (event->button() == Qt::MouseButton::LeftButton
-      && rect().contains(event->pos())) {
+      && rect().contains(event->position().toPoint())) {
     m_movingSelection = true;
     updateSelectionFromEvent(event);
   }
@@ -293,6 +328,7 @@ ImageNavWidget::mouseMoveEvent(QMouseEvent *event)
 
       m_move_last_pos = event->position();
       m_have_last_pos = true;
+      emit viewChanged();
       update();
     } else {
       emit mouseMoved(px2imgcenter(event->position().toPoint()));
@@ -312,6 +348,7 @@ ImageNavWidget::wheelEvent(QWheelEvent *event)
     m_zoom    *= exp(event->angleDelta().y() / 1200.);
     m_currPos += xy * (prev_zoom - m_zoom);
 
+    emit viewChanged();
     update();
   }
 }

@@ -24,6 +24,7 @@ set(PROJECT_SOURCES
         DetectorWindow.h
         DetectorWindow.cpp
         DetectorWindow.ui
+        GUIHelpers.h
         ImageNavWidget.h
         ImageNavWidget.cpp
         MainWindow.cpp

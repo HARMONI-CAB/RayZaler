@@ -3,12 +3,15 @@
 
 #include <QOpenGLWidget>
 #include <OMModel.h>
+#include <GLHelpers.h>
 
 class RZGUIGLWidget : public QOpenGLWidget
 {
   Q_OBJECT
 
+  RZ::GLCappedCylinder m_axisCylinder;
   RZ::OMModel *m_model = nullptr;
+  GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
 
   bool    m_fixedLight = false;
@@ -37,6 +40,7 @@ class RZGUIGLWidget : public QOpenGLWidget
 
   void mouseClick(int button, int state, int x, int y, int shift);
   void mouseMotion(int x, int y);
+  void drawAxes();
 
 protected:
   void initializeGL() override;
