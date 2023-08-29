@@ -94,12 +94,17 @@ class SimulationState {
 
   void clearAll();
   bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
+  void applyDofs();
 
 public:
   SimulationState(RZ::TopLevelModel *);
   ~SimulationState();
 
   bool canRun() const;
+  bool initSimulation();
+  bool sweepStep();
+  bool done() const;
+
   bool allocateRays();
   void releaseRays();
   bool setProperties(SimulationProperties const &);
@@ -130,6 +135,8 @@ class SimulationSession : public QObject
 
   void               updateAnim();
 
+  void               iterateSimulation();
+
 public:
   explicit SimulationSession(QString const &path, QObject *parent = nullptr);
   virtual ~SimulationSession() override;
@@ -156,10 +163,12 @@ signals:
   void modelChanged();
   void triggerSimulation(QString);
   void simulationError(QString);
+  void sweepFinished();
 
 public slots:
   void onTimerTick();
   void onSimulationDone();
+  void onSimulationAborted();
   void onSimulationError(QString);
 };
 

@@ -18,9 +18,6 @@ class PropertyAndDofTableModel : public QAbstractTableModel
   std::vector<std::string> m_params;
 
 public:
-  static QString asScientific(qreal);
-  static QString toSuperIndex(QString const &);
-
   explicit PropertyAndDofTableModel(RZ::GenericCompositeModel *model, QObject *parent = nullptr);
 
   void setModel(RZ::GenericCompositeModel *model);

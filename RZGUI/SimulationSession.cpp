@@ -124,7 +124,7 @@ SimulationState::setProperties(SimulationProperties const &prop)
 
   // Recreate dictionary
   m_dictionary["i"]     = &m_i;
-  m_dictionary["j"]     = &m_i;
+  m_dictionary["j"]     = &m_j;
   m_dictionary["Ni"]    = &m_Ni;
   m_dictionary["Nj"]    = &m_Nj;
   m_dictionary["D"]     = &m_D;
@@ -207,6 +207,67 @@ SimulationState::allocateRays()
         m_offsetXExpr->evaluate(),
         m_offsetYExpr->evaluate(),
         1);
+
+  return true;
+}
+
+void
+SimulationState::applyDofs()
+{
+  for (auto p : m_dofExprs) {
+    m_dofValues[p.first] = p.second->evaluate();
+    m_topLevelModel->setDof(p.first, m_dofValues[p.first]);
+  }
+}
+
+bool
+SimulationState::initSimulation()
+{
+  m_i  = m_j = 0;
+  m_Ni = m_properties.Ni;
+  m_Nj = m_properties.Nj;
+
+  applyDofs();
+
+  return allocateRays();
+}
+
+bool
+SimulationState::sweepStep()
+{
+  if (done())
+    return false;
+
+  m_i += 1;
+
+  if (done())
+    return false;
+
+  if (m_i >= m_Ni) {
+    m_i = 0;
+    m_j += 1;
+    if (done())
+      return false;
+
+  }
+
+  if (done())
+    return false;
+
+  // Iteration done, apply Dofs
+  applyDofs();
+
+  return allocateRays();
+}
+
+bool
+SimulationState::done() const
+{
+  if (m_properties.type == SIM_TYPE_1D_SWEEP)
+    return m_i >= m_Ni;
+
+  if (m_properties.type == SIM_TYPE_2D_SWEEP)
+    return m_j >= m_Nj;
 
   return true;
 }
@@ -354,7 +415,7 @@ SimulationSession::SimulationSession(
         m_tracer,
         SIGNAL(aborted()),
         this,
-        SLOT(onSimulationDone()));
+        SLOT(onSimulationAborted()));
 
   connect(
         m_tracer,
@@ -420,25 +481,27 @@ SimulationSession::fileName() const
   return m_fileName;
 }
 
-bool
-SimulationSession::runSimulation()
+void
+SimulationSession::iterateSimulation()
 {
-  if (!m_simState->canRun())
-    return false;
-
-  if (!m_simState->allocateRays())
-    return false;
-
-  RZ::RayBeamElement *element =
-      static_cast<RZ::RayBeamElement *>(m_topLevelModel->beam());
-
-  //element->setList(m_simState->beam());
   tracer()->setBeam(m_simState->beam());
 
   emit modelChanged();
 
   ++m_simPending;
   emit triggerSimulation(m_simState->properties().path);
+}
+
+bool
+SimulationSession::runSimulation()
+{
+  if (!m_simState->canRun())
+    return false;
+
+  if (!m_simState->initSimulation())
+    return false;
+
+  iterateSimulation();
 
   return true;
 }
@@ -515,8 +578,27 @@ SimulationSession::onSimulationDone()
   if (m_simPending == 0)
     m_simState->releaseRays();
 
+  if (m_simState->sweepStep())
+    iterateSimulation();
+  else
+    emit sweepFinished();
+
   emit modelChanged();
 }
+
+void
+SimulationSession::onSimulationAborted()
+{
+  if (m_simPending > 0)
+    --m_simPending;
+
+  if (m_simPending == 0)
+    m_simState->releaseRays();
+
+  emit sweepFinished();
+  emit modelChanged();
+}
+
 
 void
 SimulationSession::onSimulationError(QString err)
@@ -528,4 +610,5 @@ SimulationSession::onSimulationError(QString err)
     m_simState->releaseRays();
 
   emit simulationError(err);
+  emit sweepFinished();
 }

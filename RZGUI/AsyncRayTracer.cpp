@@ -84,7 +84,7 @@ AsyncRayTracer::onStartRequested(QString path)
   } else {
     try {
       m_running = true;
-      m_model->trace(path.toStdString(), *m_beam, true, this);
+      m_model->trace(path.toStdString(), *m_beam, true, this, false);
       m_running = false;
       if (m_cancelled)
         emit aborted();

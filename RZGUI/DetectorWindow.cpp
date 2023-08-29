@@ -85,6 +85,12 @@ DetectorWindow::connectAll()
         SLOT(onViewChanged()));
 
   connect(
+        ui->actionClear,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onClearDetector()));
+
+  connect(
         ui->horizontalScrollBar,
         SIGNAL(valueChanged(int)),
         this,
@@ -162,3 +168,12 @@ DetectorWindow::onScrollBarsChanged()
   m_navWidget->setCurrPoint(p);
 }
 
+void
+DetectorWindow::onClearDetector()
+{
+  if (m_detector != nullptr) {
+    m_detector->clear();
+    m_navWidget->recalcImage();
+    m_navWidget->update();
+  }
+}

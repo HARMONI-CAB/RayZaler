@@ -1,6 +1,8 @@
 #ifndef GUIHELPERS_H
 #define GUIHELPERS_H
 
+#include <QString>
+
 #define BLOCKSIG_BEGIN(object)                   \
   do {                                           \
     QObject *obj = object;                       \
@@ -17,5 +19,7 @@
     (object)->blockSignals(blocked);             \
   } while (false)
 
+QString asScientific(qreal);
+QString toSuperIndex(QString const &);
 
 #endif // GUIHELPERS_H

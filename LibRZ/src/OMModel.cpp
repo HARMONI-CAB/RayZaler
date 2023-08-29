@@ -542,7 +542,8 @@ OMModel::trace(
         std::string const &pathName,
         std::list<Ray> const &rays,
         bool updateBeamElement,
-        RayTracingProcessListener *listener)
+        RayTracingProcessListener *listener,
+        bool clear)
 {
   CPURayTracingEngine tracer;
   unsigned int n, stages;
@@ -555,8 +556,9 @@ OMModel::trace(
   tracer.setListener(listener);
 
   // Clear all detectors
-  for (auto p : m_nameToDetector)
-    p.second->clear();
+  if (clear)
+    for (auto p : m_nameToDetector)
+      p.second->clear();
   
   tracer.pushRays(rays);
 

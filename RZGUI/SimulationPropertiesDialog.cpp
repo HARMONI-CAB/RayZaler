@@ -1,12 +1,16 @@
 #include "SimulationPropertiesDialog.h"
 #include "ui_SimulationPropertiesDialog.h"
 #include <QMessageBox>
+#include "PropertyAndDofExprModel.h"
 
 SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::SimulationPropertiesDialog)
 {
   ui->setupUi(this);
+
+  m_propModel = new PropertyAndDofExprModel(nullptr);
+  ui->propView->setModel(m_propModel);
 
   connectAll();
 }
@@ -78,12 +82,21 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
 
   if (session != nullptr) {
     m_properties = session->state()->properties();
+    m_propModel->setModel(session->topLevelModel());
     ui->modelNameLabel->setText(session->fileName());
     setWindowTitle("Simulation Properties - " + session->fileName());
   } else {
+    m_propModel->setModel(nullptr);
     ui->modelNameLabel->setText("N/A");
     setWindowTitle("Simulation Properties (N/A)");
   }
+
+  ui->propView->setModel(nullptr);
+  ui->propView->setModel(m_propModel);
+
+  ui->propView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+  ui->propView->horizontalHeader()->setStretchLastSection(true);
+
 
   applyProperties();
 }
@@ -217,6 +230,12 @@ SimulationPropertiesDialog::parseProperties()
     m_properties.detector  = ui->detectorCombo->currentData().value<QString>();
   else
     m_properties.detector  = "";
+
+  m_properties.dofs.clear();
+  for (auto p : m_session->topLevelModel()->dofs()) {
+    if (m_propModel->dofEdited(p))
+      m_properties.dofs[p] = m_propModel->dof(p);
+  }
 }
 
 void
@@ -248,13 +267,30 @@ SimulationPropertiesDialog::accept()
       }
 
       if (edit != nullptr) {
+        QString asQString = QString::fromStdString(failed);
         edit->setStyleSheet("background-color: #ffbfbf");
-      } else {
+        ui->tabWidget->setCurrentIndex(2);
         QMessageBox::critical(
               this,
-              "Simulation properties",
-              "Simulation properties contain errors." +
-              QString::fromStdString(state->getLastError()));
+              "Beam properties",
+              "Expression for "
+              + asQString
+              + " contains errors: "
+              + QString::fromStdString(state->getLastError()));
+      } else {
+        if (failed.substr(0, 4) == "dof:") {
+          auto dofName = failed.substr(4);
+          QString asQString = QString::fromStdString(dofName);
+          m_propModel->setDofFailed(dofName);
+          ui->tabWidget->setCurrentIndex(1);
+          QMessageBox::critical(
+                this,
+                "Degree of freedom error",
+                "Expression for degree of freedom `"
+                + asQString
+                + "' contains errors: "
+                + QString::fromStdString(state->getLastError()));
+        }
       }
     }
   }

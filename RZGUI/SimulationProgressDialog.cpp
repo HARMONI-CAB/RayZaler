@@ -63,6 +63,13 @@ SimulationProgressDialog::setPath(QString path)
 }
 
 void
+SimulationProgressDialog::simFinished()
+{
+  m_opened = false;
+  accept();
+}
+
+void
 SimulationProgressDialog::reject()
 {
   m_tracer->cancel();
@@ -119,8 +126,7 @@ SimulationProgressDialog::onGlobalProgress(QString desc, int n, int total)
 void
 SimulationProgressDialog::onFinished()
 {
-  m_opened = false;
-  accept();
+  ui->simProgressBar->setFormat("Iterationf finished");
 }
 
 void

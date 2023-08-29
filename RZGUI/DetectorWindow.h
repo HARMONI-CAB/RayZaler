@@ -35,11 +35,12 @@ public:
 
   void closeEvent(QCloseEvent *) override;
   void showEvent(QShowEvent *) override;
+  void resizeEvent(QResizeEvent *event) override;
 
 public slots:
   void onScrollBarsChanged();
   void onViewChanged();
-  void resizeEvent(QResizeEvent *event) override;
+  void onClearDetector();
 
 private:
   Ui::DetectorWindow *ui;

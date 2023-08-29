@@ -40,6 +40,7 @@ private:
 public slots:
   void onModelChanged();
   void onSimulationTriggered(QString);
+  void onSweepFinished();
 };
 
 #endif // SESSIONTABWIDGET_H

@@ -8,11 +8,14 @@ namespace Ui {
   class SimulationPropertiesDialog;
 }
 
+class PropertyAndDofExprModel;
+
 class SimulationPropertiesDialog : public QDialog
 {
   Q_OBJECT
 
   SimulationSession *m_session;
+  PropertyAndDofExprModel *m_propModel = nullptr;
   SimulationProperties m_properties;
 
   void connectAll();

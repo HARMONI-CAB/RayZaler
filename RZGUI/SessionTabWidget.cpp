@@ -45,6 +45,12 @@ SessionTabWidget::connectAll()
         SIGNAL(triggerSimulation(QString)),
         this,
         SLOT(onSimulationTriggered(QString)));
+
+  connect(
+        m_session,
+        SIGNAL(sweepFinished()),
+        this,
+        SLOT(onSweepFinished()));
 }
 
 SessionTabWidget::~SessionTabWidget()
@@ -100,3 +106,10 @@ SessionTabWidget::onSimulationTriggered(QString path)
   m_progressDialog->setPath(path);
   m_progressDialog->open();
 }
+
+void
+SessionTabWidget::onSweepFinished()
+{
+  m_progressDialog->simFinished();
+}
+

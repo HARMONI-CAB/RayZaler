@@ -25,6 +25,7 @@ set(PROJECT_SOURCES
         DetectorWindow.cpp
         DetectorWindow.ui
         GUIHelpers.h
+        GUIHelpers.cpp
         ImageNavWidget.h
         ImageNavWidget.cpp
         MainWindow.cpp
@@ -32,6 +33,8 @@ set(PROJECT_SOURCES
         MainWindow.ui
         OMTreeModel.h
         OMTreeModel.cpp
+        PropertyAndDofExprModel.h
+        PropertyAndDofExprModel.cpp
         PropertyAndDofTableModel.h
         PropertyAndDofTableModel.cpp
         RZGUIGLWidget.h

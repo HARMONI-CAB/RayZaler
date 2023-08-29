@@ -25,6 +25,7 @@ public:
   explicit SimulationProgressDialog(AsyncRayTracer *, QWidget *parent = nullptr);
   ~SimulationProgressDialog();
 
+  void simFinished();
   virtual void reject() override;
   virtual void open() override;
 

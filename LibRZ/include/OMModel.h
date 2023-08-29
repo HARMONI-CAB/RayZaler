@@ -216,7 +216,8 @@ namespace RZ {
         std::string const &path,
         std::list<Ray> const &rays,
         bool updateBeamElement = false,
-        RayTracingProcessListener *listener = nullptr);
+        RayTracingProcessListener *listener = nullptr,
+        bool clear = true);
 
       // Save images
       bool savePNG(
