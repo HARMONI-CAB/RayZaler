@@ -1,5 +1,5 @@
-#ifndef _SPHERICAL_MIRROR_H
-#define _SPHERICAL_MIRROR_H
+#ifndef _CONVEX_LENS_H
+#define _CONVEX_LENS_H
 
 #include <OpticalElement.h>
 #include <RayProcessors.h>
@@ -8,35 +8,38 @@
 namespace RZ {
   class TranslatedFrame;
 
-  class SphericalMirror : public OpticalElement {
-      GLCappedCylinder m_cylinder;
-      GLSphericalCap   m_cap;
-      SphericalMirrorProcessor *m_processor;
-      TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
+  class ConvexLens : public OpticalElement {
+      GLCappedCylinder        m_cylinder;
+      GLSphericalCap          m_cap;
+      SphericalLensProcessor *m_inputProcessor  = nullptr;
+      SphericalLensProcessor *m_outputProcessor = nullptr;
+      TranslatedFrame        *m_inputFrame  = nullptr;
+      TranslatedFrame        *m_outputFrame = nullptr;
+
       Real m_thickness = 1e-2;
-      Real m_radius = 1e-2;
-      Real m_flength = 1;
-      Real m_depth;
-      Real m_displacement;
-      
+      Real m_radius    = 1e-2;
+      Real m_rCurv     = 1;
+      Real m_mu        = 1.5;
+      Real m_depth     = 0;
+
       void recalcModel();
 
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      SphericalMirror(
+      ConvexLens(
         ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~SphericalMirror();
+      ~ConvexLens();
 
       virtual void renderOpenGL() override;
   };
 
-  class SphericalMirrorFactory : public ElementFactory {
+  class ConvexLensFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -46,4 +49,4 @@ namespace RZ {
   };
 }
 
-#endif // _SPHERICAL_MIRROR_H
+#endif // _CONVEX_LENS_H

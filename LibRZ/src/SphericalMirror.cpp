@@ -6,6 +6,13 @@ using namespace RZ;
 void
 SphericalMirror::recalcModel()
 {
+  GLfloat rCurv = 2 * m_flength;
+  m_displacement = sqrt(rCurv * rCurv - m_radius * m_radius);
+  m_depth = rCurv - m_displacement;
+  
+  m_cap.setRadius(rCurv);
+  m_cap.setHeight(m_depth);
+  
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
@@ -53,7 +60,8 @@ SphericalMirror::SphericalMirror(
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
 
-  m_cylinder.setVisibleCaps(true, true);
+  m_cylinder.setVisibleCaps(true, false);
+  m_cap.setInvertNormals(true);
   
   refreshProperties();
 }
@@ -68,11 +76,17 @@ void
 SphericalMirror::renderOpenGL()
 {
   GLVectorStorage vec;
+  GLfloat shiny = 1;
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.5, .5, .5));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
+  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 
   m_cylinder.display();
+
+  glRotatef(180, 1, 0, 0);
+  glTranslatef(0, 0, -m_thickness-m_displacement);
+  m_cap.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

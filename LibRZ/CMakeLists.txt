@@ -17,6 +17,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Detector.cpp
   ${LIBRZ_SRCDIR}/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
+  ${LIBRZ_SRCDIR}/ConvexLens.cpp
   ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
@@ -44,6 +45,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
+  ${LIBRZ_INCLUDEDIR}/ConvexLens.h
   ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h

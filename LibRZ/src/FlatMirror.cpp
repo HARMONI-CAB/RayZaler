@@ -62,9 +62,11 @@ void
 FlatMirror::renderOpenGL()
 {
   GLVectorStorage vec;
+  GLfloat shiny = 0;
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
   glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.5, .5, .5));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
+  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 
   m_cylinder.display();
 }

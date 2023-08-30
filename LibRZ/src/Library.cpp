@@ -6,6 +6,7 @@
 #include <SphericalMirror.h>
 #include <BlockElement.h>
 #include <RayBeamElement.h>
+#include <ConvexLens.h>
 #include <Detector.h>
 
 using namespace RZ;
@@ -21,6 +22,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
   Singleton::instance()->registerElementFactory(new BlockElementFactory);
+  Singleton::instance()->registerElementFactory(new ConvexLensFactory);
   
   registerRayProcessors();
 }
