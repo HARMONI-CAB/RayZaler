@@ -80,7 +80,7 @@ ParserContext::isTerminator(int c) const
 bool
 ParserContext::isValidStartChar(int c)
 {
-  return isOperatorChar(c) || isalnum(c);
+  return isOperatorChar(c) || isalnum(c) || c == '.';
 }
 
 int
