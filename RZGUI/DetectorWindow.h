@@ -41,6 +41,7 @@ public slots:
   void onScrollBarsChanged();
   void onViewChanged();
   void onClearDetector();
+  void onToggleLogScale();
 
 private:
   Ui::DetectorWindow *ui;

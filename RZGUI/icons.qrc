@@ -17,5 +17,6 @@
         <file>icons/view-rear.svg</file>
         <file>icons/view-right.svg</file>
         <file>icons/view-top.svg</file>
+        <file>icons/logscale.svg</file>
     </qresource>
 </RCC>

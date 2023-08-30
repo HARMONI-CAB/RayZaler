@@ -43,20 +43,44 @@ ImageNavWidget::recalcImage()
       m_sane_max = m_arr_max = max;
     }
 
-    qreal kInv = 255. / (m_arr_max - m_arr_min);
 
-    for (unsigned int j = 0; j < height; ++j) {
-      for (unsigned int i = 0; i < width; ++i) {
-        auto val = photons[i + j * stride];
 
-        m_asBytes[i + j * width] =
-            static_cast<uint8_t>(
-              qBound(
-                static_cast<uint32_t>(0),
-                static_cast<uint32_t>(kInv * (val - m_arr_min)),
-                static_cast<uint32_t>(255)));
+    // In log scale, min is black and max is white
+    if (m_logScale) {
+      qreal rangeInv = 1. / (m_arr_max - m_arr_min + 1);
+      qreal black = log(rangeInv);
+      qreal white = 1;
+      qreal kInv = 255. / (white - black);
+
+
+      for (unsigned int j = 0; j < height; ++j) {
+        for (unsigned int i = 0; i < width; ++i) {
+          auto val = log(rangeInv * (photons[i + j * stride] - m_arr_min + 1));
+
+          m_asBytes[i + j * width] =
+              static_cast<uint8_t>(
+                qBound(
+                  static_cast<uint32_t>(0),
+                  static_cast<uint32_t>(kInv * (val - black)),
+                  static_cast<uint32_t>(255)));
+        }
+      }
+    } else {
+      qreal kInv = 255. / (m_arr_max - m_arr_min);
+      for (unsigned int j = 0; j < height; ++j) {
+        for (unsigned int i = 0; i < width; ++i) {
+          auto val = photons[i + j * stride];
+
+          m_asBytes[i + j * width] =
+              static_cast<uint8_t>(
+                qBound(
+                  static_cast<uint32_t>(0),
+                  static_cast<uint32_t>(kInv * (val - m_arr_min)),
+                  static_cast<uint32_t>(255)));
+        }
       }
     }
+
 
     m_image = QImage(
           static_cast<uchar *>(m_asBytes.data()),
@@ -174,6 +198,16 @@ ImageNavWidget::setZoom(qreal zoom)
   m_zoom          = zoom;
   emit viewChanged();
   update();
+}
+
+void
+ImageNavWidget::setLogScale(bool scale)
+{
+  if (m_logScale != scale) {
+    m_logScale = scale;
+    recalcImage();
+    update();
+  }
 }
 
 void

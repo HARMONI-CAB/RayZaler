@@ -42,6 +42,7 @@ class ImageNavWidget : public QWidget
   bool          m_autoscale     = false;
 
   bool          m_movingSelection = false;
+  bool          m_logScale = false;
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
@@ -63,7 +64,7 @@ public:
 
   void    setSelection(QPoint const &);
   void    updateSelectionFromEvent(QMouseEvent *, bool last = false);
-
+  void    setLogScale(bool);
   QSize   imageSize() const;
   QSizeF  viewSize() const;
   QPointF currPoint() const;

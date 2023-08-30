@@ -91,6 +91,12 @@ DetectorWindow::connectAll()
         SLOT(onClearDetector()));
 
   connect(
+        ui->actionLogScale,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onToggleLogScale()));
+
+  connect(
         ui->horizontalScrollBar,
         SIGNAL(valueChanged(int)),
         this,
@@ -176,4 +182,10 @@ DetectorWindow::onClearDetector()
     m_navWidget->recalcImage();
     m_navWidget->update();
   }
+}
+
+void
+DetectorWindow::onToggleLogScale()
+{
+  m_navWidget->setLogScale(ui->actionLogScale->isChecked());
 }

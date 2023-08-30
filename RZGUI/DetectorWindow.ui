@@ -134,6 +134,7 @@
    </attribute>
    <addaction name="actionExportAs"/>
    <addaction name="actionClear"/>
+   <addaction name="actionLogScale"/>
   </widget>
   <action name="actionExportAs">
    <property name="icon">
@@ -162,6 +163,18 @@
    </property>
    <property name="text">
     <string>(No detector)</string>
+   </property>
+  </action>
+  <action name="actionLogScale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/logscale.svg</normaloff>:/toolbar/icons/logscale.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Log scale</string>
    </property>
   </action>
  </widget>
