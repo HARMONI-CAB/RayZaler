@@ -252,3 +252,86 @@ GLSphericalCap::display()
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
+//////////////////////////// GLPinHole //////////////////////////////////
+GLPinHole::GLPinHole()
+{
+  m_quadric = gluNewQuadric();
+}
+
+GLPinHole::~GLPinHole()
+{
+  gluDeleteQuadric(m_quadric);
+}
+
+void
+GLPinHole::recalculate()
+{
+  GLint i;
+  GLdouble angDelta = .5 * M_PI / m_slices;
+  // Generate vertices for the fans
+
+  m_vertices.resize(3 * (m_slices + 3));
+
+  m_vertices[0] = m_width / 2;
+  m_vertices[1] = m_height / 2;
+  m_vertices[2] = 0;
+
+    for (i = 0; i < (m_slices + 1); ++i) {
+      m_vertices[3 * (i + 1) + 0] = m_radius * cos(angDelta * i);
+      m_vertices[3 * (i + 1) + 1] = m_radius * sin(angDelta * i);
+      m_vertices[3 * (i + 1) + 2] = 0;
+    }
+
+  m_vertices[3 * (m_slices + 2) + 0] = -m_width / 2;
+  m_vertices[3 * (m_slices + 2) + 1] = m_height / 2;
+  m_vertices[3 * (m_slices + 2) + 2] = 0;
+
+  m_dirty = false;
+}
+
+void
+GLPinHole::setRadius(GLdouble radius)
+{
+  m_radius = radius;
+  m_dirty  = true;
+}
+
+void
+GLPinHole::setHeight(GLdouble height)
+{
+  m_height = height;
+  m_dirty  = true;
+}
+
+void
+GLPinHole::setWidth(GLdouble width)
+{
+  m_width = width;
+  m_dirty = true;
+}
+
+void
+GLPinHole::setSlices(GLint slices)
+{
+  m_slices = slices;
+  m_dirty  = true;
+}
+
+void
+GLPinHole::display()
+{
+  int i;
+
+  if (m_dirty)
+    recalculate();
+
+  for (i = 0; i < 4; ++i) {
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0,  m_vertices.data());
+    glDrawArrays(GL_TRIANGLE_FAN, 0, m_vertices.size() / 3);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glRotatef(90, 0, 0, 1);
+  }
+}

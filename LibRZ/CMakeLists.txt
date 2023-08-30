@@ -12,6 +12,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(FindPNG++)
 
 set(LIBRZ_SOURCES
+  ${LIBRZ_SRCDIR}/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/BenchElement.cpp
   ${LIBRZ_SRCDIR}/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Detector.cpp
@@ -41,6 +42,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/WorldFrame.cpp)
 
 set(LIBRZ_HEADERS
+  ${LIBRZ_INCLUDEDIR}/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/BenchElement.h
   ${LIBRZ_INCLUDEDIR}/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/FlatMirror.h

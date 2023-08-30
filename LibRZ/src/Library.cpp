@@ -8,6 +8,7 @@
 #include <RayBeamElement.h>
 #include <ConvexLens.h>
 #include <Detector.h>
+#include <ApertureStop.h>
 
 using namespace RZ;
 
@@ -23,6 +24,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
   Singleton::instance()->registerElementFactory(new BlockElementFactory);
   Singleton::instance()->registerElementFactory(new ConvexLensFactory);
-  
+  Singleton::instance()->registerElementFactory(new ApertureStopFactory);
+
   registerRayProcessors();
 }

@@ -42,7 +42,6 @@ namespace RZ {
       Real m_muOut  = 1.5;
       Real m_muIn   = 1;
       Real m_IOratio = 1 / 1.5;
-      Real m_IOratioInv = 1.5;
       
       Real m_center = .866;
       bool m_convex = true;
@@ -54,6 +53,15 @@ namespace RZ {
       void setRadius(Real);
       void setCurvatureRadius(Real);
       void setRefractiveIndex(Real , Real);
+      virtual std::string name() const;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
+  class ApertureStopProcessor : public RayTransferProcessor {
+      Real m_radius = .5;
+
+    public:
+      void setRadius(Real);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };

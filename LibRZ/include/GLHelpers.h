@@ -104,6 +104,47 @@ namespace RZ {
       ~GLSphericalCap();
   };
 
+  class GLPinHole : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+
+      GLint    m_slices = 32;
+      GLdouble m_radius = .25;
+      GLdouble m_width  = 1;
+      GLdouble m_height = 1;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      radius() const
+      {
+        return m_radius;
+      }
+
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      void setRadius(GLdouble);
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+      void setSlices(GLint);
+
+      virtual void display() override;
+
+      GLPinHole();
+      ~GLPinHole();
+  };
 };
 
 #endif // _GLHELPERS_H
