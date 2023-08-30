@@ -118,6 +118,13 @@ bool
 SimulationState::setProperties(SimulationProperties const &prop)
 {
   m_properties = prop;
+
+  // Sanitize this
+  if (prop.type == SIM_TYPE_ONE_SHOT)
+    m_properties.Ni = m_properties.Nj = 1;
+  else if (prop.type == SIM_TYPE_1D_SWEEP)
+    m_properties.Nj = 1;
+
   clearAll();
 
   m_dictionary.clear();
@@ -227,6 +234,9 @@ SimulationState::initSimulation()
   m_Ni = m_properties.Ni;
   m_Nj = m_properties.Nj;
 
+  m_steps = m_properties.Ni * m_properties.Nj;
+  m_currStep = 0;
+
   applyDofs();
 
   return allocateRays();
@@ -257,6 +267,8 @@ SimulationState::sweepStep()
   // Iteration done, apply Dofs
   applyDofs();
 
+  ++m_currStep;
+
   return allocateRays();
 }
 
@@ -271,6 +283,19 @@ SimulationState::done() const
 
   return true;
 }
+
+int
+SimulationState::steps() const
+{
+  return m_steps;
+}
+
+int
+SimulationState::currStep() const
+{
+  return m_currStep;
+}
+
 
 void
 SimulationState::releaseRays()
@@ -401,9 +426,9 @@ SimulationSession::SimulationSession(
 
   connect(
         this,
-        SIGNAL(triggerSimulation(QString)),
+        SIGNAL(triggerSimulation(QString, int, int)),
         m_tracer,
-        SLOT(onStartRequested(QString)));
+        SLOT(onStartRequested(QString, int, int)));
 
   connect(
         m_tracer,
@@ -486,10 +511,15 @@ SimulationSession::iterateSimulation()
 {
   tracer()->setBeam(m_simState->beam());
 
-  emit modelChanged();
+  if (m_simState->currStep() + 1 >= m_simState->steps())
+    emit modelChanged();
 
   ++m_simPending;
-  emit triggerSimulation(m_simState->properties().path);
+
+  emit triggerSimulation(
+        m_simState->properties().path,
+        m_simState->currStep(),
+        m_simState->steps());
 }
 
 bool
@@ -500,6 +530,8 @@ SimulationSession::runSimulation()
 
   if (!m_simState->initSimulation())
     return false;
+
+  m_tracer->setUpdateBeam(m_simState->steps() == 1);
 
   iterateSimulation();
 
@@ -578,12 +610,12 @@ SimulationSession::onSimulationDone()
   if (m_simPending == 0)
     m_simState->releaseRays();
 
-  if (m_simState->sweepStep())
+  if (m_simState->sweepStep()) {
     iterateSimulation();
-  else
+  } else {
     emit sweepFinished();
-
-  emit modelChanged();
+    emit modelChanged();
+  }
 }
 
 void

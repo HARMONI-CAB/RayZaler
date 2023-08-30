@@ -96,6 +96,9 @@ class SimulationState {
   bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
   void applyDofs();
 
+  int m_steps = 1;
+  int m_currStep = 0;
+
 public:
   SimulationState(RZ::TopLevelModel *);
   ~SimulationState();
@@ -104,6 +107,9 @@ public:
   bool initSimulation();
   bool sweepStep();
   bool done() const;
+
+  int steps() const;
+  int currStep() const;
 
   bool allocateRays();
   void releaseRays();
@@ -161,7 +167,7 @@ public:
 
 signals:
   void modelChanged();
-  void triggerSimulation(QString);
+  void triggerSimulation(QString, int, int);
   void simulationError(QString);
   void sweepFinished();
 

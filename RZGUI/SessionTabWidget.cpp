@@ -42,9 +42,9 @@ SessionTabWidget::connectAll()
 
   connect(
         m_session,
-        SIGNAL(triggerSimulation(QString)),
+        SIGNAL(triggerSimulation(QString, int, int)),
         this,
-        SLOT(onSimulationTriggered(QString)));
+        SLOT(onSimulationTriggered(QString, int, int)));
 
   connect(
         m_session,
@@ -55,6 +55,7 @@ SessionTabWidget::connectAll()
 
 SessionTabWidget::~SessionTabWidget()
 {
+  delete m_progressDialog;
   delete ui;
 }
 
@@ -101,10 +102,12 @@ SessionTabWidget::onModelChanged()
 }
 
 void
-SessionTabWidget::onSimulationTriggered(QString path)
+SessionTabWidget::onSimulationTriggered(QString path, int step, int total)
 {
-  m_progressDialog->setPath(path);
-  m_progressDialog->open();
+  if (step == 0) {
+    m_progressDialog->setPath(path);
+    m_progressDialog->open();
+  }
 }
 
 void

@@ -18,11 +18,14 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
   QMutex                    m_beamMutex;
   bool                      m_cancelled = false;
   bool                      m_running   = false;
-
+  bool                      m_updateBeam = true;
+  int                       m_currSim   = 0;
+  int                       m_numSim    = 1;
 public:
   explicit AsyncRayTracer(RZ::OMModel *model, QObject *parent = nullptr);
 
   void cancel();
+  void setUpdateBeam(bool);
   void setBeam(std::list<RZ::Ray> const &);
   bool running() const;
 
@@ -47,7 +50,7 @@ signals:
   void error(QString);
 
 public slots:
-  void onStartRequested(QString); // Actually calls trace()
+  void onStartRequested(QString, int, int); // Actually calls trace()
 
 };
 

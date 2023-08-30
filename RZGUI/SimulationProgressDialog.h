@@ -19,8 +19,8 @@ class SimulationProgressDialog : public QDialog
   struct timeval m_openTime;
   bool m_opened = false;
   void connectAll();
-
-
+  unsigned int m_count = 0;
+  unsigned int m_maxSim = 1;
 public:
   explicit SimulationProgressDialog(AsyncRayTracer *, QWidget *parent = nullptr);
   ~SimulationProgressDialog();
@@ -30,6 +30,7 @@ public:
   virtual void open() override;
 
   void setPath(QString);
+  void setMaxSim(unsigned int);
 
 public slots:
   void onProgress(int, int);

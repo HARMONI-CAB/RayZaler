@@ -39,7 +39,7 @@ private:
 
 public slots:
   void onModelChanged();
-  void onSimulationTriggered(QString);
+  void onSimulationTriggered(QString, int, int);
   void onSweepFinished();
 };
 

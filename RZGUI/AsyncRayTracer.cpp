@@ -16,6 +16,12 @@ AsyncRayTracer::cancel()
 }
 
 void
+AsyncRayTracer::setUpdateBeam(bool update)
+{
+  m_updateBeam = update;
+}
+
+void
 AsyncRayTracer::setBeam(std::list<RZ::Ray> const &beam)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
@@ -52,7 +58,10 @@ AsyncRayTracer::stageProgress(
       break;
   }
 
-  emit globalProgress(progressString, num, total);
+  if (m_numSim > 1)
+    emit globalProgress(progressString, m_currSim, m_numSim);
+  else
+    emit globalProgress(progressString, total * m_currSim + num, total * m_numSim);
 }
 
 void
@@ -74,17 +83,22 @@ AsyncRayTracer::cancelled() const
 }
 
 void
-AsyncRayTracer::onStartRequested(QString path)
+AsyncRayTracer::onStartRequested(QString path, int step, int total)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
-  m_cancelled = false;
+
+  if (step == 0)
+    m_cancelled = false;
+
+  m_currSim = step;
+  m_numSim  = total;
 
   if (m_beam == nullptr) {
     emit error("Undefined beam object");
   } else {
     try {
       m_running = true;
-      m_model->trace(path.toStdString(), *m_beam, true, this, false);
+      m_model->trace(path.toStdString(), *m_beam, m_updateBeam, this, false);
       m_running = false;
       if (m_cancelled)
         emit aborted();

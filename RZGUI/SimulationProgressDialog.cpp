@@ -63,6 +63,12 @@ SimulationProgressDialog::setPath(QString path)
 }
 
 void
+SimulationProgressDialog::setMaxSim(unsigned int maxSim)
+{
+  m_maxSim = maxSim;
+}
+
+void
 SimulationProgressDialog::simFinished()
 {
   m_opened = false;
@@ -83,14 +89,15 @@ SimulationProgressDialog::open()
 
   m_cancelled = false;
   ui->stepProgressBar->setValue(0);
-  ui->simProgressBar->setValue(0);
   ui->stepProgressBar->setFormat("Starting...");
   ui->simProgressBar->setFormat("Starting...");
 
-  gettimeofday(&tv, nullptr);
-
-  timeradd(&tv, &diff, &m_openTime);
-  m_opened = true;
+  if (!m_opened) {
+    ui->simProgressBar->setValue(0);
+    gettimeofday(&tv, nullptr);
+    timeradd(&tv, &diff, &m_openTime);
+    m_opened = true;
+  }
 }
 
 void
@@ -116,17 +123,27 @@ SimulationProgressDialog::onGlobalProgress(QString desc, int n, int total)
   if (m_cancelled) {
     ui->simProgressBar->setFormat("Cancelling...");
   } else {
-    ui->simProgressBar->setFormat(desc);
-    ui->simProgressBar->setMinimum(0);
-    ui->simProgressBar->setValue(n);
-    ui->simProgressBar->setMaximum(total);
+    int step = total / 100;
+
+    if (step < 1 || (n + 1) % step == 0) {
+      ui->simProgressBar->setFormat(desc);
+      ui->simProgressBar->setMinimum(0);
+      ui->simProgressBar->setValue(n);
+      ui->simProgressBar->setMaximum(total);
+      ui->simProgressBar->setFormat(
+            "Tracing beams ("
+            + QString::number(n)
+            + "/"
+            + QString::number(total)
+            + ")");
+    }
   }
 }
 
 void
 SimulationProgressDialog::onFinished()
 {
-  ui->simProgressBar->setFormat("Iterationf finished");
+
 }
 
 void
