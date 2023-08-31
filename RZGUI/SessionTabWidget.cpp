@@ -25,7 +25,7 @@ SessionTabWidget::SessionTabWidget(
   m_progressDialog->setWindowTitle(
         "Simulation progress - " + m_session->fileName());
 
-  m_detWindow = new DetectorWindow();
+  m_detWindow = new DetectorWindow(this);
   m_detWindow->setSession(m_session);
 
   connectAll();

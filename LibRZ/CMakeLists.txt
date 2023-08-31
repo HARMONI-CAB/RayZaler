@@ -27,6 +27,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
+  ${LIBRZ_SRCDIR}/Obstruction.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
@@ -58,6 +59,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
+  ${LIBRZ_INCLUDEDIR}/Obstruction.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h

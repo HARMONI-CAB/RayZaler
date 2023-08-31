@@ -1,5 +1,5 @@
-#ifndef _APERTURE_STOP_H
-#define _APERTURE_STOP_H
+#ifndef _OBSTRUCTION_H
+#define _OBSTRUCTION_H
 
 #include <OpticalElement.h>
 #include <RayProcessors.h>
@@ -8,13 +8,11 @@
 namespace RZ {
   class TranslatedFrame;
 
-  class ApertureStop : public OpticalElement {
-      ApertureStopProcessor *m_processor;
-      GLPinHole m_pinHole;
-      TranslatedFrame *m_stopSurface = nullptr;
+  class Obstruction : public OpticalElement {
+      ObstructionProcessor *m_processor;
+      GLDisc                m_disc;
+      TranslatedFrame      *m_stopSurface = nullptr;
       Real m_radius = 1e-2;
-      Real m_width  = 3e-2;
-      Real m_height = 3e-2;
 
       void recalcModel();
 
@@ -22,18 +20,18 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      ApertureStop(
+      Obstruction(
         ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~ApertureStop();
+      ~Obstruction();
 
       virtual void renderOpenGL() override;
   };
 
-  class ApertureStopFactory : public ElementFactory {
+  class ObstructionFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -43,4 +41,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURE_STOP_H
+#endif // _OBSTRUCTION_H

@@ -1,38 +1,22 @@
-#include <ApertureStop.h>
+#include <Obstruction.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;
 
 void
-ApertureStop::recalcModel()
+Obstruction::recalcModel()
 {
-  if (m_height < 2 * m_radius)
-    m_height = 2 * m_radius;
-  
-  if (m_width < 2 * m_radius)
-    m_width = 2 * m_radius;
-
   m_processor->setRadius(m_radius);
-  m_pinHole.setRadius(m_radius);
-  m_pinHole.setHeight(m_height);
-  m_pinHole.setWidth(m_width);
+  m_disc.setRadius(m_radius);
 }
 
 bool
-ApertureStop::propertyChanged(
+Obstruction::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  printf("Set property: %s\n", name.c_str());
   if (name == "radius") {
     m_radius = value;
-    recalcModel();
-  } else if (name == "width") {
-    m_width = value;
-    printf("Set width! %g\n", m_width);
-    recalcModel();
-  } else if (name == "height") {
-    m_height = value;
     recalcModel();
   } else {
     return false;
@@ -42,13 +26,13 @@ ApertureStop::propertyChanged(
 }
 
 
-ApertureStop::ApertureStop(
+Obstruction::Obstruction(
   ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new ApertureStopProcessor;
+  m_processor = new ObstructionProcessor;
 
   registerProperty("radius",    2.5e-2);
 
@@ -59,14 +43,14 @@ ApertureStop::ApertureStop(
   recalcModel();
 }
 
-ApertureStop::~ApertureStop()
+Obstruction::~Obstruction()
 {
   if (m_processor != nullptr)
     delete m_processor;
 }
 
 void
-ApertureStop::renderOpenGL()
+Obstruction::renderOpenGL()
 {
   GLVectorStorage vec;
   GLfloat shiny = 0;
@@ -75,24 +59,24 @@ ApertureStop::renderOpenGL()
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 
-  m_pinHole.display();
+  m_disc.display();
   glRotatef(180, 1, 0, 0);
   glTranslatef(0, 0, 1e-3 * m_radius);
-  m_pinHole.display();
+  m_disc.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-ApertureStopFactory::name() const
+ObstructionFactory::name() const
 {
-  return "ApertureStop";
+  return "Obstruction";
 }
 
 Element *
-ApertureStopFactory::make(
+ObstructionFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new ApertureStop(this, name, pFrame, parent);
+  return new Obstruction(this, name, pFrame, parent);
 }

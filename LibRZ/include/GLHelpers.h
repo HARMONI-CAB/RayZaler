@@ -76,7 +76,7 @@ namespace RZ {
       GLint    m_sectors = 32;
       GLint    m_stacks = 8;
       bool     m_invertNormals = false;
-      
+
       void recalculate();
 
     public:
@@ -102,6 +102,41 @@ namespace RZ {
 
       GLSphericalCap();
       ~GLSphericalCap();
+  };
+
+  class GLDisc : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+
+      GLint    m_slices = 32;
+      GLdouble m_width  = 1;
+      GLdouble m_height = 1;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      void setRadius(GLdouble);
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+      void setSlices(GLint);
+
+      virtual void display() override;
+
+      GLDisc();
+      ~GLDisc();
   };
 
   class GLPinHole : public GLPrimitive {
