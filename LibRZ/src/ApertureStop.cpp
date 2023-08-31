@@ -23,13 +23,11 @@ ApertureStop::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  printf("Set property: %s\n", name.c_str());
   if (name == "radius") {
     m_radius = value;
     recalcModel();
   } else if (name == "width") {
     m_width = value;
-    printf("Set width! %g\n", m_width);
     recalcModel();
   } else if (name == "height") {
     m_height = value;
@@ -51,6 +49,8 @@ ApertureStop::ApertureStop(
   m_processor = new ApertureStopProcessor;
 
   registerProperty("radius",    2.5e-2);
+  registerProperty("width",     7.5e-2);
+  registerProperty("height",    7.5e-2);
 
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
