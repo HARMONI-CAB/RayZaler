@@ -7,7 +7,7 @@
 #include <QFileInfo>
 #include <RayBeamElement.h>
 #include <QThread>
-
+#include <QDir>
 #include "AsyncRayTracer.h"
 
 void
@@ -326,35 +326,7 @@ SimulationState::~SimulationState()
   clearAll();
 }
 
-////////////////////////////////// Simulation session //////////////////////////
-class FileParserContext : public RZ::ParserContext {
-    using ParserContext::ParserContext;
-    FILE *m_fp = stdin;
-
-  public:
-    void setFile(FILE *fp, std::string const &name);
-    virtual int read() override;
-    virtual ~FileParserContext();
-};
-
-void
-FileParserContext::setFile(FILE *fp, std::string const &name)
-{
-  m_fp = fp;
-  ParserContext::setFile(name);
-}
-
-int
-FileParserContext::read()
-{
-  return fgetc(m_fp);
-}
-
-FileParserContext::~FileParserContext()
-{
-  if (m_fp != nullptr && m_fp != stdin)
-    fclose(m_fp);
-}
+////////////////////////////////// Simulation session /////////////////////////
 
 SimulationSession::SimulationSession(
     QString const &path,
@@ -387,7 +359,8 @@ SimulationSession::SimulationSession(
 
   m_recipe  = new RZ::Recipe();
   m_recipe->addDof("t", 0, 0, 1e6);
-  m_context = new FileParserContext(m_recipe);
+  m_context = new RZ::FileParserContext(m_recipe);
+  m_context->addSearchPath(info.dir().absolutePath().toStdString());
   m_context->setFile(fp, strName.c_str());
 
   try {

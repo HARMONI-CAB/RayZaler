@@ -1,6 +1,8 @@
 #include <ParserContext.h>
 #include "parser.h"
 #include <ctype.h>
+#include <algorithm>
+#include <libgen.h>
 
 int
 yylex(RZ::ParserContext *ctx)
@@ -80,7 +82,7 @@ ParserContext::isTerminator(int c) const
 bool
 ParserContext::isValidStartChar(int c)
 {
-  return isOperatorChar(c) || isalnum(c) || c == '.';
+  return isOperatorChar(c) || isalnum(c) || c == '.' || c == '"';
 }
 
 int
@@ -115,10 +117,83 @@ ParserContext::returnChar()
   return true;
 }
 
+bool
+ParserContext::lexString(int c)
+{
+  bool tokenCompleted = false;
+
+  if (c == EOF) {
+    throw std::runtime_error("Unexpected end-of-file when reading string");
+  } else {
+    if (m_escaped) {
+      switch (c) {
+        case 'n':
+          c = '\n';
+          break;
+        
+        case 'b':
+          c = '\b';
+          break;
+        
+        case 't':
+          c = '\t';
+          break;
+        
+        case 'v':
+          c = '\v';
+          break;
+        
+        case 'r':
+          c = '\r';
+          break;
+
+        case '"':
+          c = '"';
+          break;
+
+        default:
+          throw std::runtime_error("Unknown escape sequence `\\" + std::to_string(c) + "`");
+      }
+
+      m_escaped = false;
+    } else {
+      if (c == '\\')
+        m_escaped = true;
+      else if (c == '"')
+        tokenCompleted = true;
+    }
+  }
+
+  if (!tokenCompleted && !m_escaped)
+    m_buf.push_back(c);
+
+  return tokenCompleted;
+}
+
+bool
+ParserContext::lexNonString(int c)
+{
+  bool tokenCompleted = false;
+
+  if (c == EOF) {
+    tokenCompleted = true;
+  } else {
+    tokenCompleted = isTerminator(c);
+    if (tokenCompleted)
+      returnChar();
+  }
+
+  if (!tokenCompleted)
+    m_buf.push_back(c);
+
+  return tokenCompleted;
+}
+
 int
 ParserContext::lex()
 {
   bool tokenCompleted = false;
+  bool stringMode     = false;
 
   m_buf.clear();
   
@@ -128,35 +203,35 @@ ParserContext::lex()
   do {
     int c = getChar();
 
-    if (c == '#')
-      m_commentFound = true;
+    if (!stringMode) {
+      if (c == '#')
+        m_commentFound = true;
 
-    if (m_commentFound)
-      continue;
-    
-    if (m_buf.size() == 0) {
-      if (c == EOF)
-        return YYEOF;
-
-      // First character
-      if (isspace(c))
+      if (m_commentFound)
         continue;
-
-      if (!isValidStartChar(c))
-        return YYUNDEF;
       
-      m_buf.push_back(c);
-    } else {
-      if (c == EOF) {
-        tokenCompleted = true;
-      } else {
-        tokenCompleted = isTerminator(c);
-        if (tokenCompleted)
-          returnChar();
-      }
+      if (m_buf.size() == 0) {
+        if (c == EOF)
+          return YYEOF;
 
-      if (!tokenCompleted)
-        m_buf.push_back(c);
+        // First character
+        if (isspace(c))
+          continue;
+
+        if (!isValidStartChar(c))
+          return YYUNDEF;
+        
+        if (c == '"') {
+          stringMode = true;
+          m_escaped  = false;
+        } else {
+          m_buf.push_back(c);
+        }
+      } else {
+        tokenCompleted = lexNonString(c);
+      }
+    } else {
+      tokenCompleted = lexString(c);
     }
   } while (!tokenCompleted);
 
@@ -164,7 +239,10 @@ ParserContext::lex()
   yylval = token();
   m_buf.clear();
 
-  return tokenType();
+  if (stringMode)
+    return STRING;
+  else
+    return tokenType();
 }
 
 void
@@ -190,6 +268,8 @@ ParserContext::tokenType() const
 {
   if (looksLikeNumber(m_lastToken)) {
     return NUM;
+  } else if (m_lastToken[0] == '"') {
+    return STRING;
   } else if (isIdStartChar(m_lastToken[0])) {
     // Identify keyword
     if (m_lastToken == "rotate")
@@ -212,6 +292,8 @@ ParserContext::tokenType() const
       return ELEMENT_KEYWORD;
     else if (m_lastToken == "port")
       return PORT_KEYWORD;
+    else if (m_lastToken == "import")
+      return IMPORT_KEYWORD;
     else
       return IDENTIFIER;
   } else if (isOperatorChar(m_lastToken[0])) {
@@ -331,6 +413,61 @@ ParserContext::pushOnPort(std::string const &name, std::string const &port)
 }
 
 void
+ParserContext::import(std::string const &path)
+{
+  FileParserContext *nestedContext = nullptr;
+  std::string absPath, dirName;
+  std::string error;
+  FILE *fp = nullptr;
+
+  if (m_recursion >= PARSER_CONTEXT_MAX_RECURSION)
+    throw std::runtime_error("Too many nested imports");
+  
+  // Relative filename
+  if (path[0] != '/') {
+    for (auto p : m_searchPaths) {
+      absPath = p + "/" + path;
+      fp = fopen(absPath.c_str(), "r");
+      if (fp != nullptr)
+        break;    
+    }
+
+    if (fp == nullptr)
+      absPath = path;
+  } else {
+    absPath = path;
+    fp = fopen(absPath.c_str(), "r");
+  }
+
+  if (fp == nullptr) {
+    throw std::runtime_error(
+      "Cannot open import file `" 
+      + absPath 
+      + "': " 
+      + strerror(errno));
+  }
+
+  dirName = dirname(absPath.data());
+
+  nestedContext = new FileParserContext(m_recipe, m_recursion + 1);
+  nestedContext->addSearchPath(dirName);
+  nestedContext->inheritSearchPaths(this);
+  nestedContext->setFile(fp, path);
+
+  try {
+    nestedContext->parse();
+  } catch (std::runtime_error const &e) {
+    error = "In file import:\n" + std::string(e.what());
+  }
+
+  if (nestedContext != nullptr)
+    delete nestedContext;
+
+  if (error.size() > 0)
+    throw std::runtime_error(error);
+}
+
+void
 ParserContext::popFrame()
 {
   m_recipe->pop();
@@ -391,10 +528,11 @@ ParserContext::error(const char *msg)
   throw std::runtime_error(msg);
 }
 
-ParserContext::ParserContext(Recipe *recipe) :
+ParserContext::ParserContext(Recipe *recipe, int recursion) :
   m_rootRecipe(recipe)
 {
   m_recipe = m_rootRecipe;
+  m_recursion = recursion;
 }
 
 bool
@@ -413,4 +551,45 @@ ParserContext::parse()
   }
 
   return true;
+}
+
+void
+ParserContext::addSearchPath(std::string const &path)
+{
+  if (std::find(m_searchPaths.begin(), m_searchPaths.end(), path) 
+    == m_searchPaths.end())
+      m_searchPaths.push_back(path);
+}
+
+void
+ParserContext::inheritSearchPaths(ParserContext const *context)
+{
+  for (auto p : context->m_searchPaths)
+    addSearchPath(p);
+}
+
+//////////////////////////// File parser context ///////////////////////////////
+FileParserContext::FileParserContext(Recipe *recipe, int recursion)
+  : ParserContext(recipe, recursion)
+{
+
+}
+
+void
+FileParserContext::setFile(FILE *fp, std::string const &name)
+{
+  m_fp = fp;
+  ParserContext::setFile(name);
+}
+
+int
+FileParserContext::read()
+{
+  return fgetc(m_fp);
+}
+
+FileParserContext::~FileParserContext()
+{
+  if (m_fp != nullptr && m_fp != stdin)
+    fclose(m_fp);
 }

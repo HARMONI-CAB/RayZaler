@@ -26,6 +26,10 @@ class AsyncRayTracer;
 class FileParserContext;
 class QAbstractTableModel;
 
+namespace RZ {
+  class FileParserContext;
+};
+
 enum SimulationType {
   SIM_TYPE_ONE_SHOT,
   SIM_TYPE_1D_SWEEP,
@@ -126,7 +130,7 @@ class SimulationSession : public QObject
 
   QString            m_path;
   QString            m_fileName;
-  FileParserContext *m_context           = nullptr;
+  RZ::FileParserContext *m_context       = nullptr;
   RZ::Recipe        *m_recipe            = nullptr;
   RZ::TopLevelModel *m_topLevelModel     = nullptr;
   AsyncRayTracer    *m_tracer            = nullptr;

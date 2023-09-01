@@ -28,32 +28,37 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import "smaract.rzm";
+parameter SmarActLength = 50e-3;
+parameter SmarActWidth  = 50e-3;
+parameter SmarActHeight = 8.5e-3;
 
 #
-# SOSM: SCAOS Object Selection Mirror for HARMONI
+# SmarActGoniometer: implemented according to SmarAct's CGO-60-5 goniometer
+# stage, as per https://www.smaract.com/en/goniometer-stages/product/cgo-60-5-goniometer-stage
 #
 # Degrees of freedom:
-#   x: Angle in the X stage
-#   y: Angle in the Y stage
+#   alpha: angle of rotation of the positioning stage [-5, +5]
 #
-# Optical: yes
+# Ports:
+#   platform: top platform on which additional modules are plugged
 #
 #
 
-element SOSM {
-  dof x = 0;
-  dof y = 0;
+element SmarActGoniometer {
+  dof alpha = 0;
 
-  SmarActGoniometer gonX(alpha = x);
+  translate act_center (dz = 4.25e-3)
+    BlockElement base(length = SmarActLength, width  = SmarActWidth, height = SmarActHeight);
 
-  on platform of gonX {
-    rotate (90, 0, 0, 1) {
-      SmarActGoniometer gonY(alpha = y);
-      on platform of gonY
-        FlatMirror mirror(radius = 20e-3, thickness = 5e-3);
+  on top_side of act_center.base {
+    translate (dz = 69e-3) {  # 60.5 mm + 8.5 mm
+      rotate (alpha, 1, 0, 0) {
+        translate (dz = -60.5e-3) {
+          port platform; # Platform is 60.5 mm below the axis of rotation
+          translate (dz = -4.25e-3)
+            BlockElement bed(length = 50e-3, width  = 50e-3, height = 8.5e-3);
+        }
+      }
     }
   }
-
-  path mirror;
 }

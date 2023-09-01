@@ -7,6 +7,8 @@
 #include <variant>
 #include <Recipe.h>
 
+#define PARSER_CONTEXT_MAX_RECURSION 20
+
 namespace RZ {
   class ParserContext;
 }
@@ -83,7 +85,8 @@ namespace RZ {
     SEARCHING,
     READING_IDENTIFIER,
     READING_NUMBER,
-    READING_OPERATOR
+    READING_OPERATOR,
+    READING_STRING
   };
 
   class ParserContext {
@@ -92,12 +95,14 @@ namespace RZ {
       Recipe *m_recipe = nullptr;
       std::string m_buf;
       std::string m_lastToken;
+      std::list<std::string> m_searchPaths;
+      int m_recursion = 0;
       int m_line = 0;
       int m_char = 0;
       int m_tokLine = 0;
       int m_tokChar = 0;
       bool m_commentFound = false;
-
+      bool m_escaped = false;
       bool m_havePrevious = false;
       int m_saved = '\0';
       int m_last = '\0';
@@ -114,6 +119,8 @@ namespace RZ {
 
       int  getChar();
       bool returnChar();
+      bool lexNonString(int c);
+      bool lexString(int c);
 
       friend int  ::yylex(ParserContext *ctx);
       friend void ::yyerror(ParserContext *ctx, const char *msg);
@@ -127,6 +134,7 @@ namespace RZ {
       int  lex();
       void error(const char *msg);
 
+      void import(std::string const &);
       void registerParameter(ParserDOFDecl const &);
       void registerDOF(ParserDOFDecl const &);
       void registerPath(std::string const &name, std::list<std::string> const &);
@@ -201,10 +209,23 @@ namespace RZ {
       }
 
     public:
-      ParserContext(Recipe *recipe);
+      ParserContext(Recipe *recipe, int recursion = 0);
       bool parse();
+      void addSearchPath(std::string const &path);
+      void inheritSearchPaths(ParserContext const *);
       virtual int read() = 0;
 
+  };
+
+  class FileParserContext : public RZ::ParserContext {
+      using ParserContext::ParserContext;
+      FILE *m_fp = stdin;
+
+    public:
+      FileParserContext(Recipe *recipe, int recursion = 0);
+      void setFile(FILE *fp, std::string const &name);
+      virtual int read() override;
+      virtual ~FileParserContext();
   };
 }
 

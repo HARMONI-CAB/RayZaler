@@ -10,7 +10,8 @@
 %define api.value.type {RZ::ValueType}
 %token  NUM         "number"
 %token  IDENTIFIER  "identifier"
-%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD
+%token  STRING      "string"
+%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD
 %nterm  expr
 
 %precedence '='
@@ -34,12 +35,17 @@ statement:
   | path_stmt           
   | dof_stmt            
   | port_stmt
+  | import_stmt
   | compound_stmt       
   | element_def_stmt
   | error               { YYERROR; }
   ;
 
 empty_stmt: ';'
+
+import_stmt:
+    IMPORT_KEYWORD STRING ';'                     { ctx->import($2); }
+  ;
 
 element_stmt: 
     IDENTIFIER ';'                                { ctx->defineElement("", $1); }

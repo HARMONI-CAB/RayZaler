@@ -6,29 +6,6 @@
 
 using namespace RZ;
 
-class FileParserContext : public ParserContext {
-    using ParserContext::ParserContext;
-    FILE *fp = stdin;
-
-  public:
-    void setFile(FILE *fp, std::string const &name);
-    virtual int read() override;
-};
-
-void
-FileParserContext::setFile(FILE *fp, std::string const &name)
-{
-  this->fp = fp;
-  ParserContext::setFile(name);
-}
-
-int
-FileParserContext::read()
-{
-  return fgetc(fp);
-}
-
-
 class MyEventListener : public GLModelEventListener {
     TopLevelModel *m_model = nullptr;
     int m_count = 0;
