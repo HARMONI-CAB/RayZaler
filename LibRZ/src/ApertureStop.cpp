@@ -66,7 +66,7 @@ ApertureStop::~ApertureStop()
 }
 
 void
-ApertureStop::renderOpenGL()
+ApertureStop::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
   GLfloat shiny = 0;
@@ -74,10 +74,18 @@ ApertureStop::renderOpenGL()
   glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
 
+void
+ApertureStop::renderOpenGL()
+{
+  material("input.surface");
   m_pinHole.display();
+  
   glRotatef(180, 1, 0, 0);
   glTranslatef(0, 0, 1e-3 * m_radius);
+  
+  material("output.surface");
   m_pinHole.display();
 }
 

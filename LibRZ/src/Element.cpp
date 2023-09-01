@@ -1,5 +1,7 @@
 #include <Element.h>
 #include <Singleton.h>
+#include <GLHelpers.h>
+#include <OMModel.h>
 
 using namespace RZ;
 
@@ -151,6 +153,51 @@ Element::get(std::string const &name) const
     return PropertyValue::undefined();
 
   return it->second;
+}
+
+void
+Element::material(std::string const &role)
+{
+  // In selection,we override lighting
+  if (m_selected) {
+    GLVectorStorage vec;
+    GLfloat shiny = 128;
+
+    if (role.rfind("input.") == 0) {
+      glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(0, 1, 0));
+      glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0, .25, 0));
+    } else if (role.rfind("output.") == 0) {
+      glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(1, 0, 0));
+      glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(.25, 0, 0));
+    } else { 
+      glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(1, 1, 0));
+      glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(.25, .25, 0));
+    }
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
+    glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+  } else {
+    nativeMaterialOpenGL(role);
+  }
+}
+
+void
+Element::setSelected(bool selected)
+{
+  auto nested = nestedModel();
+
+  m_selected = selected;
+
+  // For nested models, propgate selection
+  if (nested != nullptr)
+    for (auto p : nested->elementList())
+      p->setSelected(selected);
+}
+
+void
+Element::nativeMaterialOpenGL(std::string const &role)
+{
+  // NO-OP
 }
 
 void

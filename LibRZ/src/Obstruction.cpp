@@ -50,18 +50,27 @@ Obstruction::~Obstruction()
 }
 
 void
-Obstruction::renderOpenGL()
+Obstruction::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
   GLfloat shiny = 0;
+
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
   glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
+
+void
+Obstruction::renderOpenGL()
+{
+  material("output.obs");
 
   m_disc.display();
   glRotatef(180, 1, 0, 0);
   glTranslatef(0, 0, 1e-3 * m_radius);
+
+  material("input.obs");
   m_disc.display();
 }
 

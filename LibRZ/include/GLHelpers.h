@@ -25,11 +25,49 @@ namespace RZ {
     virtual void display() = 0;
   };
 
+  class GLDisc : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+
+      GLint    m_slices = 32;
+      GLdouble m_width  = 1;
+      GLdouble m_height = 1;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      void setRadius(GLdouble);
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+      void setSlices(GLint);
+
+      virtual void display() override;
+
+      GLDisc();
+      ~GLDisc();
+  };
+
   class GLCappedCylinder : public GLPrimitive {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
-      std::vector<GLfloat> m_topCapVertices;
-      std::vector<GLfloat> m_baseCapVertices;
+
+      GLDisc   m_topCap, m_bottomCap;
 
       bool     m_drawTop  = false;
       bool     m_drawBase = false;
@@ -102,41 +140,6 @@ namespace RZ {
 
       GLSphericalCap();
       ~GLSphericalCap();
-  };
-
-  class GLDisc : public GLPrimitive {
-      GLUquadric *m_quadric = nullptr;
-      bool m_dirty = true;
-      std::vector<GLfloat> m_vertices;
-
-      GLint    m_slices = 32;
-      GLdouble m_width  = 1;
-      GLdouble m_height = 1;
-
-      void recalculate();
-
-    public:
-      GLdouble
-      width() const
-      {
-        return m_width;
-      }
-
-      GLdouble
-      height() const
-      {
-        return m_height;
-      }
-
-      void setRadius(GLdouble);
-      void setWidth(GLdouble);
-      void setHeight(GLdouble);
-      void setSlices(GLint);
-
-      virtual void display() override;
-
-      GLDisc();
-      ~GLDisc();
   };
 
   class GLPinHole : public GLPrimitive {

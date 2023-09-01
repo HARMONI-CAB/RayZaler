@@ -30,6 +30,7 @@ namespace RZ {
       
       ~ApertureStop();
 
+      virtual void nativeMaterialOpenGL(std::string const &role) override;
       virtual void renderOpenGL() override;
   };
 

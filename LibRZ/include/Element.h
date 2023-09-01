@@ -72,9 +72,13 @@ namespace RZ {
       std::map<std::string, ReferenceFrame *> m_nameToPort;
       std::map<std::string, PropertyValue> m_properties;
 
+      // Representation state
+      bool m_selected = false;
+
       void pushChild(Element *);
       
     protected:
+      void material(std::string const &role);
       void registerProperty(std::string const &, PropertyValue const &);
       void refreshProperties();
       
@@ -169,6 +173,11 @@ namespace RZ {
         return static_cast<T>(get(name));
       }
 
+      // Representation methods
+      void setSelected(bool);
+
+      // Representation interface
+      virtual void nativeMaterialOpenGL(std::string const &role);
       virtual void renderOpenGL();
       virtual OMModel *nestedModel() const;
   };

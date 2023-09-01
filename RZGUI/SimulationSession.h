@@ -133,6 +133,7 @@ class SimulationSession : public QObject
   RZ::FileParserContext *m_context       = nullptr;
   RZ::Recipe        *m_recipe            = nullptr;
   RZ::TopLevelModel *m_topLevelModel     = nullptr;
+  RZ::Element       *m_selectedElement   = nullptr;
   AsyncRayTracer    *m_tracer            = nullptr;
   QThread           *m_tracerThread      = nullptr;
   SimulationState   *m_simState          = nullptr;
@@ -155,6 +156,9 @@ public:
   RZ::Recipe          *recipe() const;
   RZ::TopLevelModel   *topLevelModel() const;
   AsyncRayTracer      *tracer() const;
+
+  // Session actions
+  void                 selectElement(RZ::Element *);
 
   QString              fileName() const;
 

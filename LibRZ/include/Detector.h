@@ -93,6 +93,7 @@ namespace RZ {
           Element *parent = nullptr);
         ~Detector();
 
+      virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
 
       void clear();

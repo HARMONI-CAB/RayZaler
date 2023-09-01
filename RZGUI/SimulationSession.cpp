@@ -473,6 +473,22 @@ SimulationSession::topLevelModel() const
   return m_topLevelModel;
 }
 
+void
+SimulationSession::selectElement(RZ::Element *element)
+{
+  if (m_selectedElement != element) {
+    if (m_selectedElement != nullptr)
+      m_selectedElement->setSelected(false);
+
+    m_selectedElement = element;
+
+    if (m_selectedElement != nullptr)
+      m_selectedElement->setSelected(true);
+
+    emit modelChanged();
+  }
+}
+
 QString
 SimulationSession::fileName() const
 {

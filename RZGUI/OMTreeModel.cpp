@@ -15,27 +15,27 @@ OMTreeItem::data(int col)
       case OM_TREE_ITEM_TYPE_FRAME:
         return QString::fromStdString(frame->name());
 
-      case OM_TREE_ITEM_TYPE_ELEMENTS:
+      case OM_TREE_ITEM_TYPE_ELEMENT:
         if (element->name().size() == 0)
           return "(Anonymous)";
         return QString::fromStdString(element->name());
 
-      case OM_TREE_ITEM_TYPE_OPTICAL_ELEMENTS:
+      case OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT:
         if (opticalElement->name().size() == 0)
           return "(Anonymous)";
         return QString::fromStdString(opticalElement->name());
 
-      case OM_TREE_ITEM_TYPE_DETECTORS:
+      case OM_TREE_ITEM_TYPE_DETECTOR:
         return QString::fromStdString(detector->name());
 
-      case OM_TREE_ITEM_TYPE_OPTICAL_PATHS:
+      case OM_TREE_ITEM_TYPE_OPTICAL_PATH:
         return displayText;
     }
   } else if (col == 1) {
     switch (type) {
-      case OM_TREE_ITEM_TYPE_OPTICAL_ELEMENTS:
-      case OM_TREE_ITEM_TYPE_ELEMENTS:
-      case OM_TREE_ITEM_TYPE_DETECTORS:
+      case OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT:
+      case OM_TREE_ITEM_TYPE_ELEMENT:
+      case OM_TREE_ITEM_TYPE_DETECTOR:
         return QString::fromStdString(element->factory()->name());
 
       default:
@@ -119,7 +119,7 @@ OMTreeModel::setModel(RZ::OMModel *model)
       for (auto p : m_model->elements()) {
         auto element = m_model->lookupElement(p);
         if (element != nullptr) {
-          auto item = allocItem(OM_TREE_ITEM_TYPE_ELEMENTS, elements);
+          auto item = allocItem(OM_TREE_ITEM_TYPE_ELEMENT, elements);
           item->element = element;
         }
       }
@@ -127,7 +127,7 @@ OMTreeModel::setModel(RZ::OMModel *model)
       for (auto p : m_model->opticalElements()) {
         auto opticalElement = m_model->lookupOpticalElement(p);
         if (opticalElement != nullptr) {
-          auto item = allocItem(OM_TREE_ITEM_TYPE_OPTICAL_ELEMENTS, opticalElements);
+          auto item = allocItem(OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT, opticalElements);
           item->opticalElement = opticalElement;
         }
       }
@@ -135,7 +135,7 @@ OMTreeModel::setModel(RZ::OMModel *model)
       for (auto p : m_model->detectors()) {
         auto detector = m_model->lookupDetector(p);
         if (detector != nullptr) {
-          auto item = allocItem(OM_TREE_ITEM_TYPE_DETECTORS, detectors);
+          auto item = allocItem(OM_TREE_ITEM_TYPE_DETECTOR, detectors);
           item->detector = detector;
         }
       }
@@ -143,7 +143,7 @@ OMTreeModel::setModel(RZ::OMModel *model)
       for (auto p : m_model->opticalPaths()) {
         auto path = m_model->lookupOpticalPath(p);
         if (path != nullptr) {
-          auto item = allocItem(OM_TREE_ITEM_TYPE_OPTICAL_PATHS, paths);
+          auto item = allocItem(OM_TREE_ITEM_TYPE_OPTICAL_PATH, paths);
           item->path = path;
           item->displayText = QString::fromStdString(p);
           if (p.size() == 0)
@@ -213,15 +213,29 @@ int OMTreeModel::columnCount(const QModelIndex &parent) const
     return 0;
 }
 
+OMTreeItem *
+OMTreeModel::itemFromIndex(const QModelIndex &index) const
+{
+  if (!index.isValid())
+    return nullptr;
+
+  OMTreeItem *item = static_cast<OMTreeItem*>(index.internalPointer());
+
+  return item;
+}
+
 QVariant OMTreeModel::data(const QModelIndex &index, int role) const
 {
-    if (m_root == nullptr || !index.isValid())
+    if (m_root == nullptr)
         return QVariant();
 
     if (role != Qt::DisplayRole)
         return QVariant();
 
-    OMTreeItem *item = static_cast<OMTreeItem*>(index.internalPointer());
+    OMTreeItem *item = itemFromIndex(index);
+
+    if (item == nullptr)
+      return QVariant();
 
     return item->data(index.column());
 }

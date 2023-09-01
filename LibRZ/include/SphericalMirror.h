@@ -18,7 +18,7 @@ namespace RZ {
       Real m_flength = 1;
       Real m_depth;
       Real m_displacement;
-      
+
       void recalcModel();
 
     protected:
@@ -33,6 +33,7 @@ namespace RZ {
       
       ~SphericalMirror();
 
+      virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
   };
 

@@ -81,8 +81,6 @@ RZGUIGLWidget::configureLighting()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
 
-  glClearColor(0, 0, .4, 1);
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glEnable(GL_LIGHTING);
@@ -93,14 +91,7 @@ RZGUIGLWidget::configureLighting()
   glLightfv(GL_LIGHT0, GL_AMBIENT,  vec.get(1.0, 1.0, 1.0));
   glLightfv(GL_LIGHT0, GL_DIFFUSE,  vec.get(1.0, 1.0, 1.0));
   glLightfv(GL_LIGHT0, GL_SPECULAR, vec.get(1.0, 1.0, 1.0));
-  glLightfv(GL_LIGHT0, GL_POSITION, vec.get(1.0, 5.0, 5.0));
   glEnable(GL_LIGHT0);
-
-  glLightfv(GL_LIGHT1, GL_AMBIENT,  vec.get(0.1, 0.1, 0.1));
-  glLightfv(GL_LIGHT1, GL_DIFFUSE,  vec.get(.5, .5, .5));
-  glLightfv(GL_LIGHT1, GL_SPECULAR, vec.get(.5, .5, .5));
-  glLightfv(GL_LIGHT1, GL_POSITION, vec.get(1.0, 1.0, 50.0));
-  glEnable(GL_LIGHT1);
 
   glShadeModel(GL_SMOOTH);
   glCullFace(GL_BACK);
@@ -328,7 +319,22 @@ RZGUIGLWidget::drawAxes()
     glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20, 20);
 
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
+      glPushMatrix();
+      glDisable(GL_LIGHTING);
+      glDisable(GL_DEPTH_TEST);
+      glBegin(GL_QUADS);
+
+      glColor3f(30. / 255., 129. / 255., 176. / 255.);
+      glVertex3f(-2, -2. / aspect, 10);
+      glVertex3f(+2, -2. / aspect, 10);
+
+      glColor3f(21. / 255., 76. / 255., 121. / 255.);
+      glVertex3f(+2., 2. / aspect, 10);
+      glVertex3f(-2., 2. / aspect, 10);
+      glEnd();
+      glEnable(GL_LIGHTING);
+      glEnable(GL_DEPTH_TEST);
+
       glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
       glRotatef(m_curRot[0], 0, 1, 0);
       glRotatef(m_curRot[1], 1, 0, 0);

@@ -27,6 +27,7 @@ namespace RZ {
         Element *parent = nullptr);
       
       virtual ~BlockElement();
+      virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
   };
 

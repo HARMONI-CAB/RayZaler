@@ -28,6 +28,7 @@ namespace RZ {
       
       ~Obstruction();
 
+      virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
   };
 

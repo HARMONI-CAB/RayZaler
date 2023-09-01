@@ -125,16 +125,22 @@ BlockElement::BlockElement(
   refreshProperties();
 }
 
+void
+BlockElement::nativeMaterialOpenGL(std::string const &role)
+{
+  GLVectorStorage vec;
+  GLfloat shiny = 64;
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.25, .25, .25));
+  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.25, .25, .25));
+  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
 
 void
 BlockElement::renderOpenGL()
 {
-  GLVectorStorage vec;
-
-  // Draw the legs
-  glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.25, .25, .25));
-  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.25, .25, .25));
+  material("cube");
 
   glPushMatrix();
   glScalef(m_cachedLength, m_cachedWidth, m_cachedHeight);

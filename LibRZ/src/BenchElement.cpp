@@ -46,11 +46,27 @@ BenchElement::BenchElement(
   refreshProperties();
 }
 
+void
+BenchElement::nativeMaterialOpenGL(std::string const &role)
+{
+  GLVectorStorage vec;
+  
+  if (role == "table") {
+    glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.25, .25, .25));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, .1, .1));
+  } else if (role == "legs") {
+    glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
+    glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, .1, .1));
+  }
+}
+
 
 void
 BenchElement::renderOpenGL()
 {
-  GLVectorStorage vec;
+  
   GLfloat legLoc[4][2] = {
     {
       -BENCH_DEFAULT_WIDTH / 2 + BENCH_DEFAULT_LEG_SEP, 
@@ -71,9 +87,7 @@ BenchElement::renderOpenGL()
   };
   // Draw the table itself
 
-  glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.25, .25, .25));
-  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, .1, .1));
+  material("table");
 
   glPushMatrix();
   glTranslatef(0, 0, m_cachedHeight - BENCH_DEFAULT_TABLE_HEIGHT / 2);
@@ -82,9 +96,7 @@ BenchElement::renderOpenGL()
   glPopMatrix();
 
   // Draw the legs
-  glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
-  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, .1, .1));
+  material("legs");
 
   for (auto i = 0; i < 4; ++i) {
     glPushMatrix();

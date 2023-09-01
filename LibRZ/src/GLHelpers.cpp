@@ -21,30 +21,7 @@ GLCappedCylinder::~GLCappedCylinder()
 void
 GLCappedCylinder::recalculateCaps()
 {
-  GLint i;
-  GLdouble angDelta = 2 * M_PI / m_slices;
-  // Generate vertices for the fans
-
-  m_topCapVertices.resize(3 * (m_slices + 2));
-  m_baseCapVertices.resize(3 * (m_slices + 2));
-
-  m_baseCapVertices[0] = 0;
-  m_baseCapVertices[1] = 0;
-  m_baseCapVertices[2] = 0;
-
-  m_topCapVertices[0] = 0;
-  m_topCapVertices[1] = 0;
-  m_topCapVertices[2] = m_height;
-
-  for (i = 0; i < (m_slices + 1); ++i) {
-    m_baseCapVertices[3 * (i + 1) + 0] = m_baseCapVertices[0] + m_radius * cos(angDelta * i);
-    m_baseCapVertices[3 * (i + 1) + 1] = m_baseCapVertices[1] + m_radius * sin(-angDelta * i);
-    m_baseCapVertices[3 * (i + 1) + 2] = m_baseCapVertices[2];
-
-    m_topCapVertices[3 * (i + 1) + 0] = m_topCapVertices[0] + m_radius * cos(angDelta * i);
-    m_topCapVertices[3 * (i + 1) + 1] = m_topCapVertices[1] + m_radius * sin(angDelta * i);
-    m_topCapVertices[3 * (i + 1) + 2] = m_topCapVertices[2];
-  }
+  // NO-OP
   m_dirty = false;
 }
 
@@ -59,6 +36,8 @@ void
 GLCappedCylinder::setRadius(GLdouble radius)
 {
   m_radius = radius;
+  m_topCap.setRadius(radius);
+  m_bottomCap.setRadius(radius);
   m_dirty  = true;
 }
 
@@ -66,6 +45,8 @@ void
 GLCappedCylinder::setSlices(GLint slices)
 {
   m_slices = slices;
+  m_topCap.setSlices(slices);
+  m_bottomCap.setSlices(slices);
   m_dirty  = true;
 }
 
@@ -79,23 +60,25 @@ GLCappedCylinder::setVisibleCaps(bool base, bool top)
 void
 GLCappedCylinder::display()
 {
+  const int stride = 6 * sizeof(GLfloat);
+
   if (m_dirty)
     recalculateCaps();
 
-  glEnableClientState(GL_VERTEX_ARRAY);
-
   if (m_drawTop) {
-    glVertexPointer(3, GL_FLOAT, 0,  m_topCapVertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, m_topCapVertices.size() / 3);
+    glPushMatrix();
+    glTranslatef(0, 0, m_height);
+    m_topCap.display();
+    glPopMatrix();
   }
 
   if (m_drawBase) {
-    glVertexPointer(3, GL_FLOAT, 0,  m_baseCapVertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, m_baseCapVertices.size() / 3);
+    glPushMatrix();
+    glRotatef(180, 1, 0, 0);
+    m_topCap.display();
+    glPopMatrix();
   }
   
-  glDisableClientState(GL_VERTEX_ARRAY);
-
   gluCylinder(m_quadric, m_radius, m_radius, m_height, m_slices, 2);
 }
 
@@ -267,20 +250,60 @@ GLDisc::~GLDisc()
 void
 GLDisc::recalculate()
 {
-  GLint i;
-  GLdouble angDelta = 2 * M_PI / m_slices;
-  // Generate vertices for the fans
+  GLint i, n = 0, total;
+  GLfloat sliceDelta = 1. / m_slices;
+  GLfloat angDelta = 2 * M_PI * sliceDelta;
+  GLfloat ang;
 
-  m_vertices.resize(3 * (m_slices + 2));
+  total = m_slices + 2;
+  m_vertices.resize(3 * total);
+  m_normals.resize(3 * total);
+  m_texCoords.resize(2 * total);
 
-  m_vertices[0] = 0;
-  m_vertices[1] = 0;
-  m_vertices[2] = 0;
+  ang = 0;
 
-  for (i = 0; i < (m_slices + 1); ++i) {
-    m_vertices[3 * (i + 1) + 0] = .5 * m_width  * cos(angDelta * i);
-    m_vertices[3 * (i + 1) + 1] = .5 * m_height * sin(angDelta * i);
-    m_vertices[3 * (i + 1) + 2] = 0;
+  m_vertices[3 * n + 0] = 0;
+  m_vertices[3 * n + 1] = 0;
+  m_vertices[3 * n + 2] = 0;
+
+  m_normals[3 * n + 0] = 0;
+  m_normals[3 * n + 1] = 0;
+  m_normals[3 * n + 2] = 1;
+
+  m_texCoords[2 * n + 0] = 0;
+  m_texCoords[2 * n + 1] = 0;
+
+  ++n;
+
+  for (i = 0; i <= m_slices; ++i) {
+    GLfloat x = .5 * m_width  * cosf(ang);
+    GLfloat y = .5 * m_height * sinf(ang);
+
+    m_vertices[3 * n + 0] = x;
+    m_vertices[3 * n + 1] = y;
+    m_vertices[3 * n + 2] = 0;
+
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = 1;
+
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 1;
+
+    ang += angDelta;
+
+    ++n;
+  }
+
+  // Calculate indices
+  n     = 0;
+  m_indices.resize(3 * m_slices);
+
+  for (i = 0; i < m_slices; ++i) {
+    m_indices[3 * n + 0] = 0;
+    m_indices[3 * n + 1] = i + 1;
+    m_indices[3 * n + 2] = i + 2;
+    ++n;
   }
 
   m_dirty = false;
@@ -289,7 +312,7 @@ GLDisc::recalculate()
 void
 GLDisc::setRadius(GLdouble radius)
 {
-  m_width = m_height = radius;
+  m_width = m_height = 2 * radius;
   m_dirty  = true;
 }
 
@@ -317,19 +340,25 @@ GLDisc::setSlices(GLint slices)
 void
 GLDisc::display()
 {
-  int i;
-
   if (m_dirty)
     recalculate();
 
-  for (i = 0; i < 4; ++i) {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0,  m_vertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, m_vertices.size() / 3);
-    glDisableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_vertices.data());
+  glNormalPointer(GL_FLOAT,      3 * sizeof(GLfloat), m_normals.data());
+  glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), m_texCoords.data());
 
-    glRotatef(90, 0, 0, 1);
-  }
+  glDrawElements(
+    GL_TRIANGLES,
+    (unsigned int) m_indices.size(),
+    GL_UNSIGNED_INT,
+    m_indices.data());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 
@@ -344,28 +373,40 @@ GLPinHole::~GLPinHole()
   gluDeleteQuadric(m_quadric);
 }
 
+template <typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
+}
+
 void
 GLPinHole::recalculate()
 {
-  GLint i;
+  GLint i, j, stride, p;
   GLdouble angDelta = .5 * M_PI / m_slices;
+  GLdouble angle = 0;
   // Generate vertices for the fans
 
-  m_vertices.resize(3 * (m_slices + 3));
+  stride = 3 * (m_slices + 3);
+  m_vertices.resize(4 * stride);
 
-  m_vertices[0] = m_width / 2;
-  m_vertices[1] = m_height / 2;
-  m_vertices[2] = 0;
+  p = 0;
+  for (j = 0; j < 4; ++j) {
+    m_vertices[p++] = (m_width  / 2) * sgn(cos(angle + M_PI / 4));
+    m_vertices[p++] = (m_height / 2) * sgn(sin(angle + M_PI / 4));
+    m_vertices[p++] = 0;
 
-  for (i = 0; i < (m_slices + 1); ++i) {
-    m_vertices[3 * (i + 1) + 0] = m_radius * cos(angDelta * i);
-    m_vertices[3 * (i + 1) + 1] = m_radius * sin(angDelta * i);
-    m_vertices[3 * (i + 1) + 2] = 0;
+    for (i = 0; i <= m_slices; ++i) {
+      m_vertices[p++] = m_radius * cos(angle);
+      m_vertices[p++] = m_radius * sin(angle);
+      m_vertices[p++] = 0;
+
+      if (i < m_slices)
+        angle += angDelta;
+    }
+
+    m_vertices[p++] = (m_width   / 2) * sgn(cos(angle + M_PI / 4));
+    m_vertices[p++] = (m_height  / 2) * sgn(sin(angle + M_PI / 4));
+    m_vertices[p++] = 0;
   }
-
-  m_vertices[3 * (m_slices + 2) + 0] = -m_width / 2;
-  m_vertices[3 * (m_slices + 2) + 1] = m_height / 2;
-  m_vertices[3 * (m_slices + 2) + 2] = 0;
 
   m_dirty = false;
 }
@@ -402,16 +443,15 @@ void
 GLPinHole::display()
 {
   int i;
+  GLint stride = 3 * (m_slices + 3);
 
   if (m_dirty)
     recalculate();
 
   for (i = 0; i < 4; ++i) {
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0,  m_vertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, m_vertices.size() / 3);
+    glVertexPointer(3, GL_FLOAT, 0,  m_vertices.data() + i * stride);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, stride / 3);
     glDisableClientState(GL_VERTEX_ARRAY);
-
-    glRotatef(90, 0, 0, 1);
   }
 }

@@ -32,8 +32,9 @@ class MainWindow : public QMainWindow
   void registerSession(SimulationSession *);
   void doOpen();
 
-public:
+  void reconnectModels();
   void connectAll();
+public:
 
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
@@ -59,6 +60,7 @@ public slots:
       const QModelIndex &bottomRight,
       const QList<int> &roles = QList<int>());
 
+  void onTreeItemSelectionChanged();
   void onChangeView();
 
 private:

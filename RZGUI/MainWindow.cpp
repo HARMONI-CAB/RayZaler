@@ -8,6 +8,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSurfaceFormat>
 
 MainWindow::MainWindow(QWidget *parent)
   : QMainWindow(parent)
@@ -21,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
 
   ui->propTableView->setModel(m_propModel);
   ui->omTreeView->setModel(m_omModel);
+
+  QSurfaceFormat fmt;
+  fmt.setSamples(2);
+  QSurfaceFormat::setDefaultFormat(fmt);
 
   connectAll();
   refreshCurrentSession();
@@ -151,6 +156,16 @@ MainWindow::connectAll()
 }
 
 void
+MainWindow::reconnectModels()
+{
+  connect(
+        ui->omTreeView->selectionModel(),
+        SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+        this,
+        SLOT(onTreeItemSelectionChanged()));
+}
+
+void
 MainWindow::refreshCurrentSession()
 {
   if (m_currSession != nullptr) {
@@ -169,6 +184,8 @@ MainWindow::refreshCurrentSession()
     ui->actionSimResult->setEnabled(
           m_currSession->topLevelModel()->detectors().size() > 0);
     setWindowTitle("RayZaler - " + m_currSession->fileName());
+
+    reconnectModels();
   } else {
     m_propModel->setModel(nullptr);
     m_omModel->setModel(nullptr);
@@ -399,4 +416,24 @@ MainWindow::onChangeView()
   }
 
 #undef ROTONSENDER
+}
+
+void
+MainWindow::onTreeItemSelectionChanged()
+{
+  if (m_currSession != nullptr) {
+    QModelIndex index = ui->omTreeView->currentIndex();
+    RZ::Element *selectedElement = nullptr;
+    auto item = m_omModel->itemFromIndex(index);
+
+    if (item != nullptr) {
+      if (item->type == OM_TREE_ITEM_TYPE_ELEMENT
+          || item->type == OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT
+          || item->type == OM_TREE_ITEM_TYPE_DETECTOR) {
+        selectedElement = item->element;
+      }
+    }
+
+    m_currSession->selectElement(selectedElement);
+  }
 }

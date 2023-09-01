@@ -250,12 +250,21 @@ Detector::savePNG(std::string const &path) const
 }
 
 void
-Detector::renderOpenGL()
+Detector::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
+  GLfloat shiny = 128;
+
   glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.5, .5, .25));
-  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, .5));
+  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
+  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
+
+void
+Detector::renderOpenGL()
+{
+  material("detector");
 
   glTranslatef(0, 0, 1e-3 / 2);
   glScalef(m_width, m_height, 1e-3);

@@ -73,19 +73,28 @@ SphericalMirror::~SphericalMirror()
 }
 
 void
-SphericalMirror::renderOpenGL()
+SphericalMirror::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
-  GLfloat shiny = 1;
+  GLfloat shiny = 128;
+
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.1, .1, .1));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.75, .75, .75));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
+
+void
+SphericalMirror::renderOpenGL()
+{
+  material("mirror");
 
   m_cylinder.display();
 
   glRotatef(180, 1, 0, 0);
-  glTranslatef(0, 0, -m_thickness-m_displacement);
+  glTranslatef(0, 0, -m_thickness - m_displacement);
+
+  material("input.mirror");
   m_cap.display();
 }
 

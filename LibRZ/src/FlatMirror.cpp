@@ -59,15 +59,21 @@ FlatMirror::~FlatMirror()
 }
 
 void
-FlatMirror::renderOpenGL()
+FlatMirror::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
-  GLfloat shiny = 0;
+  GLfloat shiny = 128;
+
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.5, .5, .5));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.75, .75, .75));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
 
+void
+FlatMirror::renderOpenGL()
+{
+  material("");
   m_cylinder.display();
 }
 

@@ -16,10 +16,10 @@ enum OMTreeItemType {
   OM_TREE_ITEM_TYPE_ROOT,
   OM_TREE_ITEM_TYPE_CATEGORY,
   OM_TREE_ITEM_TYPE_FRAME,
-  OM_TREE_ITEM_TYPE_ELEMENTS,
-  OM_TREE_ITEM_TYPE_OPTICAL_ELEMENTS,
-  OM_TREE_ITEM_TYPE_DETECTORS,
-  OM_TREE_ITEM_TYPE_OPTICAL_PATHS,
+  OM_TREE_ITEM_TYPE_ELEMENT,
+  OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT,
+  OM_TREE_ITEM_TYPE_DETECTOR,
+  OM_TREE_ITEM_TYPE_OPTICAL_PATH,
 };
 
 struct OMTreeItem {
@@ -88,6 +88,8 @@ class OMTreeModel : public QAbstractItemModel
     void setModel(RZ::OMModel *model);
     explicit OMTreeModel(QObject *parent = nullptr);
     ~OMTreeModel();
+
+    OMTreeItem *itemFromIndex(const QModelIndex &index) const;
 
     QVariant data(const QModelIndex &index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;

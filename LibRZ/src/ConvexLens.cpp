@@ -87,24 +87,34 @@ ConvexLens::~ConvexLens()
 }
 
 void
-ConvexLens::renderOpenGL()
+ConvexLens::nativeMaterialOpenGL(std::string const &role)
 {
   GLVectorStorage vec;
   GLfloat shiny = 128;
 
   glMaterialfv(GL_FRONT, GL_AMBIENT, vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.5, .5, .5));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, vec.get(.75, .75, .75));
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
+}
 
+void
+ConvexLens::renderOpenGL()
+{
   glTranslatef(0, 0, -.5 * m_thickness);
 
+  material("lens");
   m_cylinder.display();
 
   glTranslatef(0, 0, m_thickness - m_rCurv + m_depth);
+  
+  material("output.lens");
   m_cap.display();
+  
   glRotatef(180, 1, 0, 0);
   glTranslatef(0, 0, m_thickness - 2 * (m_rCurv - m_depth));
+  
+  material("input.lens");
   m_cap.display();
 }
 
