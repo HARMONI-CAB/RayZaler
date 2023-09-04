@@ -105,7 +105,7 @@ RayTracingProcessListener::rayProgress(uint64_t num, uint64_t total)
 uint64_t
 RayTracingProcessListener::rayNotifyInterval() const
 {
-  return 10000;
+  return 250;
 }
 
 bool
@@ -224,6 +224,7 @@ RayTracingEngine::trace(const ReferenceFrame *surface)
   cast(surface->getCenter(), surface->eZ());
 
   m_raysDirty = true;
+  m_notificationPendig = false;
 }
 
 void
@@ -247,4 +248,88 @@ RayBeam *
 RayTracingEngine::makeBeam()
 {
   return new RayBeam(m_rays.size());
+}
+
+void
+RayTracingEngine::tick()
+{
+  gettimeofday(&m_start, nullptr);
+}
+
+void
+RayTracingEngine::setStartTime(struct timeval const &tv)
+{
+  m_start = tv;
+}
+
+uint64_t
+RayTracingEngine::tack() const
+{
+  struct timeval tv, diff;
+
+  gettimeofday(&tv, nullptr);
+  timersub(&tv, &m_start, &diff);
+
+  return static_cast<uint64_t>(diff.tv_sec) * 1000ull
+         + static_cast<uint64_t>(diff.tv_usec / 1000);
+}
+
+struct timeval
+RayTracingEngine::lastTick() const
+{
+  return m_start;
+}
+
+bool
+RayTracingEngine::notificationPending() const
+{
+  return m_notificationPendig;
+}
+
+void
+RayTracingEngine::clearPendingNotifications()
+{
+  m_notificationPendig = false;
+}
+
+bool
+RayTracingEngine::cancelled() const
+{
+  if (m_listener != nullptr)
+    return m_listener->cancelled();
+
+  return false;
+}
+
+void
+RayTracingEngine::rayProgress(uint64_t num, uint64_t total)
+{
+  if (m_listener != nullptr) {
+    if (tack() > m_listener->rayNotifyInterval()) {
+      m_listener->rayProgress(num, total);
+      m_notificationPendig = true;
+      tick();
+    }
+  }
+}
+
+void
+RayTracingEngine::stageProgress(
+  RayTracingStageProgressType type,
+  std::string const &text,
+  unsigned int num,
+  unsigned int total)
+{
+  if (m_notificationPendig || tack() > m_listener->rayNotifyInterval()) {
+    m_listener->stageProgress(type, text, num, total);
+    if (m_beam != nullptr) {
+      if (type == PROGRESS_TYPE_TRANSFER)
+        rayProgress(m_beam->count * 3, m_beam->count * 3);
+      else if (type == PROGRESS_TYPE_TRACE)
+        rayProgress(0, m_beam->count * 3);
+    }
+
+    if (!m_notificationPendig)
+      m_notificationPendig = true;
+  }
 }

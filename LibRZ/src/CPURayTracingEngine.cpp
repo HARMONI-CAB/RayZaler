@@ -15,10 +15,6 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
   uint64_t i, N = 3 * beam->count, r = 0;
   uint64_t p = 0;
   RayTracingProcessListener *listenerObj = listener();
-  uint64_t notifyInterval = 
-    listenerObj == nullptr 
-      ? 0 
-      : listenerObj->rayNotifyInterval();
   
   numDot = demDot = 0;
 
@@ -39,14 +35,12 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
       beam->lengths[r++] = t;
     }
 
-    if (notifyInterval != 0 && --notifyInterval == 0) {
-      if (listenerObj->cancelled())
-        break;
-      listenerObj->rayProgress(i, N);
-      notifyInterval = listenerObj->rayNotifyInterval();
-    }
+    if (cancelled())
+      break;
+
+    if ((i & 0x3ff) == 0)
+      rayProgress(i, N);
   }
 
-  if (notifyInterval != 0)
-    listenerObj->rayProgress(N, N);
+  rayProgress(N, N);
 }

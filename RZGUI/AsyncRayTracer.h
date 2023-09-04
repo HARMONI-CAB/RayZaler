@@ -21,6 +21,8 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
   bool                      m_updateBeam = true;
   int                       m_currSim   = 0;
   int                       m_numSim    = 1;
+  struct timeval            m_batchStart;
+
 public:
   explicit AsyncRayTracer(RZ::OMModel *model, QObject *parent = nullptr);
 

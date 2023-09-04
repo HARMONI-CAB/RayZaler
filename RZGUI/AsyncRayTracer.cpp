@@ -73,7 +73,7 @@ AsyncRayTracer::rayProgress(uint64_t num, uint64_t total)
 uint64_t
 AsyncRayTracer::rayNotifyInterval() const
 {
-  return 10000;
+  return 250;
 }
 
 bool
@@ -87,8 +87,10 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
 
-  if (step == 0)
+  if (step == 0) {
     m_cancelled = false;
+    gettimeofday(&m_batchStart, nullptr);
+  }
 
   m_currSim = step;
   m_numSim  = total;
@@ -98,7 +100,14 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
   } else {
     try {
       m_running = true;
-      m_model->trace(path.toStdString(), *m_beam, m_updateBeam, this, false);
+      m_model->trace(
+            path.toStdString(),
+            *m_beam,
+            m_updateBeam,
+            this,
+            false,
+            &m_batchStart);
+      m_batchStart = m_model->lastTracerTick();
       m_running = false;
       if (m_cancelled)
         emit aborted();

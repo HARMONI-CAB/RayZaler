@@ -81,7 +81,8 @@ namespace RZ {
       // Convenience elements
       RayBeamElement *m_beam = nullptr;
       std::list<Ray>  m_intermediateRays;
-
+      struct timeval  m_lastTick;
+      
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
       bool registerDetector(Detector *);
@@ -217,7 +218,9 @@ namespace RZ {
         std::list<Ray> const &rays,
         bool updateBeamElement = false,
         RayTracingProcessListener *listener = nullptr,
-        bool clear = true);
+        bool clear = true,
+        const struct timeval *startTime = nullptr);
+      struct timeval lastTracerTick() const;
 
       // Save images
       bool savePNG(

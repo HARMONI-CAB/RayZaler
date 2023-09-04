@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <Vector.h>
 #include <list>
+#include <sys/time.h>
 
 namespace RZ {
   class ReferenceFrame;
@@ -96,7 +97,7 @@ namespace RZ {
 
       RayBeam *m_beam = nullptr;
       bool m_beamDirty = true;
-      
+      bool m_notificationPendig = false;
       const ReferenceFrame *m_current = nullptr;
 
       void toBeam();  // From m_rays to beam->origins and beam->directions
@@ -104,10 +105,13 @@ namespace RZ {
 
       RayTracingProcessListener *m_listener = nullptr; // Always borrowed
 
+      struct timeval m_start;
+
     protected:
       virtual RayBeam *makeBeam();
       virtual void cast(Point3 const &center,  Vec3 const &normal) = 0;
-      
+      void rayProgress(uint64_t num, uint64_t total);
+
     public:
       inline RayBeam *
       beam() const
@@ -140,6 +144,27 @@ namespace RZ {
 
       // Return the output rays, after transfer
       std::list<Ray> const &getRays();
+
+      // Mark start of elapsed time counter
+      void tick();
+
+      // Get elapsed time
+      void setStartTime(struct timeval const &tv);
+      struct timeval lastTick() const;
+
+      uint64_t tack() const;
+
+      // Get if global progress notifications are pending
+      bool notificationPending() const;
+      void clearPendingNotifications();
+      bool cancelled() const;
+
+      void stageProgress(
+          RayTracingStageProgressType,
+          std::string const &,
+          unsigned int num,
+          unsigned int total);
+        
   };
 }
 

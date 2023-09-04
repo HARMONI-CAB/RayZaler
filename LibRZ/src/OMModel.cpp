@@ -4,6 +4,9 @@
 #include <CPURayTracingEngine.h>
 #include <RotatedFrame.h>
 #include <TranslatedFrame.h>
+#include <sys/time.h>
+
+#define TRACE_PROGRESS_INTERVAL_MS 250
 
 using namespace RZ;
 
@@ -543,12 +546,13 @@ OMModel::trace(
         std::list<Ray> const &rays,
         bool updateBeamElement,
         RayTracingProcessListener *listener,
-        bool clear)
+        bool clear,
+        const struct timeval *startTime)
 {
   CPURayTracingEngine tracer;
   unsigned int n, stages;
   const OpticalPath *path = lookupOpticalPathOrEx(pathName);
-  
+
   m_intermediateRays.clear();
 
   recalculate();
@@ -565,9 +569,13 @@ OMModel::trace(
   stages = path->m_sequence.size();
   n      = 0;
 
+  if (startTime != nullptr)
+    tracer.setStartTime(*startTime);
+  else
+    tracer.tick();
+
   for (auto p : path->m_sequence) {
-    if (listener != nullptr)
-      listener->stageProgress(
+    tracer.stageProgress(
         PROGRESS_TYPE_TRACE,
         p.name,
         n, 
@@ -587,8 +595,7 @@ OMModel::trace(
 
     ++n;
 
-    if (listener != nullptr)
-      listener->stageProgress(
+    tracer.stageProgress(
         PROGRESS_TYPE_TRANSFER,
         p.name,
         n, 
@@ -596,7 +603,7 @@ OMModel::trace(
 
     tracer.transfer(p.processor);
 
-    if (listener != nullptr && listener->cancelled())
+    if (tracer.cancelled())
       return false;
   }
 
@@ -604,7 +611,15 @@ OMModel::trace(
   if (updateBeamElement)
     m_beam->setList(m_intermediateRays);
 
+  m_lastTick = tracer.lastTick();
+
   return true;
+}
+
+struct timeval
+OMModel::lastTracerTick() const
+{
+  return m_lastTick;
 }
 
 bool

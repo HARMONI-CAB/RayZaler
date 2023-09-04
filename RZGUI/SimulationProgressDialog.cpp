@@ -120,23 +120,27 @@ SimulationProgressDialog::onProgress(int n, int total)
 void
 SimulationProgressDialog::onGlobalProgress(QString desc, int n, int total)
 {
+  if (m_opened && !isVisible()) {
+    struct timeval tv;
+    gettimeofday(&tv, nullptr);
+
+    if (timercmp(&tv, &m_openTime, >))
+      QDialog::open();
+  }
+
   if (m_cancelled) {
     ui->simProgressBar->setFormat("Cancelling...");
   } else {
-    int step = total / 100;
-
-    if (step < 1 || (n + 1) % step == 0) {
-      ui->simProgressBar->setFormat(desc);
-      ui->simProgressBar->setMinimum(0);
-      ui->simProgressBar->setValue(n);
-      ui->simProgressBar->setMaximum(total);
-      ui->simProgressBar->setFormat(
-            "Tracing beams ("
-            + QString::number(n)
-            + "/"
-            + QString::number(total)
-            + ")");
-    }
+    ui->simProgressBar->setFormat(desc);
+    ui->simProgressBar->setMinimum(0);
+    ui->simProgressBar->setValue(n);
+    ui->simProgressBar->setMaximum(total);
+    ui->simProgressBar->setFormat(
+          "Tracing beams ("
+          + QString::number(n)
+          + "/"
+          + QString::number(total)
+          + ")");
   }
 }
 
