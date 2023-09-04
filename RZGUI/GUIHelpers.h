@@ -3,6 +3,9 @@
 
 #include <QString>
 
+#define SCAST(type, value) static_cast<type>(value)
+#define TOINT(value) SCAST(int, value)
+
 #define BLOCKSIG_BEGIN(object)                   \
   do {                                           \
     QObject *obj = object;                       \

@@ -62,6 +62,7 @@ public slots:
 
   void onTreeItemSelectionChanged();
   void onChangeView();
+  void onChangeDisplay();
 
 private:
   Ui::MainWindow *ui;

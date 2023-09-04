@@ -153,6 +153,12 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onChangeView()));
+
+  connect(
+        ui->actionToggleDisplayNames,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onChangeDisplay()));
 }
 
 void
@@ -185,6 +191,11 @@ MainWindow::refreshCurrentSession()
           m_currSession->topLevelModel()->detectors().size() > 0);
     setWindowTitle("RayZaler - " + m_currSession->fileName());
 
+    ui->displayToolBar->setEnabled(true);
+    BLOCKSIG(
+          ui->actionToggleDisplayNames,
+          setChecked(m_sessionToTab[m_currSession]->displayNames()));
+
     reconnectModels();
   } else {
     m_propModel->setModel(nullptr);
@@ -194,6 +205,8 @@ MainWindow::refreshCurrentSession()
     ui->animationToolBar->setEnabled(false);
     ui->viewToolBar->setEnabled(false);
     ui->simToolBar->setEnabled(false);
+    ui->displayToolBar->setEnabled(false);
+    BLOCKSIG(ui->actionToggleDisplayNames, setChecked(false));
     ui->propTableView->setModel(nullptr);
     setWindowTitle("RayZaler - No model file");
   }
@@ -437,3 +450,14 @@ MainWindow::onTreeItemSelectionChanged()
     m_currSession->selectElement(selectedElement);
   }
 }
+
+void
+MainWindow::onChangeDisplay()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->setDisplayNames(ui->actionToggleDisplayNames->isChecked());
+}
+

@@ -18,5 +18,7 @@
         <file>icons/view-right.svg</file>
         <file>icons/view-top.svg</file>
         <file>icons/logscale.svg</file>
+        <file>icons/folder-tag.svg</file>
+        <file>icons/trace.svg</file>
     </qresource>
 </RCC>

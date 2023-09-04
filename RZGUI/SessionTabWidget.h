@@ -18,9 +18,9 @@ class SessionTabWidget : public QWidget
 
   SimulationSession *m_session;  // Borrowed
   RZGUIGLWidget     *m_glWidget; // Borrowed
-
   DetectorWindow    *m_detWindow = nullptr; // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
+  bool               m_displayNames = false;
 
   void connectAll();
 
@@ -33,6 +33,8 @@ public:
   void updateDetectorWindow();
   void updateModel();
   void setRotation(qreal, qreal, qreal);
+  bool displayNames() const;
+  void setDisplayNames(bool);
 
 private:
   Ui::SessionTabWidget *ui;

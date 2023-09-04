@@ -321,6 +321,18 @@
    <addaction name="actionViewLeft"/>
    <addaction name="actionViewRight"/>
   </widget>
+  <widget class="QToolBar" name="displayToolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionToggleDisplayNames"/>
+  </widget>
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="icons.qrc">
@@ -383,7 +395,7 @@
   <action name="actionSimProp">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/toolbar/icons/document-properties.svg</normaloff>:/toolbar/icons/document-properties.svg</iconset>
+     <normaloff>:/toolbar/icons/open-menu.svg</normaloff>:/toolbar/icons/open-menu.svg</iconset>
    </property>
    <property name="text">
     <string>Simulation properties</string>
@@ -392,7 +404,7 @@
   <action name="actionRunSim">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/toolbar/icons/open-menu.svg</normaloff>:/toolbar/icons/open-menu.svg</iconset>
+     <normaloff>:/toolbar/icons/trace.svg</normaloff>:/toolbar/icons/trace.svg</iconset>
    </property>
    <property name="text">
     <string>Run simulation</string>
@@ -462,6 +474,18 @@
    </property>
    <property name="text">
     <string>View Right</string>
+   </property>
+  </action>
+  <action name="actionToggleDisplayNames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/folder-tag.svg</normaloff>:/toolbar/icons/folder-tag.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle display names</string>
    </property>
   </action>
  </widget>

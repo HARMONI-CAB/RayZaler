@@ -20,7 +20,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   int     m_height;
   int     m_hWnd = -1;
   GLfloat m_zoom = 1;
-
+  bool    m_displayNames = false;
   bool    m_dragging = false;
   GLfloat m_dragStart[2] = {0, 0};
 
@@ -42,6 +42,30 @@ class RZGUIGLWidget : public QOpenGLWidget
   void mouseMotion(int x, int y);
   void drawAxes();
 
+  inline GLint project(
+      GLdouble objx,
+      GLdouble objy,
+      GLdouble objz,
+      const GLdouble model[16],
+      const GLdouble proj[16],
+      const GLint viewport[4],
+      GLdouble *winx,
+      GLdouble *winy,
+      GLdouble *winz);
+
+  inline void transformPoint(
+      GLdouble out[4],
+      const GLdouble m[16],
+      const GLdouble in[4]);
+
+  void renderText(
+      qreal x,
+      qreal y,
+      qreal z,
+      const QString &str,
+      const QColor & color = QColor(Qt::cyan),
+      const QFont & font = QFont());
+
 protected:
   void initializeGL() override;
   void resizeGL(int w, int h) override;
@@ -57,6 +81,7 @@ public:
   void setModel(RZ::OMModel *model);
   void getCurrentRot(GLfloat *) const;
   void setCurrentRot(const GLfloat *);
+  void setDisplayNames(bool);
 };
 
 #endif // RZGUIGLWIDGET_H

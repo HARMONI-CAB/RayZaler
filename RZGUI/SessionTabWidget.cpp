@@ -31,6 +31,18 @@ SessionTabWidget::SessionTabWidget(
   connectAll();
 }
 
+bool
+SessionTabWidget::displayNames() const
+{
+  return m_displayNames;
+}
+
+void
+SessionTabWidget::setDisplayNames(bool label)
+{
+  m_glWidget->setDisplayNames(label);
+}
+
 void
 SessionTabWidget::connectAll()
 {

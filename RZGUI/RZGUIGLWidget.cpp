@@ -4,6 +4,8 @@
 #include <QWheelEvent>
 #include <GLHelpers.h>
 #include <GL/glut.h>
+#include <QPainter>
+#include "GUIHelpers.h"
 
 #define GLUT_ENGINE_SHIFT_DELTA 2e-1
 
@@ -41,6 +43,105 @@ RZGUIGLWidget::popElementMatrix()
   glPopMatrix();
 }
 
+inline void
+RZGUIGLWidget::transformPoint(
+    GLdouble out[4],
+    const GLdouble m[16],
+    const GLdouble in[4])
+{
+#define M(row,col)  m[col*4+row]
+    out[0] =
+        M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
+    out[1] =
+        M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
+    out[2] =
+        M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
+    out[3] =
+        M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
+#undef M
+}
+
+inline GLint
+RZGUIGLWidget::project(
+    GLdouble objx,
+    GLdouble objy,
+    GLdouble objz,
+    const GLdouble model[16],
+    const GLdouble proj[16],
+    const GLint viewport[4],
+    GLdouble *winx,
+    GLdouble *winy,
+    GLdouble *winz)
+{
+    GLdouble in[4], out[4];
+
+    in[0] = objx;
+    in[1] = objy;
+    in[2] = objz;
+    in[3] = 1.0;
+
+    transformPoint(out, model, in);
+    transformPoint(in, proj, out);
+
+    if (in[3] == 0.0)
+        return GL_FALSE;
+
+    in[0] /= in[3];
+    in[1] /= in[3];
+    in[2] /= in[3];
+
+    *winx = viewport[0] + (1 + in[0]) * viewport[2] / 2;
+    *winy = viewport[1] + (1 + in[1]) * viewport[3] / 2;
+
+    *winz = (1 + in[2]) / 2;
+    return GL_TRUE;
+}
+
+void
+RZGUIGLWidget::renderText(
+    qreal x,
+    qreal y,
+    qreal z,
+    const QString &str,
+    const QColor &color,
+    const QFont &font) {
+  GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+  QFontMetrics metrics(font);
+  GLdouble model[4][4], proj[4][4];
+  GLint view[4];
+  int tw;
+
+  glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+  glGetDoublev(GL_MODELVIEW_MATRIX, &model[0][0]);
+  glGetDoublev(GL_PROJECTION_MATRIX, &proj[0][0]);
+  glGetIntegerv(GL_VIEWPORT, &view[0]);
+
+  project(
+        x,            y,           z,
+        &model[0][0], &proj[0][0], &view[0],
+        &textPosX,    &textPosY,   &textPosZ);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+  tw = metrics.horizontalAdvance(str);
+#else
+  tw = metrics.width(str);
+#endif // QT_VERSION_CHECK
+
+  textPosY = height() - textPosY + metrics.height() / 2; // y is inverted
+  textPosX -= tw / 2;
+
+  // Render text
+  QPainter painter(this);
+  QPen pen(color);
+  painter.setPen(pen);
+  painter.setFont(font);
+  painter.drawText(TOINT(textPosX), TOINT(textPosY), str);
+  painter.end();
+
+  glPopAttrib();
+}
+
 void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
@@ -65,11 +166,22 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
     if (p == beam)
       continue;
     pushElementMatrix(p);
+    if (m_displayNames)
+      renderText(0, 0, 0, QString::fromStdString(p->name()));
     p->renderOpenGL();
     popElementMatrix();
 
     if (p->nestedModel() != nullptr)
       displayModel(p->nestedModel());
+  }
+}
+
+void
+RZGUIGLWidget::setDisplayNames(bool state)
+{
+  if (m_displayNames != state) {
+    m_displayNames = state;
+    update();
   }
 }
 
