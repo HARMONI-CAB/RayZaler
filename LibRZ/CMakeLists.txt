@@ -40,6 +40,8 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
+  ${LIBRZ_SRCDIR}/Tripod.cpp
+  ${LIBRZ_SRCDIR}/TripodFrame.cpp
   ${LIBRZ_SRCDIR}/TranslatedFrame.cpp
   ${LIBRZ_SRCDIR}/WorldFrame.cpp)
 
@@ -73,6 +75,8 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
+  ${LIBRZ_INCLUDEDIR}/Tripod.h
+  ${LIBRZ_INCLUDEDIR}/TripodFrame.h
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h)

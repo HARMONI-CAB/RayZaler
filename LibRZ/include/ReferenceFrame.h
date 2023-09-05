@@ -10,6 +10,7 @@
 
 #define RZ_REF_FRAME_ROTATION_ID    0x1000
 #define RZ_REF_FRAME_TRANSLATION_ID 0x1001
+#define RZ_REF_FRAME_TRIPOD_ID      0x1002
 
 namespace RZ{
   struct NamedVector {

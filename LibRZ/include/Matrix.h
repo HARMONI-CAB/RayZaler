@@ -75,6 +75,13 @@ namespace RZ {
       return Matrix3(k * row.vx, k * row.vy, k * row.vz);
     }
 
+    // Matrix-scalar division
+    inline Matrix3
+    operator /(Real k) const
+    {
+      return *this * (1. / k);
+    }
+
     // Matrix addition
     inline Matrix3
     operator +(Matrix3 const &m)
@@ -123,14 +130,19 @@ namespace RZ {
     }
 
     static inline Matrix3
-    rot(Vec3 const &k, Real theta)
+    crossMatrix(Vec3 const &k)
     {
-      Matrix3 K = Matrix3(
+      return Matrix3(
         Vec3(0,  -k.z, +k.y),
         Vec3(+k.z,  0, -k.x),
         Vec3(-k.y,  +k.x,   0)
       );
+    }
 
+    static inline Matrix3
+    rot(Vec3 const &k, Real theta)
+    {
+      Matrix3 K = crossMatrix(k);
       return eye() + K * sin(theta) + (1 - cos(theta)) * K * K;
     }
 

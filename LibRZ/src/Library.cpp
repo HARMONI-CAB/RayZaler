@@ -11,6 +11,7 @@
 #include <RayBeamElement.h>
 #include <RodElement.h>
 #include <SphericalMirror.h>
+#include <Tripod.h>
 
 using namespace RZ;
 
@@ -29,6 +30,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
   Singleton::instance()->registerElementFactory(new RodElementFactory);
   Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
+  Singleton::instance()->registerElementFactory(new TripodFactory);
   
   registerRayProcessors();
 }

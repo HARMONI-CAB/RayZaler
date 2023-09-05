@@ -90,11 +90,18 @@ namespace RZ {
       return Vec3(x - v.x, y - v.y, z - v.z);
     }
 
-    // Product by constant
+    // Product by scalar
     inline Vec3
     operator * (Real k) const
     {
       return Vec3(k * x, k * y, k * z);
+    }
+
+    // Division by scalar
+    inline Vec3
+    operator / (Real k) const
+    {
+      return *this * (1. / k);
     }
 
     // Inline add
