@@ -9,6 +9,7 @@
 #include <FlatMirror.h>
 #include <Obstruction.h>
 #include <RayBeamElement.h>
+#include <RodElement.h>
 #include <SphericalMirror.h>
 
 using namespace RZ;
@@ -26,6 +27,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
   Singleton::instance()->registerElementFactory(new ObstructionFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
+  Singleton::instance()->registerElementFactory(new RodElementFactory);
   Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
   
   registerRayProcessors();

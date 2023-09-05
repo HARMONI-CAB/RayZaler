@@ -37,7 +37,7 @@ BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
     return true;
   }
   
-  return false;
+  return Element::propertyChanged(name, val);
 }
 
 void
@@ -123,18 +123,6 @@ BlockElement::BlockElement(
   addPort("bottom_side", m_sides[5]);
 
   refreshProperties();
-}
-
-void
-BlockElement::nativeMaterialOpenGL(std::string const &role)
-{
-  GLVectorStorage vec;
-  GLfloat shiny = 64;
-
-  glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.25, .25, .25));
-  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.25, .25, .25));
-  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 }
 
 void

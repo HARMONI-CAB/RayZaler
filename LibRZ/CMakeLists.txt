@@ -36,6 +36,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
+  ${LIBRZ_SRCDIR}/RodElement.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
@@ -68,6 +69,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
+  ${LIBRZ_INCLUDEDIR}/RodElement.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h

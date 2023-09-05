@@ -1,5 +1,5 @@
-#ifndef _BLOCKELEMENT_H
-#define _BLOCKELEMENT_H
+#ifndef _RODELEMENT_H
+#define _RODELEMENT_H
 
 #include <Element.h>
 #include <GL/glu.h>
@@ -9,28 +9,32 @@ namespace RZ {
   class TranslatedFrame;
   class RotatedFrame;
 
-  class BlockElement : public Element {
-      TranslatedFrame *m_sides[6];
-      RotatedFrame *m_rotatedSides[6];
+  class RodElement : public Element {
+      TranslatedFrame *m_sides[3];        // Top, middle, bottom
+      RotatedFrame    *m_rotatedSides[3]; // Top, middle, bottom
 
-      Real m_cachedLength, m_cachedWidth, m_cachedHeight;
+      Real m_cachedLength = 5e-2;
+      Real m_cachedDiameter = 3e-3;
+
+      GLCappedCylinder m_cylinder;
+
       void initSides();
 
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      BlockElement(
+      RodElement(
         ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      virtual ~BlockElement();
+      virtual ~RodElement();
       virtual void renderOpenGL() override;
   };
 
-  class BlockElementFactory : public ElementFactory {
+  class RodElementFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -40,4 +44,4 @@ namespace RZ {
   };
 }
 
-#endif // _BlockELEMENT_H
+#endif // _RODELEMENT_H

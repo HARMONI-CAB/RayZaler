@@ -15,6 +15,16 @@ Element::Element(
   m_name        = name;
   m_parent      = parent;
   m_parentFrame = pFrame;
+
+  registerProperty("red",       m_red);
+  registerProperty("green",     m_green);
+  registerProperty("blue",      m_blue);
+
+  registerProperty("specRed",   m_specRed);
+  registerProperty("specGreen", m_specGreen);
+  registerProperty("specBlue",  m_specBlue);
+
+  registerProperty("shiny",     m_shiny);
 }
 
 Element::~Element()
@@ -125,6 +135,25 @@ Element::plug(
 bool
 Element::propertyChanged(std::string const &name, PropertyValue const &val)
 {
+  Real value = val;
+
+  if (name == "red")
+    m_red = value;
+  else if (name == "green")
+    m_green = value;
+  else if (name == "blue")
+    m_blue = value;
+  else if (name == "specRed")
+    m_specRed = value;
+  else if (name == "specGreen")
+    m_specGreen = value;
+  else if (name == "specBlue")
+    m_specBlue = value;
+  else if (name == "shiny")
+    m_shiny = value;
+  else 
+    return false;
+
   return true;
 }
 
@@ -197,7 +226,13 @@ Element::setSelected(bool selected)
 void
 Element::nativeMaterialOpenGL(std::string const &role)
 {
-  // NO-OP
+  GLVectorStorage vec;
+  GLfloat shiny = m_shiny;
+
+  glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
+  glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(m_specRed, m_specGreen, m_specBlue));
+  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(m_red, m_green, m_blue));
+  glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 }
 
 void

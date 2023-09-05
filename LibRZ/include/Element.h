@@ -75,6 +75,16 @@ namespace RZ {
       // Representation state
       bool m_selected = false;
 
+      // Default appearence
+      Real m_shiny     = 64;
+      Real m_red       = .25;
+      Real m_green     = .25;
+      Real m_blue      = .25;
+
+      Real m_specRed   = .25;
+      Real m_specGreen = .25;
+      Real m_specBlue  = .25;
+      
       void pushChild(Element *);
       
     protected:
