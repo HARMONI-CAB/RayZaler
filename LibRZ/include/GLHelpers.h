@@ -63,6 +63,43 @@ namespace RZ {
       ~GLDisc();
   };
 
+  class GLRing : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+
+      GLint    m_slices      = 32;
+      GLdouble m_innerRadius = .5;
+      GLdouble m_outerRadius = 1.;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      innerRadius() const
+      {
+        return m_innerRadius;
+      }
+
+      GLdouble
+      outerRadius() const
+      {
+        return m_outerRadius;
+      }
+
+      void setInnerRadius(GLdouble);
+      void setOuterRadius(GLdouble);
+      void setSlices(GLint);
+
+      virtual void display() override;
+
+      GLRing();
+      ~GLRing();
+  };
+
   class GLCappedCylinder : public GLPrimitive {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
@@ -99,6 +136,53 @@ namespace RZ {
 
       GLCappedCylinder();
       ~GLCappedCylinder();
+  };
+
+  class GLTube : public GLPrimitive {
+      GLUquadric *m_outerQuadric = nullptr;
+      GLUquadric *m_innerQuadric = nullptr;
+      bool     m_dirty = true;
+
+      GLRing   m_topCap, m_bottomCap;
+
+      bool     m_drawTop  = false;
+      bool     m_drawBase = false;
+      GLdouble m_height = 1.;
+      GLdouble m_innerRadius = .125;
+      GLdouble m_outerRadius = .25;
+      GLint    m_slices = 32;
+
+      void recalculateCaps();
+
+    public:
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      GLdouble
+      innerRadius() const
+      {
+        return m_innerRadius;
+      }
+
+      GLdouble
+      outerRadius() const
+      {
+        return m_outerRadius;
+      }
+
+      void setHeight(GLdouble);
+      void setInnerRadius(GLdouble);
+      void setOuterRadius(GLdouble);
+      void setSlices(GLint);
+      void setVisibleCaps(bool, bool);
+
+      virtual void display() override;
+
+      GLTube();
+      ~GLTube();
   };
 
   class GLSphericalCap : public GLPrimitive {

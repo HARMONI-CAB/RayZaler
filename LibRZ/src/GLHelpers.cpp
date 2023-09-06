@@ -82,6 +82,111 @@ GLCappedCylinder::display()
   gluCylinder(m_quadric, m_radius, m_radius, m_height, m_slices, 2);
 }
 
+////////////////////////////////// GLTube //////////////////////////////////////
+GLTube::GLTube()
+{
+  m_outerQuadric = gluNewQuadric();
+  m_innerQuadric = gluNewQuadric();
+
+  gluQuadricOrientation(m_outerQuadric, GLU_INSIDE);
+}
+
+GLTube::~GLTube()
+{
+  gluDeleteQuadric(m_innerQuadric);
+  gluDeleteQuadric(m_outerQuadric);
+}
+
+void
+GLTube::recalculateCaps()
+{
+  // NO-OP
+  m_dirty = false;
+}
+
+void
+GLTube::setHeight(GLdouble height)
+{
+  m_height = height;
+  m_dirty  = true;
+}
+
+void
+GLTube::setInnerRadius(GLdouble radius)
+{
+  m_innerRadius = radius;
+  m_topCap.setInnerRadius(radius);
+  m_bottomCap.setInnerRadius(radius);
+  m_dirty  = true;
+}
+
+void
+GLTube::setOuterRadius(GLdouble radius)
+{
+  m_outerRadius = radius;
+  m_topCap.setOuterRadius(radius);
+  m_bottomCap.setOuterRadius(radius);
+  m_dirty  = true;
+}
+
+
+void
+GLTube::setSlices(GLint slices)
+{
+  m_slices = slices;
+  m_topCap.setSlices(slices);
+  m_bottomCap.setSlices(slices);
+  m_dirty  = true;
+}
+
+void
+GLTube::setVisibleCaps(bool base, bool top)
+{
+  m_drawBase = base;
+  m_drawTop  = top;
+}
+
+void
+GLTube::display()
+{
+  const int stride = 6 * sizeof(GLfloat);
+
+  if (m_dirty)
+    recalculateCaps();
+
+  if (m_drawTop) {
+    glPushMatrix();
+    glTranslatef(0, 0, m_height);
+    m_topCap.display();
+    glPopMatrix();
+  }
+
+  if (m_drawBase) {
+    glPushMatrix();
+    glRotatef(180, 1, 0, 0);
+    m_topCap.display();
+    glPopMatrix();
+  }
+  
+  gluCylinder(
+    m_outerQuadric,
+    m_outerRadius,
+    m_outerRadius,
+    m_height,
+    m_slices,
+    2);
+
+  gluCylinder(
+    m_innerQuadric,
+    m_innerRadius,
+    m_innerRadius,
+    m_height,
+    m_slices,
+    2);
+}
+
+
+
 //////////////////////////// GLSphericalCap //////////////////////////////////
 GLSphericalCap::GLSphericalCap()
 {
@@ -352,6 +457,133 @@ GLDisc::display()
 
   glDrawElements(
     GL_TRIANGLES,
+    (unsigned int) m_indices.size(),
+    GL_UNSIGNED_INT,
+    m_indices.data());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+//////////////////////////////// GLRing ////////////////////////////////////////
+GLRing::GLRing()
+{
+  m_quadric = gluNewQuadric();
+}
+
+GLRing::~GLRing()
+{
+  gluDeleteQuadric(m_quadric);
+}
+
+void
+GLRing::recalculate()
+{
+  GLint i, n = 0, total;
+  GLfloat sliceDelta = 1. / m_slices;
+  GLfloat angDelta = 2 * M_PI * sliceDelta;
+  GLfloat ang;
+  
+  total = m_slices + 1;
+  m_vertices.resize( 2 * 3 * total);
+  m_normals.resize(  2 * 3 * total);
+  m_texCoords.resize(2 * 2 * total);
+
+  ang = 0;
+
+  for (i = 0; i <= m_slices; ++i) {
+    GLfloat x_i = m_innerRadius * cosf(ang);
+    GLfloat y_i = m_innerRadius * sinf(ang);
+    GLfloat x_o = m_outerRadius * cosf(ang);
+    GLfloat y_o = m_outerRadius * sinf(ang);
+
+    // Outer vertex
+    m_vertices[3 * n + 0] = x_o;
+    m_vertices[3 * n + 1] = y_o;
+    m_vertices[3 * n + 2] = 0;
+
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = 1;
+
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 1;
+    ++n;
+
+    // Inner vertex
+    m_vertices[3 * n + 0] = x_i;
+    m_vertices[3 * n + 1] = y_i;
+    m_vertices[3 * n + 2] = 0;
+
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = 1;
+
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 0;
+    ++n;
+
+    ang += angDelta;
+  }
+
+  // Calculate indices that well be used as triangle strip. The ordering would
+  // be as follows:
+  //
+  // p_o[0], p_i[0], p_o[1], p_i[1], (...), p_i[n-1], p_o[0], p_i[0]
+  //
+  // Which is:
+  //
+  // v[0], v[1], v[2], v[3], (...), v[2n - 1], v[0], v[1]
+  //
+  n     = 0;
+  m_indices.resize(2 * m_slices + 2);
+
+  for (i = 0; i < 2 * m_slices; ++i)
+    m_indices[i] = i;
+  
+  m_indices[2 * m_slices]     = 0;
+  m_indices[2 * m_slices + 1] = 1;
+
+  m_dirty = false;
+}
+
+void
+GLRing::setInnerRadius(GLdouble radius)
+{
+  m_innerRadius = radius;
+  m_dirty  = true;
+}
+
+void
+GLRing::setOuterRadius(GLdouble radius)
+{
+  m_outerRadius = radius;
+  m_dirty  = true;
+}
+
+void
+GLRing::setSlices(GLint slices)
+{
+  m_slices = slices;
+  m_dirty  = true;
+}
+
+void
+GLRing::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_vertices.data());
+  glNormalPointer(GL_FLOAT,      3 * sizeof(GLfloat), m_normals.data());
+  glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), m_texCoords.data());
+
+  glDrawElements(
+    GL_TRIANGLE_STRIP,
     (unsigned int) m_indices.size(),
     GL_UNSIGNED_INT,
     m_indices.data());

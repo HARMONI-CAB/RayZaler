@@ -43,6 +43,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Tripod.cpp
   ${LIBRZ_SRCDIR}/TripodFrame.cpp
   ${LIBRZ_SRCDIR}/TranslatedFrame.cpp
+  ${LIBRZ_SRCDIR}/TubeElement.cpp
   ${LIBRZ_SRCDIR}/WorldFrame.cpp)
 
 set(LIBRZ_HEADERS
@@ -78,6 +79,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Tripod.h
   ${LIBRZ_INCLUDEDIR}/TripodFrame.h
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
+  ${LIBRZ_INCLUDEDIR}/TubeElement.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h)
 
