@@ -92,8 +92,8 @@ TubeElement::TubeElement(
   : Element(factory, name, frame, parent)
 {
   registerProperty("length",        m_cachedLength);
-  registerProperty("innerDiameter", m_cachedOuterDiameter);
-  registerProperty("outerDiameter", m_cachedInnerDiameter);
+  registerProperty("innerDiameter", m_cachedInnerDiameter);
+  registerProperty("outerDiameter", m_cachedOuterDiameter);
 
   initSides();
 

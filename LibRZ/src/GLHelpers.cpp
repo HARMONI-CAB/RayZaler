@@ -75,7 +75,7 @@ GLCappedCylinder::display()
   if (m_drawBase) {
     glPushMatrix();
     glRotatef(180, 1, 0, 0);
-    m_topCap.display();
+    m_bottomCap.display();
     glPopMatrix();
   }
   
@@ -88,7 +88,7 @@ GLTube::GLTube()
   m_outerQuadric = gluNewQuadric();
   m_innerQuadric = gluNewQuadric();
 
-  gluQuadricOrientation(m_outerQuadric, GLU_INSIDE);
+  gluQuadricOrientation(m_innerQuadric, GLU_INSIDE);
 }
 
 GLTube::~GLTube()
@@ -154,6 +154,22 @@ GLTube::display()
   if (m_dirty)
     recalculateCaps();
 
+  gluCylinder(
+    m_innerQuadric,
+    m_innerRadius,
+    m_innerRadius,
+    m_height,
+    m_slices,
+    2);
+
+  gluCylinder(
+    m_outerQuadric,
+    m_outerRadius,
+    m_outerRadius,
+    m_height,
+    m_slices,
+    2);
+
   if (m_drawTop) {
     glPushMatrix();
     glTranslatef(0, 0, m_height);
@@ -164,25 +180,9 @@ GLTube::display()
   if (m_drawBase) {
     glPushMatrix();
     glRotatef(180, 1, 0, 0);
-    m_topCap.display();
+    m_bottomCap.display();
     glPopMatrix();
   }
-  
-  gluCylinder(
-    m_outerQuadric,
-    m_outerRadius,
-    m_outerRadius,
-    m_height,
-    m_slices,
-    2);
-
-  gluCylinder(
-    m_innerQuadric,
-    m_innerRadius,
-    m_innerRadius,
-    m_height,
-    m_slices,
-    2);
 }
 
 
@@ -498,19 +498,6 @@ GLRing::recalculate()
     GLfloat x_o = m_outerRadius * cosf(ang);
     GLfloat y_o = m_outerRadius * sinf(ang);
 
-    // Outer vertex
-    m_vertices[3 * n + 0] = x_o;
-    m_vertices[3 * n + 1] = y_o;
-    m_vertices[3 * n + 2] = 0;
-
-    m_normals[3 * n + 0] = 0;
-    m_normals[3 * n + 1] = 0;
-    m_normals[3 * n + 2] = 1;
-
-    m_texCoords[2 * n + 0] = i * sliceDelta;
-    m_texCoords[2 * n + 1] = 1;
-    ++n;
-
     // Inner vertex
     m_vertices[3 * n + 0] = x_i;
     m_vertices[3 * n + 1] = y_i;
@@ -522,6 +509,19 @@ GLRing::recalculate()
 
     m_texCoords[2 * n + 0] = i * sliceDelta;
     m_texCoords[2 * n + 1] = 0;
+    ++n;
+
+    // Outer vertex
+    m_vertices[3 * n + 0] = x_o;
+    m_vertices[3 * n + 1] = y_o;
+    m_vertices[3 * n + 2] = 0;
+
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = 1;
+
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 1;
     ++n;
 
     ang += angDelta;
