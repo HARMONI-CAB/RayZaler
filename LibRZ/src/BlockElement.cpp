@@ -15,22 +15,22 @@ BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
   Real value = val;
 
   if (name == "length") {
-    m_sides[0]->setDistance(+.5 * value * Vec3::eX());
-    m_sides[1]->setDistance(-.5 * value * Vec3::eX());
+    m_sides[0]->setDistance(.5 * value * Vec3::eZ());
+    m_sides[1]->setDistance(.5 * value * Vec3::eZ());
     m_sides[0]->recalculate();
     m_sides[1]->recalculate();
     m_cachedLength = value;
     return true;
   } else if (name == "width") {
-    m_sides[2]->setDistance(+.5 * value * Vec3::eY());
-    m_sides[3]->setDistance(-.5 * value * Vec3::eY());
+    m_sides[2]->setDistance(.5 * value * Vec3::eZ());
+    m_sides[3]->setDistance(.5 * value * Vec3::eZ());
     m_sides[2]->recalculate();
     m_sides[3]->recalculate();
     m_cachedWidth = value;
     return true;
   } else if (name == "height") {
-    m_sides[4]->setDistance(+.5 * value * Vec3::eZ());
-    m_sides[5]->setDistance(-.5 * value * Vec3::eZ());
+    m_sides[4]->setDistance(.5 * value * Vec3::eZ());
+    m_sides[5]->setDistance(.5 * value * Vec3::eZ());
     m_sides[4]->recalculate();
     m_sides[5]->recalculate();
     m_cachedHeight = value;
@@ -50,10 +50,10 @@ BlockElement::initSides()
   };
 
   Real rotations[][4] = {
-    {+90, 0, 1, 0},
     {-90, 0, 1, 0},
-    {-90, 1, 0, 0},
+    {+90, 0, 1, 0},
     {+90, 1, 0, 0},
+    {-90, 1, 0, 0},
     {  0, 0, 1, 0},
     {180, 0, 1, 0}
   };
@@ -63,37 +63,37 @@ BlockElement::initSides()
       std::string(names[i]) + "_rotation",
       parentFrame(),
       Vec3(rotations[i][1], rotations[i][2], rotations[i][3]),
-      rotations[i][0]);
+      deg2rad(rotations[i][0]));
   
   m_sides[0] = new TranslatedFrame(
       "front",
       m_rotatedSides[0],
-      +5 * BLOCK_DEFAULT_LENGTH * Vec3::eX());
+      .5 * BLOCK_DEFAULT_LENGTH * Vec3::eZ());
 
   m_sides[1] = new TranslatedFrame(
       "back",
       m_rotatedSides[1],
-      -5 * BLOCK_DEFAULT_LENGTH * Vec3::eX());
+      .5 * BLOCK_DEFAULT_LENGTH * Vec3::eZ());
 
   m_sides[2] = new TranslatedFrame(
       "right",
       m_rotatedSides[2],
-      +5 * BLOCK_DEFAULT_WIDTH * Vec3::eY());
+      .5 * BLOCK_DEFAULT_WIDTH * Vec3::eZ());
 
   m_sides[3] = new TranslatedFrame(
       "left",
       m_rotatedSides[3],
-      -5 * BLOCK_DEFAULT_WIDTH * Vec3::eY());
+      .5 * BLOCK_DEFAULT_WIDTH * Vec3::eZ());
 
   m_sides[4] = new TranslatedFrame(
       "top",
       m_rotatedSides[4],
-      +5 * BLOCK_DEFAULT_HEIGHT * Vec3::eZ());
+      .5 * BLOCK_DEFAULT_HEIGHT * Vec3::eZ());
 
   m_sides[5] = new TranslatedFrame(
       "bottom",
       m_rotatedSides[5],
-      -5 * BLOCK_DEFAULT_HEIGHT * Vec3::eZ());
+      .5 * BLOCK_DEFAULT_HEIGHT * Vec3::eZ());
 }
 
 BlockElement::BlockElement(
