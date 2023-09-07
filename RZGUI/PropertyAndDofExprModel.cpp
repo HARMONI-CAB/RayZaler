@@ -171,6 +171,7 @@ QVariant PropertyAndDofExprModel::data(const QModelIndex &index, int role) const
     return QVariant();
 
   switch (role) {
+    case Qt::EditRole:
     case Qt::DisplayRole:
       switch (col) {
         case 0:

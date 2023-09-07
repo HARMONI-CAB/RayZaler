@@ -2,6 +2,7 @@
 #include "ui_SimulationPropertiesDialog.h"
 #include <QMessageBox>
 #include "PropertyAndDofExprModel.h"
+#include "CustomTextEditDelegate.h"
 
 SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   QDialog(parent),
@@ -11,6 +12,10 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
 
   m_propModel = new PropertyAndDofExprModel(nullptr);
   ui->propView->setModel(m_propModel);
+
+  ui->propView->setItemDelegateForColumn(
+        3,
+        new CustomTextEditDelegate(this));
 
   connectAll();
 }
@@ -43,6 +48,12 @@ SimulationPropertiesDialog::connectAll()
 
   connect(
         ui->fNumEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onExprEditChanged()));
+
+  connect(
+        ui->refApertureEdit,
         SIGNAL(textChanged(QString)),
         this,
         SLOT(onExprEditChanged()));
@@ -114,6 +125,9 @@ SimulationPropertiesDialog::refreshUi()
   ui->fNumLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
   ui->fNumEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
 
+  ui->refApertureLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
+  ui->refApertureEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
+
   ui->pathCombo->setEnabled(ui->pathCombo->count() > 0);
   ui->detectorCombo->setEnabled(ui->detectorCombo->count() > 0);
 }
@@ -124,19 +138,20 @@ SimulationPropertiesDialog::applyProperties()
   ui->pathCombo->clear();
   ui->detectorCombo->clear();
 
-  BLOCKSIG(ui->simTypeCombo,  setCurrentIndex(m_properties.type));
-  BLOCKSIG(ui->beamTypeCombo, setCurrentIndex(m_properties.beam));
+  BLOCKSIG(ui->simTypeCombo,    setCurrentIndex(m_properties.type));
+  BLOCKSIG(ui->beamTypeCombo,   setCurrentIndex(m_properties.beam));
 
-  BLOCKSIG(ui->diamEdit, setText(m_properties.diameter));
-  BLOCKSIG(ui->fNumEdit, setText(m_properties.fNum));
-  BLOCKSIG(ui->azimuthEdit, setText(m_properties.azimuth));
-  BLOCKSIG(ui->elevationEdit, setText(m_properties.elevation));
-  BLOCKSIG(ui->offsetXEdit, setText(m_properties.offsetX));
-  BLOCKSIG(ui->offsetYEdit, setText(m_properties.offsetY));
+  BLOCKSIG(ui->diamEdit,        setText(m_properties.diameter));
+  BLOCKSIG(ui->fNumEdit,        setText(m_properties.fNum));
+  BLOCKSIG(ui->refApertureEdit, setText(m_properties.refAperture));
+  BLOCKSIG(ui->azimuthEdit,     setText(m_properties.azimuth));
+  BLOCKSIG(ui->elevationEdit,   setText(m_properties.elevation));
+  BLOCKSIG(ui->offsetXEdit,     setText(m_properties.offsetX));
+  BLOCKSIG(ui->offsetYEdit,     setText(m_properties.offsetY));
 
-  BLOCKSIG(ui->rayNumberSpin, setValue(m_properties.rays));
-  BLOCKSIG(ui->steps1Spin,    setValue(m_properties.Ni));
-  BLOCKSIG(ui->steps2Spin,    setValue(m_properties.Nj));
+  BLOCKSIG(ui->rayNumberSpin,   setValue(m_properties.rays));
+  BLOCKSIG(ui->steps1Spin,      setValue(m_properties.Ni));
+  BLOCKSIG(ui->steps2Spin,      setValue(m_properties.Nj));
 
   // Add all paths and detectors
   if (m_session != nullptr) {
@@ -210,16 +225,17 @@ SimulationPropertiesDialog::parseProperties()
   }
 
   // Parse expressions
-  m_properties.diameter  = ui->diamEdit->text();
-  m_properties.fNum      = ui->fNumEdit->text();
-  m_properties.azimuth   = ui->azimuthEdit->text();
-  m_properties.elevation = ui->elevationEdit->text();
-  m_properties.offsetX   = ui->offsetXEdit->text();
-  m_properties.offsetY   = ui->offsetYEdit->text();
+  m_properties.diameter    = ui->diamEdit->text();
+  m_properties.fNum        = ui->fNumEdit->text();
+  m_properties.refAperture = ui->refApertureEdit->text();
+  m_properties.azimuth     = ui->azimuthEdit->text();
+  m_properties.elevation   = ui->elevationEdit->text();
+  m_properties.offsetX     = ui->offsetXEdit->text();
+  m_properties.offsetY     = ui->offsetYEdit->text();
 
-  m_properties.rays      = ui->rayNumberSpin->value();
-  m_properties.Ni        = ui->steps1Spin->value();
-  m_properties.Nj        = ui->steps2Spin->value();
+  m_properties.rays        = ui->rayNumberSpin->value();
+  m_properties.Ni          = ui->steps1Spin->value();
+  m_properties.Nj          = ui->steps2Spin->value();
 
   if (ui->pathCombo->currentIndex() != -1)
     m_properties.path      = ui->pathCombo->currentData().value<QString>();
@@ -256,6 +272,8 @@ SimulationPropertiesDialog::accept()
           edit = ui->diamEdit;
         else if (failed == "fnum")
           edit = ui->fNumEdit;
+        else if (failed == "refap")
+          edit = ui->refApertureEdit;
         else if (failed == "azimuth")
           edit = ui->azimuthEdit;
         else if (failed == "elevation")

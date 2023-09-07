@@ -47,6 +47,7 @@ struct SimulationProperties {
   BeamType       beam = BEAM_TYPE_COLLIMATED;
 
   QString diameter    = "40e-3";       // m
+  QString refAperture = "200e-3";      // m
   QString fNum        = "17.37";
   QString azimuth     = "90";      // deg
   QString elevation   = "0";       // deg
@@ -68,6 +69,7 @@ class SimulationState {
   RZ::TopLevelModel         *m_topLevelModel = nullptr;
 
   SimpleExpressionEvaluator *m_diamExpr      = nullptr;
+  SimpleExpressionEvaluator *m_refApExpr     = nullptr;
   SimpleExpressionEvaluator *m_fNumExpr      = nullptr;
 
   SimpleExpressionEvaluator *m_azimuthExpr   = nullptr;
@@ -82,7 +84,7 @@ class SimulationState {
   // Evaluated members
   RZ::Real m_i,  m_j;
   RZ::Real m_Ni, m_Nj;
-  RZ::Real m_D,  m_fNum;
+  RZ::Real m_D,  m_fNum, m_refAp;
 
   RZ::Real m_azimuth, m_elevation;
   RZ::Real m_offsetX, m_offsetY;

@@ -21,6 +21,8 @@ set(PROJECT_SOURCES
         main.cpp
         AsyncRayTracer.h
         AsyncRayTracer.cpp
+        CustomTextEditDelegate.h
+        CustomTextEditDelegate.cpp
         DetectorWindow.h
         DetectorWindow.cpp
         DetectorWindow.ui

@@ -82,7 +82,7 @@ namespace RZ {
       RayBeamElement *m_beam = nullptr;
       std::list<Ray>  m_intermediateRays;
       struct timeval  m_lastTick;
-      
+
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
       bool registerDetector(Detector *);
@@ -240,6 +240,19 @@ namespace RZ {
         Element *element,
         unsigned int number = 1000,
         Real radius = .5,
+        Real azimuth = 0,
+        Real elevation = 90,
+        Real offX = 0,
+        Real offY = 0,
+        Real distance = 10);
+
+      static void addElementRelativeFocusBeam(
+        std::list<Ray> &dest,
+        Element *element,
+        unsigned int number = 1000,
+        Real radius = .5,
+        Real fNum = 17.37,
+        Real refAperture = 200e-3,
         Real azimuth = 0,
         Real elevation = 90,
         Real offX = 0,

@@ -5,6 +5,7 @@
 #include "PropertyAndDofTableModel.h"
 #include "OMTreeModel.h"
 #include "SimulationPropertiesDialog.h"
+#include "CustomTextEditDelegate.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -21,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
   m_simPropertiesDialog = new SimulationPropertiesDialog(this);
 
   ui->propTableView->setModel(m_propModel);
+  ui->propTableView->setItemDelegateForColumn(
+        3,
+        new CustomTextEditDelegate(this));
+
   ui->omTreeView->setModel(m_omModel);
 
   QSurfaceFormat fmt;

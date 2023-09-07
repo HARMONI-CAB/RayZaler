@@ -705,6 +705,63 @@ OMModel::addElementRelativeBeam(
   }
 }
 
+void
+OMModel::addElementRelativeFocusBeam(
+    std::list<Ray> &dest,
+    Element *element,
+    unsigned int number,
+    Real radius,
+    Real fNum,
+    Real refAperture,
+    Real azimuth,
+    Real elevation,
+    Real offX,
+    Real offY,
+    Real distance)
+{
+  const ReferenceFrame *frame;
+  Real focalLength = refAperture * fNum;
+
+  if (element->hasProperty("optical")) {
+    OpticalElement *optEl = static_cast<OpticalElement *>(element);
+    frame = optEl->opticalPath().m_sequence.begin()->frame;
+  } else {
+    frame = element->parentFrame();
+  }
+
+  Matrix3 elOrient  = frame->getOrientation();
+  Vec3    elCenter  = frame->getCenter();
+  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
+  Matrix3 orient    = beamSys.t();
+
+  Vec3 sourceCenter = 
+    + offX * elOrient.row.vx
+    + offY * elOrient.row.vy
+    + elCenter;
+
+  Vec3 focus      = elCenter + -focalLength * beamSys.row.vz;
+
+  Ray  ray;
+
+  for (auto i = 0; i < number; ++i) {
+    Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+    Real angle     = RZ_URANDSIGN * M_PI;
+    Vec3 arrival   = elCenter + sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+    Vec3 direction = (focus - arrival).normalized();
+
+    if (fNum < 0)
+      direction = -direction;
+
+    Vec3 source   = -direction * distance + arrival;
+    
+    ray.origin    = source;
+    ray.direction = direction;
+    ray.length    = distance;
+
+    dest.push_back(ray);
+  }
+}
+
 OMModel::OMModel()
 {
   auto sing = Singleton::instance();

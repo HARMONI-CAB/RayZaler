@@ -23,6 +23,10 @@ SimulationState::clearAll()
     m_fNumExpr = nullptr;
   }
 
+  if (m_refApExpr != nullptr) {
+    delete m_refApExpr;
+    m_refApExpr = nullptr;
+  }
   if (m_azimuthExpr != nullptr) {
     delete m_azimuthExpr;
     m_azimuthExpr = nullptr;
@@ -83,6 +87,9 @@ SimulationState::getFirstInvalidExpr() const
   if (m_fNumExpr == nullptr)
     return "fnum";
 
+  if (m_refApExpr == nullptr)
+    return "refap";
+
   if (m_azimuthExpr == nullptr)
     return "azimuth";
 
@@ -136,6 +143,7 @@ SimulationState::setProperties(SimulationProperties const &prop)
   m_dictionary["Nj"]    = &m_Nj;
   m_dictionary["D"]     = &m_D;
   m_dictionary["fNum"]  = &m_fNum;
+  m_dictionary["A"]     = &m_refAp;
   m_dictionary["az"]    = &m_azimuth;
   m_dictionary["el"]    = &m_elevation;
   m_dictionary["x0"]    = &m_offsetX;
@@ -151,6 +159,9 @@ SimulationState::setProperties(SimulationProperties const &prop)
     return false;
 
   if (!trySetExpr(m_fNumExpr, prop.fNum.toStdString()))
+    return false;
+
+  if (!trySetExpr(m_refApExpr, prop.refAperture.toStdString()))
     return false;
 
   if (!trySetExpr(m_azimuthExpr, prop.azimuth.toStdString()))
@@ -204,16 +215,50 @@ SimulationState::allocateRays()
 
   m_currBeam->clear();
 
-  RZ::OMModel::addElementRelativeBeam(
-        *m_currBeam,
-        element,
-        static_cast<unsigned>(m_properties.rays),
-        .5 * m_diamExpr->evaluate(),
-        m_azimuthExpr->evaluate(),
-        m_elevationExpr->evaluate(),
-        m_offsetXExpr->evaluate(),
-        m_offsetYExpr->evaluate(),
-        1);
+  switch (m_properties.beam) {
+    case BEAM_TYPE_COLLIMATED:
+      RZ::OMModel::addElementRelativeBeam(
+            *m_currBeam,
+            element,
+            static_cast<unsigned>(m_properties.rays),
+            .5 * m_diamExpr->evaluate(),
+            m_azimuthExpr->evaluate(),
+            m_elevationExpr->evaluate(),
+            m_offsetXExpr->evaluate(),
+            m_offsetYExpr->evaluate(),
+            1);
+      break;
+
+    case BEAM_TYPE_CONVERGING:
+      RZ::OMModel::addElementRelativeFocusBeam(
+            *m_currBeam,
+            element,
+            static_cast<unsigned>(m_properties.rays),
+            .5 * m_diamExpr->evaluate(),
+            m_fNumExpr->evaluate(),
+            m_refApExpr->evaluate(),
+            m_azimuthExpr->evaluate(),
+            m_elevationExpr->evaluate(),
+            m_offsetXExpr->evaluate(),
+            m_offsetYExpr->evaluate(),
+            1);
+      break;
+
+    case BEAM_TYPE_DIVERGING:
+      RZ::OMModel::addElementRelativeFocusBeam(
+            *m_currBeam,
+            element,
+            static_cast<unsigned>(m_properties.rays),
+            .5 * m_diamExpr->evaluate(),
+            -m_fNumExpr->evaluate(),
+            m_refApExpr->evaluate(),
+            m_azimuthExpr->evaluate(),
+            m_elevationExpr->evaluate(),
+            m_offsetXExpr->evaluate(),
+            m_offsetYExpr->evaluate(),
+            1);
+      break;
+  }
 
   return true;
 }

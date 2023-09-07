@@ -102,6 +102,7 @@ QVariant PropertyAndDofTableModel::data(const QModelIndex &index, int role) cons
     return QVariant();
 
   switch (role) {
+    case Qt::EditRole:
     case Qt::DisplayRole:
       switch (col) {
         case 0:

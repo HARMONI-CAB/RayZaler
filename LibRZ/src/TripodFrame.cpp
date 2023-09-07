@@ -98,6 +98,7 @@ TripodFrame::TripodFrame(
 void
 TripodFrame::recalculateFrame()
 {
-  setOrientation(m_R * parent()->getOrientation());
-  setCenter(parent()->getCenter() + m_center);
+  Matrix3 absOrientation = m_R * parent()->getOrientation();
+  setOrientation(absOrientation);
+  setCenter(parent()->getCenter() + absOrientation.t() * m_center);
 }
