@@ -3,9 +3,14 @@
 
 #include <OMModel.h>
 #include <GenericCompositeModel.h>
+#include <map>
 
 namespace RZ {
+  class ApertureStop;
+
   class TopLevelModel : public GenericCompositeModel, public OMModel {
+      std::map<std::string, ReferenceFrame *> m_focalPlanes;
+
     protected:
       // Interface methods
       virtual void registerDof(
@@ -24,10 +29,19 @@ namespace RZ {
         std::string const &expr,
         GenericEvaluatorSymbolDict *dict) override;
     
+      void exposePort(
+          std::string const &,
+          ReferenceFrame *) override;
+
     public:
       TopLevelModel(Recipe *recipe);
       ~TopLevelModel();
 
+      std::list<std::string> focalPlanes() const;
+      std::list<std::string> apertureStops() const;
+
+      ApertureStop   *getApertureStop(std::string const &) const;
+      ReferenceFrame *getFocalPlane(std::string const &) const;
   };
 }
 
