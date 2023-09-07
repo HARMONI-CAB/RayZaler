@@ -9,14 +9,19 @@ namespace Ui {
 }
 
 class PropertyAndDofExprModel;
+class QFileDialog;
+
+#define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
 
 class SimulationPropertiesDialog : public QDialog
 {
   Q_OBJECT
 
-  SimulationSession *m_session;
+  SimulationSession       *m_session;
   PropertyAndDofExprModel *m_propModel = nullptr;
-  SimulationProperties m_properties;
+  SimulationProperties     m_properties;
+  QFileDialog             *m_openSettingsDialog = nullptr;
+  QFileDialog             *m_saveSettingsDialog = nullptr;
 
   void connectAll();
   void refreshUi();
@@ -37,6 +42,8 @@ public:
 public slots:
   void onExprEditChanged();
   void onDataChanged();
+  void onLoadSettings();
+  void onExportSettings();
 
 private:
   Ui::SimulationPropertiesDialog *ui;

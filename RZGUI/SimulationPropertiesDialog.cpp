@@ -1,6 +1,8 @@
 #include "SimulationPropertiesDialog.h"
 #include "ui_SimulationPropertiesDialog.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <QFile>
 #include "PropertyAndDofExprModel.h"
 #include "CustomTextEditDelegate.h"
 
@@ -16,6 +18,21 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   ui->propView->setItemDelegateForColumn(
         3,
         new CustomTextEditDelegate(this));
+
+  m_openSettingsDialog = new QFileDialog(this);
+  m_saveSettingsDialog = new QFileDialog(this);
+
+  m_openSettingsDialog->setWindowTitle("Load simulation settings");
+  m_openSettingsDialog->setFileMode(QFileDialog::ExistingFile);
+  m_openSettingsDialog->setAcceptMode(QFileDialog::AcceptOpen);
+  m_openSettingsDialog->setNameFilter(
+        "JSON simulation settings (*.json);;All files (*)");
+
+  m_saveSettingsDialog->setWindowTitle("Export simulation settings");
+  m_saveSettingsDialog->setFileMode(QFileDialog::AnyFile);
+  m_saveSettingsDialog->setAcceptMode(QFileDialog::AcceptSave);
+  m_saveSettingsDialog->setNameFilter(
+        "JSON simulation settings (*.json);;All files (*)");
 
   connectAll();
 }
@@ -84,6 +101,18 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(textChanged(QString)),
         this,
         SLOT(onExprEditChanged()));
+
+  connect(
+        ui->loadSettingsButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onLoadSettings()));
+
+  connect(
+        ui->exportSettingsButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onExportSettings()));
 }
 
 void
@@ -108,7 +137,6 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
   ui->propView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
   ui->propView->horizontalHeader()->setStretchLastSection(true);
 
-
   applyProperties();
 }
 
@@ -125,7 +153,7 @@ SimulationPropertiesDialog::refreshUi()
   ui->fNumLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
   ui->fNumEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
 
-  ui->refApertureLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
+  ui->refPlaneLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
   ui->refApertureEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
 
   ui->pathCombo->setEnabled(ui->pathCombo->count() > 0);
@@ -188,6 +216,9 @@ SimulationPropertiesDialog::applyProperties()
       BLOCKSIG(ui->detectorCombo, setCurrentIndex(index));
     }
   }
+
+  for (auto p : m_properties.dofs)
+    m_propModel->setDof(p.first, p.second, false);
 
   refreshUi();
 }
@@ -329,4 +360,86 @@ SimulationPropertiesDialog::onExprEditChanged()
   auto sender = static_cast<QLineEdit *>(QObject::sender());
 
   sender->setStyleSheet("");
+}
+
+void
+SimulationPropertiesDialog::onLoadSettings()
+{
+  if (m_openSettingsDialog->exec()
+      && !m_openSettingsDialog->selectedFiles().empty()) {
+    QString fileName = m_openSettingsDialog->selectedFiles()[0];
+    QFile   file(fileName);
+
+    if (file.open(QIODevice::ReadOnly)) {
+      if (file.size() > MAX_SIMULATION_CONFIG_FILE_SIZE) {
+        QMessageBox::critical(
+              this,
+              "Load simulation settings",
+              "Settings file is too big (probably not a settings file)");
+        return;
+      }
+
+      auto data = file.readAll();
+      if (file.error() != QFileDevice::NoError) {
+        QMessageBox::critical(
+              this,
+              "Load simulation settings",
+              "Read error while loading settings: " + file.errorString());
+        return;
+      }
+
+      SimulationProperties properties;
+      if (!properties.deserialize(data)) {
+        QMessageBox::critical(
+              this,
+              "Load simulation settings",
+              "Simulation file contains errors: " + properties.lastError());
+        return;
+      }
+
+      m_properties = properties;
+      applyProperties();
+
+      ui->propView->setModel(nullptr);
+      ui->propView->setModel(m_propModel);
+
+      ui->propView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+      ui->propView->horizontalHeader()->setStretchLastSection(true);
+    } else {
+      QMessageBox::critical(
+            this,
+            "Export simulation settings",
+            "Cannot export simulation settings to the selected file: "
+            + file.errorString());
+    }
+  }
+}
+
+void
+SimulationPropertiesDialog::onExportSettings()
+{
+  parseProperties();
+
+  if (m_saveSettingsDialog->exec()
+      && !m_saveSettingsDialog->selectedFiles().empty()) {
+    QString fileName = m_saveSettingsDialog->selectedFiles()[0];
+    auto    props    = m_properties.serialize();
+    QFile   file(fileName);
+
+    if (file.open(QIODevice::WriteOnly)) {
+      auto ret = file.write(props);
+      if (file.error() != QFileDevice::NoError) {
+        QMessageBox::critical(
+              this,
+              "Export simulation settings",
+              "Write error while saving settings: " + file.errorString());
+      }
+    } else {
+      QMessageBox::critical(
+            this,
+            "Export simulation settings",
+            "Cannot export simulation settings to the selected file: "
+            + file.errorString());
+    }
+  }
 }

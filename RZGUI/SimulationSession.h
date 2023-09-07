@@ -42,26 +42,53 @@ enum BeamType {
   BEAM_TYPE_DIVERGING
 };
 
+enum BeamReference {
+  BEAM_REFERENCE_INPUT_ELEMENT,
+  BEAM_REFERENCE_FOCAL_PLANE,
+  BEAM_REFERENCE_APERTURE_STOP
+};
+
 struct SimulationProperties {
-  SimulationType type = SIM_TYPE_ONE_SHOT;
-  BeamType       beam = BEAM_TYPE_COLLIMATED;
+  SimulationType type  = SIM_TYPE_ONE_SHOT;
+  BeamType       beam  = BEAM_TYPE_COLLIMATED;
+  BeamReference  ref   = BEAM_REFERENCE_INPUT_ELEMENT;
 
-  QString diameter    = "40e-3";       // m
-  QString refAperture = "200e-3";      // m
-  QString fNum        = "17.37";
-  QString azimuth     = "90";      // deg
-  QString elevation   = "0";       // deg
-  QString offsetX     = "0";       // m
-  QString offsetY     = "0";       // m
+  QString diameter     = "40e-3";       // m
+  QString refAperture  = "200e-3";      // m
+  QString focalPlane   = "";
+  QString apertureStop = "";
+  QString fNum         = "17.37";
+  QString azimuth      = "90";      // deg
+  QString elevation    = "0";       // deg
+  QString offsetX      = "0";       // m
+  QString offsetY      = "0";       // m
 
-  int rays            = 1000;
-  int Ni              = 10;
-  int Nj              = 10;
+  int rays             = 1000;
+  int Ni               = 10;
+  int Nj               = 10;
 
   QString detector;
   QString path;
 
   std::map<std::string, std::string> dofs;
+
+
+  void loadDefaults();
+  QString lastError() const;
+
+  QByteArray serialize() const;
+  bool deserialize(QByteArray const &);
+
+private:
+  QString m_lastError;
+
+  bool deserialize(QJsonObject const &, QString const &, SimulationType &);
+  bool deserialize(QJsonObject const &, QString const &, BeamType &);
+  bool deserialize(QJsonObject const &, QString const &, BeamReference &);
+
+  bool deserialize(QJsonObject const &, QString const &, QString &);
+  bool deserialize(QJsonObject const &, QString const &, int &);
+  bool deserialize(QJsonObject const &, QString const &, std::map<std::string, std::string> &);
 };
 
 class SimulationState {

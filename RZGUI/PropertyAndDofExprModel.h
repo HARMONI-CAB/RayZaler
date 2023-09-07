@@ -38,6 +38,8 @@ class PropertyAndDofExprModel : public QAbstractTableModel
 public:
   void resetDofs();
   bool dofEdited(std::string const &) const;
+  void setDof(std::string const &, std::string const &, bool);
+
   std::string dof(std::string const &) const;
   std::string param(std::string const &) const;
 

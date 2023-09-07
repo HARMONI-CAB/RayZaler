@@ -80,6 +80,26 @@ PropertyAndDofExprModel::dof(std::string const &name) const
   return dof->second->expr;
 }
 
+void
+PropertyAndDofExprModel::setDof(
+    std::string const &name,
+    std::string const &value,
+    bool setEdited)
+{
+  auto dof = m_dofs.find(name);
+
+  if (dof != m_dofs.end()) {
+    if (setEdited) {
+      m_dofs[name]->expr = value;
+      m_dofs[name]->modified = true;
+    } else {
+      m_dofs[name]->expr = value;
+      m_dofs[name]->defaultExpr = value;
+      m_dofs[name]->modified = false;
+    }
+  }
+}
+
 std::string
 PropertyAndDofExprModel::param(std::string const &name) const
 {

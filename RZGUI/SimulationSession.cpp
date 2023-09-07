@@ -9,6 +9,286 @@
 #include <QThread>
 #include <QDir>
 #include "AsyncRayTracer.h"
+#include <QJsonObject>
+#include <QJsonDocument>
+
+void
+SimulationProperties::loadDefaults()
+{
+  *this = SimulationProperties(); // Haha C++
+}
+
+QByteArray
+SimulationProperties::serialize() const
+{
+  QJsonObject object;
+  QJsonObject dofObj;
+
+  switch (type) {
+    case SIM_TYPE_ONE_SHOT:
+      object["type"] = "ONE_SHOT";
+      break;
+
+    case SIM_TYPE_1D_SWEEP:
+      object["type"] = "1D_SWEEP";
+      break;
+
+    case SIM_TYPE_2D_SWEEP:
+      object["type"] = "2D_SWEEP";
+      break;
+  }
+
+  switch (beam) {
+    case BEAM_TYPE_COLLIMATED:
+      object["beam"] = "COLLIMATED";
+      break;
+
+    case BEAM_TYPE_CONVERGING:
+      object["beam"] = "CONVERGING";
+      break;
+
+    case BEAM_TYPE_DIVERGING:
+      object["beam"] = "DIVERGING";
+      break;
+  }
+
+  switch (ref) {
+    case BEAM_REFERENCE_INPUT_ELEMENT:
+      object["ref"] = "INPUT_ELEMENT";
+      break;
+
+    case BEAM_REFERENCE_FOCAL_PLANE:
+      object["ref"] = "FOCAL_PLANE";
+      break;
+
+    case BEAM_REFERENCE_APERTURE_STOP:
+      object["ref"] = "APERTURE_STOP";
+      break;
+  }
+
+#define SERIALIZE(what) object[#what] = what
+  SERIALIZE(diameter);
+  SERIALIZE(refAperture);
+  SERIALIZE(focalPlane);
+  SERIALIZE(fNum);
+  SERIALIZE(azimuth);
+  SERIALIZE(elevation);
+  SERIALIZE(offsetX);
+  SERIALIZE(offsetY);
+  SERIALIZE(rays);
+  SERIALIZE(Ni);
+  SERIALIZE(Nj);
+  SERIALIZE(detector);
+  SERIALIZE(path);
+#undef SERIALIZE
+
+  for (auto p : dofs)
+    dofObj[QString::fromStdString(p.first)] = QString::fromStdString(p.second);
+
+  object["dofs"] = dofObj;
+
+  return QJsonDocument(object).toJson();
+}
+
+QString
+SimulationProperties::lastError() const
+{
+  return m_lastError;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    QString &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    value = obj[key].toString();
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    SimulationType &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "ONE_SHOT")
+      value = SIM_TYPE_ONE_SHOT;
+    else if (asString == "1D_SWEEP")
+      value = SIM_TYPE_1D_SWEEP;
+    else if (asString == "2D_SWEEP")
+      value = SIM_TYPE_2D_SWEEP;
+    else {
+      m_lastError = "Unknown simulation type `" + asString + "'";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    BeamType &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "COLLIMATED")
+      value = BEAM_TYPE_COLLIMATED;
+    else if (asString == "CONVERGING")
+      value = BEAM_TYPE_CONVERGING;
+    else if (asString == "DIVERGING")
+      value = BEAM_TYPE_DIVERGING;
+    else {
+      m_lastError = "Unknown beam type `" + asString + "'";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    BeamReference &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "INPUT_ELEMENT")
+      value = BEAM_REFERENCE_INPUT_ELEMENT;
+    else if (asString == "FOCAL_PLANE")
+      value = BEAM_REFERENCE_FOCAL_PLANE;
+    else if (asString == "APERTURE_STOP")
+      value = BEAM_REFERENCE_APERTURE_STOP;
+    else {
+      m_lastError = "Unknown beam reference `" + asString + "'";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    int &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isDouble()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a number)";
+      return false;
+    }
+
+    value = obj[key].toInt();
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    std::map<std::string, std::string> &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isObject()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a JSON object)";
+      return false;
+    }
+
+    value.clear();
+    auto asObject = obj[key].toObject();
+    for (auto p : asObject.keys()) {
+      if (!asObject[p].isString()) {
+        m_lastError = "Invalid entry `" + p + "` for dictionary `" + key + "' (not a string)";
+        return false;
+      }
+
+      value[p.toStdString()] = asObject[p].toString().toStdString();
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(QByteArray const &json)
+{
+  QJsonDocument doc;
+  QJsonObject obj;
+  QJsonParseError errors;
+
+  doc = QJsonDocument::fromJson(json, &errors);
+
+  if (doc.isNull()) {
+    m_lastError = errors.errorString();
+    return false;
+  }
+
+  obj = doc.object();
+
+#define DESERIALIZE(field)                \
+  if (!deserialize(obj, #field, field))   \
+    return false
+
+  DESERIALIZE(type);
+  DESERIALIZE(beam);
+  DESERIALIZE(ref);
+  DESERIALIZE(diameter);
+  DESERIALIZE(refAperture);
+  DESERIALIZE(focalPlane);
+  DESERIALIZE(apertureStop);
+  DESERIALIZE(fNum);
+  DESERIALIZE(azimuth);
+  DESERIALIZE(elevation);
+  DESERIALIZE(offsetX);
+  DESERIALIZE(offsetY);
+  DESERIALIZE(rays);
+  DESERIALIZE(Ni);
+  DESERIALIZE(Nj);
+  DESERIALIZE(detector);
+  DESERIALIZE(path);
+  DESERIALIZE(dofs);
+
+#undef DESERIALIZE
+
+  return true;
+}
 
 void
 SimulationState::clearAll()
