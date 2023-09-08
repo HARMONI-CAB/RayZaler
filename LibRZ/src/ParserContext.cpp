@@ -531,6 +531,7 @@ ParserContext::error(const char *msg)
 ParserContext::ParserContext(Recipe *recipe, int recursion) :
   m_rootRecipe(recipe)
 {
+  setlocale(LC_NUMERIC, "C");
   m_recipe = m_rootRecipe;
   m_recursion = recursion;
 }

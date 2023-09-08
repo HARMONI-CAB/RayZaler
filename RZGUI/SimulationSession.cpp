@@ -480,11 +480,14 @@ SimulationState::setProperties(SimulationProperties const &prop)
   m_dictionary["x0"]    = &m_offsetX;
   m_dictionary["y0"]    = &m_offsetY;
 
-  m_dictionary["simU"]    = &m_simU;
-  m_dictionary["simN"]    = &m_simN;
+  m_dictionary["simU"]  = &m_simU;
+  m_dictionary["simN"]  = &m_simN;
 
-  m_dictionary["stepU"]    = &m_stepU;
-  m_dictionary["stepN"]    = &m_stepN;
+  m_dictionary["stepU"] = &m_stepU;
+  m_dictionary["stepN"] = &m_stepN;
+
+  m_dictionary["step"]  = &m_step;
+  m_dictionary["sim"]   = &m_sim;
 
   for (auto p : prop.dofs) {
     m_dofExprs[p.first]  = nullptr;
@@ -770,7 +773,7 @@ SimulationState::initSimulation()
   m_Nj = m_properties.Nj;
 
   m_steps = m_properties.Ni * m_properties.Nj;
-  m_currStep = 0;
+  m_step = m_currStep = 0;
 
   m_stepN = randNormal();
   m_stepU = randUniform();
@@ -800,6 +803,8 @@ SimulationState::initSimulation()
   } else {
     m_saveDetector = nullptr;
   }
+
+  ++m_sim;
 
   applyDofs();
 
@@ -834,7 +839,7 @@ SimulationState::sweepStep()
   // Iteration done, apply Dofs
   applyDofs();
 
-  ++m_currStep;
+  m_step = ++m_currStep;
 
   return allocateRays();
 }

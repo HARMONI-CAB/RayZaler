@@ -2,6 +2,7 @@
 
 #define exprtk_disable_caseinsensitivity
 #include <exprtk.hpp>
+#include <random>
 
 typedef exprtk::symbol_table<RZ::Real> exprtk_symtab_t;
 typedef exprtk::expression<RZ::Real>   exprtk_expr_t;
@@ -30,24 +31,46 @@ namespace RZ {
 
 using namespace RZ;
 
-struct randu : public exprtk::ifunction<Real>
-{
-  randu() : exprtk::ifunction<RZ::Real>(0)
-  {}
+#define MERSENNE_TWISTER_DISCARD 5
 
-  Real operator()() {
-    return (Real) rand() / (Real) RAND_MAX;
+struct randu : public exprtk::ifunction<Real> {
+  std::mt19937_64                      m_generator;
+  std::uniform_real_distribution<Real> m_dist;
+
+  randu() : exprtk::ifunction<RZ::Real>(2)
+  {
+    m_dist = std::uniform_real_distribution<Real>(0, 1);
+  }
+
+  Real
+  operator()(Real const &seed, Real const &index)
+  {
+    m_generator.seed(static_cast<int>(seed) + static_cast<int>(index));
+    m_generator.discard(MERSENNE_TWISTER_DISCARD);
+    m_dist.reset();
+    
+    return m_dist(m_generator);
   }
 };
 
-struct randn : public exprtk::ifunction<Real>
-{
-  randn() : exprtk::ifunction<RZ::Real>(0)
-  {}
+struct randn : public exprtk::ifunction<Real> {
+  std::mt19937_64                m_generator;
+  std::normal_distribution<Real> m_dist;
 
-  Real operator()() {
-    Real u = (Real) (rand() + 1) / ((Real) RAND_MAX + 1);
-    return sqrt(-log(u));
+  RZ::Real m_lastSeed = 1;
+
+  randn() : exprtk::ifunction<RZ::Real>(2)
+  {
+    m_dist = std::normal_distribution<Real>(0, 1);
+  }
+
+  Real
+  operator()(Real const &seed, Real const &index)
+  {
+    m_generator.seed(static_cast<int>(seed) + static_cast<int>(index));
+    m_generator.discard(MERSENNE_TWISTER_DISCARD);
+    m_dist.reset();
+    return m_dist(m_generator);
   }
 };
 

@@ -127,6 +127,9 @@ class SimulationState {
   RZ::Real m_simU, m_simN;   // Per simulation random number
   RZ::Real m_stepU, m_stepN; // Per step random number
 
+  RZ::Real m_step  = 0;
+  RZ::Real m_sim   = 0;
+
   SimpleExpressionDict m_dictionary;
 
   std::string m_lastCompileError = "";

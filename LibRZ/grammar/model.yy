@@ -133,6 +133,7 @@ expr:                                             // Type: string
      NUM                       
    | IDENTIFIER                
    | IDENTIFIER '(' expr ')'   { $$ = $1.str() + "(" + $3.str() + ")"; }
+   | IDENTIFIER '(' expr ',' expr ')'   { $$ = $1.str() + "(" + $3.str() + "," + $5.str() + ")"; }
    | expr '+' expr             { $$ = $1.str() + "+" + $3.str(); }
    | expr '-' expr             { $$ = $1.str() + "-" + $3.str(); }
    | expr '*' expr             { $$ = $1.str() + "*" + $3.str(); }
