@@ -158,6 +158,7 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
     ui->modelNameLabel->setText(session->fileName());
     setWindowTitle("Simulation Properties - " + session->fileName());
   } else {
+    m_properties = SimulationProperties();
     m_propModel->setModel(nullptr);
     ui->modelNameLabel->setText("N/A");
     setWindowTitle("Simulation Properties (N/A)");
@@ -330,10 +331,10 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
 
       BLOCKSIG(ui->focalPlaneCombo, setCurrentIndex(index));
     }
-  }
 
-  for (auto p : m_properties.dofs)
-    m_propModel->setDof(p.first, p.second, setEdited);
+    for (auto p : m_properties.dofs)
+      m_propModel->setDof(p.first, p.second, setEdited);
+  }
 
   refreshUi();
 }
@@ -341,6 +342,9 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
 void
 SimulationPropertiesDialog::parseProperties()
 {
+  if (m_session == nullptr)
+    return;
+
   switch (ui->simTypeCombo->currentIndex()) {
     case 0:
       m_properties.type = SIM_TYPE_ONE_SHOT;
@@ -421,6 +425,7 @@ SimulationPropertiesDialog::parseProperties()
     m_properties.detector   = "";
 
   m_properties.dofs.clear();
+
   for (auto p : m_session->topLevelModel()->dofs()) {
     if (m_propModel->dofEdited(p))
       m_properties.dofs[p] = m_propModel->dof(p);
@@ -502,17 +507,17 @@ void
 SimulationPropertiesDialog::sanitizeSaveDirectory()
 {
   QFileInfo info(m_properties.saveDir);
-  QString   baseName;
+  QString   dirName;
   QString   fileName = info.fileName();
-  QFileInfo parentInfo(info.baseName());
+  QFileInfo parentInfo(info.dir().path());
   QFileInfo cwdInfo(QDir::currentPath());
 
   if (!parentInfo.exists() || !parentInfo.isDir() || parentInfo == cwdInfo)
-    baseName = ".";
+    dirName = ".";
   else
-    baseName = parentInfo.path();
+    dirName = parentInfo.path();
 
-  m_properties.path = baseName + "/" + fileName;
+  m_properties.saveDir = dirName + "/" + fileName;
 }
 
 bool

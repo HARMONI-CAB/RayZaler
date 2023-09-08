@@ -241,23 +241,29 @@ MainWindow::registerSession(SimulationSession *session)
 void
 MainWindow::doOpen()
 {
-  QFileDialog dialog(this);
-  QStringList filters;
   bool done = false;
 
+  if (m_openDialog == nullptr) {
+    m_openDialog = new QFileDialog(this);
+    QStringList filters;
 
-  filters <<
-             "RayZaler model files (*.rzm)" <<
-             "All files (*)";
+    filters <<
+               "RayZaler model files (*.rzm)" <<
+               "All files (*)";
 
-  dialog.setFileMode(QFileDialog::ExistingFile);
-  dialog.setNameFilters(filters);
+    m_openDialog->setFileMode(QFileDialog::ExistingFile);
+    m_openDialog->setNameFilters(filters);
+    m_lastOpenDir = QDir::currentPath();
+  }
 
   do {
-    if (dialog.exec()) {
-      auto files = dialog.selectedFiles();
+    m_openDialog->setDirectory(m_lastOpenDir);
+    if (m_openDialog->exec()) {
+      auto files = m_openDialog->selectedFiles();
       if (files.size() > 0) {
         auto firstFile = files[0];
+        QFileInfo info(firstFile);
+        m_lastOpenDir = info.dir().path();
         try {
           registerSession(new SimulationSession(firstFile, this));
           done = true;

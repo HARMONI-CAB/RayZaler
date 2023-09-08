@@ -14,6 +14,7 @@ class SessionTabWidget;
 class PropertyAndDofTableModel;
 class OMTreeModel;
 class SimulationPropertiesDialog;
+class QFileDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -24,9 +25,11 @@ class MainWindow : public QMainWindow
   std::list<SimulationSession *> m_sessions;
   QMap<SimulationSession *, SessionTabWidget *> m_sessionToTab;
 
+  QFileDialog                *m_openDialog = nullptr;
+  QString                     m_lastOpenDir;
   SimulationPropertiesDialog *m_simPropertiesDialog = nullptr;
-  PropertyAndDofTableModel *m_propModel = nullptr;
-  OMTreeModel              *m_omModel   = nullptr;
+  PropertyAndDofTableModel   *m_propModel = nullptr;
+  OMTreeModel                *m_omModel   = nullptr;
 
   void refreshCurrentSession();
   void registerSession(SimulationSession *);

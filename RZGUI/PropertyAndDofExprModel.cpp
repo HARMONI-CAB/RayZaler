@@ -164,6 +164,9 @@ bool PropertyAndDofExprModel::setHeaderData(int section, Qt::Orientation orienta
 
 int PropertyAndDofExprModel::rowCount(const QModelIndex &) const
 {
+  if (m_model == nullptr)
+    return 0;
+
   return static_cast<int>(m_propVec.size());
 }
 
