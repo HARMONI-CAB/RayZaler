@@ -468,19 +468,11 @@ SimulationState::setProperties(SimulationProperties const &prop)
 bool
 SimulationState::allocateRays()
 {
-  auto path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
-  if (path == nullptr) {
-    m_lastCompileError = "The defined optical path does not exist";
-    return false;
-  }
+  const RZ::OpticalPath *path = nullptr;
+  RZ::OpticalElement *element = nullptr;
+  RZ::ReferenceFrame *fp = nullptr;
 
-  if (path->m_sequence.size() == 0) {
-    m_lastCompileError = "Optical path contains no elements";
-    return false;
-  }
-
-  auto element = path->m_sequence.begin()->parent;
-
+  // TODO: prevent continuous reallocation of beams
   if (m_currBeam == m_beamAlloc.end())
     m_currBeam = m_beamAlloc.begin();
   else
@@ -495,48 +487,121 @@ SimulationState::allocateRays()
 
   m_currBeam->clear();
 
-  switch (m_properties.beam) {
-    case BEAM_TYPE_COLLIMATED:
-      RZ::OMModel::addElementRelativeBeam(
-            *m_currBeam,
-            element,
-            static_cast<unsigned>(m_properties.rays),
-            .5 * m_diamExpr->evaluate(),
-            m_azimuthExpr->evaluate(),
-            m_elevationExpr->evaluate(),
-            m_offsetXExpr->evaluate(),
-            m_offsetYExpr->evaluate(),
-            1);
+  switch (m_properties.ref) {
+    case BEAM_REFERENCE_INPUT_ELEMENT:
+      path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
+      if (path == nullptr) {
+        m_lastCompileError = "The defined optical path does not exist";
+        return false;
+      }
+
+      if (path->m_sequence.size() == 0) {
+        m_lastCompileError = "Optical path contains no elements";
+        return false;
+      }
+
+      element = path->m_sequence.begin()->parent;
+
+      switch (m_properties.beam) {
+        case BEAM_TYPE_COLLIMATED:
+          RZ::OMModel::addElementRelativeBeam(
+                *m_currBeam,
+                element,
+                static_cast<unsigned>(m_properties.rays),
+                .5 * m_diamExpr->evaluate(),
+                m_azimuthExpr->evaluate(),
+                m_elevationExpr->evaluate(),
+                m_offsetXExpr->evaluate(),
+                m_offsetYExpr->evaluate(),
+                1);
+          break;
+
+        case BEAM_TYPE_CONVERGING:
+          RZ::OMModel::addElementRelativeFocusBeam(
+                *m_currBeam,
+                element,
+                static_cast<unsigned>(m_properties.rays),
+                .5 * m_diamExpr->evaluate(),
+                m_fNumExpr->evaluate(),
+                m_refApExpr->evaluate(),
+                m_azimuthExpr->evaluate(),
+                m_elevationExpr->evaluate(),
+                m_offsetXExpr->evaluate(),
+                m_offsetYExpr->evaluate(),
+                1);
+          break;
+
+        case BEAM_TYPE_DIVERGING:
+          RZ::OMModel::addElementRelativeFocusBeam(
+                *m_currBeam,
+                element,
+                static_cast<unsigned>(m_properties.rays),
+                .5 * m_diamExpr->evaluate(),
+                -m_fNumExpr->evaluate(),
+                m_refApExpr->evaluate(),
+                m_azimuthExpr->evaluate(),
+                m_elevationExpr->evaluate(),
+                m_offsetXExpr->evaluate(),
+                m_offsetYExpr->evaluate(),
+                1);
+          break;
+      }
       break;
 
-    case BEAM_TYPE_CONVERGING:
-      RZ::OMModel::addElementRelativeFocusBeam(
-            *m_currBeam,
-            element,
-            static_cast<unsigned>(m_properties.rays),
-            .5 * m_diamExpr->evaluate(),
-            m_fNumExpr->evaluate(),
-            m_refApExpr->evaluate(),
-            m_azimuthExpr->evaluate(),
-            m_elevationExpr->evaluate(),
-            m_offsetXExpr->evaluate(),
-            m_offsetYExpr->evaluate(),
-            1);
+    case BEAM_REFERENCE_APERTURE_STOP:
+      switch (m_properties.beam) {
+        case BEAM_TYPE_COLLIMATED:
+          // TODO
+          break;
+
+        case BEAM_TYPE_CONVERGING:
+          // TODO
+          break;
+
+        case BEAM_TYPE_DIVERGING:
+          // TODO
+          break;
+      }
       break;
 
-    case BEAM_TYPE_DIVERGING:
-      RZ::OMModel::addElementRelativeFocusBeam(
-            *m_currBeam,
-            element,
-            static_cast<unsigned>(m_properties.rays),
-            .5 * m_diamExpr->evaluate(),
-            -m_fNumExpr->evaluate(),
-            m_refApExpr->evaluate(),
-            m_azimuthExpr->evaluate(),
-            m_elevationExpr->evaluate(),
-            m_offsetXExpr->evaluate(),
-            m_offsetYExpr->evaluate(),
-            1);
+    case BEAM_REFERENCE_FOCAL_PLANE:
+      fp = m_topLevelModel->getFocalPlane(m_properties.focalPlane.toStdString());
+      if (fp == nullptr) {
+        m_lastCompileError = "The specified focal plane `" + m_properties.focalPlane.toStdString() + "' does not exist";
+        return false;
+      }
+
+      switch (m_properties.beam) {
+        case BEAM_TYPE_COLLIMATED:
+          // TODO
+          break;
+
+        case BEAM_TYPE_CONVERGING:
+          RZ::OMModel::addFocalPlaneFocusedBeam(
+                *m_currBeam,
+                fp,
+                static_cast<unsigned>(m_properties.rays),
+                m_fNumExpr->evaluate(),
+                m_azimuthExpr->evaluate(),
+                m_elevationExpr->evaluate(),
+                m_offsetXExpr->evaluate(),
+                m_offsetYExpr->evaluate(),
+                1);
+          break;
+
+        case BEAM_TYPE_DIVERGING:
+          RZ::OMModel::addFocalPlaneFocusedBeam(
+                *m_currBeam,
+                fp,
+                static_cast<unsigned>(m_properties.rays),
+                -m_fNumExpr->evaluate(),
+                m_azimuthExpr->evaluate(),
+                m_elevationExpr->evaluate(),
+                m_offsetXExpr->evaluate(),
+                m_offsetYExpr->evaluate(),
+                1);
+          break;
+      }
       break;
   }
 

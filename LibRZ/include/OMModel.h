@@ -258,6 +258,17 @@ namespace RZ {
         Real offX = 0,
         Real offY = 0,
         Real distance = 10);
+
+      static void addFocalPlaneFocusedBeam(
+        std::list<Ray> &dest,
+        const ReferenceFrame *focalPlane,
+        unsigned int number = 1000,
+        Real fNum = 17.37,
+        Real azimuth = 0,
+        Real elevation = 90,
+        Real offX = 0,
+        Real offY = 0,
+        Real distance = 10);
   };
 }
 

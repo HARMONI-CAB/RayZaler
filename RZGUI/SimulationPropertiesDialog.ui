@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
+    <width>552</width>
     <height>387</height>
    </rect>
   </property>
@@ -481,8 +481,20 @@
        </item>
        <item row="1" column="2">
         <widget class="QLabel" name="refPlaneLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>128</width>
+           <height>0</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Aperture</string>
+          <string>Reference aperture</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -540,7 +552,7 @@
          </item>
          <item>
           <property name="text">
-           <string>Model aperture</string>
+           <string>Aperture stop</string>
           </property>
          </item>
          <item>

@@ -762,6 +762,54 @@ OMModel::addElementRelativeFocusBeam(
   }
 }
 
+void
+OMModel::addFocalPlaneFocusedBeam(
+    std::list<Ray> &dest,
+    const ReferenceFrame *frame,
+    unsigned int number,
+    Real fNum,
+    Real azimuth,
+    Real elevation,
+    Real offX,
+    Real offY,
+    Real distance)
+{
+  Matrix3 elOrient  = frame->getOrientation();
+  Vec3    elCenter  = frame->getCenter();
+  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
+  Matrix3 orient    = beamSys.t();
+  Real    radius    = .5 * distance / fNum;
+
+  Vec3 focusLocation = 
+    + offX * elOrient.row.vx
+    + offY * elOrient.row.vy
+    + elCenter;
+
+  Ray  ray;
+
+  for (auto i = 0; i < number; ++i) {
+    Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+    Real angle     = RZ_URANDSIGN * M_PI;
+    Vec3 displ     = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+    Vec3 origin;
+
+    if (fNum > 0)
+      origin    = focusLocation + displ + distance * beamSys.row.vz;
+    else
+      // Negative fNum: converging ray from below
+      origin    = focusLocation + displ - distance * beamSys.row.vz;  
+
+    Vec3 direction = (focusLocation - origin).normalized();
+
+    ray.origin     = origin;
+    ray.direction  = direction;
+    ray.length     = distance;
+
+    dest.push_back(ray);
+  }
+}
+
+
 OMModel::OMModel()
 {
   auto sing = Singleton::instance();

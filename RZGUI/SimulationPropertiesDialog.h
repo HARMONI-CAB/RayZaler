@@ -25,7 +25,7 @@ class SimulationPropertiesDialog : public QDialog
 
   void connectAll();
   void refreshUi();
-  void applyProperties();
+  void applyProperties(bool setEdited = false);
   void parseProperties();
 
 public:

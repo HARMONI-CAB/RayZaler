@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QFile>
+#include <QPushButton>
 #include "PropertyAndDofExprModel.h"
 #include "CustomTextEditDelegate.h"
 
@@ -53,6 +54,24 @@ SimulationPropertiesDialog::connectAll()
 
   connect(
         ui->beamTypeCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->apertureCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->focalPlaneCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->originCombo,
         SIGNAL(activated(int)),
         this,
         SLOT(onDataChanged()));
@@ -144,6 +163,9 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
 void
 SimulationPropertiesDialog::refreshUi()
 {
+  bool haveApertures   = ui->apertureCombo->count() > 0;
+  bool haveFocalPlanes = ui->focalPlaneCombo->count() > 0;
+
   ui->steps1Label->setEnabled(m_properties.type != SIM_TYPE_ONE_SHOT);
   ui->steps2Label->setEnabled(m_properties.type == SIM_TYPE_2D_SWEEP);
 
@@ -153,21 +175,48 @@ SimulationPropertiesDialog::refreshUi()
   ui->fNumLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
   ui->fNumEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
 
-  ui->refPlaneLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
-  ui->refApertureEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
+  ui->refPlaneLabel->setEnabled(m_properties.beam    != BEAM_TYPE_COLLIMATED);
+  ui->refApertureEdit->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
+
+  switch (m_properties.ref) {
+    case BEAM_REFERENCE_INPUT_ELEMENT:
+      ui->refPlaneStack->setCurrentWidget(ui->inputElementPage);
+      ui->refPlaneLabel->setText("Reference aperture");
+      ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+      break;
+
+    case BEAM_REFERENCE_APERTURE_STOP:
+      ui->refPlaneStack->setCurrentWidget(ui->aperturePage);
+      ui->refPlaneLabel->setText("Aperture stop");
+      ui->refPlaneLabel->setEnabled(haveApertures);
+      ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(haveApertures);
+      break;
+
+    case BEAM_REFERENCE_FOCAL_PLANE:
+      ui->refPlaneStack->setCurrentWidget(ui->focalPlanePage);
+      ui->refPlaneLabel->setText("Focal plane");
+      ui->refPlaneLabel->setEnabled(haveFocalPlanes);
+      ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(haveFocalPlanes);
+      break;
+  }
 
   ui->pathCombo->setEnabled(ui->pathCombo->count() > 0);
   ui->detectorCombo->setEnabled(ui->detectorCombo->count() > 0);
+  ui->apertureCombo->setEnabled(haveApertures);
+  ui->focalPlaneCombo->setEnabled(haveFocalPlanes);
 }
 
 void
-SimulationPropertiesDialog::applyProperties()
+SimulationPropertiesDialog::applyProperties(bool setEdited)
 {
   ui->pathCombo->clear();
   ui->detectorCombo->clear();
+  ui->apertureCombo->clear();
+  ui->focalPlaneCombo->clear();
 
   BLOCKSIG(ui->simTypeCombo,    setCurrentIndex(m_properties.type));
   BLOCKSIG(ui->beamTypeCombo,   setCurrentIndex(m_properties.beam));
+  BLOCKSIG(ui->originCombo,     setCurrentIndex(m_properties.ref));
 
   BLOCKSIG(ui->diamEdit,        setText(m_properties.diameter));
   BLOCKSIG(ui->fNumEdit,        setText(m_properties.fNum));
@@ -186,6 +235,8 @@ SimulationPropertiesDialog::applyProperties()
     auto model = m_session->topLevelModel();
     auto paths = model->opticalPaths();
     auto dets  = model->detectors();
+    auto stops = model->apertureStops();
+    auto fps   = model->focalPlanes();
 
     // Add paths
     for (auto path : paths) {
@@ -215,10 +266,38 @@ SimulationPropertiesDialog::applyProperties()
         index = 0;
       BLOCKSIG(ui->detectorCombo, setCurrentIndex(index));
     }
+
+    // Add apertures
+    for (auto stop : stops) {
+      QString name = QString::fromStdString(stop);
+      ui->apertureCombo->addItem(name, name);
+    }
+
+    if (stops.size() > 0) {
+      index = ui->apertureCombo->findData(m_properties.apertureStop);
+      if (index == -1)
+        index = 0;
+
+      BLOCKSIG(ui->apertureCombo, setCurrentIndex(index));
+    }
+
+    // Add focal planes
+    for (auto fp : fps) {
+      QString name = QString::fromStdString(fp);
+      ui->focalPlaneCombo->addItem(name, name);
+    }
+
+    if (fps.size() > 0) {
+      index = ui->focalPlaneCombo->findData(m_properties.focalPlane);
+      if (index == -1)
+        index = 0;
+
+      BLOCKSIG(ui->focalPlaneCombo, setCurrentIndex(index));
+    }
   }
 
   for (auto p : m_properties.dofs)
-    m_propModel->setDof(p.first, p.second, false);
+    m_propModel->setDof(p.first, p.second, setEdited);
 
   refreshUi();
 }
@@ -255,28 +334,45 @@ SimulationPropertiesDialog::parseProperties()
 
   }
 
-  // Parse expressions
-  m_properties.diameter    = ui->diamEdit->text();
-  m_properties.fNum        = ui->fNumEdit->text();
-  m_properties.refAperture = ui->refApertureEdit->text();
-  m_properties.azimuth     = ui->azimuthEdit->text();
-  m_properties.elevation   = ui->elevationEdit->text();
-  m_properties.offsetX     = ui->offsetXEdit->text();
-  m_properties.offsetY     = ui->offsetYEdit->text();
+  switch (ui->originCombo->currentIndex()) {
+    case 0:
+      m_properties.ref = BEAM_REFERENCE_INPUT_ELEMENT;
+      break;
 
-  m_properties.rays        = ui->rayNumberSpin->value();
-  m_properties.Ni          = ui->steps1Spin->value();
-  m_properties.Nj          = ui->steps2Spin->value();
+    case 1:
+      m_properties.ref = BEAM_REFERENCE_APERTURE_STOP;
+      break;
+
+    case 2:
+      m_properties.ref = BEAM_REFERENCE_FOCAL_PLANE;
+      break;
+  }
+
+  // Parse expressions
+  m_properties.diameter     = ui->diamEdit->text();
+  m_properties.fNum         = ui->fNumEdit->text();
+  m_properties.refAperture  = ui->refApertureEdit->text();
+  m_properties.azimuth      = ui->azimuthEdit->text();
+  m_properties.elevation    = ui->elevationEdit->text();
+  m_properties.offsetX      = ui->offsetXEdit->text();
+  m_properties.offsetY      = ui->offsetYEdit->text();
+
+  m_properties.focalPlane   = ui->focalPlaneCombo->currentData().toString();
+  m_properties.apertureStop = ui->apertureCombo->currentData().toString();
+
+  m_properties.rays         = ui->rayNumberSpin->value();
+  m_properties.Ni           = ui->steps1Spin->value();
+  m_properties.Nj           = ui->steps2Spin->value();
 
   if (ui->pathCombo->currentIndex() != -1)
-    m_properties.path      = ui->pathCombo->currentData().value<QString>();
+    m_properties.path       = ui->pathCombo->currentData().value<QString>();
   else
-    m_properties.path      = "";
+    m_properties.path       = "";
 
   if (ui->detectorCombo->currentIndex() != -1)
-    m_properties.detector  = ui->detectorCombo->currentData().value<QString>();
+    m_properties.detector   = ui->detectorCombo->currentData().value<QString>();
   else
-    m_properties.detector  = "";
+    m_properties.detector   = "";
 
   m_properties.dofs.clear();
   for (auto p : m_session->topLevelModel()->dofs()) {
@@ -398,7 +494,8 @@ SimulationPropertiesDialog::onLoadSettings()
       }
 
       m_properties = properties;
-      applyProperties();
+      m_propModel->setModel(m_session->topLevelModel());
+      applyProperties(true);
 
       ui->propView->setModel(nullptr);
       ui->propView->setModel(m_propModel);

@@ -368,7 +368,8 @@ MainWindow::onSimulationRun()
         QMessageBox::critical(
               this,
               "Simulation error",
-              "Simulation failed. See log window for details");
+              "Simulation failed. "
+              + QString::fromStdString(m_currSession->state()->getLastError()));
       }
     }
   }
