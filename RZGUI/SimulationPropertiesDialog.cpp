@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QPushButton>
+#include <QFileInfo>
 #include "PropertyAndDofExprModel.h"
 #include "CustomTextEditDelegate.h"
 
@@ -75,6 +76,18 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(activated(int)),
         this,
         SLOT(onDataChanged()));
+
+  connect(
+        ui->saveCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->browseDirButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onBrowseOutputDir()));
 
   connect(
         ui->diamEdit,
@@ -159,7 +172,6 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
   applyProperties();
 }
 
-
 void
 SimulationPropertiesDialog::refreshUi()
 {
@@ -204,6 +216,17 @@ SimulationPropertiesDialog::refreshUi()
   ui->detectorCombo->setEnabled(ui->detectorCombo->count() > 0);
   ui->apertureCombo->setEnabled(haveApertures);
   ui->focalPlaneCombo->setEnabled(haveFocalPlanes);
+
+  ui->saveCheck->setEnabled(ui->detectorSaveCombo->count());
+  if (!ui->saveCheck->isEnabled())
+    BLOCKSIG(ui->saveCheck, setChecked(false));
+
+  ui->detectorSaveCombo->setEnabled(ui->saveCheck->isChecked());
+  ui->outputDirEdit->setEnabled(ui->saveCheck->isChecked());
+  ui->outputDirLabel->setEnabled(ui->saveCheck->isChecked());
+  ui->clearDetCheck->setEnabled(ui->saveCheck->isChecked());
+  ui->browseDirButton->setEnabled(ui->saveCheck->isChecked());
+  ui->overwriteResultsCheck->setEnabled(ui->saveCheck->isChecked());
 }
 
 void
@@ -211,6 +234,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
 {
   ui->pathCombo->clear();
   ui->detectorCombo->clear();
+  ui->detectorSaveCombo->clear();
   ui->apertureCombo->clear();
   ui->focalPlaneCombo->clear();
 
@@ -229,6 +253,11 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->rayNumberSpin,   setValue(m_properties.rays));
   BLOCKSIG(ui->steps1Spin,      setValue(m_properties.Ni));
   BLOCKSIG(ui->steps2Spin,      setValue(m_properties.Nj));
+
+  BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
+  BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
+  BLOCKSIG(ui->overwriteResultsCheck, setChecked(m_properties.overwrite));
+  BLOCKSIG(ui->outputDirEdit,         setText(m_properties.saveDir));
 
   // Add all paths and detectors
   if (m_session != nullptr) {
@@ -253,18 +282,25 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
       index = 0;
     BLOCKSIG(ui->pathCombo, setCurrentIndex(index));
 
-    if (paths.size() > 0) {
+    if (dets.size() > 0) {
       // Add detectors
       ui->detectorCombo->addItem("(Path's default)", "");
-      for (auto det : paths) {
+      ui->detectorSaveCombo->addItem("(Path's default)", "");
+      for (auto det : dets) {
         QString name = QString::fromStdString(det);
         ui->detectorCombo->addItem(name, name);
+        ui->detectorSaveCombo->addItem(name, name);
       }
 
       index = ui->detectorCombo->findData(m_properties.detector);
       if (index == -1)
         index = 0;
       BLOCKSIG(ui->detectorCombo, setCurrentIndex(index));
+
+      index = ui->detectorSaveCombo->findData(m_properties.saveDetector);
+      if (index == -1)
+        index = 0;
+      BLOCKSIG(ui->detectorSaveCombo, setCurrentIndex(index));
     }
 
     // Add apertures
@@ -347,6 +383,16 @@ SimulationPropertiesDialog::parseProperties()
       m_properties.ref = BEAM_REFERENCE_FOCAL_PLANE;
       break;
   }
+
+  // Artifact generation
+  m_properties.saveArtifacts = ui->saveCheck->isChecked();
+  m_properties.clearDetector = ui->clearDetCheck->isChecked();
+  m_properties.overwrite     = ui->overwriteResultsCheck->isChecked();
+
+  m_properties.saveDir       = ui->browseDirButton->text();
+  m_properties.saveDetector  = ui->detectorSaveCombo->currentIndex() == -1
+                               ? ""
+                               : ui->detectorSaveCombo->currentData().toString();
 
   // Parse expressions
   m_properties.diameter     = ui->diamEdit->text();
@@ -452,6 +498,23 @@ SimulationPropertiesDialog::accept()
     QDialog::accept();
 }
 
+void
+SimulationPropertiesDialog::sanitizeSaveDirectory()
+{
+  QFileInfo info(m_properties.saveDir);
+  QString   baseName;
+  QString   fileName = info.fileName();
+  QFileInfo parentInfo(info.baseName());
+  QFileInfo cwdInfo(QDir::currentPath());
+
+  if (!parentInfo.exists() || !parentInfo.isDir() || parentInfo == cwdInfo)
+    baseName = ".";
+  else
+    baseName = parentInfo.path();
+
+  m_properties.path = baseName + "/" + fileName;
+}
+
 bool
 SimulationPropertiesDialog::doLoadFromFile()
 {
@@ -487,6 +550,8 @@ SimulationPropertiesDialog::doLoadFromFile()
             + properties.lastError().toStdString());
 
       m_properties = properties;
+      sanitizeSaveDirectory(); // To prevent nasty things
+
       m_propModel->setModel(m_session->topLevelModel());
       applyProperties(true);
 
@@ -543,7 +608,7 @@ SimulationPropertiesDialog::onExportSettings()
     QFile   file(fileName);
 
     if (file.open(QIODevice::WriteOnly)) {
-      auto ret = file.write(props);
+      file.write(props);
       if (file.error() != QFileDevice::NoError) {
         QMessageBox::critical(
               this,
@@ -558,4 +623,17 @@ SimulationPropertiesDialog::onExportSettings()
             + file.errorString());
     }
   }
+}
+
+void
+SimulationPropertiesDialog::onBrowseOutputDir()
+{
+  QString dir = QFileDialog::getExistingDirectory(
+        this,
+        "Open output directory",
+        m_properties.saveDir,
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+  if (!dir.isNull())
+    ui->outputDirEdit->setText(dir);
 }

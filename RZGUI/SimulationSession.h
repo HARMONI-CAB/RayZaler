@@ -72,6 +72,13 @@ struct SimulationProperties {
 
   std::map<std::string, std::string> dofs;
 
+  // Artifact generation properties
+  bool    saveArtifacts = false;
+  bool    clearDetector = false;
+  bool    overwrite     = false;
+
+  QString saveDir = "artifacts";
+  QString saveDetector = "";
 
   void loadDefaults();
   QString lastError() const;
@@ -88,6 +95,7 @@ private:
 
   bool deserialize(QJsonObject const &, QString const &, QString &);
   bool deserialize(QJsonObject const &, QString const &, int &);
+  bool deserialize(QJsonObject const &, QString const &, bool &);
   bool deserialize(QJsonObject const &, QString const &, std::map<std::string, std::string> &);
 };
 

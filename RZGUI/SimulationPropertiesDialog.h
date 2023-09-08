@@ -28,6 +28,7 @@ class SimulationPropertiesDialog : public QDialog
 
   void applyProperties(bool setEdited = false);
   void parseProperties();
+  void sanitizeSaveDirectory();
 
 public:
   explicit SimulationPropertiesDialog(QWidget *parent = nullptr);
@@ -43,6 +44,7 @@ public:
 
 public slots:
   void onExprEditChanged();
+  void onBrowseOutputDir();
   void onDataChanged();
   void onLoadSettings();
   void onExportSettings();

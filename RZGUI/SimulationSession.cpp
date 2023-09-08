@@ -80,6 +80,11 @@ SimulationProperties::serialize() const
   SERIALIZE(Nj);
   SERIALIZE(detector);
   SERIALIZE(path);
+  SERIALIZE(saveArtifacts);
+  SERIALIZE(clearDetector);
+  SERIALIZE(overwrite);
+  SERIALIZE(saveDir);
+  SERIALIZE(saveDetector);
 #undef SERIALIZE
 
   for (auto p : dofs)
@@ -223,6 +228,24 @@ bool
 SimulationProperties::deserialize(
     QJsonObject const &obj,
     QString const &key,
+    bool &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isBool()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a boolean)";
+      return false;
+    }
+
+    value = obj[key].toBool(value);
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
     std::map<std::string, std::string> &value)
 {
   if (obj.contains(key)) {
@@ -284,6 +307,12 @@ SimulationProperties::deserialize(QByteArray const &json)
   DESERIALIZE(detector);
   DESERIALIZE(path);
   DESERIALIZE(dofs);
+
+  DESERIALIZE(saveArtifacts);
+  DESERIALIZE(clearDetector);
+  DESERIALIZE(overwrite);
+  DESERIALIZE(saveDir);
+  DESERIALIZE(saveDetector);
 
 #undef DESERIALIZE
 
