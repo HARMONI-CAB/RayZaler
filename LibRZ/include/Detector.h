@@ -11,11 +11,11 @@ namespace RZ {
 
   class DetectorStorage {
       std::vector<uint32_t> m_photons;
-      Real m_width  = 5e-2;
-      Real m_height = 5e-2;
+      Real m_width;
+      Real m_height;
 
-      Real m_pxWidth;
-      Real m_pxHeight;
+      Real m_pxWidth  = 15e-6;
+      Real m_pxHeight = 15e-6;
 
       uint32_t     m_maxCounts = 0;
       unsigned int m_cols;
@@ -48,7 +48,7 @@ namespace RZ {
 
       DetectorStorage(unsigned int cols, unsigned int rows, Real width, Real height);
 
-      void setDimensions(Real, Real);
+      void setPixelDimensions(Real, Real);
       void setResolution(unsigned, unsigned);
 
       void clear();
@@ -74,8 +74,11 @@ namespace RZ {
     DetectorStorage *m_storage = nullptr; // Owned
     const RayTransferProcessor *m_processor = nullptr;
     
-    Real m_width  = 0.05;
-    Real m_height = 0.05;
+    Real m_pxWidth  = 15e-6;
+    Real m_pxHeight = 15e-6;
+
+    Real m_width;
+    Real m_height;
 
     unsigned int m_rows = 512;
     unsigned int m_cols = 512;

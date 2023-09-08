@@ -55,7 +55,7 @@ namespace RZ {
             break;
         }
         
-        return std::get<T>(*this);
+        return T();
       }
   };
 

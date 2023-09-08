@@ -12,11 +12,11 @@ using namespace RZ;
 DetectorStorage::DetectorStorage(
   unsigned int cols,
   unsigned int rows,
-  Real width,
-  Real height)
+  Real pxWidth,
+  Real pxHeight)
 {
-  m_width = width;
-  m_height = height;
+  m_pxWidth  = pxWidth;
+  m_pxHeight = pxHeight;
 
   m_cols = cols;
   m_rows = rows;
@@ -29,8 +29,8 @@ DetectorStorage::recalculate()
 {
   size_t newSize;
 
-  m_pxWidth  = m_width  / m_cols;
-  m_pxHeight = m_height / m_rows;
+  m_width  = m_pxWidth * m_cols;
+  m_height = m_pxHeight * m_rows;
 
   m_stride = 4 * ((m_cols + 3) / 4);
   newSize = m_rows * m_stride;
@@ -42,10 +42,10 @@ DetectorStorage::recalculate()
 }
 
 void
-DetectorStorage::setDimensions(Real width, Real height)
+DetectorStorage::setPixelDimensions(Real width, Real height)
 {
-  m_width  = width;
-  m_height = height;
+  m_pxWidth  = width;
+  m_pxHeight = height;
 
   recalculate();
 }
@@ -148,7 +148,10 @@ DetectorProcessor::DetectorProcessor(DetectorStorage *storage)
 void
 Detector::recalcModel()
 {
-  m_storage->setDimensions(m_width, m_height);
+  m_width  = m_pxWidth  * m_cols;
+  m_height = m_pxHeight * m_rows;
+
+  m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
 }
 
 bool
@@ -156,20 +159,20 @@ Detector::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  if (name == "width") {
-    m_width = value;
+  if (name == "pixelWidth") {
+    m_pxWidth = value;
     recalcModel();
-  } else if (name == "height") {
-    m_height = value;
+  } else if (name == "pixelHeight") {
+    m_pxHeight = value;
     recalcModel();
   } else if (name == "cols") {
-    unsigned int new_cols = std::get<int64_t>(value);
+    unsigned int new_cols = (unsigned int) value;
     if (m_cols != new_cols) {
       m_cols = new_cols;
       m_storage->setResolution(m_cols, m_rows);
     }
   } else if (name == "rows") {
-    unsigned int new_rows = std::get<int64_t>(value);
+    unsigned int new_rows = (unsigned int) value;
     if (m_rows != new_rows) {
       m_rows = new_rows;
       m_storage->setResolution(m_cols, m_rows);
@@ -187,13 +190,13 @@ Detector::Detector(
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
-{  
-  registerProperty("width",  m_width);
-  registerProperty("height", m_height);
+{
+  registerProperty("pixelWidth",  m_pxWidth);
+  registerProperty("pixelHeight", m_pxHeight);
   registerProperty("cols",  m_cols);
-  registerProperty("rows", m_rows);
+  registerProperty("rows",  m_rows);
 
-  m_storage = new DetectorStorage(m_rows, m_cols, m_width, m_height);
+  m_storage = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
   m_processor = new DetectorProcessor(m_storage);
   m_detectorSurface = new TranslatedFrame("detSurf", frame, Vec3::zero());
 
@@ -250,13 +253,17 @@ Detector::savePNG(std::string const &path) const
 }
 
 void
-Detector::nativeMaterialOpenGL(std::string const &)
+Detector::nativeMaterialOpenGL(std::string const &name)
 {
   GLVectorStorage vec;
   GLfloat shiny = 128;
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-  glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, .5));
+  if (name == "detector")
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, .5));
+  else
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.5, .5, .5));
+
   glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(1, 1, 1));
   glMaterialfv(GL_FRONT, GL_SHININESS, &shiny);
 }
@@ -264,11 +271,22 @@ Detector::nativeMaterialOpenGL(std::string const &)
 void
 Detector::renderOpenGL()
 {
-  material("detector");
+  const GLfloat thickness = 1e-4;
 
-  glTranslatef(0, 0, 1e-3 / 2);
-  glScalef(m_width, m_height, 1e-3);
+  glTranslatef(0, 0, -thickness / 2);
+  
+  glPushMatrix();
+  material("detector");
+  glScalef(m_width, m_height, thickness);
   glutSolidCube(1);
+  glPopMatrix();
+
+  glTranslatef(0, 0, -thickness);
+  glPushMatrix();
+  material("substrate");
+  glScalef(m_width + 1e-3, m_height + 1e-3, thickness);
+  glutSolidCube(1);
+  glPopMatrix();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////
