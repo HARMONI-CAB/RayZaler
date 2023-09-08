@@ -22,6 +22,9 @@
     (object)->blockSignals(blocked);             \
   } while (false)
 
+qreal   randUniform();
+qreal   randNormal();
+
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 

@@ -480,6 +480,12 @@ SimulationState::setProperties(SimulationProperties const &prop)
   m_dictionary["x0"]    = &m_offsetX;
   m_dictionary["y0"]    = &m_offsetY;
 
+  m_dictionary["simU"]    = &m_simU;
+  m_dictionary["simN"]    = &m_simN;
+
+  m_dictionary["stepU"]    = &m_stepU;
+  m_dictionary["stepN"]    = &m_stepN;
+
   for (auto p : prop.dofs) {
     m_dofExprs[p.first]  = nullptr;
     m_dofValues[p.first] = 0.;
@@ -766,6 +772,14 @@ SimulationState::initSimulation()
   m_steps = m_properties.Ni * m_properties.Nj;
   m_currStep = 0;
 
+  m_stepN = randNormal();
+  m_stepU = randUniform();
+
+  m_simN = randNormal();
+  m_simU = randUniform();
+
+  m_topLevelModel->assignEverything();
+
   if (m_properties.saveArtifacts) {
     if (!QFile(m_properties.saveDir).exists()) {
       std::string asStdString = m_properties.saveDir.toStdString();
@@ -795,6 +809,9 @@ SimulationState::initSimulation()
 bool
 SimulationState::sweepStep()
 {
+  m_stepN = randNormal();
+  m_stepU = randUniform();
+
   if (done())
     return false;
 

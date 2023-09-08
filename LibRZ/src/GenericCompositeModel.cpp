@@ -187,6 +187,10 @@ GenericCompositeModel::assignEverything()
 {
   for (auto p : m_expressions)
     p->assign();
+
+  for (auto p : m_elements)
+    if (p->nestedModel() != nullptr)
+      p->nestedModel()->assignEverything();
 }
 
 bool

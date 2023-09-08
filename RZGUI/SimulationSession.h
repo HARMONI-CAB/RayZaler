@@ -124,6 +124,9 @@ class SimulationState {
   RZ::Real m_azimuth, m_elevation;
   RZ::Real m_offsetX, m_offsetY;
 
+  RZ::Real m_simU, m_simN;   // Per simulation random number
+  RZ::Real m_stepU, m_stepN; // Per step random number
+
   SimpleExpressionDict m_dictionary;
 
   std::string m_lastCompileError = "";

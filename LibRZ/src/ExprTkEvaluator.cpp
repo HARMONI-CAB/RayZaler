@@ -30,12 +30,39 @@ namespace RZ {
 
 using namespace RZ;
 
+struct randu : public exprtk::ifunction<Real>
+{
+  randu() : exprtk::ifunction<RZ::Real>(0)
+  {}
+
+  Real operator()() {
+    return (Real) rand() / (Real) RAND_MAX;
+  }
+};
+
+struct randn : public exprtk::ifunction<Real>
+{
+  randn() : exprtk::ifunction<RZ::Real>(0)
+  {}
+
+  Real operator()() {
+    Real u = (Real) (rand() + 1) / ((Real) RAND_MAX + 1);
+    return sqrt(-log(u));
+  }
+};
+
+static randu g_randu;
+static randn g_randn;
+
 ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
   GenericEvaluatorSymbolDict *dict)
 {
   for (auto p : *dict)
     m_symTab.add_variable(p.first, p.second->value);
 
+  m_symTab.add_function("randu", g_randu);
+  m_symTab.add_function("randn", g_randn);
+  
   m_expr.register_symbol_table(m_symTab);
 
   // To retrieve the symbol list

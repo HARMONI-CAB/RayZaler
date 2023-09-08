@@ -1,4 +1,19 @@
 #include "GUIHelpers.h"
+#include <cstdlib>
+
+qreal
+randUniform()
+{
+  return SCAST(qreal, rand()) / SCAST(qreal, RAND_MAX);
+}
+
+qreal
+randNormal()
+{
+  // Box-Muller method
+  qreal u = SCAST(qreal, rand() + 1) / (SCAST(qreal, RAND_MAX) + 1);
+  return sqrt(-log(u));
+}
 
 QString
 toSuperIndex(QString const &string)
