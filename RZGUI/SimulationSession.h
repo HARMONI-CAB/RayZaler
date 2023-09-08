@@ -133,10 +133,21 @@ class SimulationState {
   std::list<std::list<RZ::Ray>> m_beamAlloc;
   std::list<std::list<RZ::Ray>>::iterator m_currBeam;
 
+  // Data saving (set if and only if data saving is enabled)
+  RZ::Detector *m_saveDetector = nullptr;
+  unsigned int  m_pfxCount = 0;
+  QString       m_currentSavePrefix;
+
+  // Private functions
   void clearAll();
   bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
   void applyDofs();
+  void resetPrefix();
+  void genPrefix();
+  QString getCurrentOutputFileName() const;
+  void bumpPrefix();
 
+  RZ::Detector *findDetectorForPath(std::string const &);
   int m_steps = 1;
   int m_currStep = 0;
 
@@ -152,6 +163,7 @@ public:
   int steps() const;
   int currStep() const;
 
+  void saveArtifacts();
   bool allocateRays();
   void releaseRays();
   bool setProperties(SimulationProperties const &);

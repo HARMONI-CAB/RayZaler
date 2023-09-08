@@ -11,6 +11,7 @@
 #include "AsyncRayTracer.h"
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <sys/stat.h>
 
 void
 SimulationProperties::loadDefaults()
@@ -430,6 +431,27 @@ SimulationState::canRun() const
   return m_complete;
 }
 
+void
+SimulationState::saveArtifacts()
+{
+  if (m_properties.saveArtifacts) {
+    QString path = getCurrentOutputFileName();
+    if (!m_properties.overwrite) {
+      while (QFile(getCurrentOutputFileName()).exists())
+        bumpPrefix();
+
+      path = getCurrentOutputFileName();
+    }
+
+    if (m_properties.clearDetector) {
+      m_saveDetector->savePNG(path.toStdString());
+      m_saveDetector->clear();
+    } else if (done()) {
+      m_saveDetector->savePNG(path.toStdString());
+    }
+  }
+}
+
 bool
 SimulationState::setProperties(SimulationProperties const &prop)
 {
@@ -651,6 +673,89 @@ SimulationState::applyDofs()
   }
 }
 
+void
+SimulationState::resetPrefix()
+{
+  m_pfxCount = 0;
+  genPrefix();
+}
+
+void
+SimulationState::genPrefix()
+{
+  std::string name = m_saveDetector->name();
+
+  if (name.empty())
+    name = "default";
+
+  m_currentSavePrefix =
+      QString::asprintf("sim_%03u_", m_pfxCount)
+      + QString::fromStdString(name)
+      + "_";
+}
+
+QString
+SimulationState::getCurrentOutputFileName() const
+{
+  if (m_properties.clearDetector)
+    return m_properties.saveDir
+        + "/"
+        + m_currentSavePrefix
+        + QString::asprintf("step_%03u", m_currStep)
+        + ".png";
+  else
+    return m_properties.saveDir
+        + "/"
+        + m_currentSavePrefix
+        + "integrated.png";
+}
+
+void
+SimulationState::bumpPrefix()
+{
+  while (QFile(getCurrentOutputFileName()).exists()) {
+    ++m_pfxCount;
+    genPrefix();
+  }
+}
+
+RZ::Detector *
+SimulationState::findDetectorForPath(std::string const &name)
+{
+  RZ::Detector *detector = nullptr;
+
+  if (name.empty()) {
+    std::string pathName = m_properties.path.toStdString();
+    const RZ::OpticalPath *path = m_topLevelModel->lookupOpticalPath(pathName);
+
+    if (path == nullptr) {
+      if (pathName.empty())
+        m_lastCompileError = "Model contains no optical paths";
+      else
+        m_lastCompileError = "No such optical path `" + pathName + "'";
+      return nullptr;
+    }
+
+    for (auto p : path->m_sequence)
+      if (p.parent->factory()->name() == "Detector")
+        detector = static_cast<RZ::Detector *>(p.parent);
+
+    if (detector == nullptr) {
+      if (pathName.empty())
+        m_lastCompileError = "Default optical path has no detectors";
+      else
+        m_lastCompileError = "Optical path `" + name + "' has no detectors";
+    }
+
+  } else {
+    detector = m_topLevelModel->lookupDetector(name);
+    if (detector == nullptr)
+      m_lastCompileError = "Detector `" + name + "' not found";
+  }
+
+  return detector;
+}
+
 bool
 SimulationState::initSimulation()
 {
@@ -660,6 +765,27 @@ SimulationState::initSimulation()
 
   m_steps = m_properties.Ni * m_properties.Nj;
   m_currStep = 0;
+
+  if (m_properties.saveArtifacts) {
+    if (!QFile(m_properties.saveDir).exists()) {
+      std::string asStdString = m_properties.saveDir.toStdString();
+      if (mkdir(asStdString.c_str(), 0755) == -1) {
+        m_lastCompileError =
+            "Failed to create save directory: " +
+            std::string(strerror(errno));
+        return false;
+      }
+    }
+
+    std::string detector = m_properties.saveDetector.toStdString();
+    m_saveDetector = findDetectorForPath(detector);
+    if (m_saveDetector == nullptr)
+      return false;
+
+    resetPrefix();
+  } else {
+    m_saveDetector = nullptr;
+  }
 
   applyDofs();
 
@@ -1029,6 +1155,8 @@ SimulationSession::onSimulationDone()
     emit sweepFinished();
     emit modelChanged();
   }
+
+  m_simState->saveArtifacts();
 }
 
 void

@@ -389,7 +389,7 @@ SimulationPropertiesDialog::parseProperties()
   m_properties.clearDetector = ui->clearDetCheck->isChecked();
   m_properties.overwrite     = ui->overwriteResultsCheck->isChecked();
 
-  m_properties.saveDir       = ui->browseDirButton->text();
+  m_properties.saveDir       = ui->outputDirEdit->text();
   m_properties.saveDetector  = ui->detectorSaveCombo->currentIndex() == -1
                                ? ""
                                : ui->detectorSaveCombo->currentData().toString();
