@@ -300,6 +300,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionRunSimFile"/>
    <addaction name="actionSimProp"/>
    <addaction name="actionRunSim"/>
    <addaction name="actionSimResult"/>
@@ -486,6 +487,18 @@
    </property>
    <property name="text">
     <string>Toggle display names</string>
+   </property>
+  </action>
+  <action name="actionRunSimFile">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/application-x-desktop.svg</normaloff>:/toolbar/icons/application-x-desktop.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Run simulation from file</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F5</string>
    </property>
   </action>
  </widget>

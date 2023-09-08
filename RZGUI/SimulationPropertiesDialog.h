@@ -25,6 +25,7 @@ class SimulationPropertiesDialog : public QDialog
 
   void connectAll();
   void refreshUi();
+
   void applyProperties(bool setEdited = false);
   void parseProperties();
 
@@ -36,7 +37,8 @@ public:
 
   void setProperties(SimulationProperties const &);
   SimulationProperties properties() const;
-
+  bool doLoadFromFile();
+  bool doUpdateState();
   void accept() override;
 
 public slots:

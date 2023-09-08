@@ -112,6 +112,12 @@ MainWindow::connectAll()
         SLOT(onSimulationEditProperties()));
 
   connect(
+        ui->actionRunSimFile,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onSimulationLoadAndRun()));
+
+  connect(
         ui->actionRunSim,
         SIGNAL(triggered(bool)),
         this,
@@ -354,6 +360,31 @@ MainWindow::onSimulationEditProperties()
 {
   if (m_currSession != nullptr)
     m_simPropertiesDialog->exec();
+}
+
+void
+MainWindow::onSimulationLoadAndRun()
+{
+  if (m_simPropertiesDialog->doLoadFromFile()) {
+    // The properties have been loaded, but now we have to apply them
+    // to the current simulation state.
+
+    if (!m_simPropertiesDialog->doUpdateState()) {
+      // Failed to update state. Query the user about the right settings
+      if (m_simPropertiesDialog->exec() != QDialog::Accepted)
+        return;
+    }
+
+    if (m_currSession->state()->canRun()) {
+      if (!m_currSession->runSimulation()) {
+        QMessageBox::critical(
+              this,
+              "Simulation error",
+              "Simulation failed. "
+              + QString::fromStdString(m_currSession->state()->getLastError()));
+      }
+    }
+  }
 }
 
 void

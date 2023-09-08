@@ -381,15 +381,15 @@ SimulationPropertiesDialog::parseProperties()
   }
 }
 
-void
-SimulationPropertiesDialog::accept()
+bool
+SimulationPropertiesDialog::doUpdateState()
 {
-  parseProperties();
+  bool stateUpdated = false;
 
   if (m_session != nullptr) {
     auto state = m_session->state();
     if (state->setProperties(m_properties)) {
-      QDialog::accept();
+      stateUpdated = true;
     } else {
       auto failed = state->getFirstInvalidExpr();
       QLineEdit *edit = nullptr;
@@ -439,8 +439,75 @@ SimulationPropertiesDialog::accept()
       }
     }
   }
+
+  return stateUpdated;
 }
 
+void
+SimulationPropertiesDialog::accept()
+{
+  parseProperties();
+
+  if (doUpdateState())
+    QDialog::accept();
+}
+
+bool
+SimulationPropertiesDialog::doLoadFromFile()
+{
+  bool opened = false;
+  if (m_session == nullptr)
+    return false;
+
+  try {
+    if (m_openSettingsDialog->exec()
+        && !m_openSettingsDialog->selectedFiles().empty()) {
+      QString fileName = m_openSettingsDialog->selectedFiles()[0];
+      QFile   file(fileName);
+
+      if (!file.open(QIODevice::ReadOnly))
+        throw std::runtime_error(
+            "Cannot load simulation settings from the selected file: "
+            + file.errorString().toStdString());
+
+      if (file.size() > MAX_SIMULATION_CONFIG_FILE_SIZE)
+        throw std::runtime_error(
+            "Settings file is too big (probably not a settings file)");
+
+      auto data = file.readAll();
+      if (file.error() != QFileDevice::NoError)
+        throw std::runtime_error(
+            "Read error while loading settings: "
+            + file.errorString().toStdString());
+
+      SimulationProperties properties;
+      if (!properties.deserialize(data))
+        throw std::runtime_error(
+            "Simulation file contains errors: "
+            + properties.lastError().toStdString());
+
+      m_properties = properties;
+      m_propModel->setModel(m_session->topLevelModel());
+      applyProperties(true);
+
+      ui->propView->setModel(nullptr);
+      ui->propView->setModel(m_propModel);
+
+      ui->propView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+      ui->propView->horizontalHeader()->setStretchLastSection(true);
+
+      opened = true;
+    }
+  } catch (std::runtime_error const &e) {
+    QString error = QString(e.what());
+    QMessageBox::critical(
+          this,
+          "Load simulation settings",
+          error);
+  }
+
+  return opened;
+}
 
 ////////////////////////////////////// Slots ///////////////////////////////////
 void
@@ -461,55 +528,7 @@ SimulationPropertiesDialog::onExprEditChanged()
 void
 SimulationPropertiesDialog::onLoadSettings()
 {
-  if (m_openSettingsDialog->exec()
-      && !m_openSettingsDialog->selectedFiles().empty()) {
-    QString fileName = m_openSettingsDialog->selectedFiles()[0];
-    QFile   file(fileName);
-
-    if (file.open(QIODevice::ReadOnly)) {
-      if (file.size() > MAX_SIMULATION_CONFIG_FILE_SIZE) {
-        QMessageBox::critical(
-              this,
-              "Load simulation settings",
-              "Settings file is too big (probably not a settings file)");
-        return;
-      }
-
-      auto data = file.readAll();
-      if (file.error() != QFileDevice::NoError) {
-        QMessageBox::critical(
-              this,
-              "Load simulation settings",
-              "Read error while loading settings: " + file.errorString());
-        return;
-      }
-
-      SimulationProperties properties;
-      if (!properties.deserialize(data)) {
-        QMessageBox::critical(
-              this,
-              "Load simulation settings",
-              "Simulation file contains errors: " + properties.lastError());
-        return;
-      }
-
-      m_properties = properties;
-      m_propModel->setModel(m_session->topLevelModel());
-      applyProperties(true);
-
-      ui->propView->setModel(nullptr);
-      ui->propView->setModel(m_propModel);
-
-      ui->propView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
-      ui->propView->horizontalHeader()->setStretchLastSection(true);
-    } else {
-      QMessageBox::critical(
-            this,
-            "Export simulation settings",
-            "Cannot export simulation settings to the selected file: "
-            + file.errorString());
-    }
-  }
+  doLoadFromFile();
 }
 
 void

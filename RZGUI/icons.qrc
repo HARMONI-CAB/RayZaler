@@ -20,5 +20,6 @@
         <file>icons/logscale.svg</file>
         <file>icons/folder-tag.svg</file>
         <file>icons/trace.svg</file>
+        <file>icons/application-x-desktop.svg</file>
     </qresource>
 </RCC>

@@ -50,6 +50,7 @@ public slots:
   void onAnimPlay();
   void onAnimStop();
 
+  void onSimulationLoadAndRun();
   void onSimulationEditProperties();
   void onSimulationRun();
   void onSimulationShowResult();

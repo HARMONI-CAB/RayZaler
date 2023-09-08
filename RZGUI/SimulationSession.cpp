@@ -562,7 +562,10 @@ SimulationState::allocateRays()
           // TODO
           break;
       }
-      break;
+
+      m_lastCompileError = "Aperture-defined beams not yet implemented";
+      return false;
+      // break;
 
     case BEAM_REFERENCE_FOCAL_PLANE:
       fp = m_topLevelModel->getFocalPlane(m_properties.focalPlane.toStdString());
@@ -574,7 +577,9 @@ SimulationState::allocateRays()
       switch (m_properties.beam) {
         case BEAM_TYPE_COLLIMATED:
           // TODO
-          break;
+          m_lastCompileError = "Focal plane-defined collimated beams not yet implemented";
+          return false;
+          //break;
 
         case BEAM_TYPE_CONVERGING:
           RZ::OMModel::addFocalPlaneFocusedBeam(
