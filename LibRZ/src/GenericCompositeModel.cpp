@@ -20,6 +20,12 @@ GenericEvaluator::symbols()
   return list;
 }
 
+ExprRandomState *
+GenericEvaluator::randState() const
+{
+  return m_randState;
+}
+
 Real *
 GenericEvaluator::resolve(std::string const &symbol)
 {
@@ -31,13 +37,24 @@ GenericEvaluator::resolve(std::string const &symbol)
   return nullptr;
 }
 
-GenericEvaluator::GenericEvaluator(GenericEvaluatorSymbolDict *dict)
+GenericEvaluator::GenericEvaluator(
+  GenericEvaluatorSymbolDict *dict,
+  ExprRandomState *state)
 {
   m_dict = dict;
+
+  if (state == nullptr) {
+    m_ownState = new ExprRandomState();
+    state = m_ownState;
+  }
+
+  m_randState = state;
 }
 
 GenericEvaluator::~GenericEvaluator()
 {
+  if (m_ownState != nullptr)
+    delete m_ownState;
 }
 
 GenericComponentParamEvaluator::~GenericComponentParamEvaluator()
@@ -115,6 +132,7 @@ GenericCompositeModel::GenericCompositeModel(
   m_model       = model;
   m_parentModel = parentModel;
   m_parent      = parent;
+  m_randState   = &m_ownState;
 
   assert(m_model != nullptr);
 }
@@ -180,6 +198,20 @@ GenericCompositeModel *
 GenericCompositeModel::parentCompositeModel() const
 {
   return m_parentModel;
+}
+
+void
+GenericCompositeModel::updateRandState()
+{
+  m_randState->update();
+
+  assignEverything();
+}
+
+void
+GenericCompositeModel::setRandomState(ExprRandomState *state)
+{
+  m_randState = state;
 }
 
 void
@@ -336,17 +368,19 @@ GenericCompositeModel::registerCustomFactory(CompositeElementFactory *factory)
 }
 
 ElementFactory *
-GenericCompositeModel::lookupElementFactory(const std::string &name) const
+GenericCompositeModel::lookupElementFactory(const std::string &name, bool &custom) const
 {
   auto p = m_customFactories.find(name);
-  if (p != m_customFactories.end()) {
+  custom = p != m_customFactories.end();
+
+  if (custom) {
     return p->second;
   } else {
     if (m_parentModel == nullptr) {
       Singleton *sing = Singleton::instance();
       return sing->lookupElementFactory(name);
     } else {
-      return m_parentModel->lookupElementFactory(name);
+      return m_parentModel->lookupElementFactory(name, custom);
     }
   }
 }
@@ -427,8 +461,9 @@ GenericCompositeModel::createElementInside(
     baseName = step->factory;
   std::string name = m_prefix + baseName;
   int index = step->s_index;
+  bool custom;
+  auto factory = lookupElementFactory(step->factory, custom);
 
-  auto factory = lookupElementFactory(step->factory);
   if (factory == nullptr)
     throw std::runtime_error("Undefined element class `" + step->factory + "'");
 
@@ -537,7 +572,7 @@ GenericCompositeModel::makeExpression(
 {
   GenericComponentParamEvaluator *paramEvaluator = new GenericComponentParamEvaluator();
 
-  auto evaluator = allocateEvaluator(expr, dict);
+  auto evaluator = allocateEvaluator(expr, dict, randState());
   
   paramEvaluator->evaluator = evaluator;
   
@@ -637,6 +672,12 @@ GenericEvaluatorSymbolDict const &
 GenericCompositeModel::symbolDict() const
 {
   return m_global;
+}
+
+ExprRandomState *
+GenericCompositeModel::randState() const
+{
+  return m_randState;
 }
 
 void

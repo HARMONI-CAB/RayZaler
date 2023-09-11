@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <random>
+
+#define RZ_SHARED_STATE_DEFAULT_SEED 0x12345
+
 
 namespace RZ {
   struct ParamAssignExpression;
@@ -19,6 +23,7 @@ namespace RZ {
   class TranslatedFrame;
   class Element;
   class OMModel;
+  class ExprRandomState;
 
   enum GenericModelParamType {
     GENERIC_MODEL_PARAM_TYPE_ELEMENT,
@@ -29,15 +34,33 @@ namespace RZ {
   class GenericModelParam;
   typedef std::map<std::string, GenericModelParam *> GenericEvaluatorSymbolDict;
 
+  class ExprRandomState {
+    uint64_t                             m_epoch = 0;
+    std::mt19937_64                      m_generator;
+    std::uniform_real_distribution<Real> m_uniform;
+    std::normal_distribution<Real>       m_normal;
+  public:
+    ExprRandomState(uint64_t seed = RZ_SHARED_STATE_DEFAULT_SEED);
+
+    void update();
+    void setSeed(uint64_t seed);
+    uint64_t epoch() const;
+    Real randu();
+    Real randn();
+  };
+
   class GenericEvaluator {
       GenericEvaluatorSymbolDict *m_dict = nullptr;
-    
+      ExprRandomState            *m_randState = nullptr;
+      ExprRandomState            *m_ownState  = nullptr;
+
     protected:
       std::list<std::string> symbols();
       Real *resolve(std::string const &);
+      ExprRandomState *randState() const;
 
     public:
-      GenericEvaluator(GenericEvaluatorSymbolDict *);
+      GenericEvaluator(GenericEvaluatorSymbolDict *, ExprRandomState *);
       virtual ~GenericEvaluator();
 
       virtual std::list<std::string> dependencies() const = 0;
@@ -91,6 +114,8 @@ namespace RZ {
       std::list<CompositeElementFactory *> m_customFactoryList;  // Owned
       std::map<std::string, CompositeElementFactory *> m_customFactories;
       std::list<GenericComponentParamEvaluator *> m_expressions; // Owned
+      ExprRandomState               m_ownState;
+      ExprRandomState              *m_randState;
 
       unsigned int m_completedFrames = 0;
       unsigned int m_completedElements = 0;
@@ -107,7 +132,7 @@ namespace RZ {
       bool m_constructed = false;
 
       bool registerCustomFactory(CompositeElementFactory *);
-      ElementFactory *lookupElementFactory(const std::string &) const;
+      ElementFactory *lookupElementFactory(const std::string &, bool &) const;
 
       void initGlobalScope();
       void registerCustomElements();
@@ -154,7 +179,8 @@ namespace RZ {
       
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
-        GenericEvaluatorSymbolDict *dict) = 0;
+        GenericEvaluatorSymbolDict *dict,
+        ExprRandomState *state) = 0;
 
       virtual void exposePort(
         std::string const &name,
@@ -176,11 +202,15 @@ namespace RZ {
       GenericModelParam *lookupParam(std::string const &);
       GenericModelParam *lookupDof(std::string const &);
       GenericCompositeModel *parentCompositeModel() const;
+
       bool setParam(std::string const &, Real);
       bool setDof(std::string const &, Real);
 
       void assignEverything();
-
+      void updateRandState();
+      void setRandomState(ExprRandomState * state);
+      ExprRandomState *randState() const;
+      
       // Takes the recipe and constructs elements
       void build(ReferenceFrame *, std::string const &prefix = "");
   };

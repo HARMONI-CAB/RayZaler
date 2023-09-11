@@ -31,9 +31,10 @@ CompositeElement::registerOpticalPath(
 GenericEvaluator *
 CompositeElement::allocateEvaluator(
   std::string const &expr,
-  GenericEvaluatorSymbolDict *dict)
+  GenericEvaluatorSymbolDict *dict,
+  ExprRandomState *state)
 {
-  ExprTkEvaluator *eval = new ExprTkEvaluator(dict);
+  ExprTkEvaluator *eval = new ExprTkEvaluator(dict, state);
 
   if (!eval->compile(expr)) {
     std::string error = eval->getLastParserError();
@@ -97,6 +98,8 @@ CompositeElement::CompositeElement(
   GenericCompositeModel(recipe, model(), parentCompositeModel)
 {
   m_model = model();
+
+  setRandomState(parentCompositeModel->randState());
 
   build(pFrame);
 }

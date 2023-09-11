@@ -2,15 +2,18 @@
 #define _EXPRTK_EVALUATOR_H
 
 #include "GenericCompositeModel.h"
+#include <random>
 
 namespace RZ {
   class ExprTkEvaluatorImpl;
 
   class ExprTkEvaluator : public GenericEvaluator {
       ExprTkEvaluatorImpl *p_impl = nullptr;
-
+      
     public:
-      ExprTkEvaluator(GenericEvaluatorSymbolDict *);
+      ExprTkEvaluator(
+        GenericEvaluatorSymbolDict *,
+        ExprRandomState *state = nullptr);
       virtual ~ExprTkEvaluator();
 
       virtual std::list<std::string> dependencies() const override;

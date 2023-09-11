@@ -27,7 +27,8 @@ namespace RZ {
       
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
-        GenericEvaluatorSymbolDict *dict) override;
+        GenericEvaluatorSymbolDict *dict,
+        ExprRandomState *) override;
     
       void exposePort(
           std::string const &,

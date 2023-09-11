@@ -4,7 +4,7 @@
 #include <QObject>
 #include <Recipe.h>
 #include <TopLevelModel.h>
-#include <SimpleExpressionEvaluator.h>
+#include <ExprTkEvaluator.h>
 #include <QTimer>
 #include "GUIHelpers.h"
 
@@ -101,36 +101,24 @@ private:
 
 class SimulationState {
   SimulationProperties       m_properties;
-  RZ::TopLevelModel         *m_topLevelModel = nullptr;
+  RZ::TopLevelModel       *m_topLevelModel = nullptr;
+  RZ::ExprRandomState     *m_randState     = nullptr;
 
-  SimpleExpressionEvaluator *m_diamExpr      = nullptr;
-  SimpleExpressionEvaluator *m_refApExpr     = nullptr;
-  SimpleExpressionEvaluator *m_fNumExpr      = nullptr;
+  RZ::ExprTkEvaluator *m_diamExpr      = nullptr;
+  RZ::ExprTkEvaluator *m_refApExpr     = nullptr;
+  RZ::ExprTkEvaluator *m_fNumExpr      = nullptr;
 
-  SimpleExpressionEvaluator *m_azimuthExpr   = nullptr;
-  SimpleExpressionEvaluator *m_elevationExpr = nullptr;
+  RZ::ExprTkEvaluator *m_azimuthExpr   = nullptr;
+  RZ::ExprTkEvaluator *m_elevationExpr = nullptr;
 
-  SimpleExpressionEvaluator *m_offsetXExpr   = nullptr;
-  SimpleExpressionEvaluator *m_offsetYExpr   = nullptr;
+  RZ::ExprTkEvaluator *m_offsetXExpr   = nullptr;
+  RZ::ExprTkEvaluator *m_offsetYExpr   = nullptr;
 
-  std::map<std::string, SimpleExpressionEvaluator *> m_dofExprs;
-  std::map<std::string, RZ::Real> m_dofValues;
+  std::map<std::string, RZ::ExprTkEvaluator *> m_dofExprs;
 
-  // Evaluated members
-  RZ::Real m_i,  m_j;
-  RZ::Real m_Ni, m_Nj;
-  RZ::Real m_D,  m_fNum, m_refAp;
-
-  RZ::Real m_azimuth, m_elevation;
-  RZ::Real m_offsetX, m_offsetY;
-
-  RZ::Real m_simU, m_simN;   // Per simulation random number
-  RZ::Real m_stepU, m_stepN; // Per step random number
-
-  RZ::Real m_step  = 0;
-  RZ::Real m_sim   = 0;
-
-  SimpleExpressionDict m_dictionary;
+  // Variables available to the simulation parameter expressions
+  std::map<std::string, RZ::RecipeParameter>     m_varDescriptions;
+  RZ::GenericEvaluatorSymbolDict                 m_dictionary;
 
   std::string m_lastCompileError = "";
   bool m_complete = false;
@@ -144,9 +132,22 @@ class SimulationState {
   unsigned int  m_pfxCount = 0;
   QString       m_currentSavePrefix;
 
+  // Simulation progress
+  int64_t m_simCount = 0;
+  int m_steps = 1;
+  int m_currStep = 0;
+  int m_i = 0;
+  int m_j = 0;
+
   // Private functions
   void clearAll();
-  bool trySetExpr(SimpleExpressionEvaluator * &, std::string const &);
+  bool trySetExpr(RZ::ExprTkEvaluator * &, std::string const &);
+  void defineVariable(
+      std::string const &,
+      RZ::Real value = 0,
+      RZ::Real min = -std::numeric_limits<RZ::Real>::infinity(),
+      RZ::Real max = +std::numeric_limits<RZ::Real>::infinity());
+  RZ::Real setVariable(std::string const &, RZ::Real);
   void applyDofs();
   void resetPrefix();
   void genPrefix();
@@ -154,8 +155,7 @@ class SimulationState {
   void bumpPrefix();
 
   RZ::Detector *findDetectorForPath(std::string const &);
-  int m_steps = 1;
-  int m_currStep = 0;
+
 
 public:
   SimulationState(RZ::TopLevelModel *);

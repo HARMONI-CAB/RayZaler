@@ -2,7 +2,6 @@
 
 #define exprtk_disable_caseinsensitivity
 #include <exprtk.hpp>
-#include <random>
 
 typedef exprtk::symbol_table<RZ::Real> exprtk_symtab_t;
 typedef exprtk::expression<RZ::Real>   exprtk_expr_t;
@@ -11,15 +10,46 @@ typedef typename exprtk_parser_t::dependent_entity_collector::symbol_t exprtk_sy
 
 ////////////////////////////// ExprTkEvaluatorImpl /////////////////////////////
 namespace RZ {
+  struct RandU;
+  struct RandN;
+
+  struct RandomFunction : public exprtk::ifunction<Real> {
+    ExprRandomState *m_state    = nullptr;
+    ExprRandomState *m_ownState = nullptr;
+    uint64_t           m_epoch    = 0;
+    Real               m_eval     = 0;
+
+    RandomFunction(ExprRandomState *);
+    ~RandomFunction();
+
+    Real operator()(Real const &a, Real const &b);
+
+    virtual Real evaluate(Real const &a, Real const &b) = 0;
+  };
+
+  struct RandU : public RandomFunction {
+    using RandomFunction::RandomFunction;
+    virtual Real evaluate(Real const &a, Real const &b) override;
+  };
+
+  struct RandN : public RandomFunction {
+    using RandomFunction::RandomFunction;
+    virtual Real evaluate(Real const &a, Real const &b) override;
+  };
+
   class ExprTkEvaluatorImpl {
     exprtk_symtab_t        m_symTab;
     exprtk_expr_t          m_expr;
     exprtk_parser_t        m_parser;
     std::list<std::string> m_deps;
+    ExprRandomState       *m_state;
+    RandU                 *m_uniform;
+    RandN                 *m_normal;
 
   public:
     ExprTkEvaluatorImpl(
-      GenericEvaluatorSymbolDict *dict);
+      GenericEvaluatorSymbolDict *dict,
+      ExprRandomState *state);
     virtual ~ExprTkEvaluatorImpl();
 
     bool compile(std::string const &name);
@@ -31,60 +61,101 @@ namespace RZ {
 
 using namespace RZ;
 
-#define MERSENNE_TWISTER_DISCARD 5
+#define MERSENNE_TWISTER_DISCARD 100
 
-struct randu : public exprtk::ifunction<Real> {
-  std::mt19937_64                      m_generator;
-  std::uniform_real_distribution<Real> m_dist;
+/////////////////////////////// ExprTkSharedState //////////////////////////////
+ExprRandomState::ExprRandomState(uint64_t seed)
+{
+  setSeed(seed);
+}
 
-  randu() : exprtk::ifunction<RZ::Real>(2)
-  {
-    m_dist = std::uniform_real_distribution<Real>(0, 1);
+void
+ExprRandomState::update()
+{
+  ++m_epoch;
+}
+
+void
+ExprRandomState::setSeed(uint64_t seed)
+{
+  m_generator.seed(static_cast<int>(seed));
+  m_generator.discard(MERSENNE_TWISTER_DISCARD);
+  m_uniform.reset();
+  m_normal.reset();
+
+  update();
+}
+
+uint64_t
+ExprRandomState::epoch() const
+{
+  return m_epoch;
+}
+
+Real
+ExprRandomState::randu()
+{
+  return m_uniform(m_generator);
+}
+
+Real
+ExprRandomState::randn()
+{
+  return m_normal(m_generator);
+}
+
+RandomFunction::RandomFunction(ExprRandomState *state) 
+  : exprtk::ifunction<RZ::Real>(2)
+{
+  if (state == nullptr) {
+    m_ownState = new ExprRandomState();
+    state = m_ownState;
   }
 
-  Real
-  operator()(Real const &seed, Real const &index)
-  {
-    m_generator.seed(static_cast<int>(seed) + static_cast<int>(index));
-    m_generator.discard(MERSENNE_TWISTER_DISCARD);
-    m_dist.reset();
-    
-    return m_dist(m_generator);
-  }
-};
+  m_state = state;
+}
 
-struct randn : public exprtk::ifunction<Real> {
-  std::mt19937_64                m_generator;
-  std::normal_distribution<Real> m_dist;
+RandomFunction::~RandomFunction()
+{
+  if (m_ownState != nullptr)
+    delete m_ownState;
+}
 
-  RZ::Real m_lastSeed = 1;
-
-  randn() : exprtk::ifunction<RZ::Real>(2)
-  {
-    m_dist = std::normal_distribution<Real>(0, 1);
+Real
+RandomFunction::operator()(Real const &a, Real const &b)
+{
+  if (m_state->epoch() != m_epoch) {
+    m_eval = evaluate(a, b);
+    m_epoch = m_state->epoch();
   }
 
-  Real
-  operator()(Real const &seed, Real const &index)
-  {
-    m_generator.seed(static_cast<int>(seed) + static_cast<int>(index));
-    m_generator.discard(MERSENNE_TWISTER_DISCARD);
-    m_dist.reset();
-    return m_dist(m_generator);
-  }
-};
+  return m_eval;
+}
 
-static randu g_randu;
-static randn g_randn;
+Real
+RandU::evaluate(Real const &a, Real const &b)
+{
+  return (b - a) * m_state->randu() + a;
+}
+
+Real
+RandN::evaluate(Real const &a, Real const &b)
+{
+  return b * m_state->randn() + a;
+}
 
 ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
-  GenericEvaluatorSymbolDict *dict)
+  GenericEvaluatorSymbolDict *dict,
+  ExprRandomState *state)
 {
   for (auto p : *dict)
     m_symTab.add_variable(p.first, p.second->value);
 
-  m_symTab.add_function("randu", g_randu);
-  m_symTab.add_function("randn", g_randn);
+  m_uniform = new RandU(state);
+  m_normal  = new RandN(state);
+
+  m_symTab.add_function("randu", *m_uniform);
+  m_symTab.add_function("randn", *m_normal);
   
   m_expr.register_symbol_table(m_symTab);
 
@@ -94,6 +165,11 @@ ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
 
 ExprTkEvaluatorImpl::~ExprTkEvaluatorImpl()
 {
+  if (m_uniform != nullptr)
+    delete m_uniform;
+
+  if (m_normal != nullptr)
+    delete m_normal;
 }
 
 bool
@@ -131,10 +207,12 @@ ExprTkEvaluatorImpl::dependencies() const
 }
 
 //////////////////////////// ExprTkEvaluator ///////////////////////////////////
-ExprTkEvaluator::ExprTkEvaluator(GenericEvaluatorSymbolDict *dict) :
-  GenericEvaluator(dict)
+ExprTkEvaluator::ExprTkEvaluator(
+  GenericEvaluatorSymbolDict *dict,
+  ExprRandomState *state) :
+  GenericEvaluator(dict, state)
 {
-  p_impl = new ExprTkEvaluatorImpl(dict);
+  p_impl = new ExprTkEvaluatorImpl(dict, randState());
 }
 ExprTkEvaluator::~ExprTkEvaluator()
 {

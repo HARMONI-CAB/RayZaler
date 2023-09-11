@@ -323,6 +323,7 @@ SimulationProperties::deserialize(QByteArray const &json)
 void
 SimulationState::clearAll()
 {
+
   if (m_diamExpr != nullptr) {
     delete m_diamExpr;
     m_diamExpr = nullptr;
@@ -361,19 +362,23 @@ SimulationState::clearAll()
     if (p.second != nullptr)
       delete p.second;
 
-  m_dofExprs.clear();
-  m_dofValues.clear();
+  for (auto p : m_dictionary)
+    if (p.second != nullptr)
+      delete p.second;
 
+  m_dictionary.clear();
+  m_varDescriptions.clear();
+  m_dofExprs.clear();
   m_complete = false;
 }
 
 bool
 SimulationState::trySetExpr(
-    SimpleExpressionEvaluator * &dest,
+    RZ::ExprTkEvaluator * &dest,
     std::string const &expr)
 {
-  SimpleExpressionEvaluator *evaluator =
-      new SimpleExpressionEvaluator(m_dictionary);
+  RZ::ExprTkEvaluator *evaluator =
+      new RZ::ExprTkEvaluator(&m_dictionary);
   bool ok = true;
 
   if (!evaluator->compile(expr)) {
@@ -452,6 +457,37 @@ SimulationState::saveArtifacts()
   }
 }
 
+void
+SimulationState::defineVariable(
+    std::string const &name,
+    RZ::Real value,
+    RZ::Real min,
+    RZ::Real max)
+{
+  m_varDescriptions[name].min        = min;
+  m_varDescriptions[name].max        = max;
+  m_varDescriptions[name].defaultVal = value;
+
+  if (m_dictionary.find(name) == m_dictionary.end())
+    m_dictionary[name] = new RZ::GenericModelParam();
+
+  m_dictionary[name]->description    = &m_varDescriptions[name];
+  m_dictionary[name]->value          = value;
+}
+
+RZ::Real
+SimulationState::setVariable(std::string const &name, RZ::Real value)
+{
+  if (m_dictionary.find(name) == m_dictionary.end()) {
+    fprintf(stderr, "Ayee! Variable %s not in dict\n", name.c_str());
+    abort();
+  }
+
+  m_dictionary[name]->value = value;
+
+  return value;
+}
+
 bool
 SimulationState::setProperties(SimulationProperties const &prop)
 {
@@ -465,34 +501,28 @@ SimulationState::setProperties(SimulationProperties const &prop)
 
   clearAll();
 
-  m_dictionary.clear();
-
   // Recreate dictionary
-  m_dictionary["i"]     = &m_i;
-  m_dictionary["j"]     = &m_j;
-  m_dictionary["Ni"]    = &m_Ni;
-  m_dictionary["Nj"]    = &m_Nj;
-  m_dictionary["D"]     = &m_D;
-  m_dictionary["fNum"]  = &m_fNum;
-  m_dictionary["A"]     = &m_refAp;
-  m_dictionary["az"]    = &m_azimuth;
-  m_dictionary["el"]    = &m_elevation;
-  m_dictionary["x0"]    = &m_offsetX;
-  m_dictionary["y0"]    = &m_offsetY;
-
-  m_dictionary["simU"]  = &m_simU;
-  m_dictionary["simN"]  = &m_simN;
-
-  m_dictionary["stepU"] = &m_stepU;
-  m_dictionary["stepN"] = &m_stepN;
-
-  m_dictionary["step"]  = &m_step;
-  m_dictionary["sim"]   = &m_sim;
+  defineVariable("i");
+  defineVariable("j");
+  defineVariable("Ni");
+  defineVariable("Nj");
+  defineVariable("D");
+  defineVariable("fNum");
+  defineVariable("A");
+  defineVariable("az");
+  defineVariable("el");
+  defineVariable("x0");
+  defineVariable("y0");
+  defineVariable("simU");
+  defineVariable("simN");
+  defineVariable("stepU");
+  defineVariable("stepN");
+  defineVariable("step");
+  defineVariable("sim");
 
   for (auto p : prop.dofs) {
     m_dofExprs[p.first]  = nullptr;
-    m_dofValues[p.first] = 0.;
-    m_dictionary["dof_" + p.first] = &m_dofValues[p.first];
+    defineVariable("dof_" + p.first);
   }
 
   if (!trySetExpr(m_diamExpr, prop.diameter.toStdString()))
@@ -568,11 +598,11 @@ SimulationState::allocateRays()
                 *m_currBeam,
                 element,
                 static_cast<unsigned>(m_properties.rays),
-                .5 * m_diamExpr->evaluate(),
-                m_azimuthExpr->evaluate(),
-                m_elevationExpr->evaluate(),
-                m_offsetXExpr->evaluate(),
-                m_offsetYExpr->evaluate(),
+                setVariable("D", .5 * m_diamExpr->evaluate()),
+                setVariable("az", m_azimuthExpr->evaluate()),
+                setVariable("el", m_elevationExpr->evaluate()),
+                setVariable("x0", m_offsetXExpr->evaluate()),
+                setVariable("y0", m_offsetYExpr->evaluate()),
                 1);
           break;
 
@@ -581,13 +611,13 @@ SimulationState::allocateRays()
                 *m_currBeam,
                 element,
                 static_cast<unsigned>(m_properties.rays),
-                .5 * m_diamExpr->evaluate(),
-                m_fNumExpr->evaluate(),
-                m_refApExpr->evaluate(),
-                m_azimuthExpr->evaluate(),
-                m_elevationExpr->evaluate(),
-                m_offsetXExpr->evaluate(),
-                m_offsetYExpr->evaluate(),
+                setVariable("D", .5 * m_diamExpr->evaluate()),
+                setVariable("fNum", m_fNumExpr->evaluate()),
+                setVariable("A",    m_refApExpr->evaluate()),
+                setVariable("az",   m_azimuthExpr->evaluate()),
+                setVariable("el",   m_elevationExpr->evaluate()),
+                setVariable("x0",   m_offsetXExpr->evaluate()),
+                setVariable("y0",   m_offsetYExpr->evaluate()),
                 1);
           break;
 
@@ -596,13 +626,13 @@ SimulationState::allocateRays()
                 *m_currBeam,
                 element,
                 static_cast<unsigned>(m_properties.rays),
-                .5 * m_diamExpr->evaluate(),
-                -m_fNumExpr->evaluate(),
-                m_refApExpr->evaluate(),
-                m_azimuthExpr->evaluate(),
-                m_elevationExpr->evaluate(),
-                m_offsetXExpr->evaluate(),
-                m_offsetYExpr->evaluate(),
+                setVariable("D", .5 * m_diamExpr->evaluate()),
+                setVariable("fNum", -m_fNumExpr->evaluate()),
+                setVariable("A",     m_refApExpr->evaluate()),
+                setVariable("az",    m_azimuthExpr->evaluate()),
+                setVariable("el",    m_elevationExpr->evaluate()),
+                setVariable("x0",    m_offsetXExpr->evaluate()),
+                setVariable("y0",    m_offsetYExpr->evaluate()),
                 1);
           break;
       }
@@ -646,11 +676,11 @@ SimulationState::allocateRays()
                 *m_currBeam,
                 fp,
                 static_cast<unsigned>(m_properties.rays),
-                m_fNumExpr->evaluate(),
-                m_azimuthExpr->evaluate(),
-                m_elevationExpr->evaluate(),
-                m_offsetXExpr->evaluate(),
-                m_offsetYExpr->evaluate(),
+                setVariable("fNum", m_fNumExpr->evaluate()),
+                setVariable("az",   m_azimuthExpr->evaluate()),
+                setVariable("el",   m_elevationExpr->evaluate()),
+                setVariable("x0",   m_offsetXExpr->evaluate()),
+                setVariable("y0",   m_offsetYExpr->evaluate()),
                 1);
           break;
 
@@ -659,11 +689,11 @@ SimulationState::allocateRays()
                 *m_currBeam,
                 fp,
                 static_cast<unsigned>(m_properties.rays),
-                -m_fNumExpr->evaluate(),
-                m_azimuthExpr->evaluate(),
-                m_elevationExpr->evaluate(),
-                m_offsetXExpr->evaluate(),
-                m_offsetYExpr->evaluate(),
+                setVariable("fNum", -m_fNumExpr->evaluate()),
+                setVariable("az",    m_azimuthExpr->evaluate()),
+                setVariable("el",    m_elevationExpr->evaluate()),
+                setVariable("x0",    m_offsetXExpr->evaluate()),
+                setVariable("y0",    m_offsetYExpr->evaluate()),
                 1);
           break;
       }
@@ -676,9 +706,11 @@ SimulationState::allocateRays()
 void
 SimulationState::applyDofs()
 {
+  m_randState->update();
+
   for (auto p : m_dofExprs) {
-    m_dofValues[p.first] = p.second->evaluate();
-    m_topLevelModel->setDof(p.first, m_dofValues[p.first]);
+    setVariable("dof_" + p.first, p.second->evaluate());
+    m_topLevelModel->setDof(p.first, m_dictionary["dof_" + p.first]->value);
   }
 }
 
@@ -768,19 +800,25 @@ SimulationState::findDetectorForPath(std::string const &name)
 bool
 SimulationState::initSimulation()
 {
-  m_i  = m_j = 0;
-  m_Ni = m_properties.Ni;
-  m_Nj = m_properties.Nj;
+  m_i = m_j = 0;
+
+  setVariable("i", m_i);
+  setVariable("j", m_j);
+
+  setVariable("Ni", m_properties.Ni);
+  setVariable("Nj", m_properties.Nj);
 
   m_steps = m_properties.Ni * m_properties.Nj;
-  m_step = m_currStep = 0;
+  m_currStep = 0;
+  setVariable("step", 0);
 
-  m_stepN = randNormal();
-  m_stepU = randUniform();
+  setVariable("stepN", randNormal());
+  setVariable("stepU", randUniform());
 
-  m_simN = randNormal();
-  m_simU = randUniform();
+  setVariable("simN", randNormal());
+  setVariable("simU", randUniform());
 
+  m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
 
   if (m_properties.saveArtifacts) {
@@ -804,7 +842,9 @@ SimulationState::initSimulation()
     m_saveDetector = nullptr;
   }
 
-  ++m_sim;
+  ++m_simCount;
+
+  setVariable("sim", SCAST(RZ::Real, m_simCount));
 
   applyDofs();
 
@@ -814,20 +854,20 @@ SimulationState::initSimulation()
 bool
 SimulationState::sweepStep()
 {
-  m_stepN = randNormal();
-  m_stepU = randUniform();
+  setVariable("stepN", randNormal());
+  setVariable("stepU", randUniform());
 
   if (done())
     return false;
 
-  m_i += 1;
+  ++m_i;
 
   if (done())
     return false;
 
-  if (m_i >= m_Ni) {
+  if (m_i >= m_properties.Ni) {
     m_i = 0;
-    m_j += 1;
+    ++m_j;
     if (done())
       return false;
 
@@ -836,10 +876,12 @@ SimulationState::sweepStep()
   if (done())
     return false;
 
+  setVariable("i", m_i);
+  setVariable("j", m_j);
+  setVariable("step", ++m_currStep);
+
   // Iteration done, apply Dofs
   applyDofs();
-
-  m_step = ++m_currStep;
 
   return allocateRays();
 }
@@ -848,10 +890,10 @@ bool
 SimulationState::done() const
 {
   if (m_properties.type == SIM_TYPE_1D_SWEEP)
-    return m_i >= m_Ni;
+    return m_i >= m_properties.Ni;
 
   if (m_properties.type == SIM_TYPE_2D_SWEEP)
-    return m_j >= m_Nj;
+    return m_j >= m_properties.Nj;
 
   return true;
 }
@@ -891,11 +933,15 @@ SimulationState::SimulationState(RZ::TopLevelModel *model)
 {
   m_topLevelModel = model;
   m_currBeam      = m_beamAlloc.end();
+  m_randState     = new RZ::ExprRandomState();
 }
 
 SimulationState::~SimulationState()
 {
   clearAll();
+
+  if (m_randState != nullptr)
+    delete m_randState;
 }
 
 ////////////////////////////////// Simulation session /////////////////////////
