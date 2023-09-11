@@ -44,8 +44,6 @@ set(PROJECT_SOURCES
         SessionTabWidget.h
         SessionTabWidget.cpp
         SessionTabWidget.ui
-        SimpleExpressionEvaluator.h
-        SimpleExpressionEvaluator.cpp
         SimulationProgressDialog.h
         SimulationProgressDialog.cpp
         SimulationProgressDialog.ui
