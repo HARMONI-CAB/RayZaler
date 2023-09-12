@@ -112,7 +112,7 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
       if (m_cancelled)
         emit aborted();
       else
-        emit finished();
+        emit finished(m_updateBeam);
     } catch (std::runtime_error const &e) {
       m_running = false;
       emit error("Tracer error: " + QString::fromStdString(e.what()));

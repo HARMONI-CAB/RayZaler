@@ -8,6 +8,8 @@
 #include <QTimer>
 #include "GUIHelpers.h"
 
+#define RZGUI_MODEL_REFRESH_MS 100
+
 //
 // A Simulation Session is an object that keeps the current state of the
 // opened model. From here we trigger simulations, adjust degrees of freedom,
@@ -199,8 +201,9 @@ class SimulationSession : public QObject
   bool               m_playing           = false;
   int                m_simPending        = 0;
 
-  void               updateAnim();
+  struct timeval     m_lastModelRefresh;
 
+  void               updateAnim();
   void               iterateSimulation();
 
 public:
@@ -236,7 +239,7 @@ signals:
 
 public slots:
   void onTimerTick();
-  void onSimulationDone();
+  void onSimulationDone(bool);
   void onSimulationAborted();
   void onSimulationError(QString);
 };

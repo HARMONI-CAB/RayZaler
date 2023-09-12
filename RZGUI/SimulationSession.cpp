@@ -712,6 +712,8 @@ SimulationState::applyDofs()
     setVariable("dof_" + p.first, p.second->evaluate());
     m_topLevelModel->setDof(p.first, m_dictionary["dof_" + p.first]->value);
   }
+
+  m_topLevelModel->clearBeam();
 }
 
 void
@@ -1023,9 +1025,9 @@ SimulationSession::SimulationSession(
 
   connect(
         m_tracer,
-        SIGNAL(finished()),
+        SIGNAL(finished(bool)),
         this,
-        SLOT(onSimulationDone()));
+        SLOT(onSimulationDone(bool)));
 
   connect(
         m_tracer,
@@ -1116,10 +1118,22 @@ SimulationSession::fileName() const
 void
 SimulationSession::iterateSimulation()
 {
-  tracer()->setBeam(m_simState->beam());
+  struct timeval now, diff;
+  bool refreshTimeout;
+
+  gettimeofday(&now, nullptr);
+  timersub(&now, &m_lastModelRefresh, &diff);
+
+  refreshTimeout
+      = diff.tv_sec * 1000 + diff.tv_usec / 1000 > RZGUI_MODEL_REFRESH_MS;
+
+  if (m_simState->steps() > 1)
+    tracer()->setUpdateBeam(refreshTimeout);
 
   if (m_simState->currStep() + 1 >= m_simState->steps())
-    emit modelChanged();
+    tracer()->setUpdateBeam(true);
+
+  tracer()->setBeam(m_simState->beam());
 
   ++m_simPending;
 
@@ -1137,6 +1151,8 @@ SimulationSession::runSimulation()
 
   if (!m_simState->initSimulation())
     return false;
+
+  gettimeofday(&m_lastModelRefresh, nullptr);
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
 
@@ -1207,22 +1223,26 @@ SimulationSession::onTimerTick()
     updateAnim();
   }
 }
-
+#include <QCoreApplication>
 void
-SimulationSession::onSimulationDone()
+SimulationSession::onSimulationDone(bool haveBeam)
 {
   if (m_simPending > 0)
     --m_simPending;
 
+  if (haveBeam) {
+    gettimeofday(&m_lastModelRefresh, nullptr);
+    emit modelChanged();
+    QCoreApplication::processEvents();
+  }
+
   if (m_simPending == 0)
     m_simState->releaseRays();
 
-  if (m_simState->sweepStep()) {
+  if (m_simState->sweepStep())
     iterateSimulation();
-  } else {
+  else
     emit sweepFinished();
-    emit modelChanged();
-  }
 
   m_simState->saveArtifacts();
 }

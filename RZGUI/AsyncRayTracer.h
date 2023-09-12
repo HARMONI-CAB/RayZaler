@@ -48,7 +48,7 @@ signals:
   void progress(int, int);
   void globalProgress(QString, int, int);
   void aborted();
-  void finished();
+  void finished(bool);
   void error(QString);
 
 public slots:

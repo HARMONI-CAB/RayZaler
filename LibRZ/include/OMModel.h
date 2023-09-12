@@ -159,7 +159,8 @@ namespace RZ {
       
       void recalculate();
       Element *beam() const;
-
+      void clearBeam();
+      
       bool plugOpticalElement(OpticalElement *, ReferenceFrame *parent = nullptr);
       bool plugElement(Element *, std::string const &);
       bool plugOpticalElement(OpticalElement *, std::string const &);

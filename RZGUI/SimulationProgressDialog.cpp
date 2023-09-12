@@ -31,7 +31,7 @@ SimulationProgressDialog::connectAll()
 
   connect(
         m_tracer,
-        SIGNAL(finished()),
+        SIGNAL(finished(bool)),
         this,
         SLOT(onFinished()));
 

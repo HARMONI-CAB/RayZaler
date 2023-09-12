@@ -540,6 +540,12 @@ OMModel::beam() const
   return static_cast<Element *>(m_beam);
 }
 
+void
+OMModel::clearBeam()
+{
+  m_beam->setList(std::list<RZ::Ray>());
+}
+
 bool
 OMModel::trace(
         std::string const &pathName,
