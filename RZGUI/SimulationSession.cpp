@@ -12,6 +12,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <sys/stat.h>
+#include <Logger.h>
 
 void
 SimulationProperties::loadDefaults()
@@ -912,6 +913,11 @@ SimulationState::currStep() const
   return m_currStep;
 }
 
+int
+SimulationState::simCount() const
+{
+  return m_simCount;
+}
 
 void
 SimulationState::releaseRays()
@@ -1151,6 +1157,14 @@ SimulationSession::runSimulation()
 
   if (!m_simState->initSimulation())
     return false;
+
+  RZInfo(
+        "Triggering simulation #%d on %s: %d steps, %d rays per beam\n",
+        m_simState->simCount(),
+        m_fileName.toStdString().c_str(),
+        m_simState->steps(),
+        m_simState->properties().rays);
+
 
   gettimeofday(&m_lastModelRefresh, nullptr);
 

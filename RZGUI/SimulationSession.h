@@ -170,6 +170,7 @@ public:
 
   int steps() const;
   int currStep() const;
+  int simCount() const;
 
   void saveArtifacts();
   bool allocateRays();
