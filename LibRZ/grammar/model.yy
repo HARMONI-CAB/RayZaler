@@ -130,8 +130,8 @@ signednum:
   ;
   
 expr:                                             // Type: string
-     NUM                       
-   | IDENTIFIER                
+     NUM                       { $$ = $1; }
+   | IDENTIFIER                { $$ = $1; }    
    | IDENTIFIER '(' expr ')'   { $$ = $1.str() + "(" + $3.str() + ")"; }
    | IDENTIFIER '(' expr ',' expr ')'   { $$ = $1.str() + "(" + $3.str() + "," + $5.str() + ")"; }
    | expr '+' expr             { $$ = $1.str() + "+" + $3.str(); }
@@ -140,6 +140,6 @@ expr:                                             // Type: string
    | expr '/' expr             { $$ = $1.str() + "/" + $3.str(); }
    | '-' expr  %prec NEG       { $$ = "-" + $2.str();            }
    | expr '^' expr             { $$ = $1.str() + "^" + $3.str(); }
-   | '(' expr ')'              { $$ = "(" + $1.str() + ")";      }
+   | '(' expr ')'              { $$ = "(" + $2.str() + ")";      }
    ;
 %%
