@@ -1,0 +1,28 @@
+{
+    "Ni": 21,
+    "Nj": 21,
+    "azimuth": "90",
+    "beam": "CONVERGING",
+    "clearDetector": false,
+    "detector": "",
+    "diameter": "40e-3",
+    "dofs": {
+        "SCREW_ERROR": "1e-6",
+        "x": "-.2 * (i / 20) * cos(pi * (j-10) / 21)",
+        "y": ".2 * (i / 20) * sin(pi * (j - 10) / 21)"
+    },
+    "elevation": "90",
+    "fNum": "17.37",
+    "focalPlane": "ngssFocalPlane",
+    "offsetX": "-.2 * (i / 20) * cos(pi * (j-10) / 21)",
+    "offsetY": ".2 * (i / 20) * sin(pi * (j - 10) / 21)",
+    "overwrite": false,
+    "path": "",
+    "rays": 10000,
+    "ref": "FOCAL_PLANE",
+    "refAperture": "200e-3",
+    "saveArtifacts": false,
+    "saveDetector": "",
+    "saveDir": "./artifacts",
+    "type": "2D_SWEEP"
+}

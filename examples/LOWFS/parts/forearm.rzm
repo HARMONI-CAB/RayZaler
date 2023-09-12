@@ -1,0 +1,90 @@
+#
+# forearm.rzm: Optomechanical model for LPOA's forearm
+#
+# Copyright (c) 2023 Gonzalo J. Carracedo
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIEDi
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+import "elbow.rzm";
+
+element ForeArm {
+  dof rotation;
+  ElbowMotor motor(rotation = rotation);
+
+  on rotationCenter of motor {
+    translate(dx = L2 / 2) {
+      BlockElement arm(
+        height = 33e-3,
+        length = L2,
+        width = 124e-3,
+        red    = 0,
+        green  = .5,
+        blue   = 0);
+        
+      on front_side of arm
+        rotate(90, 0, 1, 0)
+          translate(dz = -33e-3 / 2)
+            port end;
+    }
+
+    #
+    # Mirror locations (above)
+    #
+
+    translate(dz = MIRROR_VERTICAL_SPACING / 2) {
+
+      # Definition for M2
+      rotate(-135, 0, 1, 0) {
+        translate(dz = -SCREW_LENGTH - MIRROR_THICKNESS) {
+          rotate(90, 0, 0, 1) {
+            Tripod tripod1(
+              leg1 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+              leg2 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+              leg3 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+              radius = 14.5e-3, legDiameter = 3e-3);
+            on surface of tripod1 FlatMirror M2(thickness = MIRROR_THICKNESS, radius = 17e-3);
+	  }
+        }
+      }
+
+      # Definition for M1
+      translate(dx = L2) {
+        rotate(45, 0, 1, 0) {
+  	  translate(dz = -SCREW_LENGTH - MIRROR_THICKNESS) {
+            rotate(90, 0, 0, 1) {
+              Tripod tripod2(
+                leg1 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+                leg2 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+                leg3 = SCREW_LENGTH + randn(0, SCREW_ERROR),
+                radius = 24e-3, legDiameter = 3e-3);
+              on surface of tripod2 FlatMirror M1(thickness = MIRROR_THICKNESS, radius = 26.5e-3);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  path M1 to M2;
+}

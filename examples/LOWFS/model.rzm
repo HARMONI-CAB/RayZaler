@@ -1,0 +1,89 @@
+#
+# model.rzm: LOWFS optomechanical model
+#
+# Copyright (c) 2023 Gonzalo J. Carracedo
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIEDi
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+parameter L1                      = 252e-3;
+parameter L2                      = 200e-3;
+parameter DX                      = 400e-3;
+
+parameter SCREW_LENGTH            = 1e-2;
+parameter MIRROR_VERTICAL_SPACING = 130e-3;
+parameter MIRROR_THICKNESS        = 5e-3;
+parameter NGSS_FP_DIST_TO_M1      = 493e-3;
+
+parameter NGSS_FOCUS_FINETUNE_Z   = 0.606987675;
+parameter LPOA1_FOCUS_LENS_HEIGHT = .15385;
+
+dof SCREW_ERROR           = 0;
+
+import "parts/arm.rzm";
+import "parts/forearm.rzm";
+
+dof x                     = 0;
+dof y                     = 0;
+
+element LPOA1 {
+  dof x_m = 0;
+  dof y_m = 0;
+
+  translate(dx = -DX) {
+    Arm arm(
+      rotation = rad2deg(
+        - atan2(y, x + DX)
+        - atan2(
+          L2 * sqrt(1 - ((((x + DX)^2 + y^2) - L1^2 - L2^2) / (2 * L1 * L2))^2),
+          L1 + (((x + DX)^2 + y^2) - L1^2 - L2^2) / (2 * L1))));
+      
+    on end of arm ForeArm foreArm(
+      rotation = rad2deg(acos(((x + DX)^2 + y^2 - L1^2 - L2^2) / (2 * L1 * L2))));
+  
+    on output of arm translate(dz = - NGSS_FP_DIST_TO_M1 + MIRROR_VERTICAL_SPACING)
+      port output;
+  }
+  
+  path foreArm to arm;
+}
+
+LPOA1 lpoa1(x_m = x, y_m = y);
+
+
+on output of lpoa1 {
+  translate(dz = LPOA1_FOCUS_LENS_HEIGHT) rotate(180, 1, 0, 0)
+    ConvexLens focusingLens(thickness = 2.5e-3, curvature = 10e-2);
+  
+  Detector lpoa1Detector (cols = 1024, rows = 1024);
+}
+
+
+translate(dz = -NGSS_FP_DIST_TO_M1 + MIRROR_VERTICAL_SPACING / 2) {
+  port ngssFocalPlane;
+  ApertureStop technicalField(radius = .2, width = .5, height = .5);
+  Detector scienceDetector;
+}
+
+path lpoa1 to focusingLens to lpoa1Detector;
+path science scienceDetector;
