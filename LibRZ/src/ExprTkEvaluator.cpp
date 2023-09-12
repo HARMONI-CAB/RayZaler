@@ -154,6 +154,7 @@ ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
   m_uniform = new RandU(state);
   m_normal  = new RandN(state);
 
+  m_symTab.add_constant("pi", M_PI);
   m_symTab.add_function("randu", *m_uniform);
   m_symTab.add_function("randn", *m_normal);
   
