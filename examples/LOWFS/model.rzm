@@ -53,13 +53,13 @@ element LPOA1 {
   translate(dx = -DX) {
     Arm arm(
       rotation = rad2deg(
-        - atan2(y, x + DX)
+        - atan2(y_m, x_m + DX)
         - atan2(
-          L2 * sqrt(1 - ((((x + DX)^2 + y^2) - L1^2 - L2^2) / (2 * L1 * L2))^2),
-          L1 + (((x + DX)^2 + y^2) - L1^2 - L2^2) / (2 * L1))));
+          L2 * sqrt(1 - ((((x_m + DX)^2 + y_m^2) - L1^2 - L2^2) / (2 * L1 * L2))^2),
+          L1 + (((x_m + DX)^2 + y_m^2) - L1^2 - L2^2) / (2 * L1))));
       
     on end of arm ForeArm foreArm(
-      rotation = rad2deg(acos(((x + DX)^2 + y^2 - L1^2 - L2^2) / (2 * L1 * L2))));
+      rotation = rad2deg(acos(((x_m + DX)^2 + y_m^2 - L1^2 - L2^2) / (2 * L1 * L2))));
   
     on output of arm translate(dz = - NGSS_FP_DIST_TO_M1 + MIRROR_VERTICAL_SPACING)
       port output;
