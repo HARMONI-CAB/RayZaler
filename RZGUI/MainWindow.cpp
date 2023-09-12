@@ -34,6 +34,55 @@ MainWindow::MainWindow(QWidget *parent)
 
   connectAll();
   refreshCurrentSession();
+
+  RZ::Logger::setDefaultLogger(this);
+
+  RZ::RZInit();
+}
+
+void
+MainWindow::logFunction(
+        RZ::LogLevel level,
+        std::string const &file,
+        int line,
+        std::string const &message)
+{
+  QString text, prefix;
+  QFileInfo info(QString::fromStdString(file));
+  QString baseName = info.fileName();
+  text = QString::fromStdString(message).replace("\n", "<br />\n");
+
+  switch (level) {
+    case RZ::LOG_ERROR:
+        prefix =
+            "<b><font color = \"red\">Error </font>("
+            + baseName
+            + ":"
+            + QString::number(line)
+            + ")</b>: ";
+      break;
+
+    case RZ::LOG_WARNING:
+      prefix =
+          "<b><font color = \"#a3732f\">Warning </font>("
+          + baseName
+          + ":"
+          + QString::number(line)
+          + ")</b>: ";
+      break;
+
+    case RZ::LOG_INFO:
+      prefix = "<b>Info</b>: ";
+      break;
+  }
+
+  QTextCursor cursor = ui->logTextEdit->textCursor();
+
+  cursor.movePosition(QTextCursor::End);
+  ui->logTextEdit->setTextCursor(cursor);
+  ui->logTextEdit->insertHtml(prefix + text);
+  cursor.movePosition(QTextCursor::End);
+  ui->logTextEdit->setTextCursor(cursor);
 }
 
 void

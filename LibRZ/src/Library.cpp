@@ -16,9 +16,15 @@
 
 using namespace RZ;
 
+static bool g_initialized = false;
+
 void
 RZ::RZInit()
 {
+  if (g_initialized)
+    return;
+  g_initialized = true;
+  
   Singleton *singleton = Singleton::instance();
 
   Singleton::instance()->registerElementFactory(new ApertureStopFactory);
@@ -35,4 +41,6 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new TubeElementFactory);
 
   registerRayProcessors();
+
+  Singleton::instance()->logInitMessage();
 }

@@ -1,6 +1,7 @@
 #include <Singleton.h>
 #include <Element.h>
 #include <RayProcessors.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -65,4 +66,13 @@ Singleton::lookupRayTransferProcessor(std::string const &name) const
     return nullptr;
 
   return it->second;
+}
+
+void
+Singleton::logInitMessage()
+{
+  RZInfo("LibRZ core loaded (proto 0.1)\n");
+  RZInfo("Global library: %d element factories, %d ray processors\n",
+    m_elementFactories.size(),
+    m_rayTransferProcessors.size());
 }

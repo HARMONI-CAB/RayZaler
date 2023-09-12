@@ -24,6 +24,8 @@ namespace RZ
 
       ElementFactory *lookupElementFactory(std::string const &) const;
       RayTransferProcessor *lookupRayTransferProcessor(std::string const &) const;
+
+      void logInitMessage();
   };
 
   void RZInit();

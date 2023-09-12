@@ -4,6 +4,7 @@ include(Catch) # contains some cmake macros that will help with
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT   REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
 
 # These tests can use the Catch2-provided main
 add_executable(

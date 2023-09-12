@@ -3,6 +3,7 @@ set(RZVIEWER_SRCDIR src)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT   REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
 
 # Add source files
 file(GLOB_RECURSE SOURCE_FILES 

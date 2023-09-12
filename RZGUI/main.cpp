@@ -8,8 +8,6 @@ int main(int argc, char *argv[])
   QApplication a(argc, argv);
   MainWindow w;
 
-  RZ::RZInit();
-
   glutInit(&argc, argv);
 
   w.show();

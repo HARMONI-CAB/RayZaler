@@ -2,6 +2,7 @@
 #include <Singleton.h>
 #include <GLHelpers.h>
 #include <OMModel.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -165,8 +166,15 @@ Element::set(std::string const &name, PropertyValue const &val)
   if (it == m_properties.end())
     return false;
 
-  if (!propertyChanged(name, val))
+  if (!propertyChanged(name, val)) {
+    RZWarning(
+      "Element %s (%s): cannot set %s to %g\n",
+      this->name().c_str(),
+      factory()->name().c_str(),
+      name.c_str(),
+      (Real) val);
     return false;
+  }
 
   it->second = val;
 
@@ -178,8 +186,14 @@ Element::get(std::string const &name) const
 {
   auto it = m_properties.find(name);
 
-  if (it == m_properties.end())
+  if (it == m_properties.end()) {
+    RZWarning(
+      "Element %s (%s): property `%s' does not exist\n",
+      this->name().c_str(),
+      factory()->name().c_str(),
+      name.c_str());
     return PropertyValue::undefined();
+  }
 
   return it->second;
 }

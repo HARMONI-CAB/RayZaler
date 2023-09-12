@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <list>
 #include <QMap>
+#include <Logger.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,7 +17,7 @@ class OMTreeModel;
 class SimulationPropertiesDialog;
 class QFileDialog;
 
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public RZ::Logger
 {
   Q_OBJECT
 
@@ -37,7 +38,13 @@ class MainWindow : public QMainWindow
 
   void reconnectModels();
   void connectAll();
+
 public:
+  virtual void logFunction(
+          RZ::LogLevel level,
+          std::string const &file,
+          int line,
+          std::string const &message) override;
 
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;

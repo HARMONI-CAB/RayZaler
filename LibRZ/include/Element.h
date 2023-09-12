@@ -118,7 +118,7 @@ namespace RZ {
       virtual ~Element();
       
       ElementFactory *
-      factory()
+      factory() const
       {
         return m_factory;
       }

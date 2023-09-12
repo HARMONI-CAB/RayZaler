@@ -6,6 +6,7 @@
 #include <OMModel.h>
 #include <CompositeElement.h>
 #include <cassert>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -229,8 +230,22 @@ GenericCompositeModel::setParam(std::string const &name, Real value)
   if (param == nullptr)
     throw std::runtime_error("Unknown parameter `" + name + "'");
 
-  if (!param->test(value))
+  if (std::isnan(value)) {
+    RZError(
+      "Parameter `%s': attempting to set with a value that is not a number\n",
+      name.c_str());
     return false;
+  }
+
+  if (!param->test(value)) {
+    RZWarning(
+      "Parameter `%s': value %g out of range (%g, %g)\n",
+      name.c_str(),
+      value,
+      param->description->min,
+      param->description->max);
+    return false;
+  }
 
   param->value = value;
 
@@ -248,8 +263,22 @@ GenericCompositeModel::setDof(std::string const &name, Real value)
   if (dof == nullptr)
     throw std::runtime_error("Unknown parameter `" + name + "'");
 
-  if (!dof->test(value))
+  if (std::isnan(value)) {
+    RZError(
+      "DOF `%s': attempting to set with a value that is not a number\n",
+      name.c_str());
     return false;
+  }
+
+  if (!dof->test(value)) {
+    RZWarning(
+      "DOF `%s': value %g out of range (%g, %g)\n",
+      name.c_str(),
+      value,
+      dof->description->min,
+      dof->description->max);
+    return false;
+  }
 
   dof->value = value;
 
