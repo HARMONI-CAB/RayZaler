@@ -223,6 +223,7 @@ SimulationPropertiesDialog::refreshUi()
     BLOCKSIG(ui->saveCheck, setChecked(false));
 
   ui->detectorSaveCombo->setEnabled(ui->saveCheck->isChecked());
+  ui->saveCSVCheck->setEnabled(ui->saveCheck->isChecked());
   ui->outputDirEdit->setEnabled(ui->saveCheck->isChecked());
   ui->outputDirLabel->setEnabled(ui->saveCheck->isChecked());
   ui->clearDetCheck->setEnabled(ui->saveCheck->isChecked());
@@ -256,6 +257,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->steps2Spin,      setValue(m_properties.Nj));
 
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
+  BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
   BLOCKSIG(ui->overwriteResultsCheck, setChecked(m_properties.overwrite));
   BLOCKSIG(ui->outputDirEdit,         setText(m_properties.saveDir));
@@ -390,6 +392,7 @@ SimulationPropertiesDialog::parseProperties()
 
   // Artifact generation
   m_properties.saveArtifacts = ui->saveCheck->isChecked();
+  m_properties.saveCSV       = ui->saveCSVCheck->isChecked();
   m_properties.clearDetector = ui->clearDetCheck->isChecked();
   m_properties.overwrite     = ui->overwriteResultsCheck->isChecked();
 

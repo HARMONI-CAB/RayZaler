@@ -261,6 +261,11 @@
          </property>
          <item row="0" column="0">
           <widget class="QTextEdit" name="logTextEdit">
+           <property name="font">
+            <font>
+             <family>Monospace</family>
+            </font>
+           </property>
            <property name="readOnly">
             <bool>true</bool>
            </property>

@@ -32,10 +32,10 @@ namespace RZ {
 }
 
 #define RZError(fmt, arg...) \
-  RZ::Logger::log(RZ::LOG_ERROR, __FILE__, __LINE__, fmt, ##arg);
+  RZ::Logger::log(RZ::LOG_ERROR, __FILE__, __LINE__, fmt, ##arg)
 #define RZWarning(fmt, arg...) \
-  RZ::Logger::log(RZ::LOG_WARNING, __FILE__, __LINE__, fmt, ##arg);
+  RZ::Logger::log(RZ::LOG_WARNING, __FILE__, __LINE__, fmt, ##arg)
 #define RZInfo(fmt, arg...) \
-  RZ::Logger::log(RZ::LOG_INFO, __FILE__, __LINE__, fmt, ##arg);
+  RZ::Logger::log(RZ::LOG_INFO, __FILE__, __LINE__, fmt, ##arg)
 
 #endif // _LIBRZ_LOGGER_H

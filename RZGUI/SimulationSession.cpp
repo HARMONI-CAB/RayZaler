@@ -449,11 +449,18 @@ SimulationState::saveArtifacts()
       path = getCurrentOutputFileName();
     }
 
-    if (m_properties.clearDetector) {
-      m_saveDetector->savePNG(path.toStdString());
+    std::string fileName = path.toStdString();
+
+    if (m_properties.saveCSV)
+      saveCSV();
+
+    if (m_properties.clearDetector) {  
+      RZInfo("Saving detector state to %s\n", fileName.c_str());
+      m_saveDetector->savePNG(fileName);
       m_saveDetector->clear();
     } else if (done()) {
-      m_saveDetector->savePNG(path.toStdString());
+      RZInfo("Saving final state to %s\n", fileName.c_str());
+      m_saveDetector->savePNG(fileName);
     }
   }
 }
@@ -754,10 +761,21 @@ SimulationState::getCurrentOutputFileName() const
         + "integrated.png";
 }
 
+QString
+SimulationState::getCurrentOutputCSVFileName() const
+{
+  return m_properties.saveDir
+        + "/"
+        + m_currentSavePrefix
+        + "steps.csv";
+}
+
+
 void
 SimulationState::bumpPrefix()
 {
-  while (QFile(getCurrentOutputFileName()).exists()) {
+  while (QFile(getCurrentOutputFileName()).exists()
+         || QFile(getCurrentOutputCSVFileName()).exists()) {
     ++m_pfxCount;
     genPrefix();
   }
@@ -801,6 +819,97 @@ SimulationState::findDetectorForPath(std::string const &name)
 }
 
 bool
+SimulationState::openCSV()
+{
+  bumpPrefix(); // This is required, to make sure we do not overwrite the CSV
+
+  std::string csvFileName = getCurrentOutputCSVFileName().toStdString();
+
+  closeCSV();
+
+  m_csvFp = fopen(csvFileName.c_str(), "wb");
+  if (m_csvFp == nullptr) {
+    RZError(
+          "fopen(): cannot openCSV file `%s': %s\n",
+          csvFileName.c_str(),
+          strerror(errno));
+    m_lastCompileError =
+        "Failed to create CSV file: " +
+        std::string(strerror(errno));
+    return false;
+  }
+
+  std::string headers;
+
+  headers += "step,i,j,";
+
+  for (auto dof : m_properties.dofs)
+    headers += "dof_" + dof.first + ",";
+
+  headers += "filename\n";
+
+  if (fwrite(headers.c_str(), headers.size(), 1, m_csvFp) < 1) {
+    RZError("fwrite(): failed to write CSV header: %s\n", strerror(errno));
+    m_lastCompileError =
+        "Failed to create CSV file: " +
+        std::string(strerror(errno));
+    closeCSV();
+    return false;
+  }
+
+  RZInfo("Simulation log created on %s\n", csvFileName.c_str());
+
+  return true;
+}
+
+template <typename T>
+static std::string
+toStringPrecision(const T a_value, const int n = 16)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return std::move(out).str();
+}
+
+void
+SimulationState::saveCSV()
+{
+  if (m_csvFp == nullptr) {
+    RZError("saveCSV() called with no CSV file!\n");
+    return;
+  }
+
+  std::string line;
+
+  line += std::to_string(m_currStep) + ","
+       + std::to_string(m_i) + ","
+       + std::to_string(m_j) + ",";
+
+  for (auto dof : m_properties.dofs) {
+    auto value = m_dictionary["dof_" + dof.first]->value;
+    line += toStringPrecision(value) + ",";
+  }
+
+  line += getCurrentOutputFileName().toStdString() + "\n";
+
+  if (fwrite(line.c_str(), line.size(), 1, m_csvFp) < 1)
+    RZError(
+          "fwrite(): failed to write state to CSV file: %s\n",
+          strerror(errno));
+}
+
+void
+SimulationState::closeCSV()
+{
+  // Lazy close previous file
+  if (m_csvFp != nullptr) {
+    fclose(m_csvFp);
+    m_csvFp = nullptr;
+  }
+}
+
+bool
 SimulationState::initSimulation()
 {
   m_i = m_j = 0;
@@ -831,6 +940,10 @@ SimulationState::initSimulation()
         m_lastCompileError =
             "Failed to create save directory: " +
             std::string(strerror(errno));
+        RZError(
+              "mkdir(): cannot create `%s': %s\n",
+              asStdString.c_str(),
+              strerror(errno));
         return false;
       }
     }
@@ -841,6 +954,11 @@ SimulationState::initSimulation()
       return false;
 
     resetPrefix();
+
+    if (m_properties.saveCSV)
+      if (!openCSV())
+        return false;
+
   } else {
     m_saveDetector = nullptr;
   }
@@ -861,23 +979,23 @@ SimulationState::sweepStep()
   setVariable("stepU", randUniform());
 
   if (done())
-    return false;
+    goto done;
 
   ++m_i;
 
   if (done())
-    return false;
+    goto done;
 
   if (m_i >= m_properties.Ni) {
     m_i = 0;
     ++m_j;
     if (done())
-      return false;
+      goto done;
 
   }
 
   if (done())
-    return false;
+    goto done;
 
   setVariable("i", m_i);
   setVariable("j", m_j);
@@ -886,7 +1004,12 @@ SimulationState::sweepStep()
   // Iteration done, apply Dofs
   applyDofs();
 
-  return allocateRays();
+  if (allocateRays())
+    return true;
+
+done:
+  closeCSV();
+  return false;
 }
 
 bool
@@ -950,6 +1073,8 @@ SimulationState::~SimulationState()
 
   if (m_randState != nullptr)
     delete m_randState;
+
+  closeCSV();
 }
 
 ////////////////////////////////// Simulation session /////////////////////////
@@ -1253,12 +1378,14 @@ SimulationSession::onSimulationDone(bool haveBeam)
   if (m_simPending == 0)
     m_simState->releaseRays();
 
-  if (m_simState->sweepStep())
-    iterateSimulation();
-  else
-    emit sweepFinished();
-
   m_simState->saveArtifacts();
+
+  if (m_simState->sweepStep()) {
+    iterateSimulation();
+  } else {
+    emit sweepFinished();
+    RZInfo("Simulation finished\n");
+  }
 }
 
 void
@@ -1272,6 +1399,8 @@ SimulationSession::onSimulationAborted()
 
   emit sweepFinished();
   emit modelChanged();
+
+  RZInfo("Simulation cancelled by user\n");
 }
 
 

@@ -76,6 +76,7 @@ struct SimulationProperties {
 
   // Artifact generation properties
   bool    saveArtifacts = false;
+  bool    saveCSV       = true;
   bool    clearDetector = false;
   bool    overwrite     = false;
 
@@ -102,7 +103,7 @@ private:
 };
 
 class SimulationState {
-  SimulationProperties       m_properties;
+  SimulationProperties     m_properties;
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
   RZ::ExprRandomState     *m_randState     = nullptr;
 
@@ -131,6 +132,7 @@ class SimulationState {
 
   // Data saving (set if and only if data saving is enabled)
   RZ::Detector *m_saveDetector = nullptr;
+  FILE         *m_csvFp = nullptr;
   unsigned int  m_pfxCount = 0;
   QString       m_currentSavePrefix;
 
@@ -153,11 +155,15 @@ class SimulationState {
   void applyDofs();
   void resetPrefix();
   void genPrefix();
+  QString getCurrentOutputCSVFileName() const;
   QString getCurrentOutputFileName() const;
   void bumpPrefix();
 
   RZ::Detector *findDetectorForPath(std::string const &);
 
+  bool openCSV();
+  void saveCSV();
+  void closeCSV();
 
 public:
   SimulationState(RZ::TopLevelModel *);
