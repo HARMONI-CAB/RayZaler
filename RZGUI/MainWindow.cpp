@@ -356,8 +356,8 @@ MainWindow::onCloseTab(int index)
   m_sessions.remove(session);
   m_sessionToTab.remove(session);
 
-  delete widget;
-  delete session;
+  widget->deleteLater();
+  session->deleteLater();
 }
 
 void
