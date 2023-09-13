@@ -234,6 +234,29 @@ Detector::stride() const
   return m_storage->stride();
 }
 
+Real
+Detector::pxWidth() const
+{
+  return m_pxWidth;
+}
+
+Real
+Detector::pxHeight() const
+{
+  return m_pxHeight;
+}
+Real
+Detector::width() const
+{
+  return m_width;
+}
+
+Real
+Detector::height() const
+{
+  return m_height;
+}
+
 const uint32_t *
 Detector::data() const
 {

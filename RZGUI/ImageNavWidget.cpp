@@ -227,6 +227,18 @@ ImageNavWidget::zoomToPoint(QPointF const & xy)
   update();
 }
 
+qreal
+ImageNavWidget::imgMin() const
+{
+  return m_arr_min;
+}
+
+qreal
+ImageNavWidget::imgMax() const
+{
+  return m_arr_max;
+}
+
 void
 ImageNavWidget::setSelection(QPoint const &xy)
 {

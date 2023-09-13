@@ -104,6 +104,10 @@ namespace RZ {
 
       unsigned int    cols() const;
       unsigned int    rows() const;
+      Real            pxWidth() const;
+      Real            pxHeight() const;
+      Real            width() const;
+      Real            height() const;
       unsigned int    stride() const;
       const uint32_t *data() const;
   };

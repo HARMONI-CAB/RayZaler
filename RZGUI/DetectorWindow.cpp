@@ -13,14 +13,93 @@ DetectorWindow::DetectorWindow(QWidget *parent) :
   m_navWidget = new ImageNavWidget();
   m_navWidget->setAutoScale(true);
 
-  ui->viewGrid->addWidget(m_navWidget, 0, 0);
+  ui->viewGrid->addWidget(m_navWidget, 1, 0);
 
+  populateDetectorMenu();
   connectAll();
 }
 
 DetectorWindow::~DetectorWindow()
 {
   delete ui;
+}
+
+void
+DetectorWindow::populateDetectorMenu()
+{
+  // Clear menu
+  ui->menuDetectorChange->clear();
+
+  for (auto p : m_detectorActions)
+    p->deleteLater();
+
+  m_detectorActions.clear();
+
+  if (m_session != nullptr) {
+    for (auto p : m_session->topLevelModel()->detectors()) {
+      QString detName = QString::fromStdString(p);
+      QAction *action = new QAction(this);
+      action->setCheckable(true);
+      action->setText(detName);
+      action->setData(detName);
+      m_detectorActions.push_back(action);
+      ui->menuDetectorChange->addAction(action);
+
+      connect(
+            action,
+            SIGNAL(triggered(bool)),
+            this,
+            SLOT(onChangeDetector()));
+    }
+  }
+
+  if (m_detectorActions.size() == 0)
+    ui->menuDetectorChange->addAction(ui->action_No_detector);
+}
+void
+DetectorWindow::refreshDetectorParams()
+{
+  if (m_detector != nullptr) {
+    for (auto p : m_detectorActions) {
+      QString name = p->data().toString();
+      std::string stdName = name.toStdString();
+
+      p->setChecked(stdName == m_detector->name());
+    }
+
+    ui->pxWidthLabel->setText(
+          QString::number(m_detector->pxWidth() * 1e6) + " µm");
+    ui->pxHeightLabel->setText(
+          QString::number(m_detector->pxHeight() * 1e6) + " µm");
+    ui->widthLabel->setText(
+          QString::number(m_detector->width() * 1e3) + " mm");
+    ui->heightLabel->setText(
+          QString::number(m_detector->height() * 1e3) + " mm");
+    ui->horizontalPixelsLabel->setText(
+          QString::number(m_detector->cols()) + " px");
+    ui->verticalPixelsLabel->setText(
+          QString::number(m_detector->rows()) + " px");
+    ui->rangeLabel->setText(
+          QString::asprintf("[%g, %g]",
+          m_navWidget->imgMin(),
+          m_navWidget->imgMax()));
+  } else {
+    ui->pxWidthLabel->setText("N/A");
+    ui->pxHeightLabel->setText("N/A");
+    ui->widthLabel->setText("N/A");
+    ui->heightLabel->setText("N/A");
+    ui->horizontalPixelsLabel->setText("N/A");
+    ui->verticalPixelsLabel->setText("N/A");
+    ui->rangeLabel->setText("N/A");
+  }
+
+  ui->posXLabel->setText("N/A");
+  ui->posYLabel->setText("N/A");
+
+  ui->pixelXLabel->setText("N/A");
+  ui->pixelYLabel->setText("N/A");
+
+  ui->countsLabel->setText("N/A");
 }
 
 void
@@ -85,6 +164,12 @@ DetectorWindow::connectAll()
         SLOT(onViewChanged()));
 
   connect(
+        m_navWidget,
+        SIGNAL(mouseMoved(QPointF)),
+        this,
+        SLOT(onHoverPixel(QPointF)));
+
+  connect(
         ui->actionClear,
         SIGNAL(triggered(bool)),
         this,
@@ -110,9 +195,34 @@ DetectorWindow::connectAll()
 }
 
 void
-DetectorWindow::setSession(SimulationSession *session)
+DetectorWindow::setDetector(RZ::Detector *detector)
 {
   QString title;
+
+  m_detector = detector;
+  m_navWidget->setDetector(detector);
+
+  if (detector == nullptr) {
+    title = "Simulation result - " + m_session->fileName() + " (no detector)";
+    ui->detGroupBox->setTitle("No detector");
+  } else {
+    auto detName = QString::fromStdString(detector->name());
+    ui->detGroupBox->setTitle(detName);
+    title = "Simulation result - "
+        +  m_session->fileName()
+        + " ("
+        + detName
+        + ")";
+  }
+
+  setWindowTitle(title);
+  refreshDetectorParams();
+  refreshUi();
+}
+
+void
+DetectorWindow::setSession(SimulationSession *session)
+{
   RZ::Detector *detector = nullptr;
   m_session = session;
 
@@ -124,19 +234,8 @@ DetectorWindow::setSession(SimulationSession *session)
       detector = model->lookupDetector(detectors.front());
   }
 
-  m_detector = detector;
-  m_navWidget->setDetector(detector);
-
-  if (detector == nullptr)
-    title = "Simulation result - " + session->fileName() + " (no detector)";
-  else
-    title = "Simulation result - "
-        + session->fileName()
-        + " ("
-        + QString::fromStdString(detector->name())
-        + ")";
-  setWindowTitle(title);
-  refreshUi();
+  populateDetectorMenu();
+  setDetector(detector);
 }
 
 void
@@ -144,6 +243,7 @@ DetectorWindow::refreshImage()
 {
   m_navWidget->recalcImage();
   m_navWidget->update();
+  refreshDetectorParams();
 }
 
 void
@@ -188,4 +288,43 @@ void
 DetectorWindow::onToggleLogScale()
 {
   m_navWidget->setLogScale(ui->actionLogScale->isChecked());
+}
+
+void
+DetectorWindow::onChangeDetector()
+{
+  QAction *action = SCAST(QAction *, QObject::sender());
+  QString name = action->data().toString();
+  std::string stdName = name.toStdString();
+
+  auto model = m_session->topLevelModel();
+
+  setDetector(model->lookupDetector(stdName));
+}
+
+void
+DetectorWindow::onHoverPixel(QPointF loc)
+{
+  if (m_detector != nullptr) {
+    qreal posX = (loc.x() + .5) * m_detector->width();
+    qreal posY = (loc.y() + .5) * m_detector->height();
+
+    int pixelX = SCAST(int, loc.x()) + SCAST(int, m_detector->cols()) / 2;
+    int pixelY = SCAST(int, loc.y()) + SCAST(int, m_detector->rows()) / 2;
+
+    if (pixelX < 0 || pixelX >= SCAST(int, m_detector->cols())
+        || pixelY < 0 || pixelY >= SCAST(int, m_detector->rows())) {
+      ui->pixelXLabel->setText("N/A");
+      ui->pixelYLabel->setText("N/A");
+      ui->countsLabel->setText("N/A");
+    } else {
+      int index = pixelX + pixelY * SCAST(int, m_detector->stride());
+      ui->pixelXLabel->setText(QString::number(pixelX));
+      ui->pixelYLabel->setText(QString::number(pixelY));
+      ui->countsLabel->setText(QString::number(m_detector->data()[index]));
+    }
+
+    ui->posXLabel->setText(QString::number(posX * 1e3) + " mm");
+    ui->posYLabel->setText(QString::number(posY * 1e3) + " mm");
+  }
 }

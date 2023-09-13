@@ -62,6 +62,9 @@ public:
   void    resetZoom();
   void    zoomToPoint(QPointF const &);
 
+  qreal   imgMin() const;
+  qreal   imgMax() const;
+
   void    setSelection(QPoint const &);
   void    updateSelectionFromEvent(QMouseEvent *, bool last = false);
   void    setLogScale(bool);
