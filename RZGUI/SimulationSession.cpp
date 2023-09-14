@@ -432,6 +432,12 @@ SimulationState::getLastError() const
 }
 
 bool
+SimulationState::running() const
+{
+  return m_running;
+}
+
+bool
 SimulationState::canRun() const
 {
   return m_complete;
@@ -969,6 +975,8 @@ SimulationState::initSimulation()
 
   applyDofs();
 
+  m_running = true;
+
   return allocateRays();
 }
 
@@ -1009,6 +1017,7 @@ SimulationState::sweepStep()
 
 done:
   closeCSV();
+  m_running = false;
   return false;
 }
 
@@ -1046,6 +1055,7 @@ void
 SimulationState::releaseRays()
 {
   m_currBeam = m_beamAlloc.end();
+  m_running = false;
 }
 
 SimulationProperties
@@ -1277,8 +1287,15 @@ SimulationSession::iterateSimulation()
 bool
 SimulationSession::runSimulation()
 {
-  if (!m_simState->canRun())
+  if (m_simState->running()) {
+    RZWarning("Cannot start simulation: another simulation is in progress\n");
+    return true;
+  }
+
+  if (!m_simState->canRun()) {
+    RZError("Cannot run simulation: simulation parameters are not completely defined\n");
     return false;
+  }
 
   if (!m_simState->initSimulation())
     return false;

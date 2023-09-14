@@ -137,6 +137,7 @@ class SimulationState {
   QString       m_currentSavePrefix;
 
   // Simulation progress
+  bool m_running = false;
   int64_t m_simCount = 0;
   int m_steps = 1;
   int m_currStep = 0;
@@ -170,6 +171,7 @@ public:
   ~SimulationState();
 
   bool canRun() const;
+  bool running() const;
   bool initSimulation();
   bool sweepStep();
   bool done() const;
