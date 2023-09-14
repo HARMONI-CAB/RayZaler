@@ -11,16 +11,23 @@ namespace RZ {
   class ConvexLens : public OpticalElement {
       GLCappedCylinder        m_cylinder;
       GLSphericalCap          m_cap;
-      SphericalLensProcessor *m_inputProcessor  = nullptr;
-      SphericalLensProcessor *m_outputProcessor = nullptr;
-      TranslatedFrame        *m_inputFrame  = nullptr;
-      TranslatedFrame        *m_outputFrame = nullptr;
+      SphericalLensProcessor *m_inputProcessor   = nullptr;
+      SphericalLensProcessor *m_outputProcessor  = nullptr;
+      TranslatedFrame        *m_inputFrame       = nullptr;
+      TranslatedFrame        *m_outputFrame      = nullptr;
+
+      TranslatedFrame        *m_inputFocalPlane  = nullptr;
+      TranslatedFrame        *m_outputFocalPlane = nullptr;
+
+      TranslatedFrame        *m_objectPlane      = nullptr;
+      TranslatedFrame        *m_imagePlane       = nullptr;
 
       Real m_thickness = 1e-2;
       Real m_radius    = 1e-2;
       Real m_rCurv     = 1;
       Real m_mu        = 1.5;
       Real m_depth     = 0;
+      Real m_f         = 0;
 
       void recalcModel();
 

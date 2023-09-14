@@ -306,11 +306,11 @@ void
 DetectorWindow::onHoverPixel(QPointF loc)
 {
   if (m_detector != nullptr) {
-    qreal posX = (loc.x() + .5) * m_detector->width();
-    qreal posY = (loc.y() + .5) * m_detector->height();
+    qreal posX = (loc.x()) * m_detector->pxWidth();
+    qreal posY = (loc.y()) * m_detector->pxHeight();
 
-    int pixelX = SCAST(int, loc.x()) + SCAST(int, m_detector->cols()) / 2;
-    int pixelY = SCAST(int, loc.y()) + SCAST(int, m_detector->rows()) / 2;
+    int pixelX = SCAST(int, -.5 + loc.x() + .5 * m_detector->cols());
+    int pixelY = SCAST(int, -.5 + loc.y() + .5 * m_detector->rows());
 
     if (pixelX < 0 || pixelX >= SCAST(int, m_detector->cols())
         || pixelY < 0 || pixelY >= SCAST(int, m_detector->rows())) {
@@ -324,7 +324,9 @@ DetectorWindow::onHoverPixel(QPointF loc)
       ui->countsLabel->setText(QString::number(m_detector->data()[index]));
     }
 
-    ui->posXLabel->setText(QString::number(posX * 1e3) + " mm");
-    ui->posYLabel->setText(QString::number(posY * 1e3) + " mm");
+    ui->posXLabel->setText(
+          (posX > 0 ? "+" : "") + QString::number(posX * 1e3, 'f', 6) + " mm");
+    ui->posYLabel->setText(
+          (posY > 0 ? "+" : "") + QString::number(posY * 1e3, 'f', 6) + " mm");
   }
 }

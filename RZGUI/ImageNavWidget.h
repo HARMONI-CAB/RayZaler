@@ -47,6 +47,7 @@ class ImageNavWidget : public QWidget
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
   QPoint px2imgcenter(QPoint) const;
+  QPointF pxF2imgcenterF(QPointF) const;
   QPoint imgcenter2px(QPoint) const;
 
 public:

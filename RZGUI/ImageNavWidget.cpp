@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QImage>
+#include "GUIHelpers.h"
 
 ImageNavWidget::ImageNavWidget(QWidget *parent)
   : QWidget{parent}
@@ -22,7 +23,7 @@ ImageNavWidget::recalcImage()
     unsigned int width  = m_detector->cols();
     unsigned int height = m_detector->rows();
     unsigned int stride = m_detector->stride();
-    unsigned int allocation = width * stride;
+    unsigned int allocation = stride * height;
     m_asBytes.resize(allocation);
 
     const uint32_t *photons = m_detector->data();
@@ -57,7 +58,7 @@ ImageNavWidget::recalcImage()
         for (unsigned int i = 0; i < width; ++i) {
           auto val = log(rangeInv * (photons[i + j * stride] - m_arr_min + 1));
 
-          m_asBytes[i + j * width] =
+          m_asBytes[i + j * stride] =
               static_cast<uint8_t>(
                 qBound(
                   static_cast<uint32_t>(0),
@@ -71,7 +72,7 @@ ImageNavWidget::recalcImage()
         for (unsigned int i = 0; i < width; ++i) {
           auto val = photons[i + j * stride];
 
-          m_asBytes[i + j * width] =
+          m_asBytes[i + j * stride] =
               static_cast<uint8_t>(
                 qBound(
                   static_cast<uint32_t>(0),
@@ -84,8 +85,9 @@ ImageNavWidget::recalcImage()
 
     m_image = QImage(
           static_cast<uchar *>(m_asBytes.data()),
-          width,
-          height,
+          SCAST(int, width),
+          SCAST(int, height),
+          stride,
           QImage::Format::Format_Grayscale8);
   }
 }
@@ -112,6 +114,12 @@ ImageNavWidget::px2imgcenter(QPoint p) const
         (p
          - QPoint(width(), height()) / 2
          - m_currPos.toPoint()) / m_zoom;
+}
+
+QPointF
+ImageNavWidget::pxF2imgcenterF(QPointF p) const
+{
+  return (p - QPointF(width(), height()) / 2. - m_currPos) / m_zoom;
 }
 
 QPoint
@@ -377,7 +385,7 @@ ImageNavWidget::mouseMoveEvent(QMouseEvent *event)
       emit viewChanged();
       update();
     } else {
-      emit mouseMoved(px2imgcenter(event->position().toPoint()));
+      emit mouseMoved(pxF2imgcenterF(event->position()));
     }
 
     if (m_movingSelection)

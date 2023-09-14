@@ -10,6 +10,14 @@ ConvexLens::recalcModel()
   m_cylinder.setRadius(m_radius);
 
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - m_radius * m_radius);
+  m_f     = .5 * m_rCurv /  (m_mu - 1);
+
+  m_inputFocalPlane->setDistance(-(.5 * m_thickness + m_f)* Vec3::eZ());
+  m_outputFocalPlane->setDistance(+(.5 * m_thickness + m_f)* Vec3::eZ());
+  
+  m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
+  m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
+
   m_cap.setRadius(m_rCurv);
   m_cap.setHeight(m_depth);
 
@@ -23,6 +31,7 @@ ConvexLens::recalcModel()
   
   m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
   m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+
 }
 
 bool
@@ -43,7 +52,7 @@ ConvexLens::propertyChanged(
     m_mu = value;
     recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;
@@ -55,7 +64,7 @@ ConvexLens::ConvexLens(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_inputProcessor = new SphericalLensProcessor;
+  m_inputProcessor  = new SphericalLensProcessor;
   m_outputProcessor = new SphericalLensProcessor;
 
   m_inputProcessor->setConvex(true);
@@ -66,11 +75,23 @@ ConvexLens::ConvexLens(
   registerProperty("curvature",     1.);
   registerProperty("n",            1.5);
 
-  m_inputFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
-  m_outputFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
+  m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
+  m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
 
   pushOpticalSurface("inputFace",  m_inputFrame,  m_inputProcessor);
   pushOpticalSurface("outputFace", m_outputFrame, m_outputProcessor);
+
+  // Create helper planes. These are exposed as ports
+  m_inputFocalPlane  = new TranslatedFrame("inputFocalPlane", frame, Vec3::zero());
+  m_outputFocalPlane = new TranslatedFrame("outputFocalPlane", frame, Vec3::zero());
+
+  m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
+  m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
+
+  addPort("inputFocalPlane",  m_inputFocalPlane);
+  addPort("outputFocalPlane", m_outputFocalPlane);
+  addPort("objectPlane",      m_objectPlane);
+  addPort("imagePlane",       m_imagePlane);
 
   m_cylinder.setVisibleCaps(true, true);
   
@@ -82,8 +103,20 @@ ConvexLens::~ConvexLens()
   if (m_inputProcessor != nullptr)
     delete m_inputProcessor;
 
-    if (m_outputProcessor != nullptr)
+  if (m_outputProcessor != nullptr)
     delete m_outputProcessor;
+
+  if (m_inputFocalPlane != nullptr)
+    delete m_inputFocalPlane;
+  
+  if (m_outputFocalPlane != nullptr)
+    delete m_outputFocalPlane;
+  
+  if (m_objectPlane != nullptr)
+    delete m_objectPlane;
+  
+  if (m_imagePlane != nullptr)
+    delete m_imagePlane;
 }
 
 void

@@ -29,7 +29,7 @@ DetectorStorage::recalculate()
 {
   size_t newSize;
 
-  m_width  = m_pxWidth * m_cols;
+  m_width  = m_pxWidth  * m_cols;
   m_height = m_pxHeight * m_rows;
 
   m_stride = 4 * ((m_cols + 3) / 4);
@@ -170,12 +170,14 @@ Detector::propertyChanged(
     if (m_cols != new_cols) {
       m_cols = new_cols;
       m_storage->setResolution(m_cols, m_rows);
+      recalcModel();
     }
   } else if (name == "rows") {
     unsigned int new_rows = (unsigned int) value;
     if (m_rows != new_rows) {
       m_rows = new_rows;
       m_storage->setResolution(m_cols, m_rows);
+      recalcModel();
     }
   } else {
     return false;
