@@ -36,6 +36,17 @@ namespace RZ {
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
 
+  class ParabolicMirrorProcessor : public RayTransferProcessor {
+      Real m_radius = .5;
+      Real m_flength = 1;
+
+    public:
+      void setRadius(Real);
+      void setFocalLength(Real);
+      virtual std::string name() const;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
   class SphericalLensProcessor : public RayTransferProcessor {
       Real m_radius = .5;
       Real m_rCurv  =  1;

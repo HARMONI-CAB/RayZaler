@@ -226,6 +226,47 @@ namespace RZ {
       ~GLSphericalCap();
   };
 
+  class GLParabolicCap : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+
+      GLdouble m_flength    = 2;
+      GLdouble m_radius  = .25;
+      GLint    m_sectors = 32;
+      GLint    m_stacks  = 8;
+      bool     m_invertNormals = false;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      fnum() const
+      {
+        return m_flength;
+      }
+
+      GLdouble
+      radius() const
+      {
+        return m_radius;
+      }
+      
+      void setFocalLength(GLdouble);
+      void setRadius(GLdouble);
+      void setSectors(GLint);
+      void setStacks(GLint);
+      void setInvertNormals(bool);
+
+      virtual void display() override;
+
+      GLParabolicCap();
+      ~GLParabolicCap();
+  };
+
   class GLPinHole : public GLPrimitive {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;

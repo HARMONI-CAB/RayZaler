@@ -86,6 +86,7 @@ FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
   memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }
 
+//////////////////////////// SphericalMirrorProcessor //////////////////////////
 std::string
 SphericalMirrorProcessor::name() const
 {
@@ -129,8 +130,9 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
   Vec3 tY      = plane->eY();
   Vec3 normal  = plane->eZ();
   Real Rcurv   = 2 * m_flength;
-  Vec3 Csphere = center + Rcurv * normal;
   Real Rsq     = m_radius * m_radius;
+  Real d       = Rcurv - sqrt(Rcurv * Rcurv - Rsq);
+  Vec3 Csphere = center + (Rcurv - d) * normal;
   Real t;
 
   for (i = 0; i < count; ++i) {
@@ -168,10 +170,87 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
   memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }
 
+//////////////////////////// ParabolicMirrorProcessor //////////////////////////
+std::string
+ParabolicMirrorProcessor::name() const
+{
+  return "ParabolicMirror";
+}
+
+void
+ParabolicMirrorProcessor::setRadius(Real R)
+{
+  m_radius = R;
+}
+
+void
+ParabolicMirrorProcessor::setFocalLength(Real f)
+{
+  m_flength = f;
+}
+
+void
+ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = beam.count;
+  Matrix3 M      = plane->getOrientation();
+  Matrix3 Mt     = M.t();
+  Real Rsq       = m_radius * m_radius;
+  Real k         =  .25 / m_flength;
+  Real h         = k * Rsq;
+
+  for (auto i = 0; i < count; ++i) {
+    Vec3 intercept  = Mt * (Vec3(beam.destinations + 3 * i) - plane->getCenter());
+
+    if (intercept.x * intercept.x + intercept.y * intercept.y < Rsq) {
+      // In mirror, calculate intersection
+      Vec3 u      = Vec3(beam.directions + 3 * i);
+      Vec3 ut     = Mt * u; // Direction in the reference plane coordinates
+      Vec3 O      = Vec3(beam.origins + 3 * i);
+      Vec3 Ot     = Mt * (O - plane->getCenter());
+
+      Real a = ut.x;
+      Real b = ut.y;
+      Real c = ut.z;
+
+      Real eqA   = a * a + b * b;
+      Real eqB   = 2 * (a * Ot.x + b * Ot.y - 2 * m_flength);
+      Real eqC   = Ot.x * Ot.x + Ot.y * Ot.y - 4 * m_flength * Ot.z - Rsq;
+      Real Delta = eqB * eqB - 4 * eqA * eqC;
+      Real t;
+
+      if (eqA <= std::numeric_limits<Real>::epsilon()) {
+        t = -eqC / eqB;
+      } else if (Delta >= 0) {
+        t = .5 * (-eqB + sqrt(Delta)) / eqA;
+      } else {
+        beam.prune(i);
+        continue;
+      }
+
+      Vec3 destination(O + t * u);
+      Vec3 destt(Ot + t * ut);
+      Vec3 normal = M * Vec3(-2 * k * destt.x, -2 * k * destt.y, 1).normalized();
+
+      destination.copyToArray(beam.destinations + 3 * i);
+
+      u -= 2 * (u * normal) * normal;
+      u.copyToArray(beam.directions + 3 * i);
+      beam.lengths[i] = 10;
+    } else {
+      // Outside mirror
+      beam.prune(i);
+    }
+  }
+
+  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
+}
+
+////////////////////////// SphericalLensProcessor //////////////////////////////
 std::string
 SphericalLensProcessor::name() const
 {
-  return "SphericalMirror";
+  return "SphericalLens";
 }
 
 void

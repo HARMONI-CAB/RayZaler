@@ -1,29 +1,28 @@
-#include <SphericalMirror.h>
+#include <ParabolicMirror.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;
 
 void
-SphericalMirror::recalcModel()
+ParabolicMirror::recalcModel()
 {
-  GLfloat rCurv = 2 * m_flength;
-  m_displacement = sqrt(rCurv * rCurv - m_radius * m_radius);
-  m_depth = rCurv - m_displacement;
-  
-  m_cap.setRadius(rCurv);
-  m_cap.setHeight(m_depth);
-  
+  m_displacement = .25 * m_radius * m_radius / m_flength;
+
+  m_cap.setRadius(m_radius);
+  m_cap.setFocalLength(-m_flength);
+  m_cap.setInvertNormals(true);
+
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
   m_processor->setRadius(m_radius);
-  m_processor->setFocalLength(m_flength);
+  m_processor->setFocalLength(-m_flength);
 
-  m_reflectiveSurfaceFrame->setDistance((m_thickness + m_depth) * Vec3::eZ());
+  m_reflectiveSurfaceFrame->setDistance((m_thickness + m_displacement) * Vec3::eZ());
 }
 
 bool
-SphericalMirror::propertyChanged(
+ParabolicMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
@@ -44,17 +43,17 @@ SphericalMirror::propertyChanged(
 }
 
 
-SphericalMirror::SphericalMirror(
+ParabolicMirror::ParabolicMirror(
   ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new SphericalMirrorProcessor;
+  m_processor = new ParabolicMirrorProcessor;
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
-  registerProperty("flength",       1.);
+  registerProperty("flength",     5e-2);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
@@ -66,14 +65,14 @@ SphericalMirror::SphericalMirror(
   refreshProperties();
 }
 
-SphericalMirror::~SphericalMirror()
+ParabolicMirror::~ParabolicMirror()
 {
   if (m_processor != nullptr)
     delete m_processor;
 }
 
 void
-SphericalMirror::nativeMaterialOpenGL(std::string const &)
+ParabolicMirror::nativeMaterialOpenGL(std::string const &)
 {
   GLVectorStorage vec;
   GLfloat shiny = 128;
@@ -85,15 +84,15 @@ SphericalMirror::nativeMaterialOpenGL(std::string const &)
 }
 
 void
-SphericalMirror::renderOpenGL()
+ParabolicMirror::renderOpenGL()
 {
   material("mirror");
 
-  glTranslatef(0, 0, m_depth);
+  glTranslatef(0, 0,  m_displacement);
   m_cylinder.display();
 
   glRotatef(180, 1, 0, 0);
-  glTranslatef(0, 0, -m_thickness - m_displacement);
+  glTranslatef(0, 0, -m_thickness);
 
   material("input.mirror");
   m_cap.display();
@@ -101,16 +100,16 @@ SphericalMirror::renderOpenGL()
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-SphericalMirrorFactory::name() const
+ParabolicMirrorFactory::name() const
 {
-  return "SphericalMirror";
+  return "ParabolicMirror";
 }
 
 Element *
-SphericalMirrorFactory::make(
+ParabolicMirrorFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new SphericalMirror(this, name, pFrame, parent);
+  return new ParabolicMirror(this, name, pFrame, parent);
 }

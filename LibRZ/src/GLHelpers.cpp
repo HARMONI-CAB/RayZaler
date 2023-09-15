@@ -185,8 +185,6 @@ GLTube::display()
   }
 }
 
-
-
 //////////////////////////// GLSphericalCap //////////////////////////////////
 GLSphericalCap::GLSphericalCap()
 {
@@ -319,6 +317,160 @@ GLSphericalCap::setInvertNormals(bool inv)
 
 void
 GLSphericalCap::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_vertices.data());
+  glNormalPointer(GL_FLOAT,      3 * sizeof(GLfloat), m_normals.data());
+  glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), m_texCoords.data());
+
+  glDrawElements(
+    GL_TRIANGLES,
+    (unsigned int) m_indices.size(),
+    GL_UNSIGNED_INT,
+    m_indices.data());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+//////////////////////////// GLSphericalCap //////////////////////////////////
+GLParabolicCap::GLParabolicCap()
+{
+  m_quadric = gluNewQuadric();
+}
+
+GLParabolicCap::~GLParabolicCap()
+{
+  gluDeleteQuadric(m_quadric);
+}
+
+//
+// Inspired in http://www.songho.ca/opengl/gl_sphere.html
+//
+void
+GLParabolicCap::recalculate()
+{
+  GLint i, j, n    = 0, total;
+  GLfloat angDelta = 2 * M_PI / m_sectors;
+  GLfloat rDelta   = m_radius / m_stacks;
+  GLfloat secDelta = 1.f / m_sectors;
+  GLfloat stDelta  = 1.f / m_stacks;
+  GLfloat k        = .25 / m_flength;
+  GLfloat R2       = m_radius * m_radius;
+  GLint k1, k2;
+
+  total = (m_stacks + 1) * (m_sectors + 1);
+  m_vertices.resize(3 * total);
+  m_normals.resize(3 * total);
+  m_texCoords.resize(2 * total);
+
+  // This loop traverses the radius
+  for (j = 0; j <= m_stacks; ++j) {
+    GLfloat r = rDelta * j;
+    GLfloat nInv = 1. / sqrt(4 * k * k * r * r + 1);
+    if (m_invertNormals)
+      nInv = -nInv;
+
+    // And this other one, the angles
+    for (i = 0; i <= m_sectors; ++i) {
+      GLfloat ang = i * angDelta;
+      
+      GLfloat x = r * cosf(ang);
+      GLfloat y = r * sinf(ang);
+      
+      m_vertices[3 * n + 0] = x;
+      m_vertices[3 * n + 1] = y;
+      m_vertices[3 * n + 2] = k * (x * x + y * y - R2);
+
+      m_normals[3 * n + 0] = -2 * k * x * nInv;
+      m_normals[3 * n + 1] = -2 * k * y * nInv;
+      m_normals[3 * n + 2] = nInv;
+
+      m_texCoords[2 * n + 0] = i * secDelta;
+      m_texCoords[2 * n + 1] = j * stDelta;
+
+      ++n;
+    }
+  }
+
+  // Calculate indices
+  total = 2 * m_sectors * m_stacks - m_sectors;
+  n     = 0;
+  m_indices.resize(6 * total);
+  int d1, d2;
+
+  d1 = m_invertNormals ? 2 : 1;
+  d2 = m_invertNormals ? 1 : 2;
+
+  for(i = 0; i < m_stacks; ++i) {
+    k1 = i * (m_sectors + 1);     // beginning of current stack
+    k2 = k1 + m_sectors + 1;      // beginning of next stack
+
+    for(j = 0; j < m_sectors; ++j, ++k1, ++k2) {
+      // 2 triangles per sector excluding first and last stacks
+      // k1 => k2 => k1+1
+      if (i != 0) {
+        m_indices[3 * n +  0] = k1;
+        
+        m_indices[3 * n + d1] = k2;
+        m_indices[3 * n + d2] = k1 + 1;
+        ++n;
+      }
+
+      // k1+1 => k2 => k2+1
+      m_indices[3 * n +  0] = k1 + 1;
+      m_indices[3 * n + d1] = k2;
+      m_indices[3 * n + d2] = k2 + 1;
+      ++n;
+    }
+  }
+
+  m_dirty = false;
+}
+
+void
+GLParabolicCap::setFocalLength(GLdouble height)
+{
+  m_flength = height;
+  m_dirty   = true;
+}
+
+void
+GLParabolicCap::setRadius(GLdouble radius)
+{
+  m_radius = radius;
+  m_dirty  = true;
+}
+
+void
+GLParabolicCap::setSectors(GLint slices)
+{
+  m_sectors = slices;
+  m_dirty   = true;
+}
+
+void
+GLParabolicCap::setStacks(GLint stacks)
+{
+  m_stacks = stacks;
+  m_dirty  = true;
+}
+
+void
+GLParabolicCap::setInvertNormals(bool inv)
+{
+  m_invertNormals = inv;
+  m_dirty         = true;
+}
+
+void
+GLParabolicCap::display()
 {
   if (m_dirty)
     recalculate();

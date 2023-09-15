@@ -34,6 +34,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Obstruction.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
+  ${LIBRZ_SRCDIR}/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/RayBeamElement.cpp
   ${LIBRZ_SRCDIR}/RayProcessors.cpp
@@ -72,6 +73,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Obstruction.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
+  ${LIBRZ_INCLUDEDIR}/ParabolicMirror.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/RayBeamElement.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors.h

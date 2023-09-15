@@ -8,6 +8,7 @@
 #include <Detector.h>
 #include <FlatMirror.h>
 #include <Obstruction.h>
+#include <ParabolicMirror.h>
 #include <RayBeamElement.h>
 #include <RodElement.h>
 #include <SphericalMirror.h>
@@ -24,7 +25,7 @@ RZ::RZInit()
   if (g_initialized)
     return;
   g_initialized = true;
-  
+
   Singleton *singleton = Singleton::instance();
 
   Singleton::instance()->registerElementFactory(new ApertureStopFactory);
@@ -34,6 +35,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
   Singleton::instance()->registerElementFactory(new ObstructionFactory);
+  Singleton::instance()->registerElementFactory(new ParabolicMirrorFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
   Singleton::instance()->registerElementFactory(new RodElementFactory);
   Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
