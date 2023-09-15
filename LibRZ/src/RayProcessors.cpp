@@ -214,7 +214,7 @@ ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
       Real c = ut.z;
 
       Real eqA   = a * a + b * b;
-      Real eqB   = 2 * (a * Ot.x + b * Ot.y - 2 * m_flength);
+      Real eqB   = 2 * (a * Ot.x + b * Ot.y - 2 * m_flength * c);
       Real eqC   = Ot.x * Ot.x + Ot.y * Ot.y - 4 * m_flength * Ot.z - Rsq;
       Real Delta = eqB * eqB - 4 * eqA * eqC;
       Real t;
