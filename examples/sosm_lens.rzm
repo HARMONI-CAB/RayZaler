@@ -37,15 +37,15 @@ dof f_adjust   = 0.0095;
 rotate(-45, 1, 0, 0)
   SOSM osm(x = x0 + 5 * sin(0.025 * t), y = y0 + 5 * sin(0.15/4 * t));
 
-translate(dz = 0.25, dy = -35e-3) {
+translate(dz = 0.125, dy = -35e-3) {
   rotate(180, 0, 0, 1) {
     rotate(-135, 1, 0, 0)
       FlatMirror foldingMirror(radius = 50e-3, thickness = 5e-3);
   
-    translate(dy = -0.25) {
+    translate(dy = -0.125) {
       rotate(270, 1, 0, 0) {
-  	ConvexLens lens(curvature = 60e-3, radius = 20e-3, thickness = 1e-3, n = 1.1);
-          translate(dz = 285e-3 + f_adjust) Detector det;
+  	ConvexLens lens(curvature = 40e-3, radius = 20e-3, thickness = 1e-3, n = 1.5);
+        on outputFocalPlane of lens Detector det;
       }
     }
   }

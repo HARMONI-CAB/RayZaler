@@ -11,7 +11,7 @@
 using namespace RZ;
 
 std::list<std::string>
-GenericEvaluator::symbols()
+GenericEvaluator::symbols() const
 {
   std::list<std::string> list;
 
@@ -19,6 +19,20 @@ GenericEvaluator::symbols()
     list.push_back(p.first);
 
   return list;
+}
+
+bool
+GenericEvaluator::registerCustomFunction(GenericCustomFunction *func)
+{
+  m_funcList.push_back(func);
+
+  return true;
+}
+
+std::list<GenericCustomFunction *>
+GenericEvaluator::functions() const
+{
+  return m_funcList;
 }
 
 ExprRandomState *

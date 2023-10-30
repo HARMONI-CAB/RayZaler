@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(LIBRZ_LIBDIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 
-find_package(BISON)
+find_package(BISON REQUIRED)
+find_package(Python OPTIONAL_COMPONENTS Development)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 include(FindPNG++)
@@ -91,6 +92,17 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h)
 
+if(Python_FOUND)
+  set(LIBRZ_SOURCES
+    ${LIBRZ_SOURCES}
+    ${LIBRZ_SRCDIR}/PythonAPI.cpp
+    ${LIBRZ_SRCDIR}/ScriptLoader.cpp)
+
+  set(LIBRZ_HEADERS
+    ${LIBRZ_HEADERS}
+    ${LIBRZ_INCLUDEDIR}/ScriptLoader.h)
+endif()
+
 BISON_TARGET(
   OMFParser 
   ${LIBRZ_GRAMMARDIR}/model.yy
@@ -104,6 +116,12 @@ add_library(
   ${LIBRZ_HEADERS}
   ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/parser.h)
+
+if(Python_FOUND)
+  target_compile_options(RZ PRIVATE "-DPYTHON_SCRIPT_SUPPORT")
+  target_include_directories(RZ PRIVATE ${Python_INCLUDE_DIRS})
+  target_link_libraries(RZ PRIVATE ${Python_LIBRARIES})
+endif()
 
 target_include_directories(RZ PRIVATE ${LIBRZ_INCLUDEDIR} ${PNG++_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(RZ PRIVATE ${PNG++_LIBRARIES})

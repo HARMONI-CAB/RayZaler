@@ -20,6 +20,7 @@ namespace RZ {
       virtual bool compile(std::string const &) override;
       virtual Real evaluate() override;
       std::string getLastParserError() const;
+      virtual bool registerCustomFunction(GenericCustomFunction *) override;
   };
 }
 

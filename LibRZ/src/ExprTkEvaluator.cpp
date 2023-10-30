@@ -13,6 +13,114 @@ namespace RZ {
   struct RandU;
   struct RandN;
 
+  struct ExprTkGenericCaller : public exprtk::ifunction<Real> {
+    GenericCustomFunction *m_func = nullptr;
+
+    ExprTkGenericCaller(GenericCustomFunction *func)
+      : exprtk::ifunction<RZ::Real>(func->argc)
+    {
+      m_func = func;
+    }
+
+    Real
+    operator()()
+    {
+      return m_func->evaluate(nullptr, 0);
+    }
+
+    Real
+    operator()(
+      Real const &a0)
+    {
+      Real args[] = {a0};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1)
+    {
+      Real args[] = {a0, a1};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2)
+    {
+      Real args[] = {a0, a1, a2};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2,
+      Real const &a3)
+    {
+      Real args[] = {a0, a1, a2, a3};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2,
+      Real const &a3,
+      Real const &a4)
+    {
+      Real args[] = {a0, a1, a2, a3, a4};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2,
+      Real const &a3,
+      Real const &a4,
+      Real const &a5)
+    {
+      Real args[] = {a0, a1, a2, a3, a4, a5};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2,
+      Real const &a3,
+      Real const &a4,
+      Real const &a5,
+      Real const &a6)
+    {
+      Real args[] = {a0, a1, a2, a3, a4, a5, a6};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+
+    Real
+    operator()(
+      Real const &a0,
+      Real const &a1,
+      Real const &a2,
+      Real const &a3,
+      Real const &a4,
+      Real const &a5,
+      Real const &a6,
+      Real const &a7)
+    {
+      Real args[] = {a0, a1, a2, a3, a4, a5, a6, a7};
+      return m_func->evaluate(args, sizeof(args) / sizeof(Real));
+    }
+  };
+
   struct RandomFunction : public exprtk::ifunction<Real> {
     ExprRandomState *m_state    = nullptr;
     ExprRandomState *m_ownState = nullptr;
@@ -42,6 +150,7 @@ namespace RZ {
     exprtk_expr_t          m_expr;
     exprtk_parser_t        m_parser;
     std::list<std::string> m_deps;
+    std::list<ExprTkGenericCaller> m_customFuncs;
     ExprRandomState       *m_state;
     RandU                 *m_uniform;
     RandN                 *m_normal;
@@ -56,6 +165,7 @@ namespace RZ {
     Real evaluate();
     std::list<std::string> const &dependencies() const;
     std::string getLastParserError() const;
+    bool registerCustomFunction(GenericCustomFunction *func);
   };
 }
 
@@ -174,6 +284,14 @@ ExprTkEvaluatorImpl::~ExprTkEvaluatorImpl()
 }
 
 bool
+ExprTkEvaluatorImpl::registerCustomFunction(GenericCustomFunction *func)
+{
+  m_customFuncs.push_back(ExprTkGenericCaller(func));
+  auto &last = m_customFuncs.back();
+  return m_symTab.add_function(func->name, last);
+}
+
+bool
 ExprTkEvaluatorImpl::compile(std::string const &expr)
 {
   bool ret = m_parser.compile(expr, m_expr);
@@ -224,6 +342,12 @@ std::list<std::string>
 ExprTkEvaluator::dependencies() const
 {
   return p_impl->dependencies();
+}
+
+bool
+ExprTkEvaluator::registerCustomFunction(GenericCustomFunction *func)
+{
+  return p_impl->registerCustomFunction(func);
 }
 
 bool

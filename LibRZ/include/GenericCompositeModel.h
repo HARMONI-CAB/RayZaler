@@ -49,26 +49,34 @@ namespace RZ {
     Real randn();
   };
 
+  
+  struct GenericCustomFunction {
+    std::string name;
+    unsigned argc;
+    virtual Real evaluate (Real const *args, unsigned argc) = 0;
+  };
+
   class GenericEvaluator {
       GenericEvaluatorSymbolDict *m_dict = nullptr;
       ExprRandomState            *m_randState = nullptr;
       ExprRandomState            *m_ownState  = nullptr;
+      std::list<GenericCustomFunction *> m_funcList; // Borrowed
 
     protected:
-      std::list<std::string> symbols();
+      std::list<std::string> symbols() const;
+      std::list<GenericCustomFunction *> functions() const;
       Real *resolve(std::string const &);
       ExprRandomState *randState() const;
 
     public:
       GenericEvaluator(GenericEvaluatorSymbolDict *, ExprRandomState *);
       virtual ~GenericEvaluator();
+      virtual bool registerCustomFunction(GenericCustomFunction *);
 
       virtual std::list<std::string> dependencies() const = 0;
       virtual bool compile(std::string const &) = 0;
       virtual Real evaluate() = 0;
-      
   };
-
 
   // This describes how a parameter of an element or a frame is calculated
   struct GenericComponentParamEvaluator {
