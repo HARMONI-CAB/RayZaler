@@ -291,24 +291,23 @@ void
 MainWindow::doOpen()
 {
   bool done = false;
+  QStringList filters;
 
-  if (m_openDialog == nullptr) {
-    m_openDialog = new QFileDialog(this);
-    QStringList filters;
+  filters <<
+              "RayZaler model files (*.rzm)" <<
+              "All files (*)";
 
-    filters <<
-               "RayZaler model files (*.rzm)" <<
-               "All files (*)";
-
-    m_openDialog->setFileMode(QFileDialog::ExistingFile);
-    m_openDialog->setNameFilters(filters);
+  if (m_lastOpenDir.size() == 0)
     m_lastOpenDir = QDir::currentPath();
-  }
-
+  
   do {
-    m_openDialog->setDirectory(m_lastOpenDir);
-    if (m_openDialog->exec()) {
-      auto files = m_openDialog->selectedFiles();
+    QFileDialog openDialog;
+    openDialog.setFileMode(QFileDialog::ExistingFile);
+    openDialog.setNameFilters(filters);
+    openDialog.setDirectory(m_lastOpenDir);
+
+    if (openDialog.exec()) {
+      auto files = openDialog.selectedFiles();
       if (files.size() > 0) {
         auto firstFile = files[0];
         QFileInfo info(firstFile);

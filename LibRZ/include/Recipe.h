@@ -127,6 +127,7 @@ namespace RZ {
       std::vector<RecipeElementStep *>   m_elementSteps;    // Tracks elements
       std::vector<RecipeOpticalPath *>   m_pathSteps;       // Optical paths
       std::vector<Recipe *>              m_subRecipes;      // Subrecipes to construct elements
+      std::list<std::string>             m_scripts;         // Python scripts
 
       std::vector<ParamAssignExpression *> m_elemParameters;  // Tracks how to configure elements
       std::vector<ParamAssignExpression *> m_frameParameters; // Tracks how to configure frames
@@ -174,6 +175,12 @@ namespace RZ {
       Recipe();
       ~Recipe();
 
+      inline std::list<std::string> const &
+      scripts() const
+      {
+        return m_scripts;
+      }
+      
       Recipe *parent() const;
       std::vector<RecipeContext *> const &contexts() const;
       std::vector<RecipeElementStep *> const &elements() const;
@@ -191,6 +198,8 @@ namespace RZ {
       RecipeOpticalPath *lookupOpticalPath(std::string const & = "") const;
       RecipeElementStep *resolveElement(std::string const &) const;
       Recipe            *makeCustomElement(std::string const &);
+      
+      bool addScript(std::string const &scriptPath);
       
       void pushRotation(
         std::string const &angle,

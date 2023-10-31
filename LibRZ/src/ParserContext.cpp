@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <algorithm>
 #include <libgen.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 int
 yylex(RZ::ParserContext *ctx)
@@ -294,6 +296,8 @@ ParserContext::tokenType() const
       return PORT_KEYWORD;
     else if (m_lastToken == "import")
       return IMPORT_KEYWORD;
+    else if (m_lastToken == "script")
+      return SCRIPT_KEYWORD;
     else
       return IDENTIFIER;
   } else if (isOperatorChar(m_lastToken[0])) {
@@ -412,6 +416,37 @@ ParserContext::pushOnPort(std::string const &name, std::string const &port)
   m_recipe->pushPortContext(element, port);
 }
 
+std::string
+ParserContext::resolvePath(std::string const &path)
+{
+  std::string absPath;
+
+  // Relative filename
+  if (path[0] != '/') {
+    for (auto p : m_searchPaths) {
+      absPath = p + "/" + path;
+      if (access(absPath.c_str(), F_OK) != -1)
+        return absPath;
+    }
+
+    return "";
+  }
+
+  return path;
+}
+
+void
+ParserContext::script(std::string const &path)
+{
+  std::string absPath;
+
+  absPath = resolvePath(path);
+  if (absPath.empty())
+    throw std::runtime_error("Cannot resolve relative script path `" + path + "'");
+  
+  m_recipe->addScript(absPath);
+}
+
 void
 ParserContext::import(std::string const &path)
 {
@@ -423,22 +458,11 @@ ParserContext::import(std::string const &path)
   if (m_recursion >= PARSER_CONTEXT_MAX_RECURSION)
     throw std::runtime_error("Too many nested imports");
   
-  // Relative filename
-  if (path[0] != '/') {
-    for (auto p : m_searchPaths) {
-      absPath = p + "/" + path;
-      fp = fopen(absPath.c_str(), "r");
-      if (fp != nullptr)
-        break;    
-    }
-
-    if (fp == nullptr)
-      absPath = path;
-  } else {
-    absPath = path;
-    fp = fopen(absPath.c_str(), "r");
-  }
-
+  absPath = resolvePath(path);
+  if (absPath.empty())
+    throw std::runtime_error("Cannot resolve relative import `" + path + "'");
+  
+  fp = fopen(absPath.c_str(), "r");
   if (fp == nullptr) {
     throw std::runtime_error(
       "Cannot open import file `" 

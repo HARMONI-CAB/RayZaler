@@ -26,7 +26,6 @@ class MainWindow : public QMainWindow, public RZ::Logger
   std::list<SimulationSession *> m_sessions;
   QMap<SimulationSession *, SessionTabWidget *> m_sessionToTab;
 
-  QFileDialog                *m_openDialog = nullptr;
   QString                     m_lastOpenDir;
   SimulationPropertiesDialog *m_simPropertiesDialog = nullptr;
   PropertyAndDofTableModel   *m_propModel = nullptr;

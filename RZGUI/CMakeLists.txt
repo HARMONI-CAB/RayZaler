@@ -78,6 +78,8 @@ else()
 endif()
 
 target_link_directories(RZGUI PRIVATE ${LIBRZ_LIBDIR})
+target_compile_options(RZGUI PRIVATE ${LIBRZ_CFLAGS})
+
 target_link_libraries(
   RZGUI PRIVATE
   RZ

@@ -8,6 +8,10 @@
 #include <cassert>
 #include <Logger.h>
 
+#ifdef PYTHON_SCRIPT_SUPPORT
+#  include <ScriptLoader.h>
+#endif // PYTHON_SCRIPT_SUPPORT
+
 using namespace RZ;
 
 std::list<std::string>
@@ -237,6 +241,33 @@ GenericCompositeModel::assignEverything()
 }
 
 bool
+GenericCompositeModel::loadScript(std::string const &path)
+{
+#ifdef PYTHON_SCRIPT_SUPPORT
+  ScriptLoader *loader = ScriptLoader::instance();
+
+  if (loader == nullptr) {
+    RZError("Failed to acquire ScriptLoader singleton\n");
+    return false;
+  }
+
+  Script *script = loader->load(path);
+
+  if (script == nullptr)
+    return false;
+
+  m_scripts.push_back(script);
+  return true;
+
+#else
+  RZError(
+    "Cannot load script `%s': Python support disabled at compile time\n",
+    path.c_str());
+  return false;
+#endif
+}
+
+bool
 GenericCompositeModel::setParam(std::string const &name, Real value)
 {
   GenericModelParam *param = lookupParam(name);
@@ -342,6 +373,7 @@ GenericCompositeModel::build(
   m_prefix = prefix;
 
   createParams();
+  loadScripts();
   initGlobalScope();
   registerCustomElements();
   createFrames(parent);
@@ -608,15 +640,35 @@ GenericCompositeModel::createParams()
   }
 }
 
+void
+GenericCompositeModel::loadScripts()
+{
+  auto &scripts = m_recipe->scripts();
+
+  for (auto &p : scripts)
+    if (!loadScript(p))
+      throw std::runtime_error("Failed to load Python script `" + p + "'");
+}
+
 GenericComponentParamEvaluator *
 GenericCompositeModel::makeExpression(
   std::string const &expr,
   GenericEvaluatorSymbolDict *dict)
 {
   GenericComponentParamEvaluator *paramEvaluator = new GenericComponentParamEvaluator();
+  std::list<GenericCustomFunction *> customFuncs;
 
-  auto evaluator = allocateEvaluator(expr, dict, randState());
-  
+#ifdef PYTHON_SCRIPT_SUPPORT
+  for (auto p : m_scripts) {
+    auto &funcs = p->customFunctions();
+
+    for (auto &q : funcs)
+      customFuncs.push_back(static_cast<GenericCustomFunction *>(&q));
+  }
+#endif // PYTHON_SCRIPT_SUPPORT
+
+  auto evaluator = allocateEvaluator(expr, dict, customFuncs, randState());
+
   paramEvaluator->evaluator = evaluator;
   
   m_expressions.push_back(paramEvaluator);

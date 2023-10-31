@@ -25,6 +25,10 @@ namespace RZ {
   class OMModel;
   class ExprRandomState;
 
+#ifdef PYTHON_SCRIPT_SUPPORT
+  class Script;
+#endif // PYTHON_SCRIPT_SUPPORT
+
   enum GenericModelParamType {
     GENERIC_MODEL_PARAM_TYPE_ELEMENT,
     GENERIC_MODEL_PARAM_TYPE_ROTATED_FRAME,
@@ -125,6 +129,10 @@ namespace RZ {
       ExprRandomState               m_ownState;
       ExprRandomState              *m_randState;
 
+#ifdef PYTHON_SCRIPT_SUPPORT
+      std::list<Script *>           m_scripts;
+#endif // PYTHON_SCRIPT_SUPPORT
+
       unsigned int m_completedFrames = 0;
       unsigned int m_completedElements = 0;
 
@@ -145,6 +153,7 @@ namespace RZ {
       void initGlobalScope();
       void registerCustomElements();
       void createFrames(ReferenceFrame *);
+      void loadScripts();
       void resolvePorts();
       void createDelayedElements();
       void createElementInside(RecipeElementStep *step, ReferenceFrame *pFrame);
@@ -188,6 +197,7 @@ namespace RZ {
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
         GenericEvaluatorSymbolDict *dict,
+        std::list<GenericCustomFunction *> const &functions,
         ExprRandomState *state) = 0;
 
       virtual void exposePort(
@@ -211,6 +221,7 @@ namespace RZ {
       GenericModelParam *lookupDof(std::string const &);
       GenericCompositeModel *parentCompositeModel() const;
 
+      bool loadScript(std::string const &path);
       bool setParam(std::string const &, Real);
       bool setDof(std::string const &, Real);
 

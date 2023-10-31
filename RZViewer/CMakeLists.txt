@@ -19,6 +19,7 @@ add_executable(RZViewer ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_directories(RZViewer PRIVATE ${LIBRZ_LIBDIR})
 target_link_libraries(RZViewer PRIVATE RZ ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
+target_compile_options(RZViewer PRIVATE ${LIBRZ_CFLAGS})
 
 target_include_directories(
   RZViewer

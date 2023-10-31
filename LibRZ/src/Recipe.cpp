@@ -186,6 +186,13 @@ Recipe::makeCustomElement(std::string const &name)
   return recipe;
 }
 
+bool
+Recipe::addScript(std::string const &scriptPath)
+{
+  m_scripts.push_back(scriptPath);
+  return true;
+}
+
 RecipeElementStep *
 Recipe::resolveElement(std::string const &name) const
 {

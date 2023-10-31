@@ -118,10 +118,12 @@ add_library(
   ${CMAKE_CURRENT_BINARY_DIR}/parser.h)
 
 if(Python_FOUND)
-  target_compile_options(RZ PRIVATE "-DPYTHON_SCRIPT_SUPPORT")
+  set(LIBRZ_LOCAL_CFLAGS "-DPYTHON_SCRIPT_SUPPORT")
+  target_compile_options(RZ PRIVATE ${LIBRZ_LOCAL_CFLAGS})
   target_include_directories(RZ PRIVATE ${Python_INCLUDE_DIRS})
   target_link_libraries(RZ PRIVATE ${Python_LIBRARIES})
 endif()
 
+set(LIBRZ_CFLAGS ${LIBRZ_LOCAL_CFLAGS} PARENT_SCOPE)
 target_include_directories(RZ PRIVATE ${LIBRZ_INCLUDEDIR} ${PNG++_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(RZ PRIVATE ${PNG++_LIBRARIES})

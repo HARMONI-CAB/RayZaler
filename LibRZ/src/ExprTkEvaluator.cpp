@@ -347,6 +347,7 @@ ExprTkEvaluator::dependencies() const
 bool
 ExprTkEvaluator::registerCustomFunction(GenericCustomFunction *func)
 {
+  GenericEvaluator::registerCustomFunction(func);
   return p_impl->registerCustomFunction(func);
 }
 

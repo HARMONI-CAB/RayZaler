@@ -32,9 +32,13 @@ GenericEvaluator *
 CompositeElement::allocateEvaluator(
   std::string const &expr,
   GenericEvaluatorSymbolDict *dict,
+  std::list<GenericCustomFunction *> const &functions,
   ExprRandomState *state)
 {
   ExprTkEvaluator *eval = new ExprTkEvaluator(dict, state);
+
+  for (auto p : functions)
+    eval->registerCustomFunction(p);
 
   if (!eval->compile(expr)) {
     std::string error = eval->getLastParserError();

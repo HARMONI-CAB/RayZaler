@@ -121,7 +121,7 @@ namespace RZ {
       bool returnChar();
       bool lexNonString(int c);
       bool lexString(int c);
-
+      std::string resolvePath(std::string const &path);
       friend int  ::yylex(ParserContext *ctx);
       friend void ::yyerror(ParserContext *ctx, const char *msg);
       friend int  ::yyparse(RZ::ParserContext *ctx);
@@ -135,6 +135,7 @@ namespace RZ {
       void error(const char *msg);
 
       void import(std::string const &);
+      void script(std::string const &);
       void registerParameter(ParserDOFDecl const &);
       void registerDOF(ParserDOFDecl const &);
       void registerPath(std::string const &name, std::list<std::string> const &);

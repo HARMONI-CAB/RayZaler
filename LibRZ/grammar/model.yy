@@ -11,7 +11,7 @@
 %token  NUM         "number"
 %token  IDENTIFIER  "identifier"
 %token  STRING      "string"
-%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD
+%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD SCRIPT_KEYWORD
 %nterm  expr
 
 %precedence '='
@@ -36,6 +36,7 @@ statement:
   | dof_stmt            
   | port_stmt
   | import_stmt
+  | script_stmt
   | compound_stmt       
   | element_def_stmt
   | error               { YYERROR; }
@@ -45,6 +46,10 @@ empty_stmt: ';'
 
 import_stmt:
     IMPORT_KEYWORD STRING ';'                     { ctx->import($2); }
+  ;
+
+script_stmt:
+    SCRIPT_KEYWORD STRING ';'                     { ctx->script($2); }
   ;
 
 element_stmt: 

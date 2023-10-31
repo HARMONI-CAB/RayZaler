@@ -15,6 +15,7 @@ add_executable(
 
 target_link_directories(RZTests PRIVATE ${LIBRZ_LIBDIR})
 
+target_compile_options(RZTests PRIVATE ${LIBRZ_CFLAGS})
 target_include_directories(
   RZTests
   PRIVATE ../LibRZ/include

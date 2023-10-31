@@ -14,6 +14,11 @@
 #include <SphericalMirror.h>
 #include <Tripod.h>
 #include <TubeElement.h>
+#include <Logger.h>
+
+#ifdef PYTHON_SCRIPT_SUPPORT
+#  include  <ScriptLoader.h>
+#endif
 
 using namespace RZ;
 
@@ -43,6 +48,14 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new TubeElementFactory);
 
   registerRayProcessors();
+
+#ifdef PYTHON_SCRIPT_SUPPORT
+  ScriptLoader *loader = ScriptLoader::instance();
+  if (loader == nullptr)
+    RZError("Failed to initialize Python VM: model scripts will not work!\n");
+#else
+  RZInfo("Python support disabled at compile time.\n");
+#endif // PYTHON_SCRIPT_SUPPORT
 
   Singleton::instance()->logInitMessage();
 }
