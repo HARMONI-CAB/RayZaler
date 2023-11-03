@@ -76,7 +76,7 @@ FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       Vec3 direction(beam.directions + 3 * i);
       direction -= 2 * (direction * normal) * normal;
       direction.copyToArray(beam.directions + 3 * i);
-      beam.lengths[i] = 10;
+      beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
     } else {
       // Outside mirror
       beam.prune(i);
@@ -159,7 +159,7 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
 
         u -= 2 * (u * normal) * normal;
         u.copyToArray(beam.directions + 3 * i);
-        beam.lengths[i] = 10;
+        beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
       }
     } else {
       // Outside mirror
@@ -236,7 +236,7 @@ ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
 
       u -= 2 * (u * normal) * normal;
       u.copyToArray(beam.directions + 3 * i);
-      beam.lengths[i] = 10;
+      beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
     } else {
       // Outside mirror
       beam.prune(i);
@@ -380,7 +380,6 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
       Vec3 u(beam.directions + 3 * i);
       Real uOC   = u * OC;
       Real Delta = uOC * uOC - OC * OC + Rcurv * Rcurv;
-      bool inverted = false;
 
       if (Delta < 0) {
         beam.prune(i);
@@ -401,7 +400,7 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
         // Some Snell
         u  = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
         u.copyToArray(beam.directions + 3 * i);
-        beam.lengths[i] = 10;
+        beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
       }
     } else {
       // Outside lens
@@ -411,6 +410,314 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
 
   memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }
+
+///////////////////////////// Lenslet Array ////////////////////////////////////
+// In the lenslet array we basically have an array of partially overlapped
+// convex surfaces.
+
+LensletArrayProcessor::LensletArrayProcessor()
+{
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::recalculateDimensions()
+{
+  if (m_dirty) {
+    m_lensletWidth  = m_width / m_cols;
+    m_lensletHeight = m_height / m_rows;
+    m_lensletRadius = 
+      .5 * sqrt(
+        m_lensletWidth * m_lensletWidth + m_lensletHeight * m_lensletHeight);
+
+    // Calculate curvature center
+    m_center = sqrt(m_rCurv * m_rCurv - m_lensletRadius * m_lensletRadius);
+    m_IOratio = m_muIn / m_muOut;
+    m_dirty = false;
+  }
+}
+
+void
+LensletArrayProcessor::setCurvatureRadius(Real rCurv)
+{
+  m_rCurv = rCurv;
+  m_dirty = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::setRefractiveIndex(Real in, Real out)
+{
+  m_muIn  = in;
+  m_muOut = out;
+  m_dirty = true;
+  recalculateDimensions();
+}
+      
+std::string
+LensletArrayProcessor::name() const
+{
+  return "LensletArrayProcessor";
+}
+
+void
+LensletArrayProcessor::setWidth(Real width)
+{
+  m_width = width;
+  m_dirty = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::setHeight(Real height)
+{
+  m_height = height;
+  m_dirty  = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::setCols(unsigned cols)
+{
+  m_cols  = cols;
+  m_dirty = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::setConvex(bool convex)
+{
+  m_convex = convex;
+}
+
+void
+LensletArrayProcessor::setRows(unsigned rows)
+{
+  m_rows  = rows;
+  m_dirty = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = beam.count;
+  uint64_t i;
+  Vec3 center  = plane->getCenter();
+  Vec3 tX      = plane->eX();
+  Vec3 tY      = plane->eY();
+  Vec3 normal  = plane->eZ();
+  Real Rcurv   = m_rCurv;
+  Real sign    = m_convex ? +1 : -1;
+  Vec3 Csphere = center + sign * m_center * normal;
+  Real Rsq     = m_lensletRadius * m_lensletRadius;
+  Real t;
+
+  Real halfW  = .5 * m_width;
+  Real halfH  = .5 * m_height;
+  
+  for (i = 0; i < count; ++i) {
+    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
+    Real coordX = coord * tX;
+    Real coordY = coord * tY;
+
+    if (fabs(coordX) < halfW && fabs(coordY) < halfH) {
+      // Determine which lenslet this ray belongs to
+      unsigned col = floor((coordX + halfW) / m_lensletWidth);
+      unsigned row = floor((coordY + halfH) / m_lensletHeight);
+
+      // Calculate lenslet center
+      Real lensOX = - halfW + (col + .5) * m_lensletWidth;
+      Real lensOY = - halfH + (row + .5) * m_lensletHeight;
+
+      // TODO: Abstract this smh. This is going to be used everywhere 
+      // Adjust origin to fit the template lens 
+      Vec3 lensOffset = lensOX * tX + lensOY * tY;
+      Vec3 O  = Vec3(beam.origins + 3 * i) - lensOffset;
+      Vec3 OC = O - Csphere;
+      Vec3 u(beam.directions + 3 * i);
+      Real uOC   = u * OC;
+      Real Delta = uOC * uOC - OC * OC + Rcurv * Rcurv;
+
+      if (Delta < 0) {
+        beam.prune(i);
+      } else {
+        Real sqDelta = sqrt(Delta);
+        t = m_convex ? -uOC - sqDelta : -uOC + sqDelta;
+        
+        // Calculation of lens intersection
+        Vec3 destination(O + t * u);
+        Vec3 normal = (destination - Csphere).normalized();
+        
+        if (!m_convex)
+          normal = -normal;
+        Vec3 nXu    = m_IOratio * normal.cross(u);
+
+        destination += lensOffset;
+        destination.copyToArray(beam.destinations + 3 * i);
+
+        // Some Snell
+        u  = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+        u.copyToArray(beam.directions + 3 * i);
+        beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
+      }
+    } else {
+      // Outside lens
+      beam.prune(i);
+    }
+  }
+
+  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
+}
+
+////////////////////////// PhaseScreenProcessor //////////////////////////////
+std::string
+PhaseScreenProcessor::name() const
+{
+  return "PhaseScreenProcessor";
+}
+
+void
+PhaseScreenProcessor::setRadius(Real R)
+{
+  m_radius = R;
+}
+
+void
+PhaseScreenProcessor::setCoef(unsigned int ansi, Real value)
+{
+  if (ansi >= m_poly.size()) {
+    size_t oldSize = m_poly.size();
+    m_poly.resize(ansi + 1);
+    m_coef.resize(ansi + 1);
+
+    while (oldSize <= ansi) {
+      m_poly[oldSize] = Zernike(oldSize);
+      m_coef[oldSize] = 0.;
+      ++oldSize;
+    }
+  }
+
+  m_coef[ansi] = value;
+}
+
+void
+PhaseScreenProcessor::setRefractiveIndex(Real in, Real out)
+{
+  m_muIn    = in;
+  m_muOut   = out;
+  m_IOratio = in / out;
+}
+
+Real
+PhaseScreenProcessor::Z(Real x, Real y) const
+{
+  Real val = 0;
+  unsigned count = m_coef.size();
+
+  for (unsigned i = 0; i < count; ++i)
+    val += m_coef[i] * m_poly[i](x, y);
+
+  return val;
+}
+
+Real
+PhaseScreenProcessor::dZdx(Real x, Real y) const
+{
+  Real val = 0;
+  unsigned count = m_coef.size();
+
+  for (unsigned i = 0; i < count; ++i)
+    val += m_coef[i] * m_poly[i].gradX(x, y);
+
+  return val;
+}
+
+Real
+PhaseScreenProcessor::dZdy(Real x, Real y) const
+{
+  Real val = 0;
+  unsigned count = m_coef.size();
+
+  for (unsigned i = 0; i < count; ++i)
+    val += m_coef[i] * m_poly[i].gradY(x, y);
+
+  return val;
+}
+
+void
+PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = beam.count;
+  uint64_t i;
+  Vec3 center  = plane->getCenter();
+  Vec3 tX      = plane->eX();
+  Vec3 tY      = plane->eY();
+  Vec3 normal  = plane->eZ();
+  Real Rinv    = 1. / m_radius;
+  Real Rsq     = m_radius * m_radius;
+
+  for (i = 0; i < count; ++i) {
+    Vec3 coord  = Vec3(beam.destinations + 3 * i) - center;
+    Real coordX = coord * tX;
+    Real coordY = coord * tY;
+
+    //  In the capture surface
+    if (coordX * coordX + coordY * coordY < Rsq) {
+      // 
+      // In phase screens, we do not adjust an intercept point, but the
+      // direction of the outgoing ray. This is done by estimating the
+      // gradient of the equivalent height at the interception point.
+      //
+      // We start by remarking that the Zernike expansion represents the
+      // height of the "equivalent" surface. The units of grad(Z) are therefore
+      // dimensionless and represent the tangent of the slope at that point,
+      // calculated as dz/dx and dz/dy
+      // 
+      // We can obtain the normal as follows. Consider the points in the 3D
+      // surface defined as:
+      //
+      //   p(x, y) = (x, y, Z(x, y))^T \forall x, y in D
+      //
+      // With the points x, y normalized by the aperture radius:
+
+      Real x = coordX * Rinv;
+      Real y = coordY * Rinv;
+
+      // An infinitesimal variation of this points of x' = x + dx and 
+      // y' = y + dy introduces a change in the 3D point in the directions:
+      //
+      //   Vx = dp/dx(x, y) = (1, 0, dZ(x, y)/dx)^T
+      //   Vy = dp/dy(x, y) = (0, 1, dZ(x, y)/dy)^T
+      //
+
+      Vec3 Vx = tX + normal * dZdx(x, y);
+      Vec3 Vy = tY + normal * dZdy(x, y);
+
+      //
+      // These two vectors form a triangle with a vertex in (x, y, Z(x, y)). Also,
+      // if Z is smooth, these vectors are always linearly independent. 
+      // Therefore, we can calculate their cross product Vx x Vy, which
+      // happens to have the same direction as the surface normal.
+      //
+      
+      Vec3 tiltNormal = Vy.cross(Vx).normalized();
+      Vec3 u(beam.directions + 3 * i);
+      Vec3 nXu    = m_IOratio * tiltNormal.cross(u);
+
+      // And apply Snell again
+      u  = -tiltNormal.cross(nXu) - tiltNormal * sqrt(1 - nXu * nXu);
+      u.copyToArray(beam.directions + 3 * i);
+      beam.lengths[i] = RZ_OUTBOUND_RAY_LENGTH;
+    } else {
+      // Outside aperture
+      beam.prune(i);
+    }
+  }
+
+  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
+}
+
 
 ///////////////////////////// Aperture Stop ////////////////////////////////////
 std::string

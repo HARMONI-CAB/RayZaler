@@ -2,6 +2,10 @@
 #define _RAYPROCESSORS_H
 
 #include <RayTracingEngine.h>
+#include <vector>
+#include "Zernike.h"
+
+#define RZ_OUTBOUND_RAY_LENGTH 10
 
 namespace RZ {
   class ReferenceFrame;
@@ -47,6 +51,21 @@ namespace RZ {
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
 
+  class SquareFlatSurfaceProcessor: public RayTransferProcessor {
+      Real m_width  = .1;
+      Real m_height = .1;
+      Real m_muOut  = 1.5;
+      Real m_muIn   = 1;
+      Real m_IOratio = 1 / 1.5;
+
+    public:
+      void setWidth(Real);
+      void setHeight(Real);
+      void setRefractiveIndex(Real , Real);
+      virtual std::string name() const override;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
   class SphericalLensProcessor : public RayTransferProcessor {
       Real m_radius = .5;
       Real m_rCurv  =  1;
@@ -68,11 +87,79 @@ namespace RZ {
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
 
+  
+  class LensletArrayProcessor : public RayTransferProcessor {
+      Real m_width         = 100e-3;
+      Real m_height        = 100e-3;
+      Real m_lensletWidth  = 10e-3;
+      Real m_lensletHeight = 10e-3;
+      Real m_lensletRadius;
+      Real m_rCurv         = 1;
+      Real m_muOut         = 1.5;
+      Real m_muIn          = 1;
+      Real m_IOratio       = 1 / 1.5;
+      Real m_convex        = true;
+      Real m_center        = .866;
+
+      unsigned int m_cols          = 10; // X dimension
+      unsigned int m_rows          = 10; // Y dimension
+      bool         m_dirty         = true;
+
+      void recalculateDimensions();
+
+    public:
+      Real
+      lensletRadius() const {
+        return m_lensletRadius;
+      }
+
+      LensletArrayProcessor();
+      void setCurvatureRadius(Real);
+      void setRefractiveIndex(Real, Real);
+      void setConvex(bool);
+      void setWidth(Real);
+      void setHeight(Real);
+      void setCols(unsigned);
+      void setRows(unsigned);
+      virtual std::string name() const override;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
+  class SquareApertureStopProcessor : public RayTransferProcessor {
+      Real m_width  = .1;
+      Real m_height = .1;
+
+    public:
+      void setRadius(Real);
+      virtual std::string name() const;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
   class ApertureStopProcessor : public RayTransferProcessor {
       Real m_radius = .5;
 
     public:
       void setRadius(Real);
+      virtual std::string name() const;
+      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+  };
+
+  class PhaseScreenProcessor : public RayTransferProcessor {
+      Real m_radius        = .5;
+      std::vector<Zernike> m_poly;
+      std::vector<Real>    m_coef;
+      Real m_muOut         = 1.5;
+      Real m_muIn          = 1;
+      Real m_IOratio       = 1 / 1.5;
+
+      Real Z(Real x, Real y) const;
+      Real dZdx(Real x, Real y) const;
+      Real dZdy(Real x, Real y) const;
+
+    public:
+      void setRadius(Real);
+      void setCoef(unsigned int ansi, Real value);
+      void setRefractiveIndex(Real, Real);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };

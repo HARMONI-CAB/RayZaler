@@ -29,6 +29,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
+  ${LIBRZ_SRCDIR}/LensletArray.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
   ${LIBRZ_SRCDIR}/Logger.cpp
@@ -37,6 +38,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
   ${LIBRZ_SRCDIR}/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
+  ${LIBRZ_SRCDIR}/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/RayBeamElement.cpp
   ${LIBRZ_SRCDIR}/RayProcessors.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
@@ -50,7 +52,8 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/TripodFrame.cpp
   ${LIBRZ_SRCDIR}/TranslatedFrame.cpp
   ${LIBRZ_SRCDIR}/TubeElement.cpp
-  ${LIBRZ_SRCDIR}/WorldFrame.cpp)
+  ${LIBRZ_SRCDIR}/WorldFrame.cpp
+  ${LIBRZ_SRCDIR}/Zernike.cpp)
 
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ApertureStop.h
@@ -68,6 +71,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
+  ${LIBRZ_INCLUDEDIR}/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
@@ -75,6 +79,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
   ${LIBRZ_INCLUDEDIR}/ParabolicMirror.h
+  ${LIBRZ_INCLUDEDIR}/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/RayBeamElement.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors.h
@@ -90,7 +95,8 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
   ${LIBRZ_INCLUDEDIR}/TubeElement.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
-  ${LIBRZ_INCLUDEDIR}/Vector.h)
+  ${LIBRZ_INCLUDEDIR}/Vector.h
+  ${LIBRZ_INCLUDEDIR}/Zernike.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES

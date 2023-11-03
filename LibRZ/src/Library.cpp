@@ -7,8 +7,10 @@
 #include <ConvexLens.h>
 #include <Detector.h>
 #include <FlatMirror.h>
+#include <LensletArray.h>
 #include <Obstruction.h>
 #include <ParabolicMirror.h>
+#include <PhaseScreen.h>
 #include <RayBeamElement.h>
 #include <RodElement.h>
 #include <SphericalMirror.h>
@@ -39,13 +41,16 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new ConvexLensFactory);
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
+  Singleton::instance()->registerElementFactory(new LensletArrayFactory);
   Singleton::instance()->registerElementFactory(new ObstructionFactory);
   Singleton::instance()->registerElementFactory(new ParabolicMirrorFactory);
+  Singleton::instance()->registerElementFactory(new PhaseScreenFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
   Singleton::instance()->registerElementFactory(new RodElementFactory);
   Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
   Singleton::instance()->registerElementFactory(new TripodFactory);
   Singleton::instance()->registerElementFactory(new TubeElementFactory);
+  
 
   registerRayProcessors();
 
