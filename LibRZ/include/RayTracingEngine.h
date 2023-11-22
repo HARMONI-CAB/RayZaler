@@ -18,6 +18,8 @@ namespace RZ {
     Real length = 0;
   };
 
+  class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
+
   struct RayBeam {
     uint64_t count      = 0;
     uint64_t allocation = 0;

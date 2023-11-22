@@ -1,50 +1,45 @@
-#ifndef _PHASE_SCREEN_H
-#define _PHASE_SCREEN_H
+#ifndef _RECTANGULAR_STOP_H
+#define _RECTANGULAR_STOP_H
 
 #include <OpticalElement.h>
 #include <RayProcessors.h>
 #include <GLHelpers.h>
 
-
 namespace RZ {
   class TranslatedFrame;
 
-  class PhaseScreen : public OpticalElement {
-      PhaseScreenProcessor *m_processor;
-      GLDisc    m_skyDiscFront;
-      GLDisc    m_skyDiscBack;
-
+  class RectangularStop : public OpticalElement {
+      RectangularStopProcessor *m_processor;
+      GLRectangle m_vRect, m_hRect;
       TranslatedFrame *m_stopSurface = nullptr;
-      Real m_muIn    = 1;
-      Real m_muOut   = 1.5;
-      Real m_radius  = 2.5e-2;
       
-      GLuint m_textureId;
-      std::vector<uint8_t> m_textureData;
-      bool m_texDirty = true;
+      Real m_width  = 3e-2;
+      Real m_height = 3e-2;
 
-      void uploadTexture();
+      Real m_borderWidth  = 4e-2;
+      Real m_borderHeight = 4e-2;
+
+      Real m_hShift, m_vShift;
+
       void recalcModel();
-      void recalcTexture();
 
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      PhaseScreen(
+      RectangularStop(
         ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~PhaseScreen();
+      ~RectangularStop();
 
-      virtual void enterOpenGL() override;
       virtual void nativeMaterialOpenGL(std::string const &role) override;
       virtual void renderOpenGL() override;
   };
 
-  class PhaseScreenFactory : public ElementFactory {
+  class RectangularStopFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -54,5 +49,4 @@ namespace RZ {
   };
 }
 
-
-#endif // _PHASE_SCREEN_H
+#endif // _RECTANGULAR_STOP_H

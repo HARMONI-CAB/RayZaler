@@ -320,16 +320,18 @@ RayTracingEngine::stageProgress(
   unsigned int num,
   unsigned int total)
 {
-  if (m_notificationPendig || tack() > m_listener->rayNotifyInterval()) {
-    m_listener->stageProgress(type, text, num, total);
-    if (m_beam != nullptr) {
-      if (type == PROGRESS_TYPE_TRANSFER)
-        rayProgress(m_beam->count * 3, m_beam->count * 3);
-      else if (type == PROGRESS_TYPE_TRACE)
-        rayProgress(0, m_beam->count * 3);
-    }
+  if (m_listener != nullptr) {
+    if (m_notificationPendig || tack() > m_listener->rayNotifyInterval()) {
+      m_listener->stageProgress(type, text, num, total);
+      if (m_beam != nullptr) {
+        if (type == PROGRESS_TYPE_TRANSFER)
+          rayProgress(m_beam->count * 3, m_beam->count * 3);
+        else if (type == PROGRESS_TYPE_TRACE)
+          rayProgress(0, m_beam->count * 3);
+      }
 
-    if (!m_notificationPendig)
-      m_notificationPendig = true;
+      if (!m_notificationPendig)
+        m_notificationPendig = true;
+    }
   }
 }

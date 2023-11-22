@@ -125,12 +125,13 @@ namespace RZ {
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
 
-  class SquareApertureStopProcessor : public RayTransferProcessor {
+  class RectangularStopProcessor : public RayTransferProcessor {
       Real m_width  = .1;
       Real m_height = .1;
 
     public:
-      void setRadius(Real);
+      void setWidth(Real);
+      void setHeight(Real);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
@@ -152,11 +153,11 @@ namespace RZ {
       Real m_muIn          = 1;
       Real m_IOratio       = 1 / 1.5;
 
-      Real Z(Real x, Real y) const;
       Real dZdx(Real x, Real y) const;
       Real dZdy(Real x, Real y) const;
 
     public:
+      Real Z(Real x, Real y) const;
       void setRadius(Real);
       void setCoef(unsigned int ansi, Real value);
       void setRefractiveIndex(Real, Real);

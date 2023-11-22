@@ -238,6 +238,12 @@ Element::setSelected(bool selected)
 }
 
 void
+Element::enterOpenGL()
+{
+  
+}
+
+void
 Element::nativeMaterialOpenGL(std::string const &role)
 {
   GLVectorStorage vec;

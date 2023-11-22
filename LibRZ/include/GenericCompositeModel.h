@@ -24,7 +24,8 @@ namespace RZ {
   class Element;
   class OMModel;
   class ExprRandomState;
-
+  class Detector;
+  
 #ifdef PYTHON_SCRIPT_SUPPORT
   class Script;
 #endif // PYTHON_SCRIPT_SUPPORT
@@ -232,6 +233,10 @@ namespace RZ {
       
       // Takes the recipe and constructs elements
       void build(ReferenceFrame *, std::string const &prefix = "");
+
+      virtual void notifyDetector(
+        std::string const &preferredName,
+        Detector *det) = 0;
   };
 }
 

@@ -66,6 +66,9 @@ LensletArray::propertyChanged(
   } else if (name == "curvature") {
     m_rCurv = value;
     recalcModel();
+  } else if (name == "fLen") {
+    m_rCurv = 2 * (Real) value * (m_mu - 1);
+    recalcModel();
   } else if (name == "n") {
     m_mu = value;
     recalcModel();
@@ -94,6 +97,7 @@ LensletArray::LensletArray(
   registerProperty("cols",          10);
   registerProperty("rows",          10);
   registerProperty("curvature",     1.);
+  registerProperty("fLen",       11e-3);
   registerProperty("n",            1.5);
 
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());

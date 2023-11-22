@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <Singleton.h>
+#include <Logger.h>
 
 using namespace RZ;
 

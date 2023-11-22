@@ -4,6 +4,7 @@
 #include <CPURayTracingEngine.h>
 #include <RotatedFrame.h>
 #include <TranslatedFrame.h>
+#include <Logger.h>
 #include <sys/time.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
@@ -165,6 +166,17 @@ OMModel::registerDetector(Detector *element)
   m_nameToDetector[element->name()] = element;
 
   return true;
+}
+
+bool
+OMModel::registerDetectorAlias(std::string const &name, Detector *det)
+{
+  if (m_nameToDetector.find(name) == m_nameToDetector.end()) {
+    m_nameToDetector[name] = det;
+    return true;
+  }
+
+  return false;
 }
 
 Element *
@@ -622,6 +634,17 @@ OMModel::trace(
   return true;
 }
 
+bool
+OMModel::traceDefault(
+    std::list<Ray> const &rays,
+    bool updateBeamElement,
+    RayTracingProcessListener *listener,
+    bool clear,
+    const struct timeval *startTime)
+{
+  return trace("", rays, updateBeamElement, listener, clear, startTime);
+}
+
 struct timeval
 OMModel::lastTracerTick() const
 {
@@ -813,8 +836,9 @@ OMModel::addFocalPlaneFocusedBeam(
 
     dest.push_back(ray);
   }
-}
 
+
+}
 
 OMModel::OMModel()
 {

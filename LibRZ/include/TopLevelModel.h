@@ -44,6 +44,14 @@ namespace RZ {
 
       ApertureStop   *getApertureStop(std::string const &) const;
       ReferenceFrame *getFocalPlane(std::string const &) const;
+
+      virtual void notifyDetector(
+        std::string const &preferredName,
+        Detector *det) override;
+
+      static TopLevelModel *fromFile(
+        std::string const &path,
+        std::list<std::string> const &searchPaths = std::list<std::string>());
   };
 }
 

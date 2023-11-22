@@ -1,6 +1,9 @@
 #include <TopLevelModel.h>
-#include "ExprTkEvaluator.h"
-#include "ApertureStop.h"
+#include <ExprTkEvaluator.h>
+#include <ApertureStop.h>
+#include <Recipe.h>
+#include <ParserContext.h>
+#include <Helpers.h>
 
 using namespace RZ;
 
@@ -95,6 +98,15 @@ TopLevelModel::registerOpticalPath(
     throw std::runtime_error("Failed to register optical path `" + name + "'");
 }
 
+
+void
+TopLevelModel::notifyDetector(
+  std::string const &preferredName,
+  Detector *det)
+{
+  registerDetectorAlias(preferredName, det);
+}
+
 GenericEvaluator *
 TopLevelModel::allocateEvaluator(
   std::string const &expr,
@@ -115,4 +127,58 @@ TopLevelModel::allocateEvaluator(
   }
 
   return eval;
+}
+
+TopLevelModel *
+TopLevelModel::fromFile(
+  std::string const &path,
+  std::list<std::string> const &searchPaths)
+{
+  std::string exceptionString;
+  TopLevelModel *tlModel = nullptr;
+
+  Recipe *recipe = new Recipe();
+  recipe->addDof("t", 0, 0, 1e6);
+
+  FileParserContext *ctx = new FileParserContext(recipe);
+
+  for (auto &srchPath : searchPaths)
+    ctx->addSearchPath(srchPath);
+
+  FILE *fp = fopen(path.c_str(), "r");
+  
+  if (fp == nullptr) {
+    exceptionString = string_printf(
+      "Cannot open %s: %s\n",
+      path.c_str(),
+      strerror(errno));
+    goto done;
+  }
+
+  ctx->setFile(fp, path);
+  fp = nullptr;
+
+  if (!ctx->parse()) {
+    exceptionString = string_printf(
+      "Cannot load %s: model has errors\n",
+      path.c_str());
+    goto done;
+  }
+
+  try {
+    tlModel = new TopLevelModel(recipe);
+  } catch (std::runtime_error const &e) {
+    exceptionString = e.what();
+  }
+
+done:
+  if (fp != nullptr)
+    fclose(fp);
+
+  delete ctx;
+
+  if (tlModel == nullptr)
+    throw std::runtime_error(exceptionString);
+
+  return tlModel;
 }

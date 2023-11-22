@@ -85,6 +85,17 @@ CompositeElement::propertyChanged(
   return false;
 }
 
+void
+CompositeElement::notifyDetector(
+  std::string const &preferredName,
+  Detector *det)
+{
+  GenericCompositeModel *parent = parentCompositeModel();
+
+  if (parent != nullptr)
+    parent->notifyDetector(name() + "." + preferredName, det);
+}
+
 IHateCPlusPlus::IHateCPlusPlus(OMModel *model)
 {
   m_model = model;

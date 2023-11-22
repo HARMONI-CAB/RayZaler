@@ -94,6 +94,8 @@ namespace RZ {
       std::string genElementName(std::string const &type);
       std::string genReferenceFrameName(std::string const &type);
 
+      bool registerDetectorAlias(std::string const &name, Detector *);
+
     public:
       OMModel();
       ~OMModel();
@@ -161,10 +163,6 @@ namespace RZ {
       Element *beam() const;
       void clearBeam();
       
-      bool plugOpticalElement(OpticalElement *, ReferenceFrame *parent = nullptr);
-      bool plugElement(Element *, std::string const &);
-      bool plugOpticalElement(OpticalElement *, std::string const &);
-      
       ReferenceFrameContext rotate(Real, Vec3 const &, ReferenceFrame *parent = nullptr);
       ReferenceFrameContext rotate(Real, Real, Real, Real, ReferenceFrame *parent = nullptr);
 
@@ -216,11 +214,19 @@ namespace RZ {
       // Raytracing methods
       bool trace(
         std::string const &path,
-        std::list<Ray> const &rays,
+        std::list<RZ::Ray> const &rays,
         bool updateBeamElement = false,
         RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr);
+
+      bool traceDefault(
+        std::list<RZ::Ray> const &rays,
+        bool updateBeamElement = false,
+        RayTracingProcessListener *listener = nullptr,
+        bool clear = true,
+        const struct timeval *startTime = nullptr);
+
       struct timeval lastTracerTick() const;
 
       // Save images
@@ -273,7 +279,9 @@ namespace RZ {
   };
 }
 
-#define plugElement(parent, type) plug<type>(parent, STRINGIFY(type))
-#define plugElementName(parent, type, name) plug<type>(parent, STRINGIFY(type), name)
+#ifndef RZ_NO_HELPER_MACROS
+#  define plugElement(parent, type) plug<type>(parent, STRINGIFY(type))
+#  define plugElementName(parent, type, name) plug<type>(parent, STRINGIFY(type), name)
+#endif // RZ_NO_HELPER_MACROS
 
 #endif // _OMMODEL_H

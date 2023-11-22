@@ -372,6 +372,9 @@ RZGUIGLWidget::initializeGL()
   QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
 
   f->glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+  for (auto p : m_model->elementList())
+    p->enterOpenGL();
 }
 
 void

@@ -11,9 +11,6 @@ set(LIBRZ_LIBDIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 find_package(BISON REQUIRED)
 find_package(Python OPTIONAL_COMPONENTS Development)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-include(FindPNG++)
-
 set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/BenchElement.cpp
@@ -43,6 +40,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
+  ${LIBRZ_SRCDIR}/RectangularStop.cpp
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
   ${LIBRZ_SRCDIR}/RodElement.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
@@ -85,6 +83,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h
+  ${LIBRZ_INCLUDEDIR}/RectangularStop.h
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
   ${LIBRZ_INCLUDEDIR}/RodElement.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h

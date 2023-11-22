@@ -691,8 +691,8 @@ PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       //   Vy = dp/dy(x, y) = (0, 1, dZ(x, y)/dy)^T
       //
 
-      Vec3 Vx = tX + normal * dZdx(x, y);
-      Vec3 Vy = tY + normal * dZdy(x, y);
+      Vec3 Vx = tX + normal * dZdx(x, y) * Rinv;
+      Vec3 Vy = tY + normal * dZdy(x, y) * Rinv;
 
       //
       // These two vectors form a triangle with a vertex in (x, y, Z(x, y)). Also,
@@ -753,6 +753,49 @@ ApertureStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 
   memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }
+
+////////////////////////// Square aperture Stop ////////////////////////////////
+std::string
+RectangularStopProcessor::name() const
+{
+  return "RectangularStop";
+}
+
+void
+RectangularStopProcessor::setWidth(Real width)
+{
+  m_width = width;
+}
+
+void
+RectangularStopProcessor::setHeight(Real height)
+{
+  m_height = height;
+}
+
+void
+RectangularStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = beam.count;
+  uint64_t i;
+  Vec3 center  = plane->getCenter();
+  Vec3 tX      = plane->eX();
+  Vec3 tY      = plane->eY();
+  Real halfW   = .5 * m_width;
+  Real halfH   = .5 * m_height;
+
+  for (i = 0; i < count; ++i) {
+    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
+    Real coordX = coord * tX;
+    Real coordY = coord * tY;
+
+    if (fabs(coordX) >= halfW || fabs(coordY) >= halfH)
+      beam.prune(i);
+  }
+
+  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
+}
+
 
 ///////////////////////////// Circ. Obstruction ////////////////////////////////
 std::string

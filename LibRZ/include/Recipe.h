@@ -185,8 +185,6 @@ namespace RZ {
       std::vector<RecipeContext *> const &contexts() const;
       std::vector<RecipeElementStep *> const &elements() const;
       std::vector<RecipeOpticalPath *> const &paths() const;
-      std::vector<ParamAssignExpression *> const &ctxExpr() const;
-      std::vector<ParamAssignExpression *> const &elemExpr() const;
       std::map<std::string, RecipeContext *> const &ports() const;
 
       std::map<std::string, Recipe *> const &customElements() const;

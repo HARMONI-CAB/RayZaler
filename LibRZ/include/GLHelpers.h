@@ -36,6 +36,7 @@ namespace RZ {
       GLint    m_slices = 32;
       GLdouble m_width  = 1;
       GLdouble m_height = 1;
+      bool m_invertNormals = false;
 
       void recalculate();
 
@@ -52,6 +53,7 @@ namespace RZ {
         return m_height;
       }
 
+      void setInverted(bool);
       void setRadius(GLdouble);
       void setWidth(GLdouble);
       void setHeight(GLdouble);
@@ -308,6 +310,38 @@ namespace RZ {
       GLPinHole();
       ~GLPinHole();
   };
+
+  class GLRectangle : public GLPrimitive {
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+
+      GLdouble m_width  = 1;
+      GLdouble m_height = 1;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+
+      virtual void display() override;
+
+      GLRectangle();
+      ~GLRectangle();
+  };
+
 };
 
 #endif // _GLHELPERS_H

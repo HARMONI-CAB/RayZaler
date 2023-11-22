@@ -9,10 +9,16 @@ ConvexLens::recalcModel()
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
+  // This is the thickness of the concave part
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - m_radius * m_radius);
+
+  // Focal length
   m_f     = .5 * m_rCurv /  (m_mu - 1);
 
+  // Input focal plane: located at -f minus half the thickness
   m_inputFocalPlane->setDistance(-(.5 * m_thickness + m_f)* Vec3::eZ());
+
+  // Output focal plane: opposite side
   m_outputFocalPlane->setDistance(+(.5 * m_thickness + m_f)* Vec3::eZ());
   
   m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
@@ -29,9 +35,9 @@ ConvexLens::recalcModel()
   m_outputProcessor->setCurvatureRadius(m_rCurv);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
   
+  // Intercept surfaces
   m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
   m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
-
 }
 
 bool
@@ -47,6 +53,9 @@ ConvexLens::propertyChanged(
     recalcModel();
   } else if (name == "curvature") {
     m_rCurv = value;
+    recalcModel();
+  } else if (name == "fLen") {
+    m_rCurv = 2 * (Real) value * (m_mu - 1);
     recalcModel();
   } else if (name == "n") {
     m_mu = value;
@@ -74,6 +83,7 @@ ConvexLens::ConvexLens(
   registerProperty("radius",    2.5e-2);
   registerProperty("curvature",     1.);
   registerProperty("n",            1.5);
+  registerProperty("fLen",          1.);
 
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());

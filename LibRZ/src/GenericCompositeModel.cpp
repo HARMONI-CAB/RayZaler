@@ -547,6 +547,12 @@ GenericCompositeModel::createElementInside(
 
   if (!m_model->autoRegisterElement(m_elements[index]))
     throw std::runtime_error("Element`" + name + "' already exists");
+
+  if (step->factory == "Detector") {
+    // Detectors must be notified accordingly
+    Detector *det = static_cast<Detector *>(m_elements[index]);
+    notifyDetector(det->name(), det);
+  }
 }
 
 void

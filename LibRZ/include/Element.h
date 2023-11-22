@@ -187,6 +187,7 @@ namespace RZ {
       void setSelected(bool);
 
       // Representation interface
+      virtual void enterOpenGL();
       virtual void nativeMaterialOpenGL(std::string const &role);
       virtual void renderOpenGL();
       virtual OMModel *nestedModel() const;

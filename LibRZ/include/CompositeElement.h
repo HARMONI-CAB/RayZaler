@@ -52,7 +52,7 @@ namespace RZ {
       virtual bool propertyChanged(
         std::string const &name,
         PropertyValue const &val) override;
-      
+
     public:
       CompositeElement(
         ElementFactory *factory,
@@ -66,6 +66,10 @@ namespace RZ {
 
       virtual void renderOpenGL() override;
       virtual OMModel *nestedModel() const override;
+
+      virtual void notifyDetector(
+        std::string const &preferredName,
+        Detector *det) override;
   };
 
   class CompositeElementFactory : public ElementFactory {

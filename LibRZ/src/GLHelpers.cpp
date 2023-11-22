@@ -511,30 +511,54 @@ GLDisc::recalculate()
   GLfloat sliceDelta = 1. / m_slices;
   GLfloat angDelta = 2 * M_PI * sliceDelta;
   GLfloat ang;
+  GLfloat zNorm = m_invertNormals ? -1 : 1;
 
-  total = m_slices + 2;
-  m_vertices.resize(3 * total);
-  m_normals.resize(3 * total);
-  m_texCoords.resize(2 * total);
+  total = m_slices;
+
+  // GL Disc consists of several triangles
+  // The number of slices is the number of triangles
+  m_vertices.resize (3 * 3 * total);
+  m_normals.resize  (3 * 3 * total);
+  m_texCoords.resize(2 * 3 * total);
 
   ang = 0;
 
-  m_vertices[3 * n + 0] = 0;
-  m_vertices[3 * n + 1] = 0;
-  m_vertices[3 * n + 2] = 0;
+  GLfloat x  = .5 * m_width  * cosf(ang);
+  GLfloat y  = .5 * m_height * sinf(ang);
 
-  m_normals[3 * n + 0] = 0;
-  m_normals[3 * n + 1] = 0;
-  m_normals[3 * n + 2] = 1;
+  for (i = 0; i < m_slices; ++i) {
 
-  m_texCoords[2 * n + 0] = 0;
-  m_texCoords[2 * n + 1] = 0;
+    // Center
+    m_vertices[3 * n + 0] = 0;
+    m_vertices[3 * n + 1] = 0;
+    m_vertices[3 * n + 2] = 0;
 
-  ++n;
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = zNorm;
 
-  for (i = 0; i <= m_slices; ++i) {
-    GLfloat x = .5 * m_width  * cosf(ang);
-    GLfloat y = .5 * m_height * sinf(ang);
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 0;
+    ++n;
+
+    // Left, outer
+    m_vertices[3 * n + 0] = x;
+    m_vertices[3 * n + 1] = y;
+    m_vertices[3 * n + 2] = 0;
+
+    m_normals[3 * n + 0] = 0;
+    m_normals[3 * n + 1] = 0;
+    m_normals[3 * n + 2] = zNorm;
+
+    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 1] = 1;
+    ++n;
+
+    // Right, outer
+    ang += angDelta;
+
+    x  = .5 * m_width  * cosf(ang);
+    y  = .5 * m_height * sinf(ang);
 
     m_vertices[3 * n + 0] = x;
     m_vertices[3 * n + 1] = y;
@@ -542,12 +566,10 @@ GLDisc::recalculate()
 
     m_normals[3 * n + 0] = 0;
     m_normals[3 * n + 1] = 0;
-    m_normals[3 * n + 2] = 1;
+    m_normals[3 * n + 2] = zNorm;
 
-    m_texCoords[2 * n + 0] = i * sliceDelta;
+    m_texCoords[2 * n + 0] = (i + 1) * sliceDelta;
     m_texCoords[2 * n + 1] = 1;
-
-    ang += angDelta;
 
     ++n;
   }
@@ -556,14 +578,25 @@ GLDisc::recalculate()
   n     = 0;
   m_indices.resize(3 * m_slices);
 
-  for (i = 0; i < m_slices; ++i) {
-    m_indices[3 * n + 0] = 0;
-    m_indices[3 * n + 1] = i + 1;
-    m_indices[3 * n + 2] = i + 2;
-    ++n;
+  if (m_invertNormals) {
+    for (i = 0; i < m_slices; ++i) {
+      m_indices[3 * i + 0] = 3 * i;
+      m_indices[3 * i + 1] = 3 * i + 2;
+      m_indices[3 * i + 2] = 3 * i + 1;
+    }
+  } else {
+    for (i = 0; i < 3 * m_slices; ++i)
+      m_indices[i] = i;
   }
 
   m_dirty = false;
+}
+
+void
+GLDisc::setInverted(bool inv)
+{
+  m_invertNormals = inv;
+  m_dirty = true;
 }
 
 void
@@ -838,4 +871,51 @@ GLPinHole::display()
     glDrawArrays(GL_TRIANGLE_FAN, 0, stride / 3);
     glDisableClientState(GL_VERTEX_ARRAY);
   }
+}
+
+///////////////////////////////// GLRectangle //////////////////////////////////
+GLRectangle::GLRectangle()
+{
+  m_vertices.resize(4);
+}
+
+GLRectangle::~GLRectangle()
+{
+  
+}
+
+void
+GLRectangle::recalculate()
+{
+  m_vertices[0] = -.5 * m_width;
+  m_vertices[1] = -.5 * m_height;
+
+  m_vertices[2] = +.5 * m_width;
+  m_vertices[3] = +.5 * m_height;
+
+  m_dirty = false;
+}
+
+void
+GLRectangle::setHeight(GLdouble height)
+{
+  m_height = height;
+  m_dirty  = true;
+}
+
+void
+GLRectangle::setWidth(GLdouble width)
+{
+  m_width = width;
+  m_dirty = true;
+}
+
+void
+GLRectangle::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  glNormal3f(0, 0, 1.);
+  glRectfv(m_vertices.data(), m_vertices.data() + 2);
 }

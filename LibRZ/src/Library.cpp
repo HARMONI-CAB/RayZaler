@@ -12,6 +12,7 @@
 #include <ParabolicMirror.h>
 #include <PhaseScreen.h>
 #include <RayBeamElement.h>
+#include <RectangularStop.h>
 #include <RodElement.h>
 #include <SphericalMirror.h>
 #include <Tripod.h>
@@ -46,6 +47,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new ParabolicMirrorFactory);
   Singleton::instance()->registerElementFactory(new PhaseScreenFactory);
   Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
+  Singleton::instance()->registerElementFactory(new RectangularStopFactory);
   Singleton::instance()->registerElementFactory(new RodElementFactory);
   Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
   Singleton::instance()->registerElementFactory(new TripodFactory);
