@@ -19,6 +19,10 @@ ParabolicMirror::recalcModel()
   m_processor->setFocalLength(-m_flength);
 
   m_reflectiveSurfaceFrame->setDistance((m_thickness + m_displacement) * Vec3::eZ());
+  m_reflectiveSurfacePort->setDistance((m_thickness + m_displacement) * Vec3::eZ());
+
+  m_reflectiveSurfaceFrame->recalculate();
+  m_reflectiveSurfacePort->recalculate();
 }
 
 bool
@@ -56,8 +60,10 @@ ParabolicMirror::ParabolicMirror(
   registerProperty("flength",     5e-2);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
+  m_reflectiveSurfacePort  = new TranslatedFrame("refPort", frame, Vec3::zero());
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
+  addPort("refPort", m_reflectiveSurfacePort);
 
   m_cylinder.setVisibleCaps(true, false);
   m_cap.setInvertNormals(true);

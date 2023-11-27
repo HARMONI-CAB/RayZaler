@@ -59,7 +59,8 @@ SphericalMirror::SphericalMirror(
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
-
+  addPort("refPort", m_reflectiveSurfaceFrame);
+  
   m_cylinder.setVisibleCaps(true, false);
   m_cap.setInvertNormals(true);
   

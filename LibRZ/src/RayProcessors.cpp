@@ -193,11 +193,10 @@ void
 ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
-  Matrix3 M      = plane->getOrientation();
+  Matrix3 M      = plane->getOrientation().t();
   Matrix3 Mt     = M.t();
   Real Rsq       = m_radius * m_radius;
   Real k         =  .25 / m_flength;
-  Real h         = k * Rsq;
 
   for (auto i = 0; i < count; ++i) {
     Vec3 intercept  = Mt * (Vec3(beam.destinations + 3 * i) - plane->getCenter());
@@ -209,28 +208,43 @@ ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
       Vec3 O      = Vec3(beam.origins + 3 * i);
       Vec3 Ot     = Mt * (O - plane->getCenter());
 
+      Real x = Ot.x;
+      Real y = Ot.y;
+      Real z = Ot.z;
+
+      if (z < 0)
+        beam.prune(i);
+
       Real a = ut.x;
       Real b = ut.y;
       Real c = ut.z;
 
-      Real eqA   = a * a + b * b;
-      Real eqB   = 2 * (a * Ot.x + b * Ot.y - 2 * m_flength * c);
-      Real eqC   = Ot.x * Ot.x + Ot.y * Ot.y - 4 * m_flength * Ot.z - Rsq;
-      Real Delta = eqB * eqB - 4 * eqA * eqC;
+      // Now, we solve a quadratic equation of the form:
+      //
+      // At^2 + Bt + C = 0
+
+      // Coefficient A: just the projection of the ray on the XY plane
+      Real A     = a * a + b * b;
+
+      // Equation B: this is just the rect equation
+      Real B     = 2 * (a * x + b * y + 2 * m_flength * c);
+      Real C     = x * x + y * y - Rsq + 4 * m_flength * z;
+      Real Delta = B * B - 4 * A * C;
       Real t;
 
-      if (eqA <= std::numeric_limits<Real>::epsilon()) {
-        t = -eqC / eqB;
+      if (A <= std::numeric_limits<Real>::epsilon()) {
+        t = -C / B;
       } else if (Delta >= 0) {
-        t = .5 * (-eqB + sqrt(Delta)) / eqA;
+        t = .5 * (-B + sqrt(Delta)) / A;
       } else {
         beam.prune(i);
         continue;
       }
 
+      
       Vec3 destination(O + t * u);
       Vec3 destt(Ot + t * ut);
-      Vec3 normal = M * Vec3(-2 * k * destt.x, -2 * k * destt.y, 1).normalized();
+      Vec3 normal = M * Vec3(2 * k * destt.x, 2 * k * destt.y, 1).normalized();
 
       destination.copyToArray(beam.destinations + 3 * i);
 
