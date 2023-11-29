@@ -573,7 +573,6 @@ OMModel::trace(
 
   m_intermediateRays.clear();
 
-  recalculate();
 
   tracer.setListener(listener);
 

@@ -64,7 +64,6 @@ namespace RZ{
       ReferenceFrame(std::string const &, ReferenceFrame *);
 
       void addChild(ReferenceFrame *);
-      void recalculateChildren();
 
       virtual void recalculateFrame() = 0;
 
@@ -130,6 +129,7 @@ namespace RZ{
       int addPoint(std::string const &, Point3 const &); // Relative (to this)
 
       void recalculate();                       // Recalculate this and all children
+      void recalculateChildren();               // Recalculate children only
       const Matrix3 &getOrientation() const;    // Global
       const Point3 &getCenter() const;            // Global
 

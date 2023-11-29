@@ -39,7 +39,7 @@ namespace RZ {
 
     inline Vec3() : Vec3(0, 0, 0) { }
     inline Vec3(Real x, Real y, Real z) : x(x), y(y), z(z) { }
-    inline Vec3(const Real *coords) : x(coords[0]), y(coords[1]), z(coords[2]) {}
+    inline Vec3(const Real coords[3]) : x(coords[0]), y(coords[1]), z(coords[2]) {}
 
     // Zero
     static inline Vec3

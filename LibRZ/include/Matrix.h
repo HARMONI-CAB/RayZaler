@@ -44,6 +44,43 @@ namespace RZ {
       row.vz = row3;
     }
 
+    Matrix3(const RZ::Real coef[3][3])
+    {
+      memcpy(this->coef, coef, 3 * 3 * sizeof (RZ::Real));
+    }
+
+    inline Vec3 const &
+    vx() const
+    {
+      return row.vx;
+    }
+
+    inline Vec3 const &
+    vy() const
+    {
+      return row.vy;
+    }
+
+    inline Vec3 const &
+    vz() const
+    {
+      return row.vz;
+    }
+
+    // In-place apply (left)
+    inline void
+    applyLeft(Matrix3 const &m)
+    {
+      *this = m * *this;
+    }
+
+    // In-place apply (right)
+    inline void
+    applyRight(Matrix3 const &m)
+    {
+      *this = *this * m;
+    }
+
     // Matrix-vector product
     inline Vec3
     operator *(Vec3 const &v) const

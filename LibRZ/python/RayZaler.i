@@ -22,6 +22,9 @@ namespace std {
   PyModule_AddObject(m, "EngineError", g_rzException);
 %}
 
+%apply (double IN_ARRAY1[ANY]) {(RZ::Real vec3Coef[3]), (const RZ::Real coords[3])};
+%apply (double IN_ARRAY2[ANY][ANY]) {(const RZ::Real coef[3][3])};
+
 %{
 #define RZ_NO_HELPER_MACROS
 
@@ -131,9 +134,69 @@ using namespace RZ;
   }
 }
 
+%extend RZ::Matrix3 {
+  PyObject *
+  array() {
+    RZ::Real *data = &self->coef[0][0];
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {3, 3};
+    npy_intp strides[] = {sizeof(RZ::Real) * 3, sizeof(RZ::Real)};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      data,
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+}
+
+%extend RZ::Vec3 {
+  PyObject *
+  array()
+  {
+    RZ::Real *data = &self->coords[0];
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {3};
+    npy_intp strides[] = {sizeof(RZ::Real)};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      1,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      data,
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
+  Vec3 &
+  fromArray(const double *vec3Coef)
+  {
+    self->coords[0] = vec3Coef[0];
+    self->coords[1] = vec3Coef[1];
+    self->coords[2] = vec3Coef[2];
+
+    return *self;
+  }
+}
+
 %extend RZ::Detector {
   PyObject *
-  image() {
+  image()
+  {
     unsigned int imgWidth  = self->cols();
     unsigned int imgHeight = self->rows();
     unsigned int imgStride = self->stride();
