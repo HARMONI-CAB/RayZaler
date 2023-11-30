@@ -58,6 +58,8 @@ OpticalElement::OpticalElement(
   : Element(factory, name, parentFrame, parent)
 {
   registerProperty("optical", true);
+
+  ++m_hidden;
 }
 
 OpticalElement::~OpticalElement()

@@ -45,6 +45,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RodElement.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
+  ${LIBRZ_SRCDIR}/StlMesh.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
   ${LIBRZ_SRCDIR}/Tripod.cpp
   ${LIBRZ_SRCDIR}/TripodFrame.cpp
@@ -88,6 +89,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RodElement.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
+  ${LIBRZ_INCLUDEDIR}/StlMesh.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
   ${LIBRZ_INCLUDEDIR}/Tripod.h
   ${LIBRZ_INCLUDEDIR}/TripodFrame.h

@@ -194,6 +194,15 @@ namespace RZ {
       }
 
       ValueType &
+      assignString(std::string const &param, std::string const &str)
+      {
+        auto &val = value<ParserAssignExpr>();
+        val.value<ParserAssignExpr>().first  = param;
+        val.value<ParserAssignExpr>().second = "\"" + str + "\"";
+        return val;
+      }
+
+      ValueType &
       assignExprList(ParserAssignExpr const &expr)
       {
         auto &val = value<ParserAssignList>();
@@ -206,6 +215,15 @@ namespace RZ {
       {
         auto &val = value<ParserAssignList>();
         val.value<ParserAssignList>().push_back(ParserAssignExpr(param, expr));
+        return val;
+      }
+
+      ValueType &
+      assignStringList(std::string const &param, std::string const &str)
+      {
+        auto &val = value<ParserAssignList>();
+        val.value<ParserAssignList>().push_back(
+          ParserAssignExpr(param, '"' + str + '"'));
         return val;
       }
 

@@ -88,7 +88,9 @@ namespace RZ {
     GenericModelParamType type; // What type of object we need to update
     ParamAssignExpression *description = nullptr; // Already contains an index
     GenericEvaluator      *evaluator = nullptr; // Owned
-
+    std::string            assignString;
+    int                    position = -1;
+    
     union {
       Element         *element = nullptr;
       RotatedFrame    *rotation;

@@ -94,13 +94,15 @@ param_list:                                       // Type: list of pairs
 
 
 actual_param_list:                                // Type: list of pairs
-    expr                               { $$ = ctx->assignExprList("", $1); }
-  | assign_expr                        { $$ = ctx->assignExprList($1);     }
+    expr                               { $$ = ctx->assignExprList("", $1);   }
+  | STRING                             { $$ = ctx->assignStringList("", $1); }
+  | assign_expr                        { $$ = ctx->assignExprList($1);       }
   | actual_param_list ',' expr         { $$ = $1; $$.value<RZ::ParserAssignList>().push_back(RZ::ParserAssignExpr("", $3)); }
   | actual_param_list ',' assign_expr  { $$ = $1; $$.value<RZ::ParserAssignList>().push_back($3); }
   ;
 
-assign_expr: IDENTIFIER '=' expr       { $$ = ctx->assignExpr($1, $3); }
+assign_expr: IDENTIFIER '=' expr       { $$ = ctx->assignExpr($1, $3);   }
+  |          IDENTIFIER '=' STRING     { $$ = ctx->assignString($1, $3); }
   ;
 
 path_stmt:                                        // ACTION: register path

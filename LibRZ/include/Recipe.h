@@ -49,6 +49,7 @@ namespace RZ {
   struct RecipeElementStep {
     std::string name;
     std::string factory;
+    std::list<ParamAssignExpression *> positionalParams;
     std::map<std::string, ParamAssignExpression *> params;
 
     int s_index = -1;

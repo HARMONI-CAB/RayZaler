@@ -85,6 +85,13 @@ RecipeContext::to_string() const
 void
 RecipeElementStep::set(std::string const &name, std::string const &expr)
 {
+  if (name.empty()) {
+    // Positional argument. Only allowed if no keyed parameters are
+    // defined.
+    if (params.size() != 0)
+      throw std::runtime_error("Cannot set positional parameters after key-value arguments");
+  }
+  
   auto it = params.find(name);
 
   if (it != params.end())
@@ -323,7 +330,7 @@ Recipe::makeElementParameter(
   int index = static_cast<int>(m_elemParameters.size());
   m_elemParameters.resize(index + 1);
 
-  auto curr = new ParamAssignExpression();
+  auto curr        = new ParamAssignExpression();
   curr->parameter  = name;
   curr->expression = expression;
   curr->parent     = m_currContext;
@@ -332,7 +339,11 @@ Recipe::makeElementParameter(
   curr->s_target   = elem->s_index;
 
   m_elemParameters[index] = curr;
-  elem->params[name] = curr;
+
+  if (name.empty())
+    elem->positionalParams.push_back(curr);
+  else
+    elem->params[name] = curr;
 
   return curr;
 }

@@ -70,6 +70,7 @@ namespace RZ {
       std::list<Element *> m_children;
       std::list<ReferenceFrame *> m_portList;
       std::map<std::string, ReferenceFrame *> m_nameToPort;
+      std::vector<std::string>             m_sortedProperties;
       std::map<std::string, PropertyValue> m_properties;
 
       // Representation state
@@ -88,6 +89,9 @@ namespace RZ {
       void pushChild(Element *);
       
     protected:
+      // Non-positional hidden arguments
+      unsigned m_hidden = 0;
+      
       void material(std::string const &role);
       void registerProperty(std::string const &, PropertyValue const &);
       void refreshProperties();
@@ -137,6 +141,13 @@ namespace RZ {
         return m_properties.find(prop) != m_properties.end();
       }
 
+      // Get hidden parameter number
+      inline unsigned
+      hidden() const
+      {
+        return m_hidden;
+      }
+
       // Get parent frame
       inline ReferenceFrame *
       parentFrame() const
@@ -150,6 +161,9 @@ namespace RZ {
       // Enumerate properties
       std::set<std::string> properties() const;
       
+      // Sorted properties
+      std::vector<std::string> sortedProperties() const;
+
       // Get the reference frame of one of these ports
       ReferenceFrame *getPortFrame(std::string const &) const;
 

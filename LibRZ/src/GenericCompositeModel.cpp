@@ -85,8 +85,7 @@ GenericComponentParamEvaluator::~GenericComponentParamEvaluator()
 void
 GenericComponentParamEvaluator::assign()
 {
-  std::string param = description->parameter;
-  Real value;
+  std::string param;
 
   if (description == nullptr)
     throw std::runtime_error("Param evaluator has no description");
@@ -94,41 +93,69 @@ GenericComponentParamEvaluator::assign()
   if (description->s_target == -1)
     throw std::runtime_error("Param evaluator has undefined object index");
 
-  // Hey, butler, stop butling yourself!
-  value = evaluator->evaluate();
+  // Positional argument. Lazy resolution of its name.
+  if (position != -1) {
+    unsigned actualIndex = position + element->hidden();
+    auto props = element->sortedProperties();
 
-  switch (type) {
-    case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
-      element->set(param, value);
-      break;
+    if (actualIndex >= props.size())
+      throw std::runtime_error("Too many properties passed to element");
+    
+    description->parameter = props[actualIndex];
+    position = -1;
+  }
 
-    case GENERIC_MODEL_PARAM_TYPE_ROTATED_FRAME:
-      if (param == "angle")
-        rotation->setAngle(deg2rad(value));
-      else if (param == "eX")
-        rotation->setAxisX(value);
-      else if (param == "eY")
-        rotation->setAxisY(value);
-      else if (param == "eZ")
-        rotation->setAxisZ(value);
-      else
-        throw std::runtime_error("Unknown rotation parameter `" + param + "'");
-      
-      rotation->recalculate();
-      break;
+  param = description->parameter;
 
-    case GENERIC_MODEL_PARAM_TYPE_TRANSLATED_FRAME:
-      if (param == "dX")
-        translation->setDistanceX(value);
-      else if (param == "dY")
-        translation->setDistanceY(value);
-      else if (param == "dZ")
-        translation->setDistanceZ(value);
-      else
-        throw std::runtime_error("Unknown translation parameter `" + param + "'");
+  // An evaluator exists, this string must be evaluated as such
+  if (evaluator != nullptr) {
+    Real value;
 
-      translation->recalculate();
-      break;
+    // Hey, butler, stop butling yourself!
+    value = evaluator->evaluate();
+
+    switch (type) {
+      case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
+        element->set(param, value);
+        break;
+
+      case GENERIC_MODEL_PARAM_TYPE_ROTATED_FRAME:
+        if (param == "angle")
+          rotation->setAngle(deg2rad(value));
+        else if (param == "eX")
+          rotation->setAxisX(value);
+        else if (param == "eY")
+          rotation->setAxisY(value);
+        else if (param == "eZ")
+          rotation->setAxisZ(value);
+        else
+          throw std::runtime_error("Unknown rotation parameter `" + param + "'");
+        
+        rotation->recalculate();
+        break;
+
+      case GENERIC_MODEL_PARAM_TYPE_TRANSLATED_FRAME:
+        if (param == "dX")
+          translation->setDistanceX(value);
+        else if (param == "dY")
+          translation->setDistanceY(value);
+        else if (param == "dZ")
+          translation->setDistanceZ(value);
+        else
+          throw std::runtime_error("Unknown translation parameter `" + param + "'");
+
+        translation->recalculate();
+        break;
+    }
+  } else {
+    switch (type) {
+      case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
+        element->set(param, assignString);
+        break;
+
+      default:
+        throw std::runtime_error("Reference frames do not accept string parameters");
+    }
   }
 }
 
@@ -391,7 +418,6 @@ GenericCompositeModel::resolvePorts()
   auto contexts = m_recipe->contexts();
   auto firstCtx = contexts[0];
   
-
   for (size_t i = 1; i < contexts.size(); ++i) {
     if (contexts[i]->type == RECIPE_CONTEXT_TYPE_PORT && m_frames[i] == nullptr) {
       Element *element = m_elements[contexts[i]->element->s_index];
@@ -673,19 +699,27 @@ GenericCompositeModel::makeExpression(
   }
 #endif // PYTHON_SCRIPT_SUPPORT
 
-  auto evaluator = allocateEvaluator(expr, dict, customFuncs, randState());
+  if (expr[0] == '"' && expr.size() >= 2) {
+    // Assign string. Nothing 
+    std::string assignStr = expr.substr(1, expr.size() - 2);
+    paramEvaluator->assignString = assignStr;
+    paramEvaluator->evaluator = nullptr;
+    m_expressions.push_back(paramEvaluator);
+  } else {
+    auto evaluator = allocateEvaluator(expr, dict, customFuncs, randState());
 
-  paramEvaluator->evaluator = evaluator;
-  
-  m_expressions.push_back(paramEvaluator);
+    paramEvaluator->evaluator = evaluator;
+    
+    m_expressions.push_back(paramEvaluator);
 
-  // Update dependencies
-  auto deps = evaluator->dependencies();
+    // Update dependencies
+    auto deps = evaluator->dependencies();
 
-  for (auto dep : deps) {
-    auto it = dict->find(dep);
-    if (it != dict->end())
-      (*dict)[dep]->dependencies.push_back(paramEvaluator);
+    for (auto dep : deps) {
+      auto it = dict->find(dep);
+      if (it != dict->end())
+        (*dict)[dep]->dependencies.push_back(paramEvaluator);
+    }
   }
 
   return paramEvaluator;
@@ -733,8 +767,18 @@ GenericCompositeModel::createLocalExpressions(
   }
 
   /////////////////////////// EXPRESSION CREATION ////////////////////////////
-  // Make expressions
+  // Make expressions.
   for (auto elem : localFrame->elements) {
+    unsigned int count = 0;
+
+    for (auto p : elem->positionalParams) {
+      auto expr         = makeExpression(p->expression, &local);
+      expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;
+      expr->description = p;
+      expr->position    = count++;
+      expr->element     = m_elements[expr->description->s_target];
+    }
+
     for (auto p : elem->params) {
       auto expr         = makeExpression(p.second->expression, &local);
       expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;

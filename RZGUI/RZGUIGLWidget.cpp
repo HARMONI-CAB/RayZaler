@@ -397,7 +397,7 @@ RZGUIGLWidget::configureViewPort()
     0);
 
   aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * m_zoom, 20 * m_zoom);
+  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -100 * m_zoom, 100 * m_zoom);
   f->glGetFloatv(GL_MODELVIEW_MATRIX, m_viewPortMatrix);
 
   // Phase 3: Configure normals

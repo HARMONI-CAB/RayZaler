@@ -26,6 +26,8 @@ Element::Element(
   registerProperty("specBlue",  m_specBlue);
 
   registerProperty("shiny",     m_shiny);
+
+  m_hidden = m_properties.size();
 }
 
 Element::~Element()
@@ -44,6 +46,7 @@ void
 Element::registerProperty(std::string const &name, PropertyValue const &dfl)
 {
   m_properties[name] = dfl;
+  m_sortedProperties.push_back(name);
 }
 
 void
@@ -91,12 +94,18 @@ Element::ports() const
 std::set<std::string>
 Element::properties() const
 {
-std::set<std::string> props;
+  std::set<std::string> props;
   
   for (auto p = m_properties.begin(); p != m_properties.end(); ++p)
     props.insert(p->first);
 
   return props;
+}
+
+std::vector<std::string>
+Element::sortedProperties() const
+{
+  return m_sortedProperties;
 }
 
 ReferenceFrame *

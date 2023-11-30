@@ -1,0 +1,149 @@
+#include <GL/glew.h>
+#include <StlMesh.h>
+#include <stl_reader.h>
+#include <Logger.h>
+
+
+using namespace RZ;
+
+void
+StlMesh::tryOpenModel()
+{
+  m_haveMesh = false;
+  m_coords.clear();
+  m_normals.clear();
+  m_tris.clear();
+  m_solids.clear();
+
+  m_vertices.clear();
+  m_vnormals.clear();
+  
+
+  try {
+    stl_reader::ReadStlFile(
+      m_path.c_str(),
+      m_coords,
+      m_normals,
+      m_tris,
+      m_solids);
+    
+    const size_t numTris = m_tris.size() / 3;
+    const size_t numVrtx = m_coords.size() / 3;
+
+    // We start by creating a vertex array with separate vertices for each
+    // triangle. The same applies to normals.
+    m_vertices.resize(9 * numTris);
+    m_vnormals.resize(9 * numTris);
+
+    // And now, for each triangle i
+    for (unsigned i = 0; i < numTris; ++i) {
+      const Real *normal = &m_normals[3 * i];
+
+      // For each vertex j
+      for (unsigned j = 0; j < 3; ++j) {
+        unsigned int n = 3 * i + j;
+        unsigned int c = m_tris[n];
+
+        if (c >= numVrtx)
+          throw std::runtime_error("STL mesh invalid: reference to unknown vertex!");
+        
+        // Get the vnormals array
+        const Real *coord = &m_coords[3 * c];
+        Real *vNorm       = &m_vnormals[3 * n];
+        Real *vCoord      = &m_vertices[3 * n];
+
+        memcpy(vNorm,  normal, 3 * sizeof (Real));
+        memcpy(vCoord, coord, 3 * sizeof (Real));
+
+        // Update triangle index
+        m_tris[n] = n;
+      }
+    }
+
+    m_coords.clear();
+    m_normals.clear();
+    m_solids.clear();
+
+    m_haveMesh = true;
+
+    RZInfo("Model opened, %d triangles\n", numTris);
+  } catch (std::exception& e) {
+    RZError(
+      "%s: cannot load STL model from `%s': %s\n",
+      name().c_str(),
+      m_path.c_str(),
+      e.what());
+  }
+}
+
+bool
+StlMesh::propertyChanged(
+  std::string const &name,
+  PropertyValue const &value)
+{
+  if (name == "file") {
+    std::string newPath = std::get<std::string>(value);
+    if (m_path != newPath) {
+      m_path = newPath;
+      tryOpenModel();
+    }
+  } else {
+    return OpticalElement::propertyChanged(name, value);
+  }
+
+  return true;
+}
+
+StlMesh::StlMesh(
+  ElementFactory *factory,
+  std::string const &name,
+  ReferenceFrame *frame,
+  Element *parent) : OpticalElement(factory, name, frame, parent)
+{
+  registerProperty("file", "");
+}
+
+StlMesh::~StlMesh()
+{
+}
+
+void
+StlMesh::enterOpenGL()
+{
+ 
+}
+
+void
+StlMesh::renderOpenGL()
+{
+  glPushAttrib(GL_ALL_ATTRIB_BITS);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+
+  if (m_haveMesh) {
+    material("main");
+    glVertexPointer(3, GL_DOUBLE,   3 * sizeof(Real), m_vertices.data());
+    glNormalPointer(GL_DOUBLE,      3 * sizeof(Real), m_vnormals.data());
+    glDrawElements(GL_TRIANGLES, m_tris.size(), GL_UNSIGNED_INT, m_tris.data());
+  }
+
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glPopAttrib();
+}
+
+///////////////////////////////// Factory //////////////////////////////////////
+std::string
+StlMeshFactory::name() const
+{
+  return "StlMesh";
+}
+
+Element *
+StlMeshFactory::make(
+  std::string const &name,
+  ReferenceFrame *pFrame,
+  Element *parent)
+{
+  return new StlMesh(this, name, pFrame, parent);
+}
