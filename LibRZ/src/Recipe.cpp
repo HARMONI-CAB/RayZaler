@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <Singleton.h>
 #include <Logger.h>
+#include <libgen.h>
+#include <algorithm>
 
 using namespace RZ;
 
@@ -91,7 +93,7 @@ RecipeElementStep::set(std::string const &name, std::string const &expr)
     if (params.size() != 0)
       throw std::runtime_error("Cannot set positional parameters after key-value arguments");
   }
-  
+
   auto it = params.find(name);
 
   if (it != params.end())
@@ -191,13 +193,31 @@ Recipe::makeCustomElement(std::string const &name)
 
   m_subRecipes.push_back(recipe);
 
+  for (auto &p : m_searchPaths)
+    recipe->pushSearchPath(p);
+  
   return recipe;
+}
+
+void
+Recipe::pushSearchPath(std::string const &path)
+{
+  if (std::find(m_searchPaths.begin(), m_searchPaths.end(), path) ==
+    m_searchPaths.end())
+    m_searchPaths.push_back(path);
 }
 
 bool
 Recipe::addScript(std::string const &scriptPath)
 {
+  std::vector<char> asCString(
+    scriptPath.c_str(),
+    scriptPath.c_str() + scriptPath.size() + 1);
+  char *dirPath = dirname(asCString.data());
+
+  pushSearchPath(dirPath);
   m_scripts.push_back(scriptPath);
+
   return true;
 }
 
@@ -494,7 +514,17 @@ Recipe::addElement(
 {
   std::string fullyQualifiedName;
   
-  fullyQualifiedName = m_currContext->currNS() + "." + name;
+  if (name.empty()) {
+    fullyQualifiedName = m_currContext->currNS() + "." + name;
+  } else {
+    // Generate new name
+    unsigned int i = 0;
+    do {
+      std::string newName = "anonymous_" + factory + "_" + std::to_string(++i);
+      fullyQualifiedName = m_currContext->currNS() + "." + newName;
+    } while (m_elements.find(fullyQualifiedName) != m_elements.end());
+  }
+
 
   if (lookupElement(fullyQualifiedName) != nullptr)
     throw std::runtime_error("Element `" + fullyQualifiedName + "' redefined");
@@ -514,8 +544,13 @@ Recipe::addElement(
   }
 
   m_elements[fullyQualifiedName] = step;
+
+  if (!name.empty())
+    m_elements[name] = step;
+
   m_currContext->elements.push_back(step);
 
+  
   return step;
 }
 

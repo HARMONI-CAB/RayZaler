@@ -18,6 +18,7 @@
 
 namespace RZ {
   class OMModel;
+  class GenericCompositeModel;
   struct UndefinedProperty {};
   typedef std::variant<UndefinedProperty, int64_t, Real, bool, std::string> BasePropertyVariant;
   class PropertyValue : public BasePropertyVariant {
@@ -62,19 +63,20 @@ namespace RZ {
   class ElementFactory;
 
   class Element {
-      std::string     m_name;
-      Element        *m_parent = nullptr;
-      ReferenceFrame *m_parentFrame = nullptr;
-      ElementFactory *m_factory;
+      std::string            m_name;
+      Element               *m_parent      = nullptr;
+      ReferenceFrame        *m_parentFrame = nullptr;
+      GenericCompositeModel *m_parentModel = nullptr;
+      ElementFactory        *m_factory     = nullptr;
       
-      std::list<Element *> m_children;
-      std::list<ReferenceFrame *> m_portList;
+      std::list<Element *>                    m_children;
+      std::list<ReferenceFrame *>             m_portList;
       std::map<std::string, ReferenceFrame *> m_nameToPort;
-      std::vector<std::string>             m_sortedProperties;
-      std::map<std::string, PropertyValue> m_properties;
+      std::vector<std::string>                m_sortedProperties;
+      std::map<std::string, PropertyValue>    m_properties;
 
       // Representation state
-      bool m_selected = false;
+      bool m_selected  = false;
 
       // Default appearence
       Real m_shiny     = 64;
@@ -91,7 +93,7 @@ namespace RZ {
     protected:
       // Non-positional hidden arguments
       unsigned m_hidden = 0;
-      
+
       void material(std::string const &role);
       void registerProperty(std::string const &, PropertyValue const &);
       void refreshProperties();
@@ -125,6 +127,18 @@ namespace RZ {
       factory() const
       {
         return m_factory;
+      }
+
+      inline GenericCompositeModel *
+      parentModel()
+      {
+        return m_parentModel;
+      }
+
+      void
+      setParentModel(GenericCompositeModel *model)
+      {
+        m_parentModel = model;
       }
 
       // Get name

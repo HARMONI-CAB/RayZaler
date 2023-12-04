@@ -260,6 +260,27 @@ GenericCompositeModel::setRandomState(ExprRandomState *state)
   m_randState = state;
 }
 
+std::string
+GenericCompositeModel::resolveFilePath(std::string const &path) const
+{
+  std::string absPath;
+
+  // Relative filename
+  if (path[0] != '/') {
+    if (m_recipe != nullptr) {
+      for (auto &p : m_recipe->searchPaths()) {
+        absPath = p + "/" + path;
+        if (access(absPath.c_str(), F_OK) != -1)
+          return absPath;
+      }
+    }
+
+    return "";
+  }
+
+  return path;
+}
+
 void
 GenericCompositeModel::assignEverything()
 {
@@ -569,6 +590,8 @@ GenericCompositeModel::createElementInside(
     throw std::runtime_error("Undefined element class `" + step->factory + "'");
 
   m_elements[index] = factory->make(name, pFrame, m_parent);
+  m_elements[index]->setParentModel(this);
+  
   ++m_completedElements;
 
   if (!m_model->autoRegisterElement(m_elements[index]))

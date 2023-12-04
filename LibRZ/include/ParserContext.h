@@ -91,10 +91,12 @@ namespace RZ {
 
   class ParserContext {
       std::string m_file = "<no file>";
+      ParserContext *m_parentContext = nullptr;
       Recipe *m_rootRecipe = nullptr;
       Recipe *m_recipe = nullptr;
       std::string m_buf;
       std::string m_lastToken;
+      std::set<std::string>  m_includeOnce;
       std::list<std::string> m_searchPaths;
       int m_recursion = 0;
       int m_line = 0;
@@ -147,6 +149,8 @@ namespace RZ {
       void popFrame();
       void defineElement(std::string const &name, std::string const &factory, ParserAssignList const & = ParserAssignList());
       void debugParamList(ParserAssignList const &);
+      bool alreadyImported(std::string const &path) const;
+      void addImportOnce(std::string const &path);
 
       template<class T> 
       ValueType &value()
@@ -229,6 +233,8 @@ namespace RZ {
 
     public:
       ParserContext(Recipe *recipe, int recursion = 0);
+      ParserContext(ParserContext *parent, int recursion);
+
       bool parse();
       void addSearchPath(std::string const &path);
       void inheritSearchPaths(ParserContext const *);
@@ -241,7 +247,6 @@ namespace RZ {
       FILE *m_fp = stdin;
 
     public:
-      FileParserContext(Recipe *recipe, int recursion = 0);
       void setFile(FILE *fp, std::string const &name);
       virtual int read() override;
       virtual ~FileParserContext();

@@ -10,12 +10,14 @@ namespace RZ {
 
   class StlMesh : public OpticalElement {
       std::string m_path;
-      std::vector<Real>         m_coords, m_normals;
-      std::vector<unsigned int> m_tris,   m_solids;
+      std::vector<Real>         m_coords,   m_normals;
+      std::vector<unsigned int> m_tris,     m_solids;
       std::vector<Real>         m_vertices, m_vnormals;
-      
+
+      Real        m_units    = 1e-3;
       bool        m_haveMesh = false;
 
+      void rescaleVertices();
       void tryOpenModel();
 
     protected:

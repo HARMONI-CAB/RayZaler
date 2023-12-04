@@ -123,6 +123,9 @@ namespace RZ {
       RecipeContext *m_rootContext = nullptr;
       Recipe *m_parent = nullptr;
 
+      // Search paths (forwarded to the composite model)
+      std::list<std::string>             m_searchPaths;
+      
       // Allocation
       std::vector<RecipeContext *>       m_contexts;        // Tracks frames
       std::vector<RecipeElementStep *>   m_elementSteps;    // Tracks elements
@@ -182,6 +185,12 @@ namespace RZ {
         return m_scripts;
       }
       
+      inline std::list<std::string> const &
+      searchPaths() const
+      {
+        return m_searchPaths;
+      }
+      
       Recipe *parent() const;
       std::vector<RecipeContext *> const &contexts() const;
       std::vector<RecipeElementStep *> const &elements() const;
@@ -199,7 +208,8 @@ namespace RZ {
       Recipe            *makeCustomElement(std::string const &);
       
       bool addScript(std::string const &scriptPath);
-      
+      void pushSearchPath(std::string const &path);
+
       void pushRotation(
         std::string const &angle,
         std::string const &eX,

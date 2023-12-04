@@ -397,7 +397,7 @@ RZGUIGLWidget::configureViewPort()
     0);
 
   aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -100 * m_zoom, 100 * m_zoom);
+  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -1000 * m_zoom, 1000 * m_zoom);
   f->glGetFloatv(GL_MODELVIEW_MATRIX, m_viewPortMatrix);
 
   // Phase 3: Configure normals
@@ -419,6 +419,13 @@ RZGUIGLWidget::resizeGL(int w, int h)
   configureViewPort();
 }
 
+#define ABOVE_RED   1
+#define ABOVE_GREEN 1
+#define ABOVE_BLUE  1
+
+#define BELOW_RED   0x75
+#define BELOW_GREEN 0x75
+#define BELOW_BLUE  0xe9
 void
 RZGUIGLWidget::drawAxes()
 {
@@ -439,11 +446,11 @@ RZGUIGLWidget::drawAxes()
       glDisable(GL_DEPTH_TEST);
       glBegin(GL_QUADS);
 
-      glColor3f(30. / 255., 129. / 255., 176. / 255.);
+      glColor3f(BELOW_RED / 255., BELOW_GREEN / 255., BELOW_BLUE / 255.);
       glVertex3f(-2, -2. / aspect, 10);
       glVertex3f(+2, -2. / aspect, 10);
 
-      glColor3f(21. / 255., 76. / 255., 121. / 255.);
+      glColor3f(ABOVE_RED / 255., ABOVE_GREEN / 255., ABOVE_BLUE / 255.);
       glVertex3f(+2., 2. / aspect, 10);
       glVertex3f(-2., 2. / aspect, 10);
       glEnd();

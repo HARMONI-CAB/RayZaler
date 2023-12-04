@@ -144,7 +144,7 @@ Script::customFunctions() const
 bool
 ScriptLoader::pythonLibraryInit()
 {
-  PyImport_AppendInittab("RayZaler", PyInit_RZ);
+  PyImport_AppendInittab("RZLink", PyInit_RZ);
   Py_Initialize();
 
   m_pSys = PyImport_ImportModule("sys");

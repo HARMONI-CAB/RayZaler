@@ -5,6 +5,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <Logger.h>
 
 int
 yylex(RZ::ParserContext *ctx)
@@ -448,6 +449,29 @@ ParserContext::script(std::string const &path)
 }
 
 void
+ParserContext::addImportOnce(std::string const &path)
+{
+  if (m_parentContext != nullptr) {
+    m_parentContext->addImportOnce(path);
+    return;
+  }
+
+  if (alreadyImported(path))
+    return;
+  
+  m_includeOnce.insert(path);
+}
+
+bool
+ParserContext::alreadyImported(std::string const &path) const
+{
+  if (m_parentContext != nullptr)
+    return m_parentContext->alreadyImported(path);
+  
+  return m_includeOnce.find(path) != m_includeOnce.end();
+}
+
+void
 ParserContext::import(std::string const &path)
 {
   FileParserContext *nestedContext = nullptr;
@@ -461,7 +485,10 @@ ParserContext::import(std::string const &path)
   absPath = resolvePath(path);
   if (absPath.empty())
     throw std::runtime_error("Cannot resolve relative import `" + path + "'");
-  
+
+  if (alreadyImported(absPath))
+    return;
+
   fp = fopen(absPath.c_str(), "r");
   if (fp == nullptr) {
     throw std::runtime_error(
@@ -471,14 +498,17 @@ ParserContext::import(std::string const &path)
       + strerror(errno));
   }
 
-  dirName = dirname(absPath.data());
+  std::string absPathCopy = absPath;
 
-  nestedContext = new FileParserContext(m_recipe, m_recursion + 1);
+  dirName = dirname(absPathCopy.data());
+
+  nestedContext = new FileParserContext(this, m_recursion + 1);
   nestedContext->addSearchPath(dirName);
   nestedContext->inheritSearchPaths(this);
   nestedContext->setFile(fp, path);
 
   try {
+    addImportOnce(absPath);
     nestedContext->parse();
   } catch (std::runtime_error const &e) {
     error = "In file import:\n" + std::string(e.what());
@@ -556,8 +586,14 @@ ParserContext::ParserContext(Recipe *recipe, int recursion) :
   m_rootRecipe(recipe)
 {
   setlocale(LC_NUMERIC, "C");
-  m_recipe = m_rootRecipe;
+  m_recipe    = m_rootRecipe;
   m_recursion = recursion;
+}
+
+ParserContext::ParserContext(ParserContext *prev, int recursion) :
+  ParserContext(prev->m_recipe, recursion)
+{
+  m_parentContext = prev;
 }
 
 bool
@@ -584,6 +620,8 @@ ParserContext::addSearchPath(std::string const &path)
   if (std::find(m_searchPaths.begin(), m_searchPaths.end(), path) 
     == m_searchPaths.end())
       m_searchPaths.push_back(path);
+
+  m_recipe->pushSearchPath(path);
 }
 
 void
@@ -594,12 +632,6 @@ ParserContext::inheritSearchPaths(ParserContext const *context)
 }
 
 //////////////////////////// File parser context ///////////////////////////////
-FileParserContext::FileParserContext(Recipe *recipe, int recursion)
-  : ParserContext(recipe, recursion)
-{
-
-}
-
 void
 FileParserContext::setFile(FILE *fp, std::string const &name)
 {

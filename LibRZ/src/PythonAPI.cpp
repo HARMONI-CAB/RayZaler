@@ -60,7 +60,7 @@ static PyMethodDef g_methods[] = {
 
 static struct PyModuleDef g_module = {
   PyModuleDef_HEAD_INIT,
-  "RayZaler",
+  "RZLink",
   "RayZaler C++ API link",
   -1,
   g_methods

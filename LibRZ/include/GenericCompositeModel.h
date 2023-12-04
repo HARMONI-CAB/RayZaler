@@ -90,7 +90,7 @@ namespace RZ {
     GenericEvaluator      *evaluator = nullptr; // Owned
     std::string            assignString;
     int                    position = -1;
-    
+
     union {
       Element         *element = nullptr;
       RotatedFrame    *rotation;
@@ -227,6 +227,8 @@ namespace RZ {
       bool loadScript(std::string const &path);
       bool setParam(std::string const &, Real);
       bool setDof(std::string const &, Real);
+
+      std::string resolveFilePath(std::string const &) const;
 
       void assignEverything();
       void updateRandState();

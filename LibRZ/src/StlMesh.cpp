@@ -2,7 +2,7 @@
 #include <StlMesh.h>
 #include <stl_reader.h>
 #include <Logger.h>
-
+#include <GenericCompositeModel.h>
 
 using namespace RZ;
 
@@ -18,10 +18,14 @@ StlMesh::tryOpenModel()
   m_vertices.clear();
   m_vnormals.clear();
   
+  std::string actualPath;
+  auto model = parentModel();
+
+  actualPath = model == nullptr ? m_path : model->resolveFilePath(m_path);
 
   try {
     stl_reader::ReadStlFile(
-      m_path.c_str(),
+      actualPath.c_str(),
       m_coords,
       m_normals,
       m_tris,
@@ -65,8 +69,6 @@ StlMesh::tryOpenModel()
     m_solids.clear();
 
     m_haveMesh = true;
-
-    RZInfo("Model opened, %d triangles\n", numTris);
   } catch (std::exception& e) {
     RZError(
       "%s: cannot load STL model from `%s': %s\n",
@@ -87,6 +89,8 @@ StlMesh::propertyChanged(
       m_path = newPath;
       tryOpenModel();
     }
+  } else if (name == "units") {
+    m_units = value;
   } else {
     return OpticalElement::propertyChanged(name, value);
   }
@@ -101,6 +105,7 @@ StlMesh::StlMesh(
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   registerProperty("file", "");
+  registerProperty("units", m_units);
 }
 
 StlMesh::~StlMesh()
@@ -122,6 +127,7 @@ StlMesh::renderOpenGL()
 
   if (m_haveMesh) {
     material("main");
+    glScalef(m_units, m_units, m_units);
     glVertexPointer(3, GL_DOUBLE,   3 * sizeof(Real), m_vertices.data());
     glNormalPointer(GL_DOUBLE,      3 * sizeof(Real), m_vnormals.data());
     glDrawElements(GL_TRIANGLES, m_tris.size(), GL_UNSIGNED_INT, m_tris.data());
