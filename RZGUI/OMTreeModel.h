@@ -2,6 +2,8 @@
 #define OMTREEMODEL_H
 
 #include <QAbstractItemModel>
+#include <QMap>
+#include <QPixmap>
 
 namespace RZ {
   class OMModel;
@@ -27,6 +29,7 @@ struct OMTreeItem {
 
   QString displayText;
   OMTreeItem *parent = nullptr;
+  QPixmap *icon = nullptr;
   std::vector<OMTreeItem *> children;
   int relRow = -1;
 
@@ -77,11 +80,16 @@ struct OMTreeItem {
 class OMTreeModel : public QAbstractItemModel
 {
   Q_OBJECT
+    QMap<QString, QPixmap>  m_icons;
     std::list<OMTreeItem *> m_itemAlloc;
     OMTreeItem *m_root     = nullptr;
-    RZ::OMModel *m_model = nullptr;
+    RZ::OMModel *m_model   = nullptr;
 
     OMTreeItem *allocItem(OMTreeItemType type, OMTreeItem *parent = nullptr, const char *displayText= nullptr);
+    void populateSubModel(OMTreeItem *root, RZ::OMModel *model);
+
+    QPixmap &getIcon(QString const &name);
+    void assignItemIcon(OMTreeItem *);
 
   public:
     void clearModel();

@@ -22,4 +22,21 @@
         <file>icons/trace.svg</file>
         <file>icons/application-x-desktop.svg</file>
     </qresource>
+    <qresource prefix="/ommodel">
+        <file>icons/paths.svg</file>
+        <file>icons/detector.svg</file>
+        <file>icons/aperture-stop.svg</file>
+        <file>icons/reference-frame.svg</file>
+        <file>icons/tripod.svg</file>
+        <file>icons/translated.svg</file>
+        <file>icons/rotated.svg</file>
+        <file>icons/mla.svg</file>
+        <file>icons/rod-element.svg</file>
+        <file>icons/tube-element.svg</file>
+        <file>icons/block-element.svg</file>
+        <file>icons/stl-mesh.svg</file>
+        <file>icons/composite-element.svg</file>
+        <file>icons/elements.svg</file>
+        <file>icons/optical-elements.svg</file>
+    </qresource>
 </RCC>
