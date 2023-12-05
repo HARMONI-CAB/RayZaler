@@ -83,7 +83,6 @@ ApertureStop::renderOpenGL()
   m_pinHole.display();
   
   glRotatef(180, 1, 0, 0);
-  glTranslatef(0, 0, 1e-3 * m_radius);
   
   material("output.surface");
   m_pinHole.display();

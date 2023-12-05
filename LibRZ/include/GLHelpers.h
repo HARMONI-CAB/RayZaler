@@ -273,6 +273,7 @@ namespace RZ {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
       std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
 
       GLint    m_slices = 32;
       GLdouble m_radius = .25;

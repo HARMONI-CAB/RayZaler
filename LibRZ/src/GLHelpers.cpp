@@ -804,24 +804,34 @@ GLPinHole::recalculate()
 
   stride = 3 * (m_slices + 3);
   m_vertices.resize(4 * stride);
-
+  m_normals.resize(stride);
   p = 0;
+
+  for (j = 0; j < m_slices + 3; ++j) {
+    m_normals[3 * j + 0] = 0;
+    m_normals[3 * j + 1] = 0;
+    m_normals[3 * j + 2] = 1;
+  }
+
   for (j = 0; j < 4; ++j) {
-    m_vertices[p++] = (m_width  / 2) * sgn(cos(angle + M_PI / 4));
     m_vertices[p++] = (m_height / 2) * sgn(sin(angle + M_PI / 4));
+    m_vertices[p++] = (m_width  / 2) * sgn(cos(angle + M_PI / 4));
+    
     m_vertices[p++] = 0;
 
     for (i = 0; i <= m_slices; ++i) {
-      m_vertices[p++] = m_radius * cos(angle);
       m_vertices[p++] = m_radius * sin(angle);
+      m_vertices[p++] = m_radius * cos(angle);
+      
       m_vertices[p++] = 0;
 
       if (i < m_slices)
         angle += angDelta;
     }
 
-    m_vertices[p++] = (m_width   / 2) * sgn(cos(angle + M_PI / 4));
     m_vertices[p++] = (m_height  / 2) * sgn(sin(angle + M_PI / 4));
+    m_vertices[p++] = (m_width   / 2) * sgn(cos(angle + M_PI / 4));
+    
     m_vertices[p++] = 0;
   }
 
@@ -865,12 +875,19 @@ GLPinHole::display()
   if (m_dirty)
     recalculate();
 
+  glPushAttrib(GL_ENABLE_BIT);
+
   for (i = 0; i < 4; ++i) {
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0,  m_vertices.data() + i * stride);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 0, m_vertices.data() + i * stride);
+    glNormalPointer(GL_FLOAT, 3 * sizeof(GLfloat), m_normals.data());
     glDrawArrays(GL_TRIANGLE_FAN, 0, stride / 3);
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
   }
+
+  glPopAttrib();
 }
 
 ///////////////////////////////// GLRectangle //////////////////////////////////
