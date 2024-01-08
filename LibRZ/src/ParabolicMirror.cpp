@@ -12,6 +12,10 @@ ParabolicMirror::recalcModel()
   m_cap.setFocalLength(-m_flength);
   m_cap.setInvertNormals(true);
 
+  m_rearCap.setRadius(m_radius);
+  m_rearCap.setFocalLength(-m_flength);
+  m_rearCap.setInvertNormals(false);
+
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
@@ -46,7 +50,6 @@ ParabolicMirror::propertyChanged(
   return true;
 }
 
-
 ParabolicMirror::ParabolicMirror(
   ElementFactory *factory,
   std::string const &name,
@@ -65,8 +68,9 @@ ParabolicMirror::ParabolicMirror(
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
   addPort("refPort", m_reflectiveSurfacePort);
 
-  m_cylinder.setVisibleCaps(true, false);
+  m_cylinder.setVisibleCaps(false, false);
   m_cap.setInvertNormals(true);
+  m_rearCap.setInvertNormals(false);
   
   refreshProperties();
 }
@@ -98,9 +102,11 @@ ParabolicMirror::renderOpenGL()
   m_cylinder.display();
 
   glRotatef(180, 1, 0, 0);
-  glTranslatef(0, 0, -m_thickness);
 
   material("input.mirror");
+
+  m_rearCap.display();
+  glTranslatef(0, 0, -m_thickness);
   m_cap.display();
 }
 

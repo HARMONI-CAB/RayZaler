@@ -10,7 +10,7 @@ namespace RZ {
 
   class ParabolicMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
-      GLParabolicCap   m_cap;
+      GLParabolicCap   m_cap, m_rearCap;
       ParabolicMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
       TranslatedFrame *m_reflectiveSurfacePort = nullptr;
