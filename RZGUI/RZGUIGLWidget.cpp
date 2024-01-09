@@ -6,8 +6,10 @@
 #include <GL/glut.h>
 #include <QPainter>
 #include "GUIHelpers.h"
+#include <QKeyEvent>
 
-#define GLUT_ENGINE_SHIFT_DELTA 2e-1
+#define RZGUIGL_MOUSE_ROT_DELTA 2e-1
+#define RZGUIGL_KBD_ROT_DELTA   5
 
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
@@ -17,6 +19,7 @@ RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
   m_axisCylinder.setVisibleCaps(true, false);
 
   setMouseTracking(true);
+
 }
 
 void
@@ -245,10 +248,10 @@ RZGUIGLWidget::mouseClick(int button, int state, int x, int y, int shift)
 
       case 2: // Right button
         m_rotating = true;
-        m_rotStart[0] = x;
-        m_rotStart[1] = y;
-        m_oldRot[0] = m_curRot[0];
-        m_oldRot[1] = m_curRot[1];
+        m_rotStart[0] = m_prevRotX = x;
+        m_rotStart[1] = m_prevRotY = y;
+        m_oldRot[0] = m_curAzEl[0];
+        m_oldRot[1] = m_curAzEl[1];
         break;
 
       case 3: // Mouse wheel up
@@ -293,10 +296,25 @@ RZGUIGLWidget::mouseMotion(int x, int y)
   if (m_rotating) {
     shiftX = x - m_rotStart[0];
     shiftY = y - m_rotStart[1];
-    m_curRot[0] = m_oldRot[0] + shiftX * GLUT_ENGINE_SHIFT_DELTA;
-    m_curRot[1] = m_oldRot[1] + shiftY * GLUT_ENGINE_SHIFT_DELTA;
+    m_curAzEl[0] = m_oldRot[0] + shiftX * RZGUIGL_MOUSE_ROT_DELTA;
+    m_curAzEl[1] = m_oldRot[1] + shiftY * RZGUIGL_MOUSE_ROT_DELTA;
+
+    RZ::Real deltaX = x - m_prevRotX;
+    RZ::Real deltaY = y - m_prevRotY;
+
+    m_incRot.rotate(
+      RZ::Vec3::eY(),
+      RZ::deg2rad(deltaX * RZGUIGL_MOUSE_ROT_DELTA));
+
+    m_incRot.rotate(
+      RZ::Vec3::eX(),
+      RZ::deg2rad(deltaY * RZGUIGL_MOUSE_ROT_DELTA));
 
     m_newViewPort = true;
+    
+    m_prevRotX = x;
+    m_prevRotY = y;
+
     update();
   }
 }
@@ -362,6 +380,33 @@ RZGUIGLWidget::wheelEvent(QWheelEvent *event)
       mouseClick(4, 0, x, y, -delta);
     else
       mouseClick(3, 0, x, y, delta);
+  }
+}
+
+void
+RZGUIGLWidget::keyPressEvent(QKeyEvent *event)
+{
+  bool rotate = false;
+  RZ::Real angle = 0;
+
+  switch (event->key()) {
+    case Qt::Key_Up:
+      angle = RZ::deg2rad(RZGUIGL_KBD_ROT_DELTA);
+      rotate = true;
+      break;
+
+    case Qt::Key_Down:
+      angle = -RZ::deg2rad(RZGUIGL_KBD_ROT_DELTA);
+      rotate = true;
+      break;
+
+    default:
+      break;
+  }
+
+  if (rotate) {
+    m_incRot.rotate(RZ::Vec3::eZ(), angle);
+    update();
   }
 }
 
@@ -458,9 +503,11 @@ RZGUIGLWidget::drawAxes()
       glEnable(GL_DEPTH_TEST);
 
       glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
-      glRotatef(m_curRot[0], 0, 1, 0);
-      glRotatef(m_curRot[1], 1, 0, 0);
-      glRotatef(m_curRot[2], 0, 0, 1);
+
+      auto k = m_incRot.k();
+      auto theta = RZ::rad2deg(m_incRot.theta());
+
+      glRotatef(theta, k.x, k.y, k.z);
 
       glRotatef(-90, 1, 0, 0);
       glRotatef(-90, 0, 0, 1);
@@ -525,9 +572,10 @@ RZGUIGLWidget::paintGL()
   drawAxes();
 
   glTranslatef(0, 0, -10.);
-  glRotatef(m_curRot[0], 0, 1, 0);
-  glRotatef(m_curRot[1], 1, 0, 0);
-  glRotatef(m_curRot[2], 0, 0, 1);
+  auto k = m_incRot.k();
+  auto theta = RZ::rad2deg(m_incRot.theta());
+
+  glRotatef(theta, k.x, k.y, k.z);
 
   glRotatef(-90, 1, 0, 0);
   glRotatef(-90, 0, 0, 1);
@@ -557,12 +605,18 @@ RZGUIGLWidget::setModel(RZ::OMModel *model)
 void
 RZGUIGLWidget::getCurrentRot(GLfloat *rot) const
 {
-  memcpy(rot, m_curRot, sizeof(GLfloat) * 3);
+  memcpy(rot, m_curAzEl, sizeof(GLfloat) * 3);
 }
 
 void
 RZGUIGLWidget::setCurrentRot(const GLfloat *rot)
 {
-  memcpy(m_curRot, rot, sizeof(GLfloat) * 3);
+  if (!RZ::isZero(rot[0]))
+    m_incRot.setRotation(RZ::Vec3::eY(), RZ::deg2rad(rot[0]));      
+  else if (!RZ::isZero(rot[2]))
+    m_incRot.rotateRelative(RZ::Vec3::eZ(), RZ::deg2rad(rot[2]));
+  else
+    m_incRot.setRotation(RZ::Vec3::eX(), RZ::deg2rad(rot[1]));
+    
   update();
 }

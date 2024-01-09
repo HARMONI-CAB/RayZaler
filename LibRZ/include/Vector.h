@@ -150,6 +150,13 @@ namespace RZ {
       return *this * k;
     }
 
+    // Check if is null
+    inline bool
+    isNull(Real tol = 1e-9) const
+    {
+      return isZero(x, tol) && isZero(y, tol) && isZero(z, tol);
+    }
+
     inline bool
     compare(Vec3 const &other, Real dist) const
     {

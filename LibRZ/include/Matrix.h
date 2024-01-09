@@ -142,6 +142,13 @@ namespace RZ {
       - (row.vx.x * row.vy.z * row.vz.y + row.vx.y * row.vy.x * row.vz.z + row.vx.z * row.vy.y * row.vz.x);
     }
 
+    // Trace
+    inline Real
+    tr() const
+    {
+      return coef[0][0] + coef[1][1] + coef[2][2];
+    }
+
     // Transpose
     inline Matrix3
     t() const

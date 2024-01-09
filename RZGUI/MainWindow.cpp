@@ -232,6 +232,19 @@ MainWindow::reconnectModels()
 }
 
 void
+MainWindow::keyPressEvent(QKeyEvent *event)
+{
+  if (m_currSession != nullptr && m_sessionToTab.contains(m_currSession)) {
+    auto widget = m_sessionToTab[m_currSession];
+
+    if (widget != nullptr)
+      widget->keyPressEvent(event);
+  }
+
+  QWidget::keyPressEvent(event);
+}
+
+void
 MainWindow::refreshCurrentSession()
 {
   if (m_currSession != nullptr) {
@@ -512,7 +525,7 @@ MainWindow::onChangeView()
   }
 
     ROTONSENDER(actionViewFront,  0,     0, 0)
-    ROTONSENDER(actionViewRear,   180,   0, 0)
+    ROTONSENDER(actionViewRear,  -180,   0, 0)
     ROTONSENDER(actionViewTop,      0, +90, 0)
     ROTONSENDER(actionViewBottom,   0, -90, 0)
     ROTONSENDER(actionViewLeft,   +90,   0, 0)

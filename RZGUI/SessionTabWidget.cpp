@@ -44,6 +44,14 @@ SessionTabWidget::setDisplayNames(bool label)
 }
 
 void
+SessionTabWidget::keyPressEvent(QKeyEvent *event)
+{
+  m_glWidget->keyPressEvent(event);
+
+  QWidget::keyPressEvent(event);
+}
+
+void
 SessionTabWidget::connectAll()
 {
   connect(

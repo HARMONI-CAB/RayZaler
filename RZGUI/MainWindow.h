@@ -48,6 +48,8 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
 
+  void keyPressEvent(QKeyEvent *event) override;
+
 public slots:
   void onOpen();
   void onCloseTab(int);

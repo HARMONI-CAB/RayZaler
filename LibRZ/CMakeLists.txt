@@ -26,6 +26,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
+  ${LIBRZ_SRCDIR}/IncrementalRotation.cpp
   ${LIBRZ_SRCDIR}/LensletArray.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
@@ -70,6 +71,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
+  ${LIBRZ_INCLUDEDIR}/IncrementalRotation.h
   ${LIBRZ_INCLUDEDIR}/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h

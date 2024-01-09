@@ -4,6 +4,8 @@
 #include <QOpenGLWidget>
 #include <OMModel.h>
 #include <GLHelpers.h>
+#include <IncrementalRotation.h>
+#include <QKeyEvent>
 
 class RZGUIGLWidget : public QOpenGLWidget
 {
@@ -28,8 +30,10 @@ class RZGUIGLWidget : public QOpenGLWidget
   GLfloat m_oldCenterCenter[2] = {0, 0};
 
   bool m_rotating = false;
+  RZ::IncrementalRotation m_incRot;
+  GLfloat m_prevRotX, m_prevRotY;
   GLfloat m_rotStart[2] = {0, 0};
-  GLfloat m_curRot[3] = {0, 0, 0};
+  GLfloat m_curAzEl[3] = {0, 0};
   GLfloat m_oldRot[2] = {0, 0};
 
   void configureViewPort();
@@ -82,6 +86,9 @@ public:
   void getCurrentRot(GLfloat *) const;
   void setCurrentRot(const GLfloat *);
   void setDisplayNames(bool);
+
+  // Exposed so other objects can deliver events to the widget
+  void keyPressEvent(QKeyEvent *event) override;
 };
 
 #endif // RZGUIGLWIDGET_H

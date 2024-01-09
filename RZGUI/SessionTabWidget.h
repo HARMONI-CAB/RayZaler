@@ -36,6 +36,8 @@ public:
   bool displayNames() const;
   void setDisplayNames(bool);
 
+  void keyPressEvent(QKeyEvent *event) override;
+
 private:
   Ui::SessionTabWidget *ui;
 
