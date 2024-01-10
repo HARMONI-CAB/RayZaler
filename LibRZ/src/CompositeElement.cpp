@@ -1,6 +1,7 @@
 #include "CompositeElement.h"
 #include "OMModel.h"
 #include "ExprTkEvaluator.h"
+#include "Logger.h"
 
 using namespace RZ;
 
@@ -70,19 +71,19 @@ CompositeElement::propertyChanged(
   try {
     setDof(name, value);
     return true;
-  } catch (std::runtime_error &e) {
-    std::cout << e.what() << std::endl;
-  }
+  } catch (std::runtime_error &e) { }
 
   try {
     setParam(name, value);
     return true;
   } catch (std::runtime_error &e) { }
+  
+  if (!Element::propertyChanged(name, val)) {
+    RZError("Uknown property`%s'", name.c_str());
+    return false;
+  }
 
-  refreshProperties();
-  m_model->world()->recalculate();
-
-  return false;
+  return true;
 }
 
 void
