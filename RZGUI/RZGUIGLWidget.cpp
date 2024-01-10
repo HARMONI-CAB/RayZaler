@@ -406,6 +406,7 @@ RZGUIGLWidget::keyPressEvent(QKeyEvent *event)
 
   if (rotate) {
     m_incRot.rotate(RZ::Vec3::eZ(), angle);
+    m_newViewPort = true;
     update();
   }
 }
@@ -617,6 +618,6 @@ RZGUIGLWidget::setCurrentRot(const GLfloat *rot)
     m_incRot.rotateRelative(RZ::Vec3::eZ(), RZ::deg2rad(rot[2]));
   else
     m_incRot.setRotation(RZ::Vec3::eX(), RZ::deg2rad(rot[1]));
-    
+
   update();
 }

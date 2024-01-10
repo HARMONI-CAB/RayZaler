@@ -226,7 +226,7 @@ public:
 
   // Session actions
   void                 selectElement(RZ::Element *);
-
+  RZ::Element         *getSelectedElement() const;
   QString              fileName() const;
 
   bool                 runSimulation();

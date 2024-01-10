@@ -1250,6 +1250,12 @@ SimulationSession::selectElement(RZ::Element *element)
   }
 }
 
+RZ::Element *
+SimulationSession::getSelectedElement() const
+{
+  return m_selectedElement;
+}
+
 QString
 SimulationSession::fileName() const
 {

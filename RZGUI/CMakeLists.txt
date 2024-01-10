@@ -26,6 +26,14 @@ set(PROJECT_SOURCES
         DetectorWindow.h
         DetectorWindow.cpp
         DetectorWindow.ui
+        DOFAdjustWidget.h
+        DOFAdjustWidget.cpp
+        DOFAdjustWidget.ui
+        DOFWidget.h
+        DOFWidget.cpp
+        DOFWidget.ui
+        ElementPropertyModel.h
+        ElementPropertyModel.cpp
         GUIHelpers.h
         GUIHelpers.cpp
         ImageNavWidget.h

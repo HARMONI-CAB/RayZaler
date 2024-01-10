@@ -13,9 +13,16 @@ QT_END_NAMESPACE
 class SimulationSession;
 class SessionTabWidget;
 class PropertyAndDofTableModel;
+class ElementPropertyModel;
 class OMTreeModel;
 class SimulationPropertiesDialog;
 class QFileDialog;
+class DOFWidget;
+
+struct SessionUI {
+  SessionTabWidget *tab       = nullptr;
+  DOFWidget        *dofWidget = nullptr;
+};
 
 class MainWindow : public QMainWindow, public RZ::Logger
 {
@@ -24,14 +31,16 @@ class MainWindow : public QMainWindow, public RZ::Logger
   SimulationSession *m_currSession = nullptr;
 
   std::list<SimulationSession *> m_sessions;
-  QMap<SimulationSession *, SessionTabWidget *> m_sessionToTab;
+  QMap<SimulationSession *, SessionUI> m_sessionToUi;
 
   QString                     m_lastOpenDir;
   SimulationPropertiesDialog *m_simPropertiesDialog = nullptr;
-  PropertyAndDofTableModel   *m_propModel = nullptr;
-  OMTreeModel                *m_omModel   = nullptr;
+  PropertyAndDofTableModel   *m_propModel           = nullptr;
+  ElementPropertyModel       *m_compPropModel       = nullptr;
+  OMTreeModel                *m_omModel             = nullptr;
 
   void refreshCurrentSession();
+  void refreshCurrentElement();
   void registerSession(SimulationSession *);
   void doOpen();
 
@@ -75,6 +84,7 @@ public slots:
   void onTreeItemSelectionChanged();
   void onChangeView();
   void onChangeDisplay();
+  void onUpdateModel();
 
 private:
   Ui::MainWindow *ui;

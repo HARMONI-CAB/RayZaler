@@ -71,7 +71,7 @@ struct OMTreeItem {
   int
   columnCount() const
   {
-    return 2;
+    return 1;
   }
 
   QString data(int col);

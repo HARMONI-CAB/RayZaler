@@ -20,6 +20,15 @@ namespace RZ {
   class OMModel;
   class GenericCompositeModel;
   struct UndefinedProperty {};
+
+  enum PropertyValueType {
+    UndefinedValue,
+    IntegerValue,
+    RealValue,
+    BooleanValue,
+    StringValue
+  };
+
   typedef std::variant<UndefinedProperty, int64_t, Real, bool, std::string> BasePropertyVariant;
   class PropertyValue : public BasePropertyVariant {
       // Cobolization of C++ will never end. I need this specific construct to
@@ -37,6 +46,12 @@ namespace RZ {
       isUndefined() const
       {
         return index() == 0;
+      }
+
+      inline PropertyValueType
+      type() const
+      {
+        return static_cast<PropertyValueType>(index());
       }
 
       template<typename T>

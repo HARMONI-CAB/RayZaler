@@ -6,6 +6,8 @@
 #include "OMTreeModel.h"
 #include "SimulationPropertiesDialog.h"
 #include "CustomTextEditDelegate.h"
+#include "ElementPropertyModel.h"
+#include "DOFWidget.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -18,7 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
   ui->setupUi(this);
 
   m_propModel           = new PropertyAndDofTableModel(nullptr);
-  m_omModel             = new OMTreeModel();
+  m_compPropModel       = new ElementPropertyModel;
+  m_omModel             = new OMTreeModel;
   m_simPropertiesDialog = new SimulationPropertiesDialog(this);
 
   ui->propTableView->setModel(m_propModel);
@@ -26,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
         3,
         new CustomTextEditDelegate(this));
 
+  ui->compPropView->setModel(m_compPropModel);
   ui->omTreeView->setModel(m_omModel);
 
   QSurfaceFormat fmt;
@@ -117,6 +121,12 @@ MainWindow::connectAll()
         SIGNAL(dataChanged(QModelIndex, QModelIndex, QList<int>)),
         this,
         SLOT(onDofChanged(QModelIndex, QModelIndex, QList<int>)));
+
+  connect(
+        m_compPropModel,
+        SIGNAL(propertyChanged(QString)),
+        this,
+        SLOT(onUpdateModel()));
 
   connect(
         m_omModel,
@@ -234,8 +244,8 @@ MainWindow::reconnectModels()
 void
 MainWindow::keyPressEvent(QKeyEvent *event)
 {
-  if (m_currSession != nullptr && m_sessionToTab.contains(m_currSession)) {
-    auto widget = m_sessionToTab[m_currSession];
+  if (m_currSession != nullptr && m_sessionToUi.contains(m_currSession)) {
+    auto widget = m_sessionToUi[m_currSession].tab;
 
     if (widget != nullptr)
       widget->keyPressEvent(event);
@@ -245,8 +255,25 @@ MainWindow::keyPressEvent(QKeyEvent *event)
 }
 
 void
+MainWindow::refreshCurrentElement()
+{
+  RZ::Element *element = nullptr;
+
+  if (m_currSession != nullptr)
+    element = m_currSession->getSelectedElement();
+
+  m_compPropModel->setElement(element);
+
+  ui->compPropView->horizontalHeader()->resizeSections(QHeaderView::Stretch);
+  ui->compPropView->horizontalHeader()->setStretchLastSection(true);
+}
+
+void
 MainWindow::refreshCurrentSession()
 {
+  if (ui->dofStack->count() > 1)
+    ui->dofStack->removeWidget(ui->dofStack->widget(1));
+
   if (m_currSession != nullptr) {
     // Refresh model, if applicable
     m_propModel->setModel(m_currSession->topLevelModel());
@@ -259,6 +286,9 @@ MainWindow::refreshCurrentSession()
     ui->actionAnimStop->setEnabled(!m_currSession->stopped());
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
 
+    ui->dofStack->insertWidget(1, m_sessionToUi[m_currSession].dofWidget);
+    ui->dofStack->setCurrentIndex(1);
+
     ui->simToolBar->setEnabled(true);
     ui->actionSimResult->setEnabled(
           m_currSession->topLevelModel()->detectors().size() > 0);
@@ -267,7 +297,7 @@ MainWindow::refreshCurrentSession()
     ui->displayToolBar->setEnabled(true);
     BLOCKSIG(
           ui->actionToggleDisplayNames,
-          setChecked(m_sessionToTab[m_currSession]->displayNames()));
+          setChecked(m_sessionToUi[m_currSession].tab->displayNames()));
 
     reconnectModels();
   } else {
@@ -283,18 +313,29 @@ MainWindow::refreshCurrentSession()
     ui->propTableView->setModel(nullptr);
     setWindowTitle("RayZaler - No model file");
   }
+
+  refreshCurrentElement();
 }
 
 void
 MainWindow::registerSession(SimulationSession *session)
 {
-  SessionTabWidget *widget = new SessionTabWidget(session);
+  SessionUI sessUi;
+
+  sessUi.tab = new SessionTabWidget(session);
+  sessUi.dofWidget = new DOFWidget(session);
+
+  connect(
+        sessUi.dofWidget,
+        SIGNAL(dofChanged()),
+        this,
+        SLOT(onUpdateModel()));
 
   m_sessions.push_back(session);
-  m_sessionToTab.insert(session, widget);
+  m_sessionToUi.insert(session, sessUi);
 
-  ui->sessionTabWidget->addTab(widget, session->fileName());
-  ui->sessionTabWidget->setCurrentWidget(widget);
+  ui->sessionTabWidget->addTab(sessUi.tab, session->fileName());
+  ui->sessionTabWidget->setCurrentWidget(sessUi.tab);
 
   m_currSession = session;
   refreshCurrentSession();
@@ -363,12 +404,16 @@ MainWindow::onCloseTab(int index)
 
   SimulationSession *session = widget->session();
 
+  auto sessUI = m_sessionToUi[session];
+
   ui->sessionTabWidget->removeTab(index);
 
   m_sessions.remove(session);
-  m_sessionToTab.remove(session);
+  m_sessionToUi.remove(session);
 
-  widget->deleteLater();
+  sessUI.tab->deleteLater();
+  sessUI.dofWidget->deleteLater();
+
   session->deleteLater();
 }
 
@@ -553,6 +598,8 @@ MainWindow::onTreeItemSelectionChanged()
 
     m_currSession->selectElement(selectedElement);
   }
+
+  refreshCurrentElement();
 }
 
 void
@@ -565,3 +612,12 @@ MainWindow::onChangeDisplay()
     widget->setDisplayNames(ui->actionToggleDisplayNames->isChecked());
 }
 
+void
+MainWindow::onUpdateModel()
+{
+  if (m_currSession != nullptr) {
+    auto &ui = m_sessionToUi[m_currSession];
+
+    ui.tab->updateModel();
+  }
+}
