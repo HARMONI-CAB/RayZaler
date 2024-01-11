@@ -16,6 +16,7 @@ namespace std {
 }
 
 %init %{
+  RZ::Logger::setDefaultLogger(new RZ::StdErrLogger());
   import_array();
   g_rzException = PyErr_NewException("_pyRayZaler.EngineError", nullptr, nullptr);
   Py_INCREF(g_rzException);
@@ -34,6 +35,7 @@ namespace std {
 #include <GenericCompositeModel.h>
 #include <OMModel.h>
 #include <TopLevelModel.h>
+#include <Logger.h>
 
 #include <ApertureStop.h>
 #include <BlockElement.h>
@@ -61,6 +63,8 @@ namespace std {
 #include <WorldFrame.h>
 
 using namespace RZ;
+PyMODINIT_FUNC PyInit_RZ();
+
 %}
 
 %exception {
@@ -81,6 +85,7 @@ using namespace RZ;
 %include "GenericCompositeModel.h"
 %include "OMModel.h"
 %include "TopLevelModel.h"
+%include "Logger.h"
 
 %include "ApertureStop.h"
 %include "BlockElement.h"
@@ -131,6 +136,31 @@ using namespace RZ;
         "Value " 
         + std::to_string(value) 
         + " rejected for degree of freedom `" + key + "'");
+  }
+}
+
+%extend RZ::Element {
+  PyObject *
+  __getitem__(std::string const &key)
+  {
+    RZ::PropertyValue value = self->get(key);
+
+    switch (value.type()) {
+      case IntegerValue:
+        return PyLong_FromLong(std::get<int64_t>(value));
+      
+      case RealValue:
+        return PyFloat_FromDouble(std::get<RZ::Real>(value));
+
+      case BooleanValue:
+        return PyBool_FromLong(std::get<bool>(value));
+
+      case StringValue:
+        return PyUnicode_FromString(std::get<std::string>(value).c_str());
+
+      default:
+        throw std::runtime_error("Element `" + self->name() + "' has no property `" + key + "'");  
+    }
   }
 }
 

@@ -144,8 +144,17 @@ Script::customFunctions() const
 bool
 ScriptLoader::pythonLibraryInit()
 {
-  PyImport_AppendInittab("RZLink", PyInit_RZ);
-  Py_Initialize();
+  if (!Py_IsInitialized()) {
+    PyImport_AppendInittab("RZLink", PyInit_RZ);
+    Py_Initialize();
+  } else {
+    // Required to register RZLink module in a delayed fashion, particularly
+    // when we are using libRZ from SWIG
+    PyDict_SetItemString(
+      PyImport_GetModuleDict(),
+      "RZLink",
+      PyInit_RZ());
+  }
 
   m_pSys = PyImport_ImportModule("sys");
   if (m_pSys == nullptr) {
@@ -286,14 +295,18 @@ ScriptLoader::load(std::string const &path)
   }
 
   // Not quite, load it now
-  if (!explodeScriptPath(path, dirName, modName))
+  if (!explodeScriptPath(path, dirName, modName)) {
+    RZError("Failed to explode script path\n");
     goto done;
+  }
   
   (void) pthread_mutex_lock(&m_registerMutex);
   mutexAcquired = true;
 
-  if (!enableScriptDirectory(dirName))
+  if (!enableScriptDirectory(dirName)) {
+    RZError("Failed to enable script directory `%s'\n", dirName.c_str());
     goto done;
+  }
   
   script = new Script(path);
   

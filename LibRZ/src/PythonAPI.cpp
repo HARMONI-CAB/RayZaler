@@ -4,7 +4,6 @@
 
 using namespace RZ;
 
-
 static PyObject *
 registerFunction(PyObject *self, PyObject *args)
 {

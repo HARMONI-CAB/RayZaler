@@ -12,6 +12,7 @@ namespace RZ {
 
   class Logger {
       static Logger *m_logger;
+      static int m_maxLevel;
 
     public:
       // To be implemented by all loggers
@@ -28,6 +29,18 @@ namespace RZ {
         const char *fmt, ...);
 
       static void setDefaultLogger(Logger *);
+      static void setLogLevel(int max);
+  };
+
+  class StdErrLogger : public Logger {
+      bool m_lineFeed = true;
+
+    public:
+      virtual void logFunction(
+        LogLevel level,
+        std::string const &file,
+        int line,
+        std::string const &message) override;
   };
 }
 
