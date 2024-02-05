@@ -53,7 +53,21 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/TranslatedFrame.cpp
   ${LIBRZ_SRCDIR}/TubeElement.cpp
   ${LIBRZ_SRCDIR}/WorldFrame.cpp
-  ${LIBRZ_SRCDIR}/Zernike.cpp)
+  ${LIBRZ_SRCDIR}/Zernike.cpp
+  
+  ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/FlatMirror.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/InfiniteMirror.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/LensletArray.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/Obstruction.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/ParabolicMirror.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/PassThrough.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/PhaseScreen.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/RectangularStop.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/SphericalLens.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/SphericalMirror.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
+  )
 
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ApertureStop.h
@@ -99,7 +113,20 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/TubeElement.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h
-  ${LIBRZ_INCLUDEDIR}/Zernike.h)
+  ${LIBRZ_INCLUDEDIR}/Zernike.h
+
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/FlatMirror.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/InfiniteMirror.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/LensletArray.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/Obstruction.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/ParabolicMirror.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/PassThrough.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/PhaseScreen.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/RectangularStop.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalLens.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalMirror.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES
