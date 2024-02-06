@@ -71,8 +71,6 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
 {
   uint64_t count = beam.count;
   uint64_t i;
-  Real offZ    = aperture<SphericalAperture>()->centerOffset();
-  Vec3 Csphere = plane->fromRelative(Vec3(0, 0, offZ));
 
   for (i = 0; i < count; ++i) {
     if (!beam.hasRay(i))

@@ -96,9 +96,9 @@ SphericalAperture::intercept(
   auto Cs   = sign * m_center * Vec3::eZ();
   auto xC   = origin - Cs;
   
-  if (origin.z > 0)
-    return false;
-
+  if (u.z < 0)
+    sign = -sign;
+  
   if (coord.x * coord.x + coord.y * coord.y < m_radius2) {
     // Real a = u * u = 1
     Real b = xC * u;

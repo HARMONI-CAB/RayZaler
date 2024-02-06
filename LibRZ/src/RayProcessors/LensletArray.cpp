@@ -1,4 +1,5 @@
 #include <RayProcessors/LensletArray.h>
+#include <Apertures/Spherical.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
@@ -8,6 +9,8 @@ using namespace RZ;
 
 LensletArrayProcessor::LensletArrayProcessor()
 {
+  defineAperture(new SphericalAperture(m_lensletRadius, m_rCurv));
+
   recalculateDimensions();
 }
 
@@ -24,6 +27,9 @@ LensletArrayProcessor::recalculateDimensions()
     // Calculate curvature center
     m_center = sqrt(m_rCurv * m_rCurv - m_lensletRadius * m_lensletRadius);
     m_IOratio = m_muIn / m_muOut;
+
+    aperture<SphericalAperture>()->setRadius(m_lensletRadius);
+    aperture<SphericalAperture>()->setCurvatureRadius(m_rCurv);
     m_dirty = false;
   }
 }
@@ -79,6 +85,7 @@ void
 LensletArrayProcessor::setConvex(bool convex)
 {
   m_convex = convex;
+  aperture<SphericalAperture>()->setConvex(convex);
 }
 
 void
@@ -94,62 +101,44 @@ LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
-  Vec3 center  = plane->getCenter();
-  Vec3 tX      = plane->eX();
-  Vec3 tY      = plane->eY();
-  Vec3 normal  = plane->eZ();
-  Real Rcurv   = m_rCurv;
-  Real sign    = m_convex ? +1 : -1;
-  Vec3 Csphere = center + sign * m_center * normal;
-  Real Rsq     = m_lensletRadius * m_lensletRadius;
-  Real t;
-
+  Vec3 normal;
   Real halfW  = .5 * m_width;
   Real halfH  = .5 * m_height;
   
   for (i = 0; i < count; ++i) {
-    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-    Real coordX = coord * tX;
-    Real coordY = coord * tY;
+    Vec3 origin = plane->toRelative(Vec3(beam.origins + 3 * i));
+    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
-    if (fabs(coordX) < halfW && fabs(coordY) < halfH) {
+    if (fabs(coord.x) < halfW && fabs(coord.y) < halfH) {
       // Determine which lenslet this ray belongs to
-      unsigned col = floor((coordX + halfW) / m_lensletWidth);
-      unsigned row = floor((coordY + halfH) / m_lensletHeight);
+      unsigned col = floor((coord.x + halfW) / m_lensletWidth);
+      unsigned row = floor((coord.y + halfH) / m_lensletHeight);
 
-      // Calculate lenslet center
+      // Make coord relative to the lenslet center
       Real lensOX = - halfW + (col + .5) * m_lensletWidth;
       Real lensOY = - halfH + (row + .5) * m_lensletHeight;
 
-      // TODO: Abstract this smh. This is going to be used everywhere 
-      // Adjust origin to fit the template lens 
-      Vec3 lensOffset = lensOX * tX + lensOY * tY;
-      Vec3 O  = Vec3(beam.origins + 3 * i) - lensOffset;
-      Vec3 OC = O - Csphere;
-      Vec3 u(beam.directions + 3 * i);
-      Real uOC   = u * OC;
-      Real Delta = uOC * uOC - OC * OC + Rcurv * Rcurv;
+      coord.x  -= lensOX;
+      coord.y  -= lensOY;
 
-      if (Delta < 0) {
-        beam.prune(i);
+      origin.x -= lensOX;
+      origin.y -= lensOY;
+
+      if (aperture()->intercept(coord, normal, origin)) {
+        // Readjust center
+        coord.x  += lensOX;
+        coord.y  += lensOY;
+
+        origin.x += lensOX;
+        origin.y += lensOY;
+
+        plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+        snell(
+          Vec3(beam.directions + 3 * i), 
+          plane->fromRelativeVec(normal),
+          m_IOratio).copyToArray(beam.directions + 3 * i);
       } else {
-        Real sqDelta = sqrt(Delta);
-        t = m_convex ? -uOC - sqDelta : -uOC + sqDelta;
-        
-        // Calculation of lens intersection
-        Vec3 destination(O + t * u);
-        Vec3 normal = (destination - Csphere).normalized();
-        
-        if (!m_convex)
-          normal = -normal;
-        Vec3 nXu    = m_IOratio * normal.cross(u);
-
-        destination += lensOffset;
-        destination.copyToArray(beam.destinations + 3 * i);
-
-        // Some Snell
-        u  = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
-        u.copyToArray(beam.directions + 3 * i);
+        beam.prune(i);
       }
     } else {
       // Outside lens

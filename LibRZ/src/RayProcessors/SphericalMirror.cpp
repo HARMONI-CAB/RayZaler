@@ -1,7 +1,13 @@
 #include <RayProcessors/SphericalMirror.h>
+#include <Apertures/Spherical.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
+
+SphericalMirrorProcessor::SphericalMirrorProcessor()
+{
+  defineAperture(new SphericalAperture(m_radius, 2 * m_flength));
+}
 
 std::string
 SphericalMirrorProcessor::name() const
@@ -13,26 +19,14 @@ void
 SphericalMirrorProcessor::setRadius(Real R)
 {
   m_radius = R;
+  aperture<SphericalAperture>()->setRadius(R);
 }
 
-//
-// This is basically a line-sphere intersection. Note that, the center of the
-// sphere is located at:
-//    C = M.center + f * M.eZ()
-//
-// The discriminant is:
-//    Delta = (u * (O - C))^2 - (||O - C||^2 - R^2)
-//
-// With R^2 = f^2, O the origin of the ray, and u its direction
-//
-// If Delta >= 0, an intersection exists at a distance
-//   t = -(u * (O - C)) + sqrt(Delta)
-//  
-//  
 void
 SphericalMirrorProcessor::setFocalLength(Real f)
 {
   m_flength = f;
+  aperture<SphericalAperture>()->setCurvatureRadius(2 * f);
 }
 
 void
@@ -40,43 +34,22 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
 {
   uint64_t count = beam.count;
   uint64_t i;
-  Vec3 center  = plane->getCenter();
-  Vec3 tX      = plane->eX();
-  Vec3 tY      = plane->eY();
-  Vec3 normal  = plane->eZ();
-  Real Rcurv   = 2 * m_flength;
-  Real Rsq     = m_radius * m_radius;
-  Real d       = Rcurv - sqrt(Rcurv * Rcurv - Rsq);
-  Vec3 Csphere = center + (Rcurv - d) * normal;
-  Real t;
 
   for (i = 0; i < count; ++i) {
-    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-    Real coordX = coord * tX;
-    Real coordY = coord * tY;
+    if (!beam.hasRay(i))
+      continue;
+    
+    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
+    Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
+    Vec3 normal;
 
-    if (coordX * coordX + coordY * coordY < Rsq) {
-      // In mirror, calculate intersection
-      Vec3 O  = Vec3(beam.origins + 3 * i);
-      Vec3 OC = O - Csphere;
-      Vec3 u(beam.directions + 3 * i);
-      Real uOC   = u * OC;
-      Real Delta = uOC * uOC - OC * OC + Rcurv * Rcurv;
-      
-      if (Delta < 0) {
-        beam.prune(i);
-      } else {
-        t = -uOC + sqrt(Delta);
-        Vec3 destination(O + t * u);
-        Vec3 normal = (Csphere - destination).normalized();
-
-        destination.copyToArray(beam.destinations + 3 * i);
-
-        u -= 2 * (u * normal) * normal;
-        u.copyToArray(beam.directions + 3 * i);
-      }
+    if (aperture()->intercept(coord, normal, orig)) {
+      plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      reflection(
+        Vec3(beam.directions + 3 * i), 
+        plane->fromRelativeVec(normal)).copyToArray(beam.directions + 3 * i);
     } else {
-      // Outside mirror
+      // Outside lens
       beam.prune(i);
     }
   }

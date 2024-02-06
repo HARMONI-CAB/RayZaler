@@ -31,6 +31,9 @@ FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
   Vec3 normal = plane->eZ();
   
   for (i = 0; i < count; ++i) {
+    if (!beam.hasRay(i))
+      continue;
+    
     // Check intercept
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
