@@ -1,7 +1,13 @@
 #include <RayProcessors/SphericalLens.h>
+#include <Apertures/Spherical.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
+
+SphericalLensProcessor::SphericalLensProcessor()
+{
+  defineAperture(new SphericalAperture(m_radius, m_rCurv));
+}
 
 std::string
 SphericalLensProcessor::name() const
@@ -19,6 +25,7 @@ void
 SphericalLensProcessor::setRadius(Real R)
 {
   m_radius = R;
+  aperture<SphericalAperture>()->setRadius(R);
   recalcCurvCenter();
 }
 
@@ -26,6 +33,7 @@ void
 SphericalLensProcessor::setCurvatureRadius(Real R)
 {
   m_rCurv = R;
+  aperture<SphericalAperture>()->setCurvatureRadius(R);
   recalcCurvCenter();
 }
 
@@ -55,60 +63,44 @@ void
 SphericalLensProcessor::setConvex(bool convex)
 {
   m_convex = convex;
+  aperture<SphericalAperture>()->setConvex(convex);
 }
 
-//
-// Spherical lens processors describe the intersection of a ray on something
-// constructed like this:
-//
-//  (A)              (B)
-//   |                |
-//   |\              /|
-//   | |     or     | |
-//   | |    this    | |
-//   |/              \|
-//   |                |
-//  InS              Ins
-//
-// -----> Direction of propagation --->
-//
-//   Lens bumps a distance d from the intercept surface, which means
-//   that the curvature center is a distance Rc - d to the left. In the
-//   edge of the lens, the curvature center is exactly at a distance Rc, and
-//   at a distance R to the vertical distance to the center of the lens. This
-//   means that:
-//   
-//   R = Rc * sin(alpha)
-//
-//   On the other hand, cos(alpha) = (Rc - d) / Rc = 1 - d / Rc
-//
-//   Since cos^2 + sin^2 = 1, then:
-//
-//   R^2 = Rc^2 (1 - sin^2) = Rc^2 * (1 - (1 - d/Rc)^2) =
-//       = Rc^2 (1 - 1 - d^2/Rc^2 + 2d/Rc)
-//       = Rc^2 (2d/Rc - d^2 / Rc^2) = 
-//       = 2dRc - d^2
-//  
-//   We have to solve for d:
-//
-//   d^2 - 2Rc d + R^2 = 0
-//
-//   There are two solutions for d:
-//
-//   d1 = Rc + sqrt(Rc^2 - R^2)
-//   d2 = Rc - sqrt(Rc^2 - R^2)
-//
-//   And conversely, for the center of curvature, in the propagation axis:
-//
-//   C1 = - sqrt(Rc^2 - R^2)
-//   C2 = + sqrt(Rc^2 - R^2)
-//
-//   In case A, the center of curvature is C1. In case B, it is C2
-//
-//   Now, when we compute the intersection, we are going to have 2 origin-relative
-//   solutions for t. t1 < t2. t1 is the convex one, and t2 is the concave one.
-//  
+void
+SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = beam.count;
+  uint64_t i;
+  Real offZ    = aperture<SphericalAperture>()->centerOffset();
+  Vec3 Csphere = plane->fromRelative(Vec3(0, 0, offZ));
 
+  for (i = 0; i < count; ++i) {
+    if (!beam.hasRay(i))
+      continue;
+    
+    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
+    Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
+    Vec3 normal;
+
+    if (aperture()->intercept(coord, normal, orig)) {
+      plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      snell(
+        Vec3(beam.directions + 3 * i), 
+        plane->fromRelativeVec(normal),
+        m_IOratio).copyToArray(beam.directions + 3 * i);
+    } else {
+      // Outside lens
+      beam.prune(i);
+    }
+  }
+
+  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
+
+  // Yes, we specify the material these rays had to traverse
+  beam.n = m_muIn;
+}
+
+#if 0
 void
 SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
@@ -168,3 +160,4 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
   // Yes, we specify the material these rays had to traverse
   beam.n = m_muIn;
 }
+#endif

@@ -122,6 +122,30 @@ namespace RZ{
         return m_typeId;
       }
       
+      inline Vec3
+      toRelative(Vec3 const &absv) const
+      {
+        return m_orientation * (absv - getCenter());
+      }
+
+      inline Vec3
+      fromRelative(Vec3 const &relv) const
+      {
+        return m_orientation.t() * relv + getCenter();
+      }
+
+      inline Vec3
+      toRelativeVec(Vec3 const &absv) const
+      {
+        return m_orientation * absv;
+      }
+
+      inline Vec3
+      fromRelativeVec(Vec3 const &relv) const
+      {
+        return m_orientation.t() * relv;
+      }
+
       int replaceAxis(std::string const &, Vec3 const &);
       int replacePoint(std::string const &, Point3 const &);
 

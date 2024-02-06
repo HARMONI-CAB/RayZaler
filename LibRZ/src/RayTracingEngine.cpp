@@ -2,6 +2,7 @@
 #include <ReferenceFrame.h>
 #include <cstdlib>
 #include <cstring>
+#include <GenericAperture.h>
 
 using namespace RZ;
 
@@ -47,19 +48,21 @@ void
 RayBeam::allocate(uint64_t count)
 {
   if (this->count == 0) {
-    this->origins      = allocBuffer<Real>(3 * count);
-    this->directions   = allocBuffer<Real>(3 * count);
-    this->destinations = allocBuffer<Real>(3 * count);
-    this->lengths      = allocBuffer<Real>(count);
-    this->mask         = allocBuffer<uint64_t>((count + 63) >> 6);
-    this->allocation   = count;
+    this->origins       = allocBuffer<Real>(3 * count);
+    this->directions    = allocBuffer<Real>(3 * count);
+    this->destinations  = allocBuffer<Real>(3 * count);
+    this->lengths       = allocBuffer<Real>(count);
+    this->cumOptLengths = allocBuffer<Real>(count);
+    this->mask          = allocBuffer<uint64_t>((count + 63) >> 6);
+    this->allocation    = count;
   } else if (count >= this->count) {
-    this->origins      = allocBuffer<Real>(3 * count, this->origins);
-    this->directions   = allocBuffer<Real>(3 * count, this->directions);
-    this->destinations = allocBuffer<Real>(3 * count, this->destinations);
-    this->lengths      = allocBuffer<Real>(count, this->lengths);
-    this->mask         = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
-    this->allocation   = count;
+    this->origins       = allocBuffer<Real>(3 * count, this->origins);
+    this->directions    = allocBuffer<Real>(3 * count, this->directions);
+    this->destinations  = allocBuffer<Real>(3 * count, this->destinations);
+    this->lengths       = allocBuffer<Real>(count, this->lengths);
+    this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
+    this->mask          = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
+    this->allocation    = count;
   }
 
   this->count = count;
@@ -72,6 +75,7 @@ RayBeam::deallocate()
   freeBuffer(directions);
   freeBuffer(destinations);
   freeBuffer(lengths);
+  freeBuffer(cumOptLengths);
   freeBuffer(mask);
 }
 
@@ -83,6 +87,13 @@ RayBeam::RayBeam(uint64_t count)
 RayBeam::~RayBeam()
 {
   deallocate();
+}
+
+/////////////////////////////// RayTransferProcessor ///////////////////////////
+RayTransferProcessor::~RayTransferProcessor()
+{
+  if (m_aperture != nullptr)
+    delete m_aperture;
 }
 
 //////////////////////////// RayTracingProcessListener /////////////////////////
@@ -187,7 +198,8 @@ RayTracingEngine::toBeam()
     m_beam->directions[3 * i + 1] = p->direction.y;
     m_beam->directions[3 * i + 2] = p->direction.z;
 
-    m_beam->lengths[i] = p->length;
+    m_beam->lengths[i]       = p->length;
+    m_beam->cumOptLengths[i] = p->cumOptLength;
 
     ++i;
   }

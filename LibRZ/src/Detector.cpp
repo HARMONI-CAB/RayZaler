@@ -6,6 +6,8 @@
 #include <GL/glut.h>
 #include <RayTracingEngine.h>
 #include <png++/png.hpp>
+#include <cmath>
+#include <complex>
 
 using namespace RZ;
 
@@ -37,6 +39,7 @@ DetectorStorage::recalculate()
 
   if (m_photons.size() != newSize) {
     m_photons.resize(newSize);
+    m_amplitude.resize(newSize);
     clear();
   }
 }
@@ -83,10 +86,17 @@ DetectorStorage::data() const
   return m_photons.data();
 }
 
+const Complex *
+DetectorStorage::amplitude() const
+{
+  return m_amplitude.data();
+}
+
 void
 DetectorStorage::clear()
 {
   std::fill(m_photons.begin(), m_photons.end(), 0);
+  std::fill(m_amplitude.begin(), m_amplitude.end(), 0.);
 }
 
 bool
@@ -115,6 +125,8 @@ DetectorProcessor::name() const
   return "DetectorProcessor";
 }
 
+#define WAVENUMBER (2 * M_PI * 3e8 / 555e-9)
+
 void
 DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
@@ -130,8 +142,9 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
       Real coordX = coord * tX;
       Real coordY = coord * tY;
+      auto phasor = std::exp(Complex(0, 1) * WAVENUMBER * beam.cumOptLengths[i]);
 
-      if (!m_storage->hit(coordX, coordY))
+      if (!m_storage->hit(coordX, coordY, phasor))
         beam.prune(i); 
     }
   }
@@ -263,6 +276,12 @@ const uint32_t *
 Detector::data() const
 {
   return m_storage->data();
+}
+
+const Complex *
+Detector::amplitude() const
+{
+  return m_storage->amplitude();
 }
 
 void

@@ -11,6 +11,7 @@ namespace RZ {
 
   class DetectorStorage {
       std::vector<uint32_t> m_photons;
+      std::vector<Complex>  m_amplitude;
       Real m_width;
       Real m_height;
 
@@ -26,7 +27,7 @@ namespace RZ {
 
     public:
       inline bool
-      hit(Real x, Real y)
+      hit(Real x, Real y, Complex amplitude)
       {
         int row, col;
         size_t ndx;
@@ -39,6 +40,7 @@ namespace RZ {
 
         ndx = col + row * m_stride;
         ++m_photons[ndx];
+        m_amplitude[ndx] += amplitude;
 
         if (m_photons[ndx] > m_maxCounts)
           m_maxCounts = m_photons[ndx];
@@ -58,6 +60,7 @@ namespace RZ {
       unsigned int    rows() const;
       unsigned int    stride() const;
       const uint32_t *data() const;
+      const Complex  *amplitude() const;
   };
 
   class DetectorProcessor : public PassThroughProcessor {
@@ -110,6 +113,7 @@ namespace RZ {
       Real            height() const;
       unsigned int    stride() const;
       const uint32_t *data() const;
+      const Complex  *amplitude() const;
   };
 
   class DetectorFactory : public ElementFactory {

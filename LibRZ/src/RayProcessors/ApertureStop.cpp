@@ -1,7 +1,14 @@
 #include <RayProcessors/ApertureStop.h>
+#include <Apertures/Circular.h>
+
 #include <ReferenceFrame.h>
 
 using namespace RZ;
+
+ApertureStopProcessor::ApertureStopProcessor()
+{
+  defineAperture(new CircularAperture(m_radius));
+}
 
 std::string
 ApertureStopProcessor::name() const
@@ -12,6 +19,8 @@ ApertureStopProcessor::name() const
 void
 ApertureStopProcessor::setRadius(Real R)
 {
+  aperture<CircularAperture>()->setRadius(R);
+  
   m_radius = R;
 }
 
@@ -20,17 +29,11 @@ ApertureStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
-  Vec3 center  = plane->getCenter();
-  Vec3 tX      = plane->eX();
-  Vec3 tY      = plane->eY();
-  Real Rsq     = m_radius * m_radius;
 
   for (i = 0; i < count; ++i) {
-    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-    Real coordX = coord * tX;
-    Real coordY = coord * tY;
+    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
-    if (coordX * coordX + coordY * coordY >= Rsq)
+    if (!aperture()->intercept(coord))
       beam.prune(i);
   }
 

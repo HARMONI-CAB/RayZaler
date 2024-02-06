@@ -11,6 +11,7 @@ namespace RZ {
       Real m_flength = 1;
 
     public:
+      ParabolicMirrorProcessor();
       void setRadius(Real);
       void setFocalLength(Real);
       virtual std::string name() const;

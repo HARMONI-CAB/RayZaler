@@ -6,10 +6,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <random>
-
-#define RZ_SHARED_STATE_DEFAULT_SEED 0x12345
-
+#include <Random.h>
 
 namespace RZ {
   struct ParamAssignExpression;
@@ -39,22 +36,6 @@ namespace RZ {
   class GenericModelParam;
   typedef std::map<std::string, GenericModelParam *> GenericEvaluatorSymbolDict;
 
-  class ExprRandomState {
-    uint64_t                             m_epoch = 0;
-    std::mt19937_64                      m_generator;
-    std::uniform_real_distribution<Real> m_uniform;
-    std::normal_distribution<Real>       m_normal;
-  public:
-    ExprRandomState(uint64_t seed = RZ_SHARED_STATE_DEFAULT_SEED);
-
-    void update();
-    void setSeed(uint64_t seed);
-    uint64_t epoch() const;
-    Real randu();
-    Real randn();
-  };
-
-  
   struct GenericCustomFunction {
     std::string name;
     unsigned argc;

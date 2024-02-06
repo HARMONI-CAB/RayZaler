@@ -19,8 +19,11 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
   numDot = demDot = 0;
 
   for (i = 0; i < N; ++i) {
+    // Center of the surface, w.r.t beam origin 
     beam->destinations[i] = center.coords[p] - beam->origins[i];
 
+    // Scalar products: <n, dest> and <n, d>. Needed for plane-rect 
+    // intersection.
     numDot += normal.coords[p] * beam->destinations[i];
     demDot += normal.coords[p] * beam->directions[i];
 
@@ -32,7 +35,10 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
       beam->destinations[i - 2] = beam->origins[i - 2] + t * beam->directions[i - 2];
       beam->destinations[i - 1] = beam->origins[i - 1] + t * beam->directions[i - 1];
       beam->destinations[i - 0] = beam->origins[i - 0] + t * beam->directions[i - 0];
-      beam->lengths[r++] = t;
+      beam->lengths[r]          = t;
+      beam->cumOptLengths[r]   += beam->n * t;
+
+      ++r;
     }
 
     if (cancelled())

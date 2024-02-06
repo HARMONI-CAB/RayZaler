@@ -5,12 +5,14 @@
 #include <string>
 #include <ostream>
 #include <cstring>
+#include <complex>
 
 #define RZ_DEFAULT_COMPARE_RELATIVE_ERROR 1e-9
 #define RZ_URANDSIGN (2 * (static_cast<Real>(rand()) / RAND_MAX - .5))
 
 namespace RZ {
   typedef double Real;
+  typedef std::complex<Real> Complex;
 
   struct Vec3;
   typedef Vec3 Point3;

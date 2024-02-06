@@ -16,6 +16,7 @@ namespace RZ {
 
     // Incremented by tracer
     Real length = 0;
+    Real cumOptLength = 0;
   };
 
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
@@ -27,7 +28,21 @@ namespace RZ {
     Real *directions    = nullptr;
     Real *destinations  = nullptr;
     Real *lengths       = nullptr;
+    Real *cumOptLengths = nullptr;
+    Real n              = 1.;
     uint64_t *mask      = nullptr;
+
+    inline void
+    setRefractiveIndex(Real newN)
+    {
+      n = newN;
+    }
+
+    inline void
+    setVacuum()
+    {
+      setRefractiveIndex(1.);
+    }
 
     inline void
     prune(uint64_t c)
@@ -36,13 +51,13 @@ namespace RZ {
     }
 
     inline bool
-    hasRay(uint64_t index)
+    hasRay(uint64_t index) const
     {
       return (~mask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
     }
 
     inline bool
-    extractRay(Ray &dest, uint64_t index)
+    extractRay(Ray &dest, uint64_t index) const
     {
       if (!hasRay(index))
         return false;
@@ -55,7 +70,8 @@ namespace RZ {
       dest.direction.y = directions[3 * index + 1];
       dest.direction.z = directions[3 * index + 2];
 
-      dest.length = lengths[index];
+      dest.length       = lengths[index];
+      dest.cumOptLength = cumOptLengths[index];
 
       return true;
     }
@@ -68,10 +84,64 @@ namespace RZ {
     ~RayBeam();
   };
 
+  class GenericAperture;
+
   class RayTransferProcessor {
+    GenericAperture *m_aperture = nullptr;
+
+  protected:
+    inline void defineAperture(GenericAperture *ap)
+    {
+      m_aperture = ap;
+    }
+
   public:
+    inline GenericAperture *aperture() const
+    {
+      return m_aperture;
+    }
+
+    template <class T>
+    inline T *aperture()
+    {
+      return static_cast<T *>(aperture());
+    }
+    
+    template <class T>
+    inline T const *aperture() const
+    {
+      return static_cast<const T *>(aperture());
+    }
+
+    static inline void
+    snell(Vec3 &u, Vec3 const &normal, Real muIORatio)
+    {
+      Vec3 nXu = muIORatio * normal.cross(u);
+      u        = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+    }
+
+    static inline Vec3
+    snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
+    {
+      Vec3 nXu = muIORatio * normal.cross(u);
+      return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+    }
+
+    static inline void
+    reflection(Vec3 &u, Vec3 const &normal)
+    {
+      u -= 2 * (u * normal) * normal;
+    }
+
+    static inline Vec3
+    reflection(Vec3 const &u, Vec3 const &normal)
+    {
+      return u - 2 * (u * normal) * normal;
+    }
+
     virtual std::string name() const = 0;
     virtual void process(RayBeam &, const ReferenceFrame *) const = 0;
+    virtual ~RayTransferProcessor();
   };
 
   enum RayTracingStageProgressType {

@@ -19,6 +19,8 @@ namespace RZ {
       void recalcCurvCenter();
 
     public:
+      SphericalLensProcessor();
+      
       void setConvex(bool);
       void setRadius(Real);
       void setCurvatureRadius(Real);

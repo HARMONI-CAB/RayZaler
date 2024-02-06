@@ -23,6 +23,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
+  ${LIBRZ_SRCDIR}/GenericAperture.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
@@ -37,6 +38,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/PhaseScreen.cpp
+  ${LIBRZ_SRCDIR}/Random.cpp
   ${LIBRZ_SRCDIR}/RayBeamElement.cpp
   ${LIBRZ_SRCDIR}/RayProcessors.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
@@ -67,6 +69,10 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors/SphericalLens.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
+
+  ${LIBRZ_SRCDIR}/Apertures/Circular.cpp
+  ${LIBRZ_SRCDIR}/Apertures/Parabolic.cpp
+  ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
   )
 
 set(LIBRZ_HEADERS
@@ -82,6 +88,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Element.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/exprtk.hpp
+  ${LIBRZ_INCLUDEDIR}/GenericAperture.h
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
@@ -96,6 +103,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ParabolicMirror.h
   ${LIBRZ_INCLUDEDIR}/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
+  ${LIBRZ_INCLUDEDIR}/Random.h
   ${LIBRZ_INCLUDEDIR}/RayBeamElement.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
@@ -126,7 +134,11 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors/RectangularStop.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalLens.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalMirror.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h)
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
+  
+  ${LIBRZ_INCLUDEDIR}/Apertures/Circular.h
+  ${LIBRZ_INCLUDEDIR}/Apertures/Parabolic.h
+  ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES
