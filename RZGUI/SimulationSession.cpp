@@ -1318,6 +1318,7 @@ SimulationSession::runSimulation()
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
 
+  gettimeofday(&m_simulationStart, nullptr);
   iterateSimulation();
 
   return true;
@@ -1406,8 +1407,16 @@ SimulationSession::onSimulationDone(bool haveBeam)
   if (m_simState->sweepStep()) {
     iterateSimulation();
   } else {
+    struct timeval now, diff;
+    gettimeofday(&now, nullptr);
+
+    timersub(&now, &m_simulationStart, &diff);
+
+
     emit sweepFinished();
-    RZInfo("Simulation finished\n");
+    RZInfo(
+          "Simulation finished (%s)\n",
+          timeDeltaToString(diff).toStdString().c_str());
   }
 }
 

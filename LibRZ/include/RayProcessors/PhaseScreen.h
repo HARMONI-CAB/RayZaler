@@ -19,6 +19,15 @@ namespace RZ {
       Real dZdy(Real x, Real y) const;
 
     public:
+      inline Real
+      coef(unsigned int ansi) const
+      {
+        if (ansi >= m_coef.size())
+          return 0;
+          
+        return m_coef[ansi];
+      }
+
       Real Z(Real x, Real y) const;
       void setRadius(Real);
       void setCoef(unsigned int ansi, Real value);

@@ -7,10 +7,6 @@ namespace RZ {
   class ReferenceFrame;
 
   class LensletArrayProcessor : public RayTransferProcessor {
-      Real m_width         = 100e-3;
-      Real m_height        = 100e-3;
-      Real m_lensletWidth  = 10e-3;
-      Real m_lensletHeight = 10e-3;
       Real m_lensletRadius;
       Real m_rCurv         = 1;
       Real m_muOut         = 1.5;
@@ -19,15 +15,14 @@ namespace RZ {
       Real m_convex        = true;
       Real m_center        = .866;
 
-      unsigned int m_cols          = 10; // X dimension
-      unsigned int m_rows          = 10; // Y dimension
       bool         m_dirty         = true;
 
       void recalculateDimensions();
 
     public:
       Real
-      lensletRadius() const {
+      lensletRadius() const
+      {
         return m_lensletRadius;
       }
 

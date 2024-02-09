@@ -70,6 +70,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
 
+  ${LIBRZ_SRCDIR}/Apertures/Array.cpp
   ${LIBRZ_SRCDIR}/Apertures/Circular.cpp
   ${LIBRZ_SRCDIR}/Apertures/Parabolic.cpp
   ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
@@ -136,6 +137,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
   
+  ${LIBRZ_INCLUDEDIR}/Apertures/Array.h
   ${LIBRZ_INCLUDEDIR}/Apertures/Circular.h
   ${LIBRZ_INCLUDEDIR}/Apertures/Parabolic.h
   ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h)

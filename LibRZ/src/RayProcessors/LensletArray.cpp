@@ -1,6 +1,8 @@
 #include <RayProcessors/LensletArray.h>
 #include <Apertures/Spherical.h>
 #include <ReferenceFrame.h>
+#include <Apertures/Array.h>
+#include <Apertures/Spherical.h>
 
 using namespace RZ;
 
@@ -9,7 +11,9 @@ using namespace RZ;
 
 LensletArrayProcessor::LensletArrayProcessor()
 {
-  defineAperture(new SphericalAperture(m_lensletRadius, m_rCurv));
+  defineAperture(
+    new ApertureArray(
+      new SphericalAperture(1e-2, m_rCurv)));
 
   recalculateDimensions();
 }
@@ -18,18 +22,26 @@ void
 LensletArrayProcessor::recalculateDimensions()
 {
   if (m_dirty) {
-    m_lensletWidth  = m_width / m_cols;
-    m_lensletHeight = m_height / m_rows;
-    m_lensletRadius = 
+    auto *array   = aperture<ApertureArray>();
+    auto *lenslet = array->subAperture<SphericalAperture>();
+
+    Real lensletWidth  = array->subApertureWidth();
+    Real lensletHeight = array->subApertureHeight();
+    Real radius = 
       .5 * sqrt(
-        m_lensletWidth * m_lensletWidth + m_lensletHeight * m_lensletHeight);
+        lensletWidth * lensletWidth + lensletHeight * lensletHeight);
 
     // Calculate curvature center
-    m_center = sqrt(m_rCurv * m_rCurv - m_lensletRadius * m_lensletRadius);
+    m_center = sqrt(m_rCurv * m_rCurv - radius * radius);
     m_IOratio = m_muIn / m_muOut;
 
-    aperture<SphericalAperture>()->setRadius(m_lensletRadius);
-    aperture<SphericalAperture>()->setCurvatureRadius(m_rCurv);
+    lenslet->setRadius(radius);
+    lenslet->setCurvatureRadius(m_rCurv);
+    lenslet->setConvex(m_convex);
+
+    // Cache lenslet radius
+    m_lensletRadius = radius;
+    
     m_dirty = false;
   }
 }
@@ -60,7 +72,7 @@ LensletArrayProcessor::name() const
 void
 LensletArrayProcessor::setWidth(Real width)
 {
-  m_width = width;
+  aperture<ApertureArray>()->setWidth(width);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -68,7 +80,7 @@ LensletArrayProcessor::setWidth(Real width)
 void
 LensletArrayProcessor::setHeight(Real height)
 {
-  m_height = height;
+  aperture<ApertureArray>()->setHeight(height);
   m_dirty  = true;
   recalculateDimensions();
 }
@@ -76,7 +88,7 @@ LensletArrayProcessor::setHeight(Real height)
 void
 LensletArrayProcessor::setCols(unsigned cols)
 {
-  m_cols  = cols;
+  aperture<ApertureArray>()->setCols(cols);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -85,13 +97,14 @@ void
 LensletArrayProcessor::setConvex(bool convex)
 {
   m_convex = convex;
-  aperture<SphericalAperture>()->setConvex(convex);
+  m_dirty = true;
+  recalculateDimensions();
 }
 
 void
 LensletArrayProcessor::setRows(unsigned rows)
 {
-  m_rows  = rows;
+  aperture<ApertureArray>()->setRows(rows);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -100,46 +113,19 @@ void
 LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
-  uint64_t i;
   Vec3 normal;
-  Real halfW  = .5 * m_width;
-  Real halfH  = .5 * m_height;
+  uint64_t i;
   
   for (i = 0; i < count; ++i) {
     Vec3 origin = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
-    if (fabs(coord.x) < halfW && fabs(coord.y) < halfH) {
-      // Determine which lenslet this ray belongs to
-      unsigned col = floor((coord.x + halfW) / m_lensletWidth);
-      unsigned row = floor((coord.y + halfH) / m_lensletHeight);
-
-      // Make coord relative to the lenslet center
-      Real lensOX = - halfW + (col + .5) * m_lensletWidth;
-      Real lensOY = - halfH + (row + .5) * m_lensletHeight;
-
-      coord.x  -= lensOX;
-      coord.y  -= lensOY;
-
-      origin.x -= lensOX;
-      origin.y -= lensOY;
-
-      if (aperture()->intercept(coord, normal, origin)) {
-        // Readjust center
-        coord.x  += lensOX;
-        coord.y  += lensOY;
-
-        origin.x += lensOX;
-        origin.y += lensOY;
-
-        plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
-        snell(
-          Vec3(beam.directions + 3 * i), 
-          plane->fromRelativeVec(normal),
-          m_IOratio).copyToArray(beam.directions + 3 * i);
-      } else {
-        beam.prune(i);
-      }
+    if (aperture()->intercept(coord, normal, origin)) {
+      plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      snell(
+        Vec3(beam.directions + 3 * i), 
+        plane->fromRelativeVec(normal),
+        m_IOratio).copyToArray(beam.directions + 3 * i);
     } else {
       // Outside lens
       beam.prune(i);

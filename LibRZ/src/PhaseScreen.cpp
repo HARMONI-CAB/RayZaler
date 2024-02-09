@@ -63,7 +63,7 @@ PhaseScreen::propertyChanged(
   PropertyValue const &value)
 {
   unsigned int zCoef;
-
+  
   if (name == "radius") {
     m_radius = value;
     recalcModel();
@@ -74,8 +74,11 @@ PhaseScreen::propertyChanged(
     m_muOut = value;
     recalcModel();
   } else if (sscanf(name.c_str(), "Z%u", &zCoef) == 1) {
-    m_processor->setCoef(zCoef, value);
-    recalcTexture();
+    Real asReal = value;
+    if (!releq(m_processor->coef(zCoef), asReal)) {
+      m_processor->setCoef(zCoef, asReal);
+      recalcTexture();
+    }
   } else {
     return false;
   }

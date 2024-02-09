@@ -1,5 +1,6 @@
 #include "GUIHelpers.h"
 #include <cstdlib>
+#include <sys/time.h>
 
 qreal
 randUniform()
@@ -74,3 +75,33 @@ asScientific(qreal value)
 
   return result;
 }
+
+QString
+timeDeltaToString(struct timeval const &tv)
+{
+  if (tv.tv_sec <= 0) {
+    if (tv.tv_usec < 2000) {
+      return QString::number(tv.tv_usec) + " µs";
+    } else {
+      return QString::number(SCAST(qreal, tv.tv_usec) * 1e-3) + " ms";
+    }
+  } else if (tv.tv_sec < 60) {
+    qreal val = SCAST(qreal, tv.tv_sec) + 1e-6 * SCAST(qreal, tv.tv_usec);
+    return QString::number(val) + " s";
+  } else {
+    auto sec  =  tv.tv_sec % 60;
+    auto min  = (tv.tv_sec / 60) % 60;
+    auto hour = (tv.tv_sec / 3600) % 24;
+    auto day  =  tv.tv_sec / 86400;
+
+    QString result;
+
+    if (day > 0)
+      result += QString::number(day) + "d, ";
+
+    result += QString::asprintf("%02ldh %02ldm %02lds", hour, min, sec);
+
+    return result;
+  }
+}
+

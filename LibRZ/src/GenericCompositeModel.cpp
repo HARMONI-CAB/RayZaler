@@ -250,7 +250,6 @@ void
 GenericCompositeModel::updateRandState()
 {
   m_randState->update();
-
   assignEverything();
 }
 

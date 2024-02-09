@@ -22,10 +22,12 @@
     (object)->blockSignals(blocked);             \
   } while (false)
 
+struct timeval;
 qreal   randUniform();
 qreal   randNormal();
 
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
+QString timeDeltaToString(struct timeval const &);
 
 #endif // GUIHELPERS_H

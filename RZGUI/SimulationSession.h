@@ -210,6 +210,7 @@ class SimulationSession : public QObject
   bool               m_playing           = false;
   int                m_simPending        = 0;
 
+  struct timeval     m_simulationStart;
   struct timeval     m_lastModelRefresh;
 
   void               updateAnim();

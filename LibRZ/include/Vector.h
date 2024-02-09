@@ -19,15 +19,18 @@ namespace RZ {
   static inline RZ::Vec3 operator *(RZ::Real k, RZ::Vec3 v);
 
   static inline bool
-  releq(Real a, Real b, Real precision = 1e-9)
-  {
-    return fabs(a - b) / fabs(b) < precision;
-  }
-
-  static inline bool
   isZero(Real a, Real precision = 1e-9)
   {
     return fabs(a) < precision;
+  }
+
+  static inline bool
+  releq(Real a, Real b, Real precision = 1e-9)
+  {
+    if (isZero(b, precision))
+      return isZero(a, precision);
+    else
+      return fabs(a - b) / fabs(b) < precision;
   }
 
   struct Vec3 {
