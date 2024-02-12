@@ -7,6 +7,10 @@ namespace RZ {
   class ParabolicAperture : public GenericAperture {
     Real m_radius2;
     Real m_flength = 1;
+    Real m_4f2, m_8f3;
+    Real m_6f_K;
+
+    void recalcDistribution();
 
   public:
     ParabolicAperture(Real radius, Real fLength);

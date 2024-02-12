@@ -19,6 +19,20 @@ CircularAperture::intercept(Vec3 &coord, Vec3 &n, Vec3 const &) const
   return coord.x * coord.x + coord.y * coord.y < m_radius2;
 }
 
+//
+// This is the easiest way to sample points uniformly from a circular
+// distribution:
+//
+// - Draw angle from U(0, 2pi)
+// - Draw radius from R * sqrt(U(0, 1))
+//
+// The rationale of this sqrt is as follows: in this coordinate system,
+// the area of each infinitesimal part is given by:
+//
+// dA = dr * r dphi = r * (dr * dphi)
+//
+// I.e. there is a scaling factor of r. 
+
 void
 CircularAperture::generatePoints(
     const ReferenceFrame *frame,
@@ -37,9 +51,6 @@ CircularAperture::generatePoints(
     y     = r * sin(theta);
 
 
-    Vec3 point = frame->eX() * x + frame->eY() * y + frame->getCenter();
-    pointArr[3 * i + 0] = point.x;
-    pointArr[3 * i + 1] = point.y;
-    pointArr[3 * i + 2] = point.z;
+    frame->fromRelative(Vec3(x, y, 0)).copyToArray(pointArr + 3 * i);
   }
 }

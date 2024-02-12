@@ -9,6 +9,11 @@ namespace RZ {
     Real m_rCurv  =  1;
     bool m_convex = true;
     Real m_center = .866;
+    Real m_K = 1.; // Normalization constant for generatePoints
+    Real m_rCurv2 = 1;
+    Real m_KRcInv = 1.;
+
+    void recalcDistribution();
 
   public:
     inline Real

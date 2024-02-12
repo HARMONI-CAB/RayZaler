@@ -8,12 +8,20 @@ SphericalAperture::SphericalAperture(Real R, Real rCurv)
   setCurvatureRadius(rCurv);  
 }
 
+void
+SphericalAperture::recalcDistribution()
+{
+  m_rCurv2 = m_rCurv * m_rCurv;
+  m_K      = 1. / (m_rCurv2 - m_rCurv * sqrt(m_rCurv2 - m_radius2));
+  m_KRcInv = 1. / (m_K * m_rCurv);
+}
 
 void
 SphericalAperture::setRadius(Real R)
 {
   m_radius2 = R * R;
   m_center = sqrt(m_rCurv * m_rCurv - m_radius2);
+  recalcDistribution();
 }
 
 void
@@ -27,6 +35,7 @@ SphericalAperture::setCurvatureRadius(Real rCurv)
 {
   m_rCurv = rCurv;
   m_center = sqrt(m_rCurv * m_rCurv - m_radius2);
+  recalcDistribution();
 }
 
 //
@@ -129,9 +138,29 @@ SphericalAperture::intercept(
 
 void
 SphericalAperture::generatePoints(
-    const ReferenceFrame *,
+    const ReferenceFrame *frame,
     Real *pointArr,
     unsigned int N)
 {
-  
+  unsigned int i;
+  Real x, y, z;
+  Real alpha, rho, u, rad;
+  auto &state = randState();
+
+  for (i = 0; i < N; ++i) {
+    alpha = 2 * M_PI * state.randu();
+    u     = state.randu();
+
+    rad   = m_rCurv - u * m_KRcInv;
+    rho   = sqrt(m_rCurv2 - rad * rad);
+
+    x     = rho * cos(alpha);
+    y     = rho * sin(alpha);
+    z     = m_rCurv - sqrt(m_rCurv2 - rho * rho) - m_center;
+
+    if (!m_convex)
+      z = -z;
+
+    frame->fromRelative(Vec3(x, y, z)).copyToArray(pointArr + 3 * i);
+  }
 }
