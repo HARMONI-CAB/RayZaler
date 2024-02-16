@@ -19,12 +19,14 @@ namespace RZ {
       intercept(Vec3 &hit) const
       {
         Vec3 ignore;
-        return intercept(hit, ignore, Vec3::zero());
+        Real tIgnore = 0;
+        return intercept(hit, ignore, tIgnore, Vec3::zero());
       }
 
       virtual bool intercept(
         Vec3 &hit,
         Vec3 &normal,
+        Real &tIgnore,
         Vec3 const &origin) const = 0;
       
       virtual void generatePoints(

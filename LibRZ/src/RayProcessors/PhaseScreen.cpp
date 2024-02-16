@@ -113,9 +113,10 @@ PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       //
       // With the points x, y normalized by the aperture radius:
 
-      Real x = coordX * Rinv;
-      Real y = coordY * Rinv;
-
+      Real x  = coordX * Rinv;
+      Real y  = coordY * Rinv;
+      Real dt = Z(x, y);
+      
       // An infinitesimal variation of this points of x' = x + dx and 
       // y' = y + dy introduces a change in the 3D point in the directions:
       //
@@ -137,6 +138,9 @@ PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       Vec3 u(beam.directions + 3 * i);
       Vec3 nXu    = m_IOratio * tiltNormal.cross(u);
 
+      beam.lengths[i]       += dt;
+      beam.cumOptLengths[i] += beam.n * dt;
+
       // And apply Snell again
       u  = -tiltNormal.cross(nXu) - tiltNormal * sqrt(1 - nXu * nXu);
       u.copyToArray(beam.directions + 3 * i);
@@ -145,6 +149,4 @@ PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       beam.prune(i);
     }
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }

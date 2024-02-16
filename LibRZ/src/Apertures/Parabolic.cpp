@@ -37,6 +37,7 @@ bool
 ParabolicAperture::intercept(
   Vec3 &intercept,
   Vec3 &normal,
+  Real &deltaT,
   Vec3 const &Ot) const
 {
   Vec3 ut = (intercept - Ot).normalized();
@@ -73,6 +74,8 @@ ParabolicAperture::intercept(
     else
       return false;
 
+    deltaT = t;
+    
     intercept = Ot + t * ut;
     normal = Vec3(
       0.5 * intercept.x / m_flength,

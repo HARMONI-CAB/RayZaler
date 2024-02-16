@@ -50,7 +50,11 @@ ApertureArray::setRows(unsigned rows)
 }
 
 bool
-ApertureArray::intercept(Vec3 &coord, Vec3 &n, Vec3 const &origin) const
+ApertureArray::intercept(
+  Vec3 &coord,
+  Vec3 &n,
+  Real &deltaT,
+  Vec3 const &origin) const
 {
   Vec3 relOrg, relCrd;
   Real halfW  = .5 * m_width;
@@ -73,7 +77,7 @@ ApertureArray::intercept(Vec3 &coord, Vec3 &n, Vec3 const &origin) const
     relOrg.x -= lensOX;
     relOrg.y -= lensOY;
 
-    if (subAperture()->intercept(relCrd, n, relOrg)) {
+    if (subAperture()->intercept(relCrd, n, deltaT, relOrg)) {
       // Readjust center
       coord     = relCrd;
       coord.x  += lensOX;

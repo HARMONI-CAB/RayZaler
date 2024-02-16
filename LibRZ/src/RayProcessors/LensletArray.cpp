@@ -119,8 +119,11 @@ LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
   for (i = 0; i < count; ++i) {
     Vec3 origin = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
+    Real dt     = 0;
 
-    if (aperture()->intercept(coord, normal, origin)) {
+    if (aperture()->intercept(coord, normal, dt, origin)) {
+      beam.lengths[i]       += dt;
+      beam.cumOptLengths[i] += beam.n * dt;
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
       snell(
         Vec3(beam.directions + 3 * i), 
@@ -131,8 +134,6 @@ LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       beam.prune(i);
     }
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 
   beam.n = m_muIn;
 }

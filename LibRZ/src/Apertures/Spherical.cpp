@@ -98,6 +98,7 @@ bool
 SphericalAperture::intercept(
   Vec3 &coord,
   Vec3 &normal,
+  Real &deltaT,
   Vec3 const &origin) const
 {
   auto u    = (coord - origin).normalized();
@@ -125,7 +126,8 @@ SphericalAperture::intercept(
       
       // Adjust hit point
       coord = origin + t * u;
-
+      deltaT = t;
+      
       // Calculate the interception normal
       normal = sign * (coord - Cs).normalized();
       

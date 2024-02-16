@@ -14,8 +14,14 @@ CircularAperture::setRadius(Real radius)
 }
 
 bool
-CircularAperture::intercept(Vec3 &coord, Vec3 &n, Vec3 const &) const
+CircularAperture::intercept(
+  Vec3 &coord,
+  Vec3 &n,
+  Real &deltaT,
+  Vec3 const &) const
 { 
+  deltaT = 0.;
+
   return coord.x * coord.x + coord.y * coord.y < m_radius2;
 }
 

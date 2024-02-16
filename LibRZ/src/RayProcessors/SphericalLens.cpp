@@ -79,8 +79,11 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
     Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 normal;
+    Real dt;
 
-    if (aperture()->intercept(coord, normal, orig)) {
+    if (aperture()->intercept(coord, normal, dt, orig)) {
+      beam.lengths[i]       += dt;
+      beam.cumOptLengths[i] += beam.n * dt;
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
       snell(
         Vec3(beam.directions + 3 * i), 
@@ -91,8 +94,6 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
       beam.prune(i);
     }
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 
   // Yes, we specify the material these rays had to traverse
   beam.n = m_muIn;

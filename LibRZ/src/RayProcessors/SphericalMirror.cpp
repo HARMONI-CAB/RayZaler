@@ -34,6 +34,7 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
 {
   uint64_t count = beam.count;
   uint64_t i;
+  Real dt;
 
   for (i = 0; i < count; ++i) {
     if (!beam.hasRay(i))
@@ -43,7 +44,10 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
     Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 normal;
 
-    if (aperture()->intercept(coord, normal, orig)) {
+    if (aperture()->intercept(coord, normal, dt, orig)) {
+      beam.lengths[i]       += dt;
+      beam.cumOptLengths[i] += beam.n * dt;
+      
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
       reflection(
         Vec3(beam.directions + 3 * i), 
@@ -53,6 +57,4 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
       beam.prune(i);
     }
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }

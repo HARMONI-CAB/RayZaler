@@ -11,7 +11,11 @@ namespace RZ {
     CircularAperture(Real radius);
     void setRadius(Real);
 
-    virtual bool intercept(Vec3 &coord, Vec3 &n, Vec3 const &origin) const override;
+    virtual bool intercept(
+      Vec3 &coord,
+      Vec3 &n,
+      Real &tIgnore,
+      Vec3 const &origin) const override;
     virtual void generatePoints(
         const ReferenceFrame *,
         Real *pointArr,

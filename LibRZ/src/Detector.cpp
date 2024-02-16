@@ -125,7 +125,7 @@ DetectorProcessor::name() const
   return "DetectorProcessor";
 }
 
-#define WAVENUMBER (2 * M_PI * 3e8 / 555e-9)
+#define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
 DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const

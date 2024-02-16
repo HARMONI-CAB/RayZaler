@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <GenericAperture.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -242,7 +243,12 @@ RayTracingEngine::trace(const ReferenceFrame *surface)
 void
 RayTracingEngine::transfer(const RayTransferProcessor *processor)
 {
+  auto aperture = processor->aperture();
+  auto count = m_beam->count;
+  
   processor->process(*m_beam, m_current);
+
+  memcpy(m_beam->origins, m_beam->destinations, 3 * count * sizeof(Real));
 
   m_raysDirty = true;
 }

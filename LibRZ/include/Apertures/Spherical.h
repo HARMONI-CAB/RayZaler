@@ -31,6 +31,7 @@ namespace RZ {
     virtual bool intercept(
       Vec3 &hit,
       Vec3 &normal,
+      Real &tIgnore,
       Vec3 const &origin) const override;
     
     virtual void generatePoints(

@@ -214,6 +214,7 @@ namespace RZ {
       // Clear m_ray, process the beam and extract unpruned rays
       void transfer(const RayTransferProcessor *);
 
+      // Clear m_ray, process the beam, set random targets 
       // Return the output rays, after transfer
       std::list<Ray> const &getRays();
 

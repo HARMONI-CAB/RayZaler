@@ -33,6 +33,4 @@ ObstructionProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     if (coordX * coordX + coordY * coordY <= Rsq)
       beam.prune(i);
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }

@@ -558,6 +558,16 @@ OMModel::clearBeam()
   m_beam->setList(std::list<RZ::Ray>());
 }
 
+//
+// The tracing process is a loop that works as folows:
+// 
+// 1. Input rays are pushed to the tracer
+// 2. An element is extracted from the optical surface list. The rays
+//    have a defined origin and direction.
+// 3. The rays are intersected with the next optical surface with trace()
+// 4. The true intersection points and next origin / direction are placed back
+//    in the current beam.
+
 bool
 OMModel::trace(
         std::string const &pathName,

@@ -40,6 +40,4 @@ RectangularStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
     if (fabs(coordX) >= halfW || fabs(coordY) >= halfH)
       beam.prune(i);
   }
-
-  memcpy(beam.origins, beam.destinations, 3 * count * sizeof(Real));
 }
