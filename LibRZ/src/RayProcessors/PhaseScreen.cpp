@@ -1,7 +1,13 @@
 #include <RayProcessors/PhaseScreen.h>
 #include <ReferenceFrame.h>
+#include <Apertures/Circular.h>
 
 using namespace RZ;
+
+PhaseScreenProcessor::PhaseScreenProcessor()
+{
+  defineAperture(new CircularAperture(m_radius));
+}
 
 std::string
 PhaseScreenProcessor::name() const
@@ -13,6 +19,7 @@ void
 PhaseScreenProcessor::setRadius(Real R)
 {
   m_radius = R;
+  aperture<CircularAperture>()->setRadius(R);
 }
 
 void

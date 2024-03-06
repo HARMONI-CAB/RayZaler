@@ -142,12 +142,16 @@ void
 SphericalAperture::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
+    Real *normalArr,
     unsigned int N)
 {
   unsigned int i;
-  Real x, y, z;
+  Vec3 p, n, dfdr, dfda;
+  Real cosA, sinA;
   Real alpha, rho, u, rad;
   auto &state = randState();
+
+  dfda.z = 0;
 
   for (i = 0; i < N; ++i) {
     alpha = 2 * M_PI * state.randu();
@@ -156,13 +160,48 @@ SphericalAperture::generatePoints(
     rad   = m_rCurv - u * m_KRcInv;
     rho   = sqrt(m_rCurv2 - rad * rad);
 
-    x     = rho * cos(alpha);
-    y     = rho * sin(alpha);
-    z     = m_rCurv - sqrt(m_rCurv2 - rho * rho) - m_center;
+    cosA = cos(alpha);
+    sinA = sin(alpha);
 
-    if (!m_convex)
-      z = -z;
+    if (!isZero(rho)) {
+      p.x   = rho * cosA;
+      p.y   = rho * sinA;
+      p.z   = m_rCurv - sqrt(m_rCurv2 - rho * rho) - m_center;
 
-    frame->fromRelative(Vec3(x, y, z)).copyToArray(pointArr + 3 * i);
+      dfda.x = -rho * sinA;
+      dfda.y =  rho * cosA;
+
+      dfdr   = (Vec3(0, 0, m_rCurv - m_center) - p).normalized();
+
+      n = dfdr.cross(dfda).normalized();  
+    } else {
+      n = Vec3::eZ();
+    }
+
+    if (!m_convex) {
+      p.z = -p.z;
+      n.z = -n.z;
+    }
+
+    frame->fromRelative(p).copyToArray(pointArr + 3 * i);
+    frame->fromRelativeVec(n).copyToArray(normalArr + 3 * i);
   }
+}
+
+//
+// The area of the spherical aperture is just the area of a spherical cap,
+// which is given by:
+//
+// A = 2 pi Rc h
+//
+// And the height of the spherical cap is just the point at which the aperture
+// ends, which is given by:
+//
+// h = Rc - sqrt(Rc^2 - Rmax^2) = Rc - m_center
+//
+
+Real
+SphericalAperture::area() const
+{
+  return 2 * M_PI * m_rCurv * (m_rCurv - m_center);
 }

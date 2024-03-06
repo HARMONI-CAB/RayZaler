@@ -13,10 +13,11 @@ ParabolicAperture::recalcDistribution()
 {
   Real K;
 
-  m_4f2  = m_flength * m_flength;
-  m_8f3  = 2 * m_flength * m_4f2;
-  K      = 6 * m_flength / (pow(m_4f2 + m_radius2, 1.5) - m_8f3);
-  m_6f_K = 6 * m_flength / K;
+  m_4f2   =  4 * m_flength * m_flength;
+  m_8f3   = -2 * m_flength * m_4f2;
+  K       = -6 * m_flength / (pow(m_4f2 + m_radius2, 1.5) - m_8f3);
+  m_6f_K  = -6 * m_flength / K;
+  m_depth = m_radius2 / (4 * m_flength);
 }
 
 void
@@ -92,24 +93,79 @@ void
 ParabolicAperture::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
+    Real *normalArr,
     unsigned int N)
 {
   unsigned int i;
-  Real x, y, z;
-  Real alpha, rho, u, rad;
+  Vec3 p;
+  Vec3 n;
+  Vec3 dfda;
+  Vec3 dfdr;
+  Real cosA, sinA;
+
+  Real alpha, rho, u, rad, rho2;
   auto &state = randState();
+
+  dfda.z = 0;
 
   for (i = 0; i < N; ++i) {
     alpha = 2 * M_PI * state.randu();
     u     = state.randu();
 
     rad   = pow(m_6f_K * u + m_8f3, 2. / 3.);
-    rho   = sqrt(rad - m_4f2);
+    rho2  = rad - m_4f2;
+    rho   = sqrt(rho2);
+    
+    cosA = cos(alpha);
+    sinA = sin(alpha);
 
-    x     = rho * cos(alpha);
-    y     = rho * sin(alpha);
-    z     = rho * rho / (4 * m_flength);
+    // This is our random point
+    p.x = rho * cosA;
+    p.y = rho * sinA;
+    p.z = m_depth - rho2 / (4 * m_flength);
 
-    frame->fromRelative(Vec3(x, y, z)).copyToArray(pointArr + 3 * i);
+    // Surface normal is given by df/dr x df/da
+
+    if (!isZero(rho)) {
+      dfda.x = -rho * sinA;
+      dfda.y =  rho * cosA;
+      
+      dfdr.x = cosA;
+      dfdr.y = sinA;
+      dfdr.z = -rho / (2 * m_flength);
+
+      n = dfdr.cross(dfda).normalized();
+    } else {
+      n = Vec3::eZ();
+    }
+    
+    frame->fromRelative(p).copyToArray(pointArr + 3 * i);
+    frame->fromRelativeVec(n).copyToArray(normalArr + 3 * i);
   }
+}
+
+//
+// The area of the paraboloid can be found by integrating the differential
+// area elements, that are given by:
+// 
+// dA = rho * da * dl
+//
+// Where da is the angle differential and dl an infinitesimal element of the
+// parabola. This infinitesimal element has the property:
+//
+// dl^2 = drho^2 + dz^2
+//
+// Where dz is given by the parabola function f(rho) = rho^2/(4F). Hence:
+//
+// dl^2 = drho^2 + ((df/drho) * drho)^2 = drho^2(1 + (rho/2F)^2)
+//
+// From which we conclude that dl = sqrt(1 + rho^2/4F^2) * drho which, once
+// multiplied by rho in the dA expression, is easily integrable.
+//
+
+Real
+ParabolicAperture::area() const
+{
+  Real A = 2. * M_PI * m_4f2 / 3. * (pow(1 + m_radius2 / m_4f2, 1.5) - 1.);
+  return A;
 }

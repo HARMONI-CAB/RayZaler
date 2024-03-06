@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <Vector.h>
+#include <vector>
 #include <list>
 #include <sys/time.h>
 
@@ -27,8 +28,10 @@ namespace RZ {
     Real *origins       = nullptr;
     Real *directions    = nullptr;
     Real *destinations  = nullptr;
+    Complex *amplitude  = nullptr;
     Real *lengths       = nullptr;
     Real *cumOptLengths = nullptr;
+    Real *normals       = nullptr; // Surface normals of the depart surface
     Real n              = 1.;
     uint64_t *mask      = nullptr;
 
@@ -62,14 +65,9 @@ namespace RZ {
       if (!hasRay(index))
         return false;
 
-      dest.origin.x = origins[3 * index + 0];
-      dest.origin.y = origins[3 * index + 1];
-      dest.origin.z = origins[3 * index + 2];
-
-      dest.direction.x = directions[3 * index + 0];
-      dest.direction.y = directions[3 * index + 1];
-      dest.direction.z = directions[3 * index + 2];
-
+      dest.origin.setFromArray(origins + 3 * index);
+      dest.direction.setFromArray(directions + 3 * index);
+      
       dest.length       = lengths[index];
       dest.cumOptLength = cumOptLengths[index];
 
@@ -147,6 +145,7 @@ namespace RZ {
   enum RayTracingStageProgressType {
     PROGRESS_TYPE_TRACE,     // Tracing rays to capture surface
     PROGRESS_TYPE_TRANSFER,  // Transfering exit rays
+    PROGRESS_TYPE_KIRCHHOFF, // Integrating wavefronts
     PROGRESS_TYPE_CONFIG,    // Reconfigure model
   };
 
@@ -166,7 +165,9 @@ namespace RZ {
   class RayTracingEngine {
       std::list<Ray> m_rays;
       bool m_raysDirty = false;
-
+      std::vector<Real> m_currNormals;
+      Real m_dA = 1.;     // Area element of the departure surface
+      Real m_currdA = 1.; // Area element of the current surface
       RayBeam *m_beam = nullptr;
       bool m_beamDirty = true;
       bool m_notificationPendig = false;
@@ -210,6 +211,37 @@ namespace RZ {
       // date, and recreated it with toBeam() if necessary.
       // Then, it will call to cast() and compute beam->destinations and lengths
       void trace(const ReferenceFrame *surface);
+
+      // Update normals of the current beams
+      void updateNormals();
+      
+      // Refresh ray origins
+      void updateOrigins();
+
+      // Adjust the current beam so that the rays coming to this surface look
+      // like coming from infinity. This implies that:
+      //
+      // - We need to cast rays to the intercept surface
+      // - We compute the intercept points by means of intercept()
+      // - We update the beam the following way:
+      //   1. We adjust the destination point
+      //   2. We keep the direction here (encodes the arrival direction)
+      //   3. We set the m_currentNormal to the intercept normal
+
+      void traceFromInfinity(
+        const ReferenceFrame *surface,
+        const RayTransferProcessor *processor);
+
+      // Deliver to an existing point of the next surface
+      void traceRandom(
+        const ReferenceFrame *surface,
+        const RayTransferProcessor *next);
+
+      // Compute Kirchhoff integral for all rays.
+      void integrateKirchhoff();
+
+      // Update directions
+      void updateDirections();
 
       // Clear m_ray, process the beam and extract unpruned rays
       void transfer(const RayTransferProcessor *);

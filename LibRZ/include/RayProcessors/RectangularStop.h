@@ -11,6 +11,7 @@ namespace RZ {
       Real m_height = .1;
 
     public:
+      RectangularStopProcessor();
       void setWidth(Real);
       void setHeight(Real);
       virtual std::string name() const;

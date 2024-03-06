@@ -43,6 +43,7 @@ void
 CircularAperture::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
+    Real *normalArr,
     unsigned int N)
 {
   Real theta, R = sqrt(m_radius2);
@@ -56,7 +57,13 @@ CircularAperture::generatePoints(
     x     = r * cos(theta);
     y     = r * sin(theta);
 
-
     frame->fromRelative(Vec3(x, y, 0)).copyToArray(pointArr + 3 * i);
+    frame->fromRelativeVec(Vec3(0, 0, 1)).copyToArray(normalArr + 3 * i);
   }
+}
+
+Real
+CircularAperture::area() const
+{
+  return M_PI * m_radius2;
 }

@@ -43,12 +43,15 @@ class ImageNavWidget : public QWidget
 
   bool          m_movingSelection = false;
   bool          m_logScale = false;
+  bool          m_showPhotons = false;
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
   QPoint px2imgcenter(QPoint) const;
   QPointF pxF2imgcenterF(QPointF) const;
   QPoint imgcenter2px(QPoint) const;
+
+  inline qreal pixelValue(unsigned p);
 
 public:
   explicit ImageNavWidget(QWidget *parent = nullptr);

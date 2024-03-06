@@ -19,6 +19,8 @@ namespace RZ {
       Real m_pxHeight = 15e-6;
 
       uint32_t     m_maxCounts = 0;
+      Real         m_maxEnergy = 0;
+
       unsigned int m_cols;
       unsigned int m_rows;
       unsigned int m_stride;
@@ -31,6 +33,7 @@ namespace RZ {
       {
         int row, col;
         size_t ndx;
+        Real E;
 
         col = floor((x + .5 * m_width) / m_pxWidth);
         row = floor((y + .5 * m_height) / m_pxHeight);
@@ -42,10 +45,27 @@ namespace RZ {
         ++m_photons[ndx];
         m_amplitude[ndx] += amplitude;
 
+        E = (m_amplitude[ndx] * std::conj(m_amplitude[ndx])).real();
+
         if (m_photons[ndx] > m_maxCounts)
           m_maxCounts = m_photons[ndx];
         
+        if (E > m_maxEnergy)
+          m_maxEnergy = E;
+        
         return true;
+      }
+
+      inline uint32_t
+      maxCounts() const
+      {
+        return m_maxCounts;
+      }
+
+      inline Real
+      maxEnergy() const
+      {
+        return m_maxEnergy;
       }
 
       DetectorStorage(unsigned int cols, unsigned int rows, Real width, Real height);
@@ -75,7 +95,7 @@ namespace RZ {
   class Detector : public OpticalElement {
     ReferenceFrame *m_detectorSurface = nullptr;
     DetectorStorage *m_storage = nullptr; // Owned
-    const RayTransferProcessor *m_processor = nullptr;
+    RayTransferProcessor *m_processor = nullptr;
     
     Real m_pxWidth  = 15e-6;
     Real m_pxHeight = 15e-6;
@@ -114,6 +134,9 @@ namespace RZ {
       unsigned int    stride() const;
       const uint32_t *data() const;
       const Complex  *amplitude() const;
+
+      uint32_t        maxCounts() const;
+      Real            maxEnergy() const;
   };
 
   class DetectorFactory : public ElementFactory {

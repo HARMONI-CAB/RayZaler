@@ -8,6 +8,7 @@
 #include <Singleton.h>
 #include <OpticalElement.h>
 #include <Detector.h>
+#include <Random.h>
 #include <list>
 #include <map>
 
@@ -82,6 +83,9 @@ namespace RZ {
       RayBeamElement *m_beam = nullptr;
       std::list<Ray>  m_intermediateRays;
       struct timeval  m_lastTick;
+
+      // Random state for Diffraction calculations
+      ExprRandomState m_randState;
 
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);

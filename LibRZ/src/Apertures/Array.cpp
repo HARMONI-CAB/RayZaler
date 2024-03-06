@@ -93,8 +93,15 @@ void
 ApertureArray::generatePoints(
     const ReferenceFrame *,
     Real *pointArr,
+    Real *normalArr,
     unsigned int N)
 {
-  
+  // TODO
 }
-    
+
+Real
+ApertureArray::area() const
+{
+  // TODO
+  return m_width * m_height;
+}

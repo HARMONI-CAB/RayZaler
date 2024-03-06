@@ -34,9 +34,12 @@ namespace RZ {
       Real &tIgnore,
       Vec3 const &origin) const override;
     
+    virtual Real area() const override;
+    
     virtual void generatePoints(
         const ReferenceFrame *,
         Real *pointArr,
+        Real *normalArr,
         unsigned int N) override;
   };
 }

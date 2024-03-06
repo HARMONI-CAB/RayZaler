@@ -5,12 +5,27 @@
 #include <QImage>
 #include "GUIHelpers.h"
 
+#define LOG_PHOT_MIN   1
+#define LOG_ENERGY_MIN 1e-14
+
 ImageNavWidget::ImageNavWidget(QWidget *parent)
   : QWidget{parent}
 {
   setMouseTracking(true);
 }
 
+inline qreal
+ImageNavWidget::pixelValue(unsigned p)
+{
+  if (m_showPhotons) {
+    const uint32_t *photons = m_detector->data();
+    return photons[p]; 
+  } else {
+    const RZ::Complex A = m_detector->amplitude()[p];
+    RZ::Real E = std::real(A * std::conj(A));
+    return E;
+  }
+}
 
 void
 ImageNavWidget::recalcImage()
@@ -18,59 +33,53 @@ ImageNavWidget::recalcImage()
   if (m_detector == nullptr) {
     m_image = QImage();
   } else {
-    uint32_t max = 0;
-    uint32_t min = 0xffffffff;
     unsigned int width  = m_detector->cols();
     unsigned int height = m_detector->rows();
     unsigned int stride = m_detector->stride();
     unsigned int allocation = stride * height;
     m_asBytes.resize(allocation);
 
-    const uint32_t *photons = m_detector->data();
-
     if (m_autoscale) {
-      for (unsigned int j = 0; j < height; ++j) {
-        for (unsigned int i = 0; i < width; ++i) {
-          auto val = photons[i + j * stride];
+      m_sane_max = m_arr_max = m_showPhotons 
+        ? m_detector->maxCounts()
+        : m_detector->maxEnergy();
 
-          if (val > max)
-              max = val;
-          if (val < min)
-            min = val;
-        }
-      }
+      qreal min = m_arr_max;
 
-      m_sane_min = m_arr_min = min;
-      m_sane_max = m_arr_max = max;
+      for (auto j = 0; j < height; ++j)
+        for (auto i = 0; i < width; ++i)
+          if (pixelValue(i + j * stride) < min)
+            min = pixelValue(i + j * stride);
+      
+      if (min > m_sane_min || !m_logScale)
+        m_sane_min = m_arr_min = min;
     }
-
-
 
     // In log scale, min is black and max is white
     if (m_logScale) {
-      qreal rangeInv = 1. / (m_arr_max - m_arr_min + 1);
-      qreal black = log(rangeInv);
+      qreal minVal   = m_showPhotons ? LOG_PHOT_MIN : LOG_ENERGY_MIN;
+      qreal rangeInv = 1. / (m_arr_max - m_arr_min + minVal);
+      qreal black = log((m_arr_min + minVal) * rangeInv);
       qreal white = 1;
       qreal kInv = 255. / (white - black);
 
-
       for (unsigned int j = 0; j < height; ++j) {
         for (unsigned int i = 0; i < width; ++i) {
-          auto val = log(rangeInv * (photons[i + j * stride] - m_arr_min + 1));
-
+          auto val = log(rangeInv * (pixelValue(i + j * stride) - m_arr_min + minVal));
+          
           m_asBytes[i + j * stride] =
               static_cast<uint8_t>(
                 qBound(
-                  static_cast<uint32_t>(0),
-                  static_cast<uint32_t>(kInv * (val - black)),
-                  static_cast<uint32_t>(255)));
+                  static_cast<int32_t>(0),
+                  static_cast<int32_t>(kInv * (val - black)),
+                  static_cast<int32_t>(255)));
         }
       }
     } else {
       qreal kInv = 255. / (m_arr_max - m_arr_min);
       for (unsigned int j = 0; j < height; ++j) {
         for (unsigned int i = 0; i < width; ++i) {
-          auto val = photons[i + j * stride];
+          auto val = pixelValue(i + j * stride);
 
           m_asBytes[i + j * stride] =
               static_cast<uint8_t>(
@@ -166,28 +175,15 @@ ImageNavWidget::setDetector(RZ::Detector *det)
   m_detector = det;
 
   if (det != nullptr) {
-    uint32_t max = 0;
-    uint32_t min = 0xffffffff;
-
     unsigned int width  = m_detector->cols();
     unsigned int height = m_detector->rows();
     unsigned int stride = m_detector->stride();
-    const uint32_t *photons = m_detector->data();
 
-    for (unsigned int j = 0; j < height; ++j) {
-      for (unsigned int i = 0; i < width; ++i) {
-        auto val = photons[i + j * stride];
-
-        if (val > max)
-            max = val;
-        if (val < min)
-          min = val;
-      }
-    }
-
-    m_sane_min = min;
-    m_sane_max = max;
-    m_ratio = static_cast<qreal>(height) / static_cast<qreal>(min);
+    m_sane_min = 0;
+    m_sane_max = m_showPhotons 
+      ? m_detector->maxCounts()
+      : m_detector->maxEnergy();
+    m_ratio = static_cast<qreal>(height) / static_cast<qreal>(width);
   } else {
     m_sane_min = 0;
     m_sane_max = 1;

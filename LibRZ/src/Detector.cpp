@@ -5,6 +5,7 @@
 #include <GLHelpers.h>
 #include <GL/glut.h>
 #include <RayTracingEngine.h>
+#include <Apertures/Rectangular.h>
 #include <png++/png.hpp>
 #include <cmath>
 #include <complex>
@@ -97,6 +98,9 @@ DetectorStorage::clear()
 {
   std::fill(m_photons.begin(), m_photons.end(), 0);
   std::fill(m_amplitude.begin(), m_amplitude.end(), 0.);
+
+  m_maxCounts = 0;
+  m_maxEnergy = 0;
 }
 
 bool
@@ -132,29 +136,22 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
-  Vec3 center = plane->getCenter();
-  Vec3 tX     = plane->eX();
-  Vec3 tY     = plane->eY();
+  
 
   for (i = 0; i < count; ++i) {
     // Check intercept
     if (beam.hasRay(i)) {
-      Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-      Real coordX = coord * tX;
-      Real coordY = coord * tY;
-      auto phasor = std::exp(Complex(0, 1) * WAVENUMBER * beam.cumOptLengths[i]);
-
-      if (!m_storage->hit(coordX, coordY, phasor))
-        beam.prune(i); 
+      Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
+      if (!m_storage->hit(coord.x, coord.y, beam.amplitude[i]))
+        beam.prune(i);
     }
   }
-
-  PassThroughProcessor::process(beam, plane);
 }
 
 DetectorProcessor::DetectorProcessor(DetectorStorage *storage)
 {
   m_storage = storage;
+  defineAperture(new RectangularAperture());
 }
 
 /////////////////////////////// Detector element ///////////////////////////////
@@ -165,6 +162,8 @@ Detector::recalcModel()
   m_height = m_pxHeight * m_rows;
 
   m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
+  m_processor->aperture<RectangularAperture>()->setWidth(m_width);
+  m_processor->aperture<RectangularAperture>()->setHeight(m_height);
 }
 
 bool
@@ -216,6 +215,7 @@ Detector::Detector(
   m_detectorSurface = new TranslatedFrame("detSurf", frame, Vec3::zero());
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_processor);
+
 
   refreshProperties();
   recalcModel();
@@ -294,6 +294,18 @@ void
 Detector::savePNG(std::string const &path) const
 {
   m_storage->savePNG(path);
+}
+
+uint32_t
+Detector::maxCounts() const
+{
+  return m_storage->maxCounts();
+}
+
+Real
+Detector::maxEnergy() const
+{
+  return m_storage->maxEnergy();
 }
 
 void

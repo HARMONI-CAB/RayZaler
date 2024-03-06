@@ -1,7 +1,16 @@
 #include <RayProcessors/RectangularStop.h>
 #include <ReferenceFrame.h>
+#include <Apertures/Rectangular.h>
 
 using namespace RZ;
+
+RectangularStopProcessor::RectangularStopProcessor()
+{
+  defineAperture(new RectangularAperture());
+
+  aperture<RectangularAperture>()->setHeight(m_height);
+  aperture<RectangularAperture>()->setHeight(m_width);
+}
 
 std::string
 RectangularStopProcessor::name() const
@@ -13,12 +22,14 @@ void
 RectangularStopProcessor::setWidth(Real width)
 {
   m_width = width;
+  aperture<RectangularAperture>()->setHeight(m_width);
 }
 
 void
 RectangularStopProcessor::setHeight(Real height)
 {
   m_height = height;
+  aperture<RectangularAperture>()->setHeight(m_height);
 }
 
 void

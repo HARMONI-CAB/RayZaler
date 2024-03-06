@@ -4,6 +4,8 @@
 #include <cstring>
 #include <GenericAperture.h>
 #include <Logger.h>
+#include <exception>
+#include <sys/param.h>
 
 using namespace RZ;
 
@@ -51,7 +53,9 @@ RayBeam::allocate(uint64_t count)
   if (this->count == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
     this->directions    = allocBuffer<Real>(3 * count);
+    this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
+    this->amplitude     = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6);
@@ -59,7 +63,9 @@ RayBeam::allocate(uint64_t count)
   } else if (count >= this->count) {
     this->origins       = allocBuffer<Real>(3 * count, this->origins);
     this->directions    = allocBuffer<Real>(3 * count, this->directions);
+    this->normals       = allocBuffer<Real>(3 * count, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, this->destinations);
+    this->amplitude     = allocBuffer<Complex>(count, this->amplitude);
     this->lengths       = allocBuffer<Real>(count, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
@@ -75,8 +81,10 @@ RayBeam::deallocate()
   freeBuffer(origins);
   freeBuffer(directions);
   freeBuffer(destinations);
+  freeBuffer(normals);
   freeBuffer(lengths);
   freeBuffer(cumOptLengths);
+  freeBuffer(amplitude);
   freeBuffer(mask);
 }
 
@@ -175,7 +183,13 @@ void
 RayTracingEngine::pushRays(std::list<Ray> const &rays)
 {
   m_rays.insert(m_rays.end(), rays.begin(), rays.end());
-  m_beamDirty = true;
+  toBeam();
+
+  // Assume rays come from a flat surface
+  memcpy(m_beam->normals, m_beam->directions, 3 * m_beam->count * sizeof(Real));
+
+  for (auto i = 0; i < m_beam->count; ++i)
+    m_beam->amplitude[i] = 1;
 }
 
 void
@@ -191,13 +205,8 @@ RayTracingEngine::toBeam()
   m_beam->clearMask();
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
-    m_beam->origins[3 * i + 0] = p->origin.x;
-    m_beam->origins[3 * i + 1] = p->origin.y;
-    m_beam->origins[3 * i + 2] = p->origin.z;
-
-    m_beam->directions[3 * i + 0] = p->direction.x;
-    m_beam->directions[3 * i + 1] = p->direction.y;
-    m_beam->directions[3 * i + 2] = p->direction.z;
+    p->origin.copyToArray(m_beam->origins + 3 * i);
+    p->direction.copyToArray(m_beam->directions + 3 * i);
 
     m_beam->lengths[i]       = p->length;
     m_beam->cumOptLengths[i] = p->cumOptLength;
@@ -240,15 +249,191 @@ RayTracingEngine::trace(const ReferenceFrame *surface)
   m_notificationPendig = false;
 }
 
+//
+// TODO: Compute random destinations, calculate t and update opticalLengths
+// 
+
+void
+RayTracingEngine::updateDirections()
+{
+  unsigned int i;
+
+  if (m_beam == nullptr)
+    return;
+
+  auto count = m_beam->count;
+
+  for (unsigned int i = 0; i < count; ++i) {
+    Vec3 destination(m_beam->destinations + 3 * i);
+    Vec3 origin(m_beam->origins + 3 * i);
+    Vec3 diff = destination - origin;
+    Real dt = diff.norm();
+
+    (diff * (1/dt)).copyToArray(m_beam->directions + 3 * i);
+
+    m_beam->lengths[i] = dt;
+    m_beam->cumOptLengths[i] += dt; // TODO: Multiply by refractive index
+  }
+}
+
+//
+// This is the core of our diffraction calculations. This assumes the following:
+//
+// - Wave vector of the rays that hitted the depart surface are encoded in
+//   m_beam->directions
+// - Wave vector of the rays hitting the arrival surface are encoded in
+//   the difference between destination and origin
+// - Surface normals of the depart surface are known, and saved in the beam.
+//   After kirchoff, currNormals should be transferred back to the beam.
+//
+
+//
+// D = 1.2, flen = 0.6
+// dTheta = 1.22 * lambda / D
+// dX     = f * dTheta = 1.22 * lambda * f/#
+// pxWidth = 2e-3
+// dx = 5 * pxWidth
+// 5 * pxWidth = 1.22 * lambda * f/#
+// lambda = 5 * pxWidth / (1.22 * f/#)
+//
+
+void
+RayTracingEngine::integrateKirchhoff()
+{
+  auto count = m_beam->count;
+  Real K = 2 * M_PI * 1.22 * (0.6 / 1.2) / (5 * 2e-3);
+
+  for (auto i = 0; i < count; ++i) {
+    Vec3 normal      = Vec3(m_beam->normals + 3 * i);
+    Vec3 kivec       = K * Vec3(m_beam->directions + 3 * i);
+    Vec3 destination = Vec3(m_beam->destinations + 3 * i);
+    Vec3 origin      = Vec3(m_beam->origins + 3 * i);
+    Vec3 rvec        = destination - origin;
+    Real r           = rvec.norm();
+    Vec3 d           = rvec / r;
+    Vec3 kvec        = K * d;
+
+    if (normal * kvec < 0)
+      normal = -normal;
+    
+    Real QAmpl       = (kvec - kivec) * normal;
+    Real IAmpl       = (-d / r) * normal;
+    Real phi         = fmod(K * r, 2 * M_PI);
+
+    Complex factor = Complex(IAmpl, QAmpl) * std::exp(Complex(0, phi)) / r;
+
+    m_beam->amplitude[i] *= factor * m_dA;
+
+    rayProgress(i, count);
+  }
+}
+
+void
+RayTracingEngine::updateNormals()
+{
+  memcpy(m_beam->normals, m_currNormals.data(), 3 * m_beam->count * sizeof(Real));
+  m_dA = m_currdA;
+}
+
+void
+RayTracingEngine::updateOrigins()
+{
+  memcpy(m_beam->origins, m_beam->destinations, 3 * m_beam->count * sizeof(Real));
+}
+
+void
+RayTracingEngine::traceFromInfinity(
+  const ReferenceFrame *surface,
+  const RayTransferProcessor *processor)
+{
+  auto aperture = processor->aperture();
+
+  if (m_beam == nullptr)
+    m_beam = new RayBeam(m_rays.size());
+
+  if (m_beamDirty)
+    toBeam();
+  
+  // Stage 1: Trace rays
+  m_current = surface;
+  cast(surface->getCenter(), surface->eZ());
+
+  // Stage 2: Intercept
+  auto count = m_beam->count;
+  m_currNormals.resize(3 * count);
+  m_currdA = aperture->area() / count;
+
+  for (auto i = 0; i < count; ++i) {
+    if (!m_beam->hasRay(i))
+      continue;
+
+    Vec3 coord  = surface->toRelative(Vec3(m_beam->destinations + 3 * i));
+    Vec3 origin = surface->toRelative(Vec3(m_beam->origins + 3 * i));
+    Vec3 normal;
+    Real dt;
+
+    if (aperture->intercept(coord, normal, dt, origin)) {
+      m_beam->lengths[i]       += dt;
+      m_beam->cumOptLengths[i] += m_beam->n * dt;
+
+      // Stage 3: Update beam
+      surface->fromRelative(coord).copyToArray(m_beam->destinations + 3 * i);
+      surface->fromRelativeVec(normal).copyToArray(m_currNormals.data() + 3 * i);
+    } else {
+      m_beam->prune(i);
+    }
+
+    rayProgress(i, count);
+  }
+
+  m_raysDirty = true;
+  m_notificationPendig = false;
+}
+
+void
+RayTracingEngine::traceRandom(
+  const ReferenceFrame *surface,
+  const RayTransferProcessor *processor)
+{
+  auto *aperture = processor->aperture();
+
+  if (m_beam == nullptr)
+    m_beam = new RayBeam(m_rays.size());
+
+  auto count = m_beam->count;
+  
+  m_currNormals.resize(3 * count);
+  m_currdA = aperture->area() / count;
+
+  if (m_beamDirty)
+    toBeam();
+
+  m_current = surface;
+  if (aperture == nullptr) {
+    RZError(
+      "Processor %s with undefined aperture found\n",
+      processor->name().c_str());
+    return;
+  }
+
+  aperture->generatePoints(
+    m_current,
+    m_beam->destinations,
+    m_currNormals.data(),
+    count);
+
+  m_raysDirty = true;
+  m_notificationPendig = false;
+}
+    
+
 void
 RayTracingEngine::transfer(const RayTransferProcessor *processor)
 {
   auto aperture = processor->aperture();
   auto count = m_beam->count;
-  
-  processor->process(*m_beam, m_current);
 
-  memcpy(m_beam->origins, m_beam->destinations, 3 * count * sizeof(Real));
+  processor->process(*m_beam, m_current);
 
   m_raysDirty = true;
 }

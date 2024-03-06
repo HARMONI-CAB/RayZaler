@@ -136,7 +136,8 @@ SimulationProgressDialog::onGlobalProgress(QString desc, int n, int total)
     ui->simProgressBar->setValue(n);
     ui->simProgressBar->setMaximum(total);
     ui->simProgressBar->setFormat(
-          "Tracing beams ("
+          desc + 
+          " ("
           + QString::number(n)
           + "/"
           + QString::number(total)

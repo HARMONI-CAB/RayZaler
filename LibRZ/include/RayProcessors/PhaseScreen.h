@@ -19,6 +19,8 @@ namespace RZ {
       Real dZdy(Real x, Real y) const;
 
     public:
+      PhaseScreenProcessor();
+      
       inline Real
       coef(unsigned int ansi) const
       {

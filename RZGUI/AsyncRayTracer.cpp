@@ -53,6 +53,10 @@ AsyncRayTracer::stageProgress(
       progressString = "Casting rays to " + strObj;
       break;
 
+    case RZ::PROGRESS_TYPE_KIRCHHOFF:
+      progressString = "Integrating wavefront in " + strObj;
+      break;
+
     case RZ::PROGRESS_TYPE_TRANSFER:
       progressString = "Transferring rays from " + strObj;
       break;

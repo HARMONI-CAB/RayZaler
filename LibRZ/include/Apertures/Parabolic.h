@@ -9,6 +9,7 @@ namespace RZ {
     Real m_flength = 1;
     Real m_4f2, m_8f3;
     Real m_6f_K;
+    Real m_depth;
 
     void recalcDistribution();
 
@@ -24,9 +25,12 @@ namespace RZ {
       Real &tIgnore,
       Vec3 const &origin) const override;
     
+    virtual Real area() const override;
+    
     virtual void generatePoints(
         const ReferenceFrame *,
         Real *pointArr,
+        Real *normals,
         unsigned int N) override;
   };
 }

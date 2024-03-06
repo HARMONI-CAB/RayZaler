@@ -23,6 +23,8 @@ namespace RZ {
         return intercept(hit, ignore, tIgnore, Vec3::zero());
       }
 
+      virtual Real area() const = 0;
+      
       virtual bool intercept(
         Vec3 &hit,
         Vec3 &normal,
@@ -32,6 +34,7 @@ namespace RZ {
       virtual void generatePoints(
         const ReferenceFrame *,
         Real *pointArr,
+        Real *normals,
         unsigned int N) = 0;
   };
 }

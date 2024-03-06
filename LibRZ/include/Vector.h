@@ -197,9 +197,15 @@ namespace RZ {
     }
 
     inline void
-    copyToArray(Real *dest)
+    copyToArray(Real *dest) const
     {
       memcpy(dest, this->coords, 3 * sizeof(Real));
+    }
+
+    inline void
+    setFromArray(const Real *coords)
+    {
+      memcpy(this->coords, coords, 3 * sizeof(Real));
     }
 
     std::string

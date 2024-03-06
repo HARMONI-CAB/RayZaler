@@ -1,5 +1,6 @@
 #include <RectangularStop.h>
 #include <TranslatedFrame.h>
+#include <Apertures/Rectangular.h>
 
 using namespace RZ;
 
