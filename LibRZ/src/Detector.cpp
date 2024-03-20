@@ -122,6 +122,24 @@ DetectorStorage::savePNG(std::string const &path) const
   return true; // Cross your fingers
 }
 
+const std::vector<DetectorHit> &
+DetectorStorage::hits() const
+{
+  return m_hits;
+}
+
+void
+DetectorStorage::setRecordHits(bool doRecord)
+{
+  m_recordHits = doRecord;
+}
+
+void
+DetectorStorage::clearHits()
+{
+  m_hits.clear();
+}
+
 /////////////////////////////// Detector storage ///////////////////////////////
 std::string
 DetectorProcessor::name() const
@@ -306,6 +324,25 @@ Real
 Detector::maxEnergy() const
 {
   return m_storage->maxEnergy();
+}
+
+
+const std::vector<DetectorHit> &
+Detector::hits() const
+{
+  return m_storage->hits();
+}
+
+void
+Detector::setRecordHits(bool doRecord)
+{
+  m_storage->setRecordHits(doRecord);
+}
+
+void
+Detector::clearHits()
+{
+  m_storage->clearHits();
 }
 
 void

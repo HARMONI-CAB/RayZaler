@@ -66,9 +66,12 @@ namespace RZ {
         return false;
 
       dest.origin.setFromArray(origins + 3 * index);
-      dest.direction.setFromArray(directions + 3 * index);
+      Vec3 diff = Vec3(destinations + 3 * index) - dest.origin;
+      dest.length = diff.norm();
+      dest.direction = diff / dest.length;
+
+      // dest.direction.setFromArray(directions + 3 * index);
       
-      dest.length       = lengths[index];
       dest.cumOptLength = cumOptLengths[index];
 
       return true;

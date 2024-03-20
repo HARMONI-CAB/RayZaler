@@ -61,7 +61,7 @@ namespace RZ {
         Recipe *recipe,
         GenericCompositeModel *parentCompositeModel,
         Element *parent = nullptr);
-      virtual OpticalPath opticalPath() const override;
+      virtual OpticalPath opticalPath(std::string const &name = "") const override;
       ~CompositeElement();
 
       virtual void renderOpenGL() override;

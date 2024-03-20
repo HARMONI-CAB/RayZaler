@@ -249,6 +249,32 @@ PyMODINIT_FUNC PyInit_RZ();
 
     return outArray;
   }
+
+  PyObject *
+  hitArray()
+  {
+    unsigned int cols = 2;
+    unsigned int rows = self->hits().size();
+    const Real *data = reinterpret_cast<const Real *>(self->hits().data());
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows, cols};
+    npy_intp strides[] = {cols * sizeof(Real), sizeof(Real)};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      const_cast<Real *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
 }
 
 %extend RZ::RayList {

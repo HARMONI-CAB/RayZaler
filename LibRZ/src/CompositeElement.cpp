@@ -121,12 +121,15 @@ CompositeElement::CompositeElement(
 }
 
 OpticalPath
-CompositeElement::opticalPath() const
+CompositeElement::opticalPath(std::string const &pathName) const
 {
-  const OpticalPath *path = m_model->lookupOpticalPath();
+  const OpticalPath *path = m_model->lookupOpticalPath(pathName);
 
   if (path == nullptr)
-    throw std::runtime_error("Element `" + name() + "' did not expose a default optical path");
+    if (pathName.empty())
+      throw std::runtime_error("Element `" + name() + "' did not expose a default optical path");
+    else
+      throw std::runtime_error("Element `" + name() + "' does not have an optical path named `" + pathName + "'");
   
   return *path;
 }

@@ -3,9 +3,9 @@
 using namespace RZ;
 
 OpticalPath &
-OpticalPath::plug(OpticalElement *element)
+OpticalPath::plug(OpticalElement *element, std::string const &name)
 {
-  OpticalPath copy = element->opticalPath();
+  OpticalPath copy = element->opticalPath(name);
 
   m_sequence.insert(
     m_sequence.end(),
@@ -16,20 +16,23 @@ OpticalPath::plug(OpticalElement *element)
 }
 
 OpticalPath
-OpticalElement::opticalPath() const
+OpticalElement::opticalPath(std::string const &name) const
 {
   OpticalPath path;
 
-  for (auto p : m_internalPath)
-    path.m_sequence.push_back(p);
-
+  if (name.size() == 0)
+    for (auto p : m_internalPath)
+      path.m_sequence.push_back(p);
+  else
+    throw std::runtime_error("Unknown optical path `" + name + "'");
+  
   return path;
 }
 
 OpticalPath
-OpticalElement::plug(OpticalElement *newElement) const
+OpticalElement::plug(OpticalElement *newElement, std::string const &name) const
 {
-  return opticalPath().plug(newElement);
+  return opticalPath().plug(newElement, name);
 }
 
 void

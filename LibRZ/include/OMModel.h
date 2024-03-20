@@ -224,6 +224,13 @@ namespace RZ {
         bool clear = true,
         const struct timeval *startTime = nullptr);
 
+      bool traceDiffraction(
+        std::string const &path,
+        std::list<RZ::Ray> const &rays,
+        RayTracingProcessListener *listener = nullptr,
+        bool clear = true,
+        const struct timeval *startTime = nullptr);
+      
       bool traceDefault(
         std::list<RZ::Ray> const &rays,
         bool updateBeamElement = false,

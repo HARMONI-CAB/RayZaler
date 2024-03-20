@@ -21,7 +21,7 @@ namespace RZ {
   struct OpticalPath {
     std::list<OpticalSurface>   m_sequence;
 
-    OpticalPath &plug(OpticalElement *);
+    OpticalPath &plug(OpticalElement *, std::string const &name = "");
   };
 
   class OpticalElement : public Element {
@@ -42,8 +42,8 @@ namespace RZ {
         Element *parent = nullptr);
       
     public:
-      virtual OpticalPath opticalPath() const;
-      OpticalPath plug(OpticalElement *) const;
+      virtual OpticalPath opticalPath(std::string const &name = "") const;
+      OpticalPath plug(OpticalElement *, std::string const &name = "") const;
       virtual ~OpticalElement();
       
   };
