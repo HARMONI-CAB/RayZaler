@@ -43,7 +43,7 @@ class ImageNavWidget : public QWidget
 
   bool          m_movingSelection = false;
   bool          m_logScale = false;
-  bool          m_showPhotons = false;
+  bool          m_showPhotons = true;
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
@@ -65,6 +65,8 @@ public:
   void    setZoom(qreal);
   void    resetZoom();
   void    zoomToPoint(QPointF const &);
+
+  void    setShowPhotons(bool);
 
   qreal   imgMin() const;
   qreal   imgMax() const;

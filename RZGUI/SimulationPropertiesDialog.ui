@@ -97,7 +97,68 @@
        <string>Simulation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="0" column="2">
+       <item row="1" column="1">
+        <widget class="QComboBox" name="simTypeCombo">
+         <item>
+          <property name="text">
+           <string>One shot</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>1D sweep</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>2D sweep</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QSpinBox" name="rayNumberSpin">
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>2000000000</number>
+         </property>
+         <property name="value">
+          <number>1000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Sweep</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QSpinBox" name="steps2Spin">
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>1000</number>
+         </property>
+         <property name="value">
+          <number>10</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
         <widget class="QLabel" name="label_10">
          <property name="text">
           <string>Rays</string>
@@ -107,27 +168,7 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="steps1Label">
-         <property name="text">
-          <string>Steps (dim 1)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Type</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="4">
+       <item row="3" column="0" colspan="4">
         <widget class="QTableView" name="propView">
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -158,17 +199,7 @@
          </attribute>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="steps2Label">
-         <property name="text">
-          <string>Steps (dim 2)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
+       <item row="2" column="1">
         <widget class="QSpinBox" name="steps1Spin">
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -184,55 +215,48 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="simTypeCombo">
-         <item>
-          <property name="text">
-           <string>One shot</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>1D sweep</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2D sweep</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QSpinBox" name="steps2Spin">
+       <item row="2" column="2">
+        <widget class="QLabel" name="steps2Label">
+         <property name="text">
+          <string>Steps (dim 2)</string>
+         </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>1000</number>
-         </property>
-         <property name="value">
-          <number>10</number>
-         </property>
         </widget>
        </item>
-       <item row="0" column="3">
-        <widget class="QSpinBox" name="rayNumberSpin">
+       <item row="2" column="0">
+        <widget class="QLabel" name="steps1Label">
+         <property name="text">
+          <string>Steps (dim 1)</string>
+         </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
-         <property name="minimum">
-          <number>1</number>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Simulation type</string>
          </property>
-         <property name="maximum">
-          <number>2000000000</number>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
-         <property name="value">
-          <number>1000</number>
-         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" colspan="3">
+        <widget class="QComboBox" name="tracingType">
+         <item>
+          <property name="text">
+           <string>Geometric optic raytracing</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Diffraction integral</string>
+          </property>
+         </item>
         </widget>
        </item>
       </layout>

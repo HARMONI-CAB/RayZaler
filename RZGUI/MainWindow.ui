@@ -379,6 +379,7 @@
    <addaction name="actionRunSimFile"/>
    <addaction name="actionSimProp"/>
    <addaction name="actionRunSim"/>
+   <addaction name="actionClearBeam"/>
    <addaction name="actionSimResult"/>
   </widget>
   <widget class="QToolBar" name="viewToolBar">
@@ -575,6 +576,18 @@
    </property>
    <property name="shortcut">
     <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="actionClearBeam">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/clear-beam.svg</normaloff>:/toolbar/icons/clear-beam.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Clear beam</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears the current beam</string>
    </property>
   </action>
  </widget>

@@ -145,7 +145,13 @@ DetectorWindow::refreshUi()
       ui->verticalScrollBar->setEnabled(false);
     }
     BLOCKSIG_END();
+
+    BLOCKSIG(ui->actionShow_photons, setChecked(m_showPhotons));
+    BLOCKSIG(ui->actionElectricField, setChecked(!m_showPhotons));
   }
+
+  BLOCKSIG(ui->actionShow_photons, setEnabled(m_detector));
+  BLOCKSIG(ui->actionElectricField, setEnabled(m_detector));
 }
 
 void
@@ -192,6 +198,18 @@ DetectorWindow::connectAll()
         SIGNAL(valueChanged(int)),
         this,
         SLOT(onScrollBarsChanged()));
+
+  connect(
+        ui->actionElectricField,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onChangeDetectorRep()));
+
+  connect(
+        ui->actionShow_photons,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onChangeDetectorRep()));
 }
 
 void
@@ -213,6 +231,7 @@ DetectorWindow::setDetector(RZ::Detector *detector)
         + " ("
         + detName
         + ")";
+    m_navWidget->setShowPhotons(m_showPhotons);
   }
 
   setWindowTitle(title);
@@ -329,4 +348,19 @@ DetectorWindow::onHoverPixel(QPointF loc)
     ui->posYLabel->setText(
           (posY > 0 ? "+" : "") + QString::number(posY * 1e3, 'f', 6) + " mm");
   }
+}
+
+void
+DetectorWindow::onChangeDetectorRep()
+{
+  QObject *clicked = QObject::sender();
+
+  if (clicked == qobject_cast<QObject *>(ui->actionShow_photons))
+    m_showPhotons = ui->actionShow_photons->isChecked();
+
+  if (clicked == qobject_cast<QObject *>(ui->actionElectricField))
+    m_showPhotons = !ui->actionElectricField->isChecked();
+
+  m_navWidget->setShowPhotons(m_showPhotons);
+  refreshUi();
 }

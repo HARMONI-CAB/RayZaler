@@ -24,6 +24,7 @@ class DetectorWindow : public QMainWindow
   RZ::Detector         *m_detector;
   SimulationSession    *m_session = nullptr;
 
+  bool                  m_showPhotons = true;
   std::list<QAction *>  m_detectorActions;
 
   void populateDetectorMenu();
@@ -50,6 +51,7 @@ public slots:
   void onToggleLogScale();
   void onChangeDetector();
   void onHoverPixel(QPointF loc);
+  void onChangeDetectorRep();
 
 private:
   Ui::DetectorWindow *ui;

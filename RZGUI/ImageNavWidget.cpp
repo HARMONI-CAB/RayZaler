@@ -231,6 +231,16 @@ ImageNavWidget::zoomToPoint(QPointF const & xy)
   update();
 }
 
+void
+ImageNavWidget::setShowPhotons(bool show)
+{
+  if (show != m_showPhotons) {
+    m_showPhotons = show;
+    recalcImage();
+    update();
+  }
+}
+
 qreal
 ImageNavWidget::imgMin() const
 {

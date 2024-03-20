@@ -21,6 +21,9 @@
         <file>icons/folder-tag.svg</file>
         <file>icons/trace.svg</file>
         <file>icons/application-x-desktop.svg</file>
+        <file>icons/clear-beam.svg</file>
+        <file>icons/Efield.svg</file>
+        <file>icons/photons.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

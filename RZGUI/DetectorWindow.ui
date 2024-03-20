@@ -599,6 +599,8 @@
    </attribute>
    <addaction name="actionExportAs"/>
    <addaction name="actionClear"/>
+   <addaction name="actionShow_photons"/>
+   <addaction name="actionElectricField"/>
    <addaction name="actionLogScale"/>
   </widget>
   <action name="actionExportAs">
@@ -640,6 +642,30 @@
    </property>
    <property name="text">
     <string>Log scale</string>
+   </property>
+  </action>
+  <action name="actionShow_photons">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/photons.svg</normaloff>:/toolbar/icons/photons.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show photons</string>
+   </property>
+  </action>
+  <action name="actionElectricField">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/Efield.svg</normaloff>:/toolbar/icons/Efield.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Electric field</string>
    </property>
   </action>
  </widget>
