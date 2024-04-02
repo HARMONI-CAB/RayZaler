@@ -13,14 +13,15 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
 {
   Q_OBJECT
 
-  RZ::OMModel              *m_model     = nullptr; // Borrowed
-  const std::list<RZ::Ray> *m_beam      = nullptr;
+  RZ::OMModel              *m_model       = nullptr; // Borrowed
+  const std::list<RZ::Ray> *m_beam        = nullptr;
   QMutex                    m_beamMutex;
-  bool                      m_cancelled = false;
-  bool                      m_running   = false;
-  bool                      m_updateBeam = true;
-  int                       m_currSim   = 0;
-  int                       m_numSim    = 1;
+  bool                      m_cancelled   = false;
+  bool                      m_diffraction = false;
+  bool                      m_running     = false;
+  bool                      m_updateBeam  = true;
+  int                       m_currSim     = 0;
+  int                       m_numSim      = 1;
   struct timeval            m_batchStart;
 
 public:
@@ -28,6 +29,7 @@ public:
 
   void cancel();
   void setUpdateBeam(bool);
+  void setDiffraction(bool);
   void setBeam(std::list<RZ::Ray> const &);
   bool running() const;
 

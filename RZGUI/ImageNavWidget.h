@@ -44,6 +44,7 @@ class ImageNavWidget : public QWidget
   bool          m_movingSelection = false;
   bool          m_logScale = false;
   bool          m_showPhotons = true;
+  bool          m_showPhase = false;
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
@@ -51,7 +52,19 @@ class ImageNavWidget : public QWidget
   QPointF pxF2imgcenterF(QPointF) const;
   QPoint imgcenter2px(QPoint) const;
 
+  inline void psetRGB(unsigned p, qreal norm, qreal phase);
   inline qreal pixelValue(unsigned p);
+  inline qreal pixelPhase(unsigned p);
+
+  static inline uint8_t
+  pixBound(qreal quantity)
+  {
+    return static_cast<uint8_t>(
+          qBound(
+            static_cast<int32_t>(0),
+            static_cast<int32_t>(quantity),
+            static_cast<int32_t>(255)));
+  }
 
 public:
   explicit ImageNavWidget(QWidget *parent = nullptr);
@@ -67,6 +80,7 @@ public:
   void    zoomToPoint(QPointF const &);
 
   void    setShowPhotons(bool);
+  void    setShowPhase(bool);
 
   qreal   imgMin() const;
   qreal   imgMax() const;

@@ -7,6 +7,8 @@
 #include <list>
 #include <sys/time.h>
 
+#define RZ_SPEED_OF_LIGHT 299792458 // m/s
+
 namespace RZ {
   class ReferenceFrame;
   
@@ -171,6 +173,7 @@ namespace RZ {
       std::vector<Real> m_currNormals;
       Real m_dA = 1.;     // Area element of the departure surface
       Real m_currdA = 1.; // Area element of the current surface
+      Real m_K = 2 * M_PI;      // Wavenumber
       RayBeam *m_beam = nullptr;
       bool m_beamDirty = true;
       bool m_notificationPendig = false;
@@ -195,6 +198,17 @@ namespace RZ {
         return m_beam;
       }
 
+      inline void
+      setK(Real K)
+      {
+        m_K = K;
+      }
+
+      inline Real
+      K() const
+      {
+        return m_K;
+      }
 
       RayTracingEngine();
       virtual ~RayTracingEngine();
@@ -242,6 +256,9 @@ namespace RZ {
 
       // Compute Kirchhoff integral for all rays.
       void integrateKirchhoff();
+
+      // Integrate phase for regular Snell
+      void propagatePhase();
 
       // Update directions
       void updateDirections();

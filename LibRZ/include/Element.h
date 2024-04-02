@@ -234,6 +234,7 @@ namespace RZ {
       virtual void nativeMaterialOpenGL(std::string const &role);
       virtual void renderOpenGL();
       virtual OMModel *nestedModel() const;
+      virtual GenericCompositeModel *nestedCompositeModel() const;
   };
 
   class ElementFactory {

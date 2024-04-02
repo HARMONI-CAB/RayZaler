@@ -52,6 +52,7 @@ public slots:
   void onChangeDetector();
   void onHoverPixel(QPointF loc);
   void onChangeDetectorRep();
+  void onToggleShowPhase();
 
 private:
   Ui::DetectorWindow *ui;

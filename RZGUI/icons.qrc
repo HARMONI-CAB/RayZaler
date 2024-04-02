@@ -24,6 +24,7 @@
         <file>icons/clear-beam.svg</file>
         <file>icons/Efield.svg</file>
         <file>icons/photons.svg</file>
+        <file>icons/RGB_color_wheel_36.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

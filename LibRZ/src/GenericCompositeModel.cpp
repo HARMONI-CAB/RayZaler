@@ -249,6 +249,10 @@ GenericCompositeModel::parentCompositeModel() const
 void
 GenericCompositeModel::updateRandState()
 {
+  for (auto m : m_elements)
+    if (m->nestedCompositeModel() != nullptr)
+      m->nestedCompositeModel()->updateRandState();
+      
   m_randState->update();
   assignEverything();
 }

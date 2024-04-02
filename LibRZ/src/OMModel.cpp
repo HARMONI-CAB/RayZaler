@@ -596,6 +596,7 @@ OMModel::traceDiffraction(
 
   m_intermediateRays.clear();
 
+  tracer.setK(2 * M_PI / m_wavelength);
   tracer.setListener(listener);
 
   gettimeofday(&tv, nullptr);
@@ -682,6 +683,30 @@ OMModel::traceDiffraction(
   return true;
 }
 
+void
+OMModel::setWavelength(Real wl)
+{
+  m_wavelength = wl;
+}
+
+Real
+OMModel::wavelength() const
+{
+  return m_wavelength;
+}
+
+void
+OMModel::setFrequency(Real freq)
+{
+  setWavelength(RZ_SPEED_OF_LIGHT / freq);
+}
+
+Real
+OMModel::frequency() const
+{
+  return RZ_SPEED_OF_LIGHT / m_wavelength;
+}
+
 bool
 OMModel::trace(
         std::string const &pathName,
@@ -699,6 +724,7 @@ OMModel::trace(
 
   m_intermediateRays.clear();
 
+  tracer.setK(2 * M_PI / m_wavelength);
   tracer.setListener(listener);
 
   gettimeofday(&tv, nullptr);

@@ -17,6 +17,7 @@
 
 #define RZ_DEFAULT_CCD_RESOLUTION 1024
 #define RZ_DEFAULT_CCD_WIDTH      5e-2
+#define RZ_WAVELENGTH             555e-9
 
 namespace RZ {
   class OMModel;
@@ -86,6 +87,9 @@ namespace RZ {
 
       // Random state for Diffraction calculations
       ExprRandomState m_randState;
+
+      // Simulation wavelength
+      Real m_wavelength = 555e-9;
 
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
@@ -214,6 +218,13 @@ namespace RZ {
       OpticalElement *lookupOpticalElementOrEx(std::string const &) const;
       Detector *lookupDetectorOrEx(std::string const &) const;
       const OpticalPath *lookupOpticalPathOrEx(std::string const & = "") const;
+
+      // Wavelength of the raytracer
+      void setWavelength(Real);
+      Real wavelength() const;
+
+      void setFrequency(Real);
+      Real frequency() const;
 
       // Raytracing methods
       bool trace(

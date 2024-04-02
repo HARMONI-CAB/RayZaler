@@ -66,7 +66,8 @@ namespace RZ {
 
       virtual void renderOpenGL() override;
       virtual OMModel *nestedModel() const override;
-
+      virtual GenericCompositeModel *nestedCompositeModel() const;
+      
       virtual void notifyDetector(
         std::string const &preferredName,
         Detector *det) override;

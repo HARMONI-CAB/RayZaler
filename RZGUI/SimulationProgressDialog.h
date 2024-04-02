@@ -21,6 +21,7 @@ class SimulationProgressDialog : public QDialog
   void connectAll();
   unsigned int m_count = 0;
   unsigned int m_maxSim = 1;
+
 public:
   explicit SimulationProgressDialog(AsyncRayTracer *, QWidget *parent = nullptr);
   ~SimulationProgressDialog();

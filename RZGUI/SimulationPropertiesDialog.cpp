@@ -48,8 +48,20 @@ void
 SimulationPropertiesDialog::connectAll()
 {
   connect(
+        ui->tracingType,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->simTypeCombo,
         SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->wavelengthSpin,
+        SIGNAL(valueChanged(qreal)),
         this,
         SLOT(onDataChanged()));
 
@@ -240,6 +252,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   ui->apertureCombo->clear();
   ui->focalPlaneCombo->clear();
 
+  BLOCKSIG(ui->tracingType,     setCurrentIndex(m_properties.ttype));
   BLOCKSIG(ui->simTypeCombo,    setCurrentIndex(m_properties.type));
   BLOCKSIG(ui->beamTypeCombo,   setCurrentIndex(m_properties.beam));
   BLOCKSIG(ui->originCombo,     setCurrentIndex(m_properties.ref));
@@ -255,6 +268,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->rayNumberSpin,   setValue(m_properties.rays));
   BLOCKSIG(ui->steps1Spin,      setValue(m_properties.Ni));
   BLOCKSIG(ui->steps2Spin,      setValue(m_properties.Nj));
+  BLOCKSIG(ui->wavelengthSpin,  setValue(m_properties.wavelength * 1e6));
 
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
   BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
@@ -347,6 +361,16 @@ SimulationPropertiesDialog::parseProperties()
   if (m_session == nullptr)
     return;
 
+  switch (ui->tracingType->currentIndex()) {
+    case 0:
+      m_properties.ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
+      break;
+
+    case 1:
+      m_properties.ttype = TRACER_TYPE_DIFFRACTION;
+      break;
+  }
+
   switch (ui->simTypeCombo->currentIndex()) {
     case 0:
       m_properties.type = SIM_TYPE_ONE_SHOT;
@@ -416,6 +440,7 @@ SimulationPropertiesDialog::parseProperties()
   m_properties.rays         = ui->rayNumberSpin->value();
   m_properties.Ni           = ui->steps1Spin->value();
   m_properties.Nj           = ui->steps2Spin->value();
+  m_properties.wavelength   = ui->wavelengthSpin->value() * 1e-6;
 
   if (ui->pathCombo->currentIndex() != -1)
     m_properties.path       = ui->pathCombo->currentData().value<QString>();

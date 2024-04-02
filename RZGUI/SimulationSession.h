@@ -32,6 +32,11 @@ namespace RZ {
   class FileParserContext;
 };
 
+enum TracerType {
+  TRACER_TYPE_GEOMETRIC_OPTICS,
+  TRACER_TYPE_DIFFRACTION
+};
+
 enum SimulationType {
   SIM_TYPE_ONE_SHOT,
   SIM_TYPE_1D_SWEEP,
@@ -51,6 +56,7 @@ enum BeamReference {
 };
 
 struct SimulationProperties {
+  TracerType     ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
   SimulationType type  = SIM_TYPE_ONE_SHOT;
   BeamType       beam  = BEAM_TYPE_COLLIMATED;
   BeamReference  ref   = BEAM_REFERENCE_INPUT_ELEMENT;
@@ -68,6 +74,7 @@ struct SimulationProperties {
   int rays             = 1000;
   int Ni               = 10;
   int Nj               = 10;
+  qreal wavelength     = 555e-9;   // m
 
   QString detector;
   QString path;
@@ -92,6 +99,7 @@ struct SimulationProperties {
 private:
   QString m_lastError;
 
+  bool deserialize(QJsonObject const &, QString const &, TracerType &);
   bool deserialize(QJsonObject const &, QString const &, SimulationType &);
   bool deserialize(QJsonObject const &, QString const &, BeamType &);
   bool deserialize(QJsonObject const &, QString const &, BeamReference &);
@@ -99,6 +107,7 @@ private:
   bool deserialize(QJsonObject const &, QString const &, QString &);
   bool deserialize(QJsonObject const &, QString const &, int &);
   bool deserialize(QJsonObject const &, QString const &, bool &);
+  bool deserialize(QJsonObject const &, QString const &, qreal &);
   bool deserialize(QJsonObject const &, QString const &, std::map<std::string, std::string> &);
 };
 

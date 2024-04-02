@@ -601,6 +601,7 @@
    <addaction name="actionClear"/>
    <addaction name="actionShow_photons"/>
    <addaction name="actionElectricField"/>
+   <addaction name="actionTogglePhase"/>
    <addaction name="actionLogScale"/>
   </widget>
   <action name="actionExportAs">
@@ -666,6 +667,21 @@
    </property>
    <property name="text">
     <string>Electric field</string>
+   </property>
+  </action>
+  <action name="actionTogglePhase">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show/hide phase</string>
+   </property>
+   <property name="toolTip">
+    <string>Show/hide wave phase</string>
    </property>
   </action>
  </widget>

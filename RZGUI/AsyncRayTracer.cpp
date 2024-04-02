@@ -22,6 +22,12 @@ AsyncRayTracer::setUpdateBeam(bool update)
 }
 
 void
+AsyncRayTracer::setDiffraction(bool diffraction)
+{
+  m_diffraction = diffraction;
+}
+
+void
 AsyncRayTracer::setBeam(std::list<RZ::Ray> const &beam)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
@@ -104,13 +110,24 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
   } else {
     try {
       m_running = true;
-      m_model->trace(
-            path.toStdString(),
-            *m_beam,
-            m_updateBeam,
-            this,
-            false,
-            &m_batchStart);
+
+      if (m_diffraction) {
+        m_model->traceDiffraction(
+              path.toStdString(),
+              *m_beam,
+              this,
+              false,
+              &m_batchStart);
+      } else {
+        m_model->trace(
+              path.toStdString(),
+              *m_beam,
+              m_updateBeam,
+              this,
+              false,
+              &m_batchStart);
+      }
+
       m_batchStart = m_model->lastTracerTick();
       m_running = false;
       if (m_cancelled)

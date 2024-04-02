@@ -146,6 +146,16 @@ CompositeElement::nestedModel() const
   return m_model;
 }
 
+GenericCompositeModel *
+CompositeElement::nestedCompositeModel() const
+{
+  // C++. The ceiling has been raised.
+  
+  return const_cast<GenericCompositeModel *>(
+    static_cast<const GenericCompositeModel *>(
+      this));
+}
+
 CompositeElement::~CompositeElement()
 {
   delete m_model;

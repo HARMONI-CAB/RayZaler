@@ -4,6 +4,7 @@
 #include <QPixmap>
 #include <QImage>
 #include "GUIHelpers.h"
+#include "YIQ.h"
 
 #define LOG_PHOT_MIN   1
 #define LOG_ENERGY_MIN 1e-14
@@ -27,6 +28,33 @@ ImageNavWidget::pixelValue(unsigned p)
   }
 }
 
+inline qreal
+ImageNavWidget::pixelPhase(unsigned p)
+{
+  const RZ::Complex A = m_detector->amplitude()[p];
+  return std::arg(A);
+}
+
+inline void
+ImageNavWidget::psetRGB(unsigned p, qreal val, qreal phase)
+{
+  phase = fmod(phase, 2 * M_PI);
+  if (phase < 0)
+    phase += 2 * M_PI;
+
+  unsigned index = static_cast<unsigned>(floor(phase / (2 * M_PI) * 1024)) % 1024;
+
+  QColor phaseColor = yiqTable[index];
+
+  uint8_t red   = pixBound(val * phaseColor.red());
+  uint8_t green = pixBound(val * phaseColor.green());
+  uint8_t blue  = pixBound(val * phaseColor.blue());
+
+  m_asBytes[3 * p + 0] = red;
+  m_asBytes[3 * p + 1] = green;
+  m_asBytes[3 * p + 2] = blue;
+}
+
 void
 ImageNavWidget::recalcImage()
 {
@@ -36,7 +64,8 @@ ImageNavWidget::recalcImage()
     unsigned int width  = m_detector->cols();
     unsigned int height = m_detector->rows();
     unsigned int stride = m_detector->stride();
-    unsigned int allocation = stride * height;
+    unsigned int bpp    = m_showPhase ? 3 : 1;
+    unsigned int allocation = bpp * stride * height;
     m_asBytes.resize(allocation);
 
     if (m_autoscale) {
@@ -46,8 +75,8 @@ ImageNavWidget::recalcImage()
 
       qreal min = m_arr_max;
 
-      for (auto j = 0; j < height; ++j)
-        for (auto i = 0; i < width; ++i)
+      for (unsigned j = 0; j < height; ++j)
+        for (unsigned i = 0; i < width; ++i)
           if (pixelValue(i + j * stride) < min)
             min = pixelValue(i + j * stride);
       
@@ -61,43 +90,50 @@ ImageNavWidget::recalcImage()
       qreal rangeInv = 1. / (m_arr_max - m_arr_min + minVal);
       qreal black = log((m_arr_min + minVal) * rangeInv);
       qreal white = 1;
-      qreal kInv = 255. / (white - black);
+      qreal kInv = 1. / (white - black);
 
-      for (unsigned int j = 0; j < height; ++j) {
-        for (unsigned int i = 0; i < width; ++i) {
-          auto val = log(rangeInv * (pixelValue(i + j * stride) - m_arr_min + minVal));
-          
-          m_asBytes[i + j * stride] =
-              static_cast<uint8_t>(
-                qBound(
-                  static_cast<int32_t>(0),
-                  static_cast<int32_t>(kInv * (val - black)),
-                  static_cast<int32_t>(255)));
+      for (unsigned j = 0; j < height; ++j) {
+        for (unsigned i = 0; i < width; ++i) {
+          unsigned int p = i + j * stride;
+          auto val = log(rangeInv * (pixelValue(p) - m_arr_min + minVal));
+
+          if (m_showPhase)
+            psetRGB(p, kInv * (val - black), pixelPhase(p));
+          else
+            m_asBytes[p] = pixBound(255 * kInv * (val - black));
         }
       }
     } else {
-      qreal kInv = 255. / (m_arr_max - m_arr_min);
-      for (unsigned int j = 0; j < height; ++j) {
-        for (unsigned int i = 0; i < width; ++i) {
-          auto val = pixelValue(i + j * stride);
+      qreal kInv = 1. / (m_arr_max - m_arr_min);
+      for (unsigned j = 0; j < height; ++j) {
+        for (unsigned i = 0; i < width; ++i) {
+          unsigned int p = i + j * stride;
 
-          m_asBytes[i + j * stride] =
-              static_cast<uint8_t>(
-                qBound(
-                  static_cast<uint32_t>(0),
-                  static_cast<uint32_t>(kInv * (val - m_arr_min)),
-                  static_cast<uint32_t>(255)));
+          auto val = pixelValue(p);
+
+          if (m_showPhase)
+            psetRGB(p, kInv * (val - m_arr_min), pixelPhase(p));
+          else
+            m_asBytes[p] = pixBound(255 * kInv * (val - m_arr_min));
         }
       }
     }
 
-
-    m_image = QImage(
-          static_cast<uchar *>(m_asBytes.data()),
-          SCAST(int, width),
-          SCAST(int, height),
-          stride,
-          QImage::Format::Format_Grayscale8);
+    if (m_showPhase) {
+      m_image = QImage(
+            static_cast<uchar *>(m_asBytes.data()),
+            SCAST(int, width),
+            SCAST(int, height),
+            bpp * stride,
+            QImage::Format::Format_RGB888);
+    } else {
+      m_image = QImage(
+            static_cast<uchar *>(m_asBytes.data()),
+            SCAST(int, width),
+            SCAST(int, height),
+            stride,
+            QImage::Format::Format_Grayscale8);
+    }
   }
 }
 
@@ -240,6 +276,17 @@ ImageNavWidget::setShowPhotons(bool show)
     update();
   }
 }
+
+void
+ImageNavWidget::setShowPhase(bool show)
+{
+  if (show != m_showPhase) {
+    m_showPhase = show;
+    recalcImage();
+    update();
+  }
+}
+
 
 qreal
 ImageNavWidget::imgMin() const

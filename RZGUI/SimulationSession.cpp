@@ -26,6 +26,16 @@ SimulationProperties::serialize() const
   QJsonObject object;
   QJsonObject dofObj;
 
+  switch (ttype) {
+    case TRACER_TYPE_GEOMETRIC_OPTICS:
+      object["ttype"] = "GEOMETRIC_OPTICS";
+      break;
+
+    case TRACER_TYPE_DIFFRACTION:
+      object["ttype"] = "DIFFRACTION";
+      break;
+  }
+
   switch (type) {
     case SIM_TYPE_ONE_SHOT:
       object["type"] = "ONE_SHOT";
@@ -80,6 +90,7 @@ SimulationProperties::serialize() const
   SERIALIZE(rays);
   SERIALIZE(Ni);
   SERIALIZE(Nj);
+  SERIALIZE(wavelength);
   SERIALIZE(detector);
   SERIALIZE(path);
   SERIALIZE(saveArtifacts);
@@ -116,6 +127,33 @@ SimulationProperties::deserialize(
     }
 
     value = obj[key].toString();
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    TracerType &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "GEOMETRIC_OPTICS")
+      value = TRACER_TYPE_GEOMETRIC_OPTICS;
+    else if (asString == "DIFFRACTION")
+      value = TRACER_TYPE_DIFFRACTION;
+    else {
+      m_lastError = "Unknown tracer type `" + asString + "'";
+      return false;
+    }
   }
 
   return true;
@@ -230,6 +268,24 @@ bool
 SimulationProperties::deserialize(
     QJsonObject const &obj,
     QString const &key,
+    qreal &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isDouble()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a number)";
+      return false;
+    }
+
+    value = obj[key].toDouble();
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
     bool &value)
 {
   if (obj.contains(key)) {
@@ -291,6 +347,7 @@ SimulationProperties::deserialize(QByteArray const &json)
   if (!deserialize(obj, #field, field))   \
     return false
 
+  DESERIALIZE(ttype);
   DESERIALIZE(type);
   DESERIALIZE(beam);
   DESERIALIZE(ref);
@@ -306,6 +363,7 @@ SimulationProperties::deserialize(QByteArray const &json)
   DESERIALIZE(rays);
   DESERIALIZE(Ni);
   DESERIALIZE(Nj);
+  DESERIALIZE(wavelength);
   DESERIALIZE(detector);
   DESERIALIZE(path);
   DESERIALIZE(dofs);
@@ -520,6 +578,7 @@ SimulationState::setProperties(SimulationProperties const &prop)
   defineVariable("j");
   defineVariable("Ni");
   defineVariable("Nj");
+  defineVariable("wavelength");
   defineVariable("D");
   defineVariable("fNum");
   defineVariable("A");
@@ -925,6 +984,7 @@ SimulationState::initSimulation()
 
   setVariable("Ni", m_properties.Ni);
   setVariable("Nj", m_properties.Nj);
+  setVariable("wavelength", m_properties.wavelength);
 
   m_steps = m_properties.Ni * m_properties.Nj;
   m_currStep = 0;
@@ -938,6 +998,7 @@ SimulationState::initSimulation()
 
   m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
+  m_topLevelModel->setWavelength(m_properties.wavelength);
 
   if (m_properties.saveArtifacts) {
     if (!QFile(m_properties.saveDir).exists()) {
@@ -1317,7 +1378,8 @@ SimulationSession::runSimulation()
   gettimeofday(&m_lastModelRefresh, nullptr);
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
-
+  m_tracer->setDiffraction(
+        m_simState->properties().ttype == TRACER_TYPE_DIFFRACTION);
   gettimeofday(&m_simulationStart, nullptr);
   iterateSimulation();
 

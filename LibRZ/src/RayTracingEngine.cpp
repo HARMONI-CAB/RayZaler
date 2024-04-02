@@ -301,7 +301,7 @@ void
 RayTracingEngine::integrateKirchhoff()
 {
   auto count = m_beam->count;
-  Real K = 2 * M_PI * 1.22 * (0.6 / 1.2) / (5 * 2e-3);
+  Real K = m_K;
 
   for (auto i = 0; i < count; ++i) {
     Vec3 normal      = Vec3(m_beam->normals + 3 * i);
@@ -326,6 +326,17 @@ RayTracingEngine::integrateKirchhoff()
 
     rayProgress(i, count);
   }
+}
+
+void
+RayTracingEngine::propagatePhase()
+{
+  auto count = m_beam->count;
+  Real K = m_K;
+
+  for (auto i = 0; i < count; ++i)
+    if (m_beam->hasRay(i))
+      m_beam->amplitude[i] *= std::exp(Complex(0, K * m_beam->cumOptLengths[i]));
 }
 
 void
@@ -434,6 +445,8 @@ RayTracingEngine::transfer(const RayTransferProcessor *processor)
   auto count = m_beam->count;
 
   processor->process(*m_beam, m_current);
+
+  propagatePhase();
 
   m_raysDirty = true;
 }

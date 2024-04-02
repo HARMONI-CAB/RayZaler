@@ -210,6 +210,12 @@ DetectorWindow::connectAll()
         SIGNAL(toggled(bool)),
         this,
         SLOT(onChangeDetectorRep()));
+
+  connect(
+        ui->actionTogglePhase,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onToggleShowPhase()));
 }
 
 void
@@ -362,5 +368,12 @@ DetectorWindow::onChangeDetectorRep()
     m_showPhotons = !ui->actionElectricField->isChecked();
 
   m_navWidget->setShowPhotons(m_showPhotons);
+  refreshUi();
+}
+
+void
+DetectorWindow::onToggleShowPhase()
+{
+  m_navWidget->setShowPhase(ui->actionTogglePhase->isChecked());
   refreshUi();
 }

@@ -275,3 +275,10 @@ Element::nestedModel() const
 {
   return nullptr; // No nested models
 }
+
+GenericCompositeModel *
+Element::nestedCompositeModel() const
+{
+  return nullptr; // No nested composite models
+}
+
