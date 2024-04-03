@@ -29,7 +29,7 @@ SphericalMirror::recalcModel()
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_flength);
   
-  m_reflectiveSurfaceFrame->setDistance((m_thickness + m_depth) * Vec3::eZ());
+  m_reflectiveSurfaceFrame->setDistance(m_depth * Vec3::eZ());
   m_reflectiveSurfaceFrame->recalculate();
 }
 
@@ -101,7 +101,7 @@ SphericalMirror::renderOpenGL()
 {
   material("mirror");
 
-  glTranslatef(0, 0, m_depth);
+  glTranslatef(0, 0, m_depth - m_thickness);
   m_cylinder.display();
 
   glRotatef(180, 1, 0, 0);
