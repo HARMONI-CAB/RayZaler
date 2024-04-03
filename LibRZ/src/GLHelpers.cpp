@@ -203,8 +203,10 @@ void
 GLSphericalCap::recalculate()
 {
   GLint i, j, n = 0, total;
-  GLfloat alpha    = acos((m_radius - m_height) / m_radius);
-  GLfloat rInv   = 1 / m_radius;
+  GLfloat absR     = fabs(m_radius);
+  GLfloat alpha    = acos((absR - m_height) / absR);
+  GLfloat zOff     = 0;
+  GLfloat rInv     = 1 / m_radius;
   GLfloat lonDelta = 2 * M_PI / m_sectors;
   GLfloat latDelta = alpha / m_stacks;
   GLfloat secDelta = 1.f / m_sectors;

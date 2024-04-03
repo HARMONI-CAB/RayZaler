@@ -25,7 +25,9 @@ SphericalMirrorProcessor::setRadius(Real R)
 void
 SphericalMirrorProcessor::setFocalLength(Real f)
 {
-  m_flength = f;
+  bool convex = f > 0;
+  
+  aperture<SphericalAperture>()->setConvex(convex);
   aperture<SphericalAperture>()->setCurvatureRadius(2 * f);
 }
 
