@@ -36,6 +36,7 @@ namespace RZ {
     Real *normals       = nullptr; // Surface normals of the depart surface
     Real n              = 1.;
     uint64_t *mask      = nullptr;
+    uint64_t *prevMask  = nullptr;
 
     inline void
     setRefractiveIndex(Real newN)
@@ -62,14 +63,26 @@ namespace RZ {
     }
 
     inline bool
-    extractRay(Ray &dest, uint64_t index) const
+    hadRay(uint64_t index) const
     {
-      if (!hasRay(index))
+      return (~prevMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
+    }
+
+    inline bool
+    extractRay(Ray &dest, uint64_t index, bool keepPruned = false) const
+    {
+      bool haveIt = keepPruned ? hadRay(index) : hasRay(index);
+      
+      if (!haveIt)
         return false;
 
       dest.origin.setFromArray(origins + 3 * index);
       Vec3 diff = Vec3(destinations + 3 * index) - dest.origin;
       dest.length = diff.norm();
+
+      if (isZero(dest.length))
+        return false;
+
       dest.direction = diff / dest.length;
 
       // dest.direction.setFromArray(directions + 3 * index);
@@ -180,7 +193,7 @@ namespace RZ {
       const ReferenceFrame *m_current = nullptr;
 
       void toBeam();  // From m_rays to beam->origins and beam->directions
-      void toRays();  // From beam->destinations and beam->directions to rays
+      void toRays(bool keepPruned = false);  // From beam->destinations and beam->directions to rays
 
       RayTracingProcessListener *m_listener = nullptr; // Always borrowed
 
@@ -268,7 +281,7 @@ namespace RZ {
 
       // Clear m_ray, process the beam, set random targets 
       // Return the output rays, after transfer
-      std::list<Ray> const &getRays();
+      std::list<Ray> const &getRays(bool keepPruned = false);
 
       // Mark start of elapsed time counter
       void tick();

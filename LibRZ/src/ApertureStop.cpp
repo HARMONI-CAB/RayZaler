@@ -54,6 +54,7 @@ ApertureStop::ApertureStop(
 
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
+  addPort("aperture", m_stopSurface);
   pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
 
   recalcModel();

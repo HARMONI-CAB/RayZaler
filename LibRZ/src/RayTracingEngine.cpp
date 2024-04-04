@@ -45,6 +45,7 @@ void
 RayBeam::clearMask()
 {
   memset(mask, 0, ((count + 63) >> 6) << 3);
+  memset(prevMask, 0, ((count + 63) >> 6) << 3);
 }
 
 void
@@ -59,6 +60,7 @@ RayBeam::allocate(uint64_t count)
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6);
+    this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6);
     this->allocation    = count;
   } else if (count >= this->count) {
     this->origins       = allocBuffer<Real>(3 * count, this->origins);
@@ -69,6 +71,7 @@ RayBeam::allocate(uint64_t count)
     this->lengths       = allocBuffer<Real>(count, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
+    this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
     this->allocation    = count;
   }
 
@@ -86,6 +89,7 @@ RayBeam::deallocate()
   freeBuffer(cumOptLengths);
   freeBuffer(amplitude);
   freeBuffer(mask);
+  freeBuffer(prevMask);
 }
 
 RayBeam::RayBeam(uint64_t count)
@@ -218,7 +222,7 @@ RayTracingEngine::toBeam()
 }
 
 void
-RayTracingEngine::toRays()
+RayTracingEngine::toRays(bool keepPruned)
 {
   uint64_t i;
   Ray ray;
@@ -226,7 +230,7 @@ RayTracingEngine::toRays()
   m_rays.clear();
 
   for (i = 0; i < m_beam->count; ++i) {
-    if (m_beam->extractRay(ray, i))
+    if (m_beam->extractRay(ray, i, keepPruned))
       m_rays.push_back(ray);
   }
 
@@ -264,15 +268,17 @@ RayTracingEngine::updateDirections()
   auto count = m_beam->count;
 
   for (unsigned int i = 0; i < count; ++i) {
-    Vec3 destination(m_beam->destinations + 3 * i);
-    Vec3 origin(m_beam->origins + 3 * i);
-    Vec3 diff = destination - origin;
-    Real dt = diff.norm();
+    if (m_beam->hasRay(i)) {
+      Vec3 destination(m_beam->destinations + 3 * i);
+      Vec3 origin(m_beam->origins + 3 * i);
+      Vec3 diff = destination - origin;
+      Real dt = diff.norm();
 
-    (diff * (1/dt)).copyToArray(m_beam->directions + 3 * i);
+      (diff * (1/dt)).copyToArray(m_beam->directions + 3 * i);
 
-    m_beam->lengths[i] = dt;
-    m_beam->cumOptLengths[i] += dt; // TODO: Multiply by refractive index
+      m_beam->lengths[i] = dt;
+      m_beam->cumOptLengths[i] += dt; // TODO: Multiply by refractive index
+    }
   }
 }
 
@@ -350,6 +356,7 @@ void
 RayTracingEngine::updateOrigins()
 {
   memcpy(m_beam->origins, m_beam->destinations, 3 * m_beam->count * sizeof(Real));
+  memcpy(m_beam->prevMask, m_beam->mask, ((m_beam->count + 63) >> 6) << 3);
 }
 
 void
@@ -452,10 +459,10 @@ RayTracingEngine::transfer(const RayTransferProcessor *processor)
 }
 
 std::list<Ray> const &
-RayTracingEngine::getRays()
+RayTracingEngine::getRays(bool keepPruned)
 {
   if (m_raysDirty)
-    toRays();
+    toRays(keepPruned);
 
   return m_rays;
 }

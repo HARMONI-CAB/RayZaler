@@ -761,7 +761,8 @@ OMModel::trace(
     tracer.transfer(p.processor);
 
     if (updateBeamElement) {
-      auto rays = tracer.getRays();
+      auto rays = tracer.getRays(true);
+
       m_intermediateRays.insert(
         m_intermediateRays.end(),
         rays.begin(),
