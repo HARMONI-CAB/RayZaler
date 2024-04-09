@@ -21,6 +21,9 @@ set(PROJECT_SOURCES
         main.cpp
         AsyncRayTracer.h
         AsyncRayTracer.cpp
+        ColorChooserButton.cpp
+        ColorChooserButton.h
+        ColorChooserButton.ui
         CustomTextEditDelegate.h
         CustomTextEditDelegate.cpp
         DetectorWindow.h

@@ -14,6 +14,20 @@
 #include <sys/stat.h>
 #include <Logger.h>
 
+class RGBRayColoring : public RZ::RayColoring {
+  virtual void id2color(uint32_t id, GLfloat *rgb) const override;
+};
+
+void
+RGBRayColoring::id2color(uint32_t id, GLfloat *rgb) const
+{
+  rgb[0] = ((id >> 16) & 0xff) / 255.;
+  rgb[1] = ((id >> 8)  & 0xff) / 255.;
+  rgb[2] = ((id >> 0)  & 0xff) / 255.;
+}
+
+static RGBRayColoring g_rgbColoring;
+
 void
 SimulationProperties::loadDefaults()
 {
@@ -629,11 +643,12 @@ SimulationState::setProperties(SimulationProperties const &prop)
 }
 
 bool
-SimulationState::allocateRays()
+SimulationState::allocateRays(uint32_t color)
 {
   const RZ::OpticalPath *path = nullptr;
   RZ::OpticalElement *element = nullptr;
   RZ::ReferenceFrame *fp = nullptr;
+  bool random = false;
 
   // TODO: prevent continuous reallocation of beams
   if (m_currBeam == m_beamAlloc.end())
@@ -676,7 +691,9 @@ SimulationState::allocateRays()
                 setVariable("el", m_elevationExpr->evaluate()),
                 setVariable("x0", m_offsetXExpr->evaluate()),
                 setVariable("y0", m_offsetYExpr->evaluate()),
-                1);
+                1,
+                color,
+                random);
           break;
 
         case BEAM_TYPE_CONVERGING:
@@ -691,7 +708,9 @@ SimulationState::allocateRays()
                 setVariable("el",   m_elevationExpr->evaluate()),
                 setVariable("x0",   m_offsetXExpr->evaluate()),
                 setVariable("y0",   m_offsetYExpr->evaluate()),
-                1);
+                1,
+                color,
+                random);
           break;
 
         case BEAM_TYPE_DIVERGING:
@@ -706,7 +725,9 @@ SimulationState::allocateRays()
                 setVariable("el",    m_elevationExpr->evaluate()),
                 setVariable("x0",    m_offsetXExpr->evaluate()),
                 setVariable("y0",    m_offsetYExpr->evaluate()),
-                1);
+                1,
+                color,
+                random);
           break;
       }
       break;
@@ -754,7 +775,9 @@ SimulationState::allocateRays()
                 setVariable("el",   m_elevationExpr->evaluate()),
                 setVariable("x0",   m_offsetXExpr->evaluate()),
                 setVariable("y0",   m_offsetYExpr->evaluate()),
-                1);
+                1,
+                color,
+                random);
           break;
 
         case BEAM_TYPE_DIVERGING:
@@ -767,7 +790,9 @@ SimulationState::allocateRays()
                 setVariable("el",    m_elevationExpr->evaluate()),
                 setVariable("x0",    m_offsetXExpr->evaluate()),
                 setVariable("y0",    m_offsetYExpr->evaluate()),
-                1);
+                1,
+                color,
+                random);
           break;
       }
       break;
@@ -974,6 +999,19 @@ SimulationState::closeCSV()
   }
 }
 
+uint32_t
+SimulationState::beamColorCycle() const
+{
+  uint32_t colors[] =
+  {
+    0xff0000, 0x00ff00, 0x0000ff,
+    0xffff00, 0xff00ff, 0xffff00,
+    0xffffff
+  };
+
+  return colors[m_currStep % (sizeof(colors) / sizeof(colors[0]))];
+}
+
 bool
 SimulationState::initSimulation()
 {
@@ -1073,7 +1111,7 @@ SimulationState::sweepStep()
   // Iteration done, apply Dofs
   applyDofs();
 
-  if (allocateRays())
+  if (allocateRays(beamColorCycle()))
     return true;
 
 done:
@@ -1157,8 +1195,9 @@ SimulationSession::SimulationSession(
 {
   QFileInfo info(path);
 
-  m_path     = path;
-  m_fileName = info.fileName();
+  m_path        = path;
+  m_fileName    = info.fileName();
+  m_rgbColoring = &g_rgbColoring;
 
   m_timer    = new QTimer(this);
   connect(
@@ -1207,7 +1246,9 @@ SimulationSession::SimulationSession(
     throw std::runtime_error(error);
   }
 
-  m_simState = new SimulationState(m_topLevelModel);
+  m_topLevelModel->setBeamColoring(m_rgbColoring);
+
+  m_simState     = new SimulationState(m_topLevelModel);
   m_tracerThread = new QThread;
   m_tracer       = new AsyncRayTracer(m_topLevelModel);
 
@@ -1334,6 +1375,8 @@ SimulationSession::iterateSimulation()
 
   refreshTimeout
       = diff.tv_sec * 1000 + diff.tv_usec / 1000 > RZGUI_MODEL_REFRESH_MS;
+
+  refreshTimeout = true;
 
   if (m_simState->steps() > 1)
     tracer()->setUpdateBeam(refreshTimeout);

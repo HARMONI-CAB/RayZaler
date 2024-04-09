@@ -20,6 +20,9 @@ namespace RZ {
     // Incremented by tracer
     Real length = 0;
     Real cumOptLength = 0;
+
+    // Defined by the user
+    uint32_t id = 0;
   };
 
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
@@ -34,6 +37,8 @@ namespace RZ {
     Real *lengths       = nullptr;
     Real *cumOptLengths = nullptr;
     Real *normals       = nullptr; // Surface normals of the depart surface
+    uint32_t *ids       = nullptr;
+
     Real n              = 1.;
     uint64_t *mask      = nullptr;
     uint64_t *prevMask  = nullptr;
@@ -84,7 +89,7 @@ namespace RZ {
         return false;
 
       dest.direction = diff / dest.length;
-
+      dest.id = ids[index];
       // dest.direction.setFromArray(directions + 3 * index);
       
       dest.cumOptLength = cumOptLengths[index];
@@ -234,7 +239,11 @@ namespace RZ {
       void clear();
 
       // This adds a new ray to the list
-      void pushRay(Point3 const &origin, Vec3 const &direction, Real length = 0);
+      void pushRay(
+        Point3 const &origin,
+        Vec3 const &direction,
+        Real length = 0,
+        uint32_t id = 0);
       void pushRays(std::list<Ray> const &);
       
       // Intersect with this surface. It needs to check if the beam is up to

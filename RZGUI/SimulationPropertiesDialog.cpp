@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include "PropertyAndDofExprModel.h"
 #include "CustomTextEditDelegate.h"
+#include "ColorChooserButton.h"
 
 SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   QDialog(parent),
@@ -20,6 +21,15 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   ui->propView->setItemDelegateForColumn(
         3,
         new CustomTextEditDelegate(this));
+
+  m_fixedColorChooser = new ColorChooserButton();
+  m_fixedColorChooser->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
+  ui->colorCycleLayout->addWidget(m_fixedColorChooser, 0, 2, 1, 1);
+
+  auto spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+  ui->colorCycleLayout->addItem(spacer, 0, 3, 1, 1);
 
   m_openSettingsDialog = new QFileDialog(this);
   m_saveSettingsDialog = new QFileDialog(this);

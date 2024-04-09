@@ -714,7 +714,8 @@ OMModel::trace(
         bool updateBeamElement,
         RayTracingProcessListener *listener,
         bool clear,
-        const struct timeval *startTime)
+        const struct timeval *startTime,
+        bool clearIntermediate)
 {
   CPURayTracingEngine tracer;
   struct timeval tv;
@@ -722,7 +723,8 @@ OMModel::trace(
   const OpticalPath *path = lookupOpticalPathOrEx(pathName);
   bool prev = false;
 
-  m_intermediateRays.clear();
+  if (clearIntermediate)
+    m_intermediateRays.clear();
 
   tracer.setK(2 * M_PI / m_wavelength);
   tracer.setListener(listener);
@@ -817,28 +819,89 @@ OMModel::savePNG(
 }
 
 void
+OMModel::setBeamColoring(RayColoring const *coloring)
+{
+  m_beam->setRayColoring(coloring);
+}
+
+struct UniformCircleSampler {
+  Real radius, R2;
+  Real dh;
+  Real x0, y0, y;
+  unsigned int j;
+
+  inline void setSampling(Real R, unsigned N);
+  inline bool sample(Vec3 &dest, Matrix3 const &sys, Vec3 const &center);
+};
+
+void
+UniformCircleSampler::setSampling(Real R, unsigned N)
+{
+  R2      = R * R;
+  radius  = R;
+  Real dA = (M_PI * R2) / N;
+  dh      = sqrt(dA);
+  x0      = -dh * floor(2 * radius / dh) / 2;
+  y0      = -dh * (floor(sqrt((R2 - x0 * x0)) / dh * 2) / 2);
+  j = 0;
+}
+
+bool
+UniformCircleSampler::sample(Vec3 &dest, Matrix3 const &sys, Vec3 const &center)
+{
+  y = y0 + j++ * dh;
+
+  if (y > fabs(y0)) {
+    x0 += dh;
+    if (x0 > radius)
+      return false;
+    
+    y0  = -dh * (floor(sqrt((R2 - x0 * x0)) / dh - .5) + .5);
+    y   = y0;
+    j   = 0;
+  }
+
+  dest = x0 * sys.row.vx + y * sys.row.vy + center;
+
+  return true;
+}
+
+void
 OMModel::addSkyBeam(
   std::list<Ray> &dest,
   unsigned int number,
   Real radius,
   Real azimuth,
   Real elevation,
-  Real distance)
+  Real distance,
+  uint32_t id,
+  bool random)
 {
   Matrix3 starSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Vec3 sourceCenter = distance * starSys.row.vz;
   Vec3 direction    = -starSys.row.vz;
   Ray  ray;
+  UniformCircleSampler uSamp;
+  Vec3 source;
 
-  for (auto i = 0; i < number; ++i) {
-    Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-    Real angle    = RZ_URANDSIGN * M_PI;
-    Vec3 source   = sep * (cos(angle) * starSys.row.vx + sin(angle) * starSys.row.vy) + sourceCenter;
-    
+  if (!random)
+    uSamp.setSampling(radius, number);
+  
+  for (auto i = 0; i < number || !random; ++i) {
+    if (random) {
+      Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+      Real angle    = RZ_URANDSIGN * M_PI;
+      source        = sep * (cos(angle) * starSys.row.vx + sin(angle) * starSys.row.vy) + sourceCenter;
+    } else {
+      if (!uSamp.sample(source, starSys, sourceCenter))
+        break;
+    }
+
     ray.origin    = source;
     ray.direction = direction;
     ray.length    = distance;
-
+    ray.id        = id;
+    
     dest.push_back(ray);
   }
 }
@@ -852,7 +915,9 @@ OMModel::addElementRelativeBeam(
   Real elevation,
   Real offX,
   Real offY,
-  Real distance)
+  Real distance,
+  uint32_t id,
+  bool random)
 {
   const ReferenceFrame *frame;
 
@@ -866,6 +931,11 @@ OMModel::addElementRelativeBeam(
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
+  UniformCircleSampler uSamp;
+  Vec3 source;
+
+  if (!random)
+    uSamp.setSampling(radius, number);
 
   Vec3 sourceCenter = 
       distance * beamSys.row.vz
@@ -876,15 +946,20 @@ OMModel::addElementRelativeBeam(
   Vec3 direction  = -beamSys.row.vz;
   Ray  ray;
 
-  for (auto i = 0; i < number; ++i) {
-    Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-    Real angle    = RZ_URANDSIGN * M_PI;
-    Vec3 source   = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy) + sourceCenter;
-    
+  for (auto i = 0; i < number || !random; ++i) {
+    if (random) {
+      Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+      Real angle    = RZ_URANDSIGN * M_PI;
+      source        = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy) + sourceCenter;
+    } else {
+      if (!uSamp.sample(source, beamSys, sourceCenter))
+        break;
+    }
+
     ray.origin    = source;
     ray.direction = direction;
     ray.length    = distance;
-
+    ray.id        = id;
     dest.push_back(ray);
   }
 }
@@ -901,7 +976,9 @@ OMModel::addElementRelativeFocusBeam(
     Real elevation,
     Real offX,
     Real offY,
-    Real distance)
+    Real distance,
+    uint32_t id,
+    bool random)
 {
   const ReferenceFrame *frame;
   Real focalLength = refAperture * fNum;
@@ -924,13 +1001,23 @@ OMModel::addElementRelativeFocusBeam(
     + elCenter;
 
   Vec3 focus      = elCenter + -focalLength * beamSys.row.vz;
-
   Ray  ray;
+  UniformCircleSampler uSamp;
 
-  for (auto i = 0; i < number; ++i) {
-    Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-    Real angle     = RZ_URANDSIGN * M_PI;
-    Vec3 arrival   = elCenter + sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+  if (!random)
+    uSamp.setSampling(radius, number);
+
+  for (auto i = 0; i < number || !random; ++i) {
+    Vec3 arrival;
+    if (random) {
+      Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+      Real angle     = RZ_URANDSIGN * M_PI;
+      arrival   = elCenter + sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+    } else {
+      if (!uSamp.sample(arrival, beamSys, elCenter))
+        break;
+    }
+
     Vec3 direction = (focus - arrival).normalized();
 
     if (fNum < 0)
@@ -941,7 +1028,7 @@ OMModel::addElementRelativeFocusBeam(
     ray.origin    = source;
     ray.direction = direction;
     ray.length    = distance;
-
+    ray.id        = id;
     dest.push_back(ray);
   }
 }
@@ -956,14 +1043,21 @@ OMModel::addFocalPlaneFocusedBeam(
     Real elevation,
     Real offX,
     Real offY,
-    Real distance)
+    Real distance,
+    uint32_t id,
+  bool random)
 {
   Matrix3 elOrient  = frame->getOrientation();
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
   Real    radius    = .5 * distance / fNum;
+  UniformCircleSampler uSamp;
+  Vec3 displ;
 
+  if (!random)
+    uSamp.setSampling(radius, number);
+    
   Vec3 focusLocation = 
     + offX * elOrient.row.vx
     + offY * elOrient.row.vy
@@ -971,10 +1065,16 @@ OMModel::addFocalPlaneFocusedBeam(
 
   Ray  ray;
 
-  for (auto i = 0; i < number; ++i) {
-    Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-    Real angle     = RZ_URANDSIGN * M_PI;
-    Vec3 displ     = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+  for (auto i = 0; i < number || !random; ++i) {
+    if (random) {
+      Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
+      Real angle     = RZ_URANDSIGN * M_PI;
+      displ     = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
+    } else {
+      if (!uSamp.sample(displ, beamSys, Vec3::zero()))
+        break;
+    }
+
     Vec3 origin;
 
     if (fNum > 0)
@@ -988,11 +1088,9 @@ OMModel::addFocalPlaneFocusedBeam(
     ray.origin     = origin;
     ray.direction  = direction;
     ray.length     = distance;
-
+    ray.id        = id;
     dest.push_back(ray);
   }
-
-
 }
 
 OMModel::OMModel()

@@ -40,6 +40,7 @@ namespace RZ {
 
   class ExpressionEvaluator;
   class RayBeamElement;
+  class RayColoring;
 
   struct EvaluatedParameter {
     Real        value;
@@ -116,7 +117,7 @@ namespace RZ {
       {
         return m_world;
       }
-      
+
       template <class T>
       inline T *
       plug(
@@ -170,7 +171,8 @@ namespace RZ {
       void recalculate();
       Element *beam() const;
       void clearBeam();
-      
+      void setBeamColoring(RayColoring const *coloring);
+
       ReferenceFrameContext rotate(Real, Vec3 const &, ReferenceFrame *parent = nullptr);
       ReferenceFrameContext rotate(Real, Real, Real, Real, ReferenceFrame *parent = nullptr);
 
@@ -233,7 +235,8 @@ namespace RZ {
         bool updateBeamElement = false,
         RayTracingProcessListener *listener = nullptr,
         bool clear = true,
-        const struct timeval *startTime = nullptr);
+        const struct timeval *startTime = nullptr,
+        bool clearIntermediate = true);
 
       bool traceDiffraction(
         std::string const &path,
@@ -262,7 +265,9 @@ namespace RZ {
         Real radius = .5,
         Real azimuth = 0,
         Real elevation = 90,
-        Real distance = 10);
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true);
 
       static void addElementRelativeBeam(
         std::list<Ray> &dest,
@@ -273,7 +278,9 @@ namespace RZ {
         Real elevation = 90,
         Real offX = 0,
         Real offY = 0,
-        Real distance = 10);
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true);
 
       static void addElementRelativeFocusBeam(
         std::list<Ray> &dest,
@@ -286,7 +293,9 @@ namespace RZ {
         Real elevation = 90,
         Real offX = 0,
         Real offY = 0,
-        Real distance = 10);
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true);
 
       static void addFocalPlaneFocusedBeam(
         std::list<Ray> &dest,
@@ -297,7 +306,9 @@ namespace RZ {
         Real elevation = 90,
         Real offX = 0,
         Real offY = 0,
-        Real distance = 10);
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true);
   };
 }
 

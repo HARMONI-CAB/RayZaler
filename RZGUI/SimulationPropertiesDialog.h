@@ -13,6 +13,8 @@ class QFileDialog;
 
 #define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
 
+class ColorChooserButton;
+
 class SimulationPropertiesDialog : public QDialog
 {
   Q_OBJECT
@@ -22,6 +24,7 @@ class SimulationPropertiesDialog : public QDialog
   SimulationProperties     m_properties;
   QFileDialog             *m_openSettingsDialog = nullptr;
   QFileDialog             *m_saveSettingsDialog = nullptr;
+  ColorChooserButton      *m_fixedColorChooser = nullptr;
 
   void connectAll();
   void refreshUi();

@@ -125,7 +125,8 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
               m_updateBeam,
               this,
               false,
-              &m_batchStart);
+              &m_batchStart,
+              step == 0);
       }
 
       m_batchStart = m_model->lastTracerTick();

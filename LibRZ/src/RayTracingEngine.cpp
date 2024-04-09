@@ -59,6 +59,7 @@ RayBeam::allocate(uint64_t count)
     this->amplitude     = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
+    this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6);
     this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6);
     this->allocation    = count;
@@ -70,6 +71,7 @@ RayBeam::allocate(uint64_t count)
     this->amplitude     = allocBuffer<Complex>(count, this->amplitude);
     this->lengths       = allocBuffer<Real>(count, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
+    this->ids           = allocBuffer<uint32_t>(count, this->ids);
     this->mask          = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
     this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
     this->allocation    = count;
@@ -88,6 +90,7 @@ RayBeam::deallocate()
   freeBuffer(lengths);
   freeBuffer(cumOptLengths);
   freeBuffer(amplitude);
+  freeBuffer(ids);
   freeBuffer(mask);
   freeBuffer(prevMask);
 }
@@ -170,13 +173,18 @@ RayTracingEngine::setListener(RayTracingProcessListener *listener)
 }
 
 void
-RayTracingEngine::pushRay(Point3 const &origin, Vec3 const &direction, Real l)
+RayTracingEngine::pushRay(
+  Point3 const &origin,
+  Vec3 const &direction,
+  Real l,
+  uint32_t id)
 {
   Ray ray;
 
   ray.origin    = origin;
   ray.direction = direction.normalized();
   ray.length    = l;
+  ray.id        = id;
 
   m_rays.push_back(ray);
 
@@ -214,7 +222,8 @@ RayTracingEngine::toBeam()
 
     m_beam->lengths[i]       = p->length;
     m_beam->cumOptLengths[i] = p->cumOptLength;
-
+    m_beam->ids[i]           = p->id;
+    
     ++i;
   }
 

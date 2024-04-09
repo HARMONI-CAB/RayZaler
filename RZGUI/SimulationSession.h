@@ -9,6 +9,7 @@
 #include "GUIHelpers.h"
 
 #define RZGUI_MODEL_REFRESH_MS 100
+#define RZGUI_MODEL_DEFAULT_RAY_COLOR 0xffff00 // Yellow
 
 //
 // A Simulation Session is an object that keeps the current state of the
@@ -30,6 +31,8 @@ class QAbstractTableModel;
 
 namespace RZ {
   class FileParserContext;
+  class RayBeamElement;
+  class RayColoring;
 };
 
 enum TracerType {
@@ -115,6 +118,7 @@ class SimulationState {
   SimulationProperties     m_properties;
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
   RZ::ExprRandomState     *m_randState     = nullptr;
+  RZ::RayBeamElement      *m_beamElement   = nullptr;
 
   RZ::ExprTkEvaluator *m_diamExpr      = nullptr;
   RZ::ExprTkEvaluator *m_refApExpr     = nullptr;
@@ -165,6 +169,7 @@ class SimulationState {
   void applyDofs();
   void resetPrefix();
   void genPrefix();
+  uint32_t beamColorCycle() const;
   QString getCurrentOutputCSVFileName() const;
   QString getCurrentOutputFileName() const;
   void bumpPrefix();
@@ -190,7 +195,7 @@ public:
   int simCount() const;
 
   void saveArtifacts();
-  bool allocateRays();
+  bool allocateRays(uint32_t color = RZGUI_MODEL_DEFAULT_RAY_COLOR);
   void releaseRays();
   bool setProperties(SimulationProperties const &);
   std::string getFirstInvalidExpr() const;
@@ -213,7 +218,7 @@ class SimulationSession : public QObject
   QThread           *m_tracerThread      = nullptr;
   SimulationState   *m_simState          = nullptr;
   QTimer            *m_timer             = nullptr;
-
+  RZ::RayColoring   *m_rgbColoring;
   qreal              m_t                 = 0;
   bool               m_paused            = false;
   bool               m_playing           = false;

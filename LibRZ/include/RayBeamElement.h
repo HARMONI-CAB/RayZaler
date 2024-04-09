@@ -7,10 +7,19 @@
 #include <pthread.h>
 
 namespace RZ {
+  class RayColoring {
+    public:
+      virtual void id2color(uint32_t, GLfloat *rgba) const;
+      virtual void id2color(uint32_t, GLfloat alpha, GLfloat *rgba) const;
+  };
+
   class RayBeamElement : public Element {
+      static RayColoring   m_defaultColoring;
+      const RayColoring   *m_rayColoring = nullptr;
       pthread_mutex_t      m_rayMutex = PTHREAD_MUTEX_INITIALIZER;
       std::list<Ray>       m_rays;
       std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_colors;
       std::vector<int>     m_stages;
       void raysToVertices();
 
@@ -23,7 +32,7 @@ namespace RZ {
       virtual ~RayBeamElement();
 
       void setList(std::list<Ray> const &);
-      
+      void setRayColoring(RayColoring const *);
       virtual void renderOpenGL() override;
   };
 
