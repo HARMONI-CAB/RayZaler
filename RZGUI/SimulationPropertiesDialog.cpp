@@ -100,12 +100,6 @@ SimulationPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
-        ui->wavelengthSpin,
-        SIGNAL(valueChanged(qreal)),
-        this,
-        SLOT(onDataChanged()));
-
-  connect(
         ui->beamTypeCombo,
         SIGNAL(activated(int)),
         this,
@@ -182,6 +176,12 @@ SimulationPropertiesDialog::connectAll()
 
   connect(
         ui->offsetYEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onExprEditChanged()));
+
+  connect(
+        ui->wlEdit,
         SIGNAL(textChanged(QString)),
         this,
         SLOT(onExprEditChanged()));
@@ -312,11 +312,12 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->elevationEdit,   setText(m_properties.elevation));
   BLOCKSIG(ui->offsetXEdit,     setText(m_properties.offsetX));
   BLOCKSIG(ui->offsetYEdit,     setText(m_properties.offsetY));
+  BLOCKSIG(ui->wlEdit,          setText(m_properties.wavelength));
+  BLOCKSIG(ui->beamSamplingCombo, setCurrentIndex(m_properties.random ? 1 : 0));
 
   BLOCKSIG(ui->rayNumberSpin,   setValue(m_properties.rays));
   BLOCKSIG(ui->steps1Spin,      setValue(m_properties.Ni));
   BLOCKSIG(ui->steps2Spin,      setValue(m_properties.Nj));
-  BLOCKSIG(ui->wavelengthSpin,  setValue(m_properties.wavelength * 1e6));
 
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
   BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
@@ -481,6 +482,8 @@ SimulationPropertiesDialog::parseProperties()
   m_properties.elevation    = ui->elevationEdit->text();
   m_properties.offsetX      = ui->offsetXEdit->text();
   m_properties.offsetY      = ui->offsetYEdit->text();
+  m_properties.wavelength   = ui->wlEdit->text();
+  m_properties.random       = ui->beamSamplingCombo->currentIndex() == 1;
 
   m_properties.focalPlane   = ui->focalPlaneCombo->currentData().toString();
   m_properties.apertureStop = ui->apertureCombo->currentData().toString();
@@ -488,7 +491,6 @@ SimulationPropertiesDialog::parseProperties()
   m_properties.rays         = ui->rayNumberSpin->value();
   m_properties.Ni           = ui->steps1Spin->value();
   m_properties.Nj           = ui->steps2Spin->value();
-  m_properties.wavelength   = ui->wavelengthSpin->value() * 1e-6;
 
   if (ui->pathCombo->currentIndex() != -1)
     m_properties.path       = ui->pathCombo->currentData().value<QString>();
@@ -551,6 +553,8 @@ SimulationPropertiesDialog::doUpdateState()
           edit = ui->offsetXEdit;
         else if (failed == "offsety")
           edit = ui->offsetYEdit;
+        else if (failed == "wavelength")
+          edit = ui->wlEdit;
       }
 
       if (edit != nullptr) {

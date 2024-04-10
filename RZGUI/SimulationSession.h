@@ -113,11 +113,12 @@ struct SimulationProperties {
   QString elevation    = "0";       // deg
   QString offsetX      = "0";       // m
   QString offsetY      = "0";       // m
+  QString wavelength   = "525";     // nm
 
-  int rays             = 1000;
-  int Ni               = 10;
-  int Nj               = 10;
-  qreal wavelength     = 555e-9;   // m
+  int  rays            = 1000;
+  int  Ni              = 10;
+  int  Nj              = 10;
+  bool random          = false; // Random sampling
 
   QString detector;
   QString path;
@@ -170,6 +171,8 @@ class SimulationState {
 
   RZ::ExprTkEvaluator *m_offsetXExpr   = nullptr;
   RZ::ExprTkEvaluator *m_offsetYExpr   = nullptr;
+
+  RZ::ExprTkEvaluator *m_wavelengthExpr = nullptr;
 
   std::map<std::string, RZ::ExprTkEvaluator *> m_dofExprs;
 

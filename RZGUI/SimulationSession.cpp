@@ -101,10 +101,11 @@ SimulationProperties::serialize() const
   SERIALIZE(elevation);
   SERIALIZE(offsetX);
   SERIALIZE(offsetY);
+  SERIALIZE(wavelength);
+  SERIALIZE(random);
   SERIALIZE(rays);
   SERIALIZE(Ni);
   SERIALIZE(Nj);
-  SERIALIZE(wavelength);
   SERIALIZE(detector);
   SERIALIZE(path);
   SERIALIZE(saveArtifacts);
@@ -374,10 +375,11 @@ SimulationProperties::deserialize(QByteArray const &json)
   DESERIALIZE(elevation);
   DESERIALIZE(offsetX);
   DESERIALIZE(offsetY);
+  DESERIALIZE(wavelength);
+  DESERIALIZE(random);
   DESERIALIZE(rays);
   DESERIALIZE(Ni);
   DESERIALIZE(Nj);
-  DESERIALIZE(wavelength);
   DESERIALIZE(detector);
   DESERIALIZE(path);
   DESERIALIZE(dofs);
@@ -429,6 +431,11 @@ SimulationState::clearAll()
   if (m_offsetYExpr != nullptr) {
     delete m_offsetYExpr;
     m_offsetYExpr = nullptr;
+  }
+
+  if (m_wavelengthExpr != nullptr) {
+    delete m_wavelengthExpr;
+    m_wavelengthExpr = nullptr;
   }
 
   for (auto p : m_dofExprs)
@@ -489,6 +496,9 @@ SimulationState::getFirstInvalidExpr() const
 
   if (m_offsetYExpr == nullptr)
     return "offsety";
+
+  if (m_wavelengthExpr == nullptr)
+    return "wavelength";
 
   for (auto p : m_dofExprs)
     if (p.second == nullptr)
@@ -639,6 +649,9 @@ SimulationState::setProperties(SimulationProperties const &prop)
   if (!trySetExpr(m_offsetYExpr, prop.offsetY.toStdString()))
     return false;
 
+  if (!trySetExpr(m_wavelengthExpr, prop.wavelength.toStdString()))
+    return false;
+
   for (auto p : prop.dofs)
     if (!trySetExpr(m_dofExprs[p.first], p.second))
         return false;
@@ -654,7 +667,7 @@ SimulationState::allocateRays(uint32_t color)
   const RZ::OpticalPath *path = nullptr;
   RZ::OpticalElement *element = nullptr;
   RZ::ReferenceFrame *fp = nullptr;
-  bool random = false;
+  bool random = m_properties.random;
 
   // TODO: prevent continuous reallocation of beams
   if (m_currBeam == m_beamAlloc.end())
@@ -1097,7 +1110,7 @@ SimulationState::beamColorCycle() const
       return QColor2uint32_t(m_repProp.fixedBeamColor);
 
     case COLORING_WAVELENGTH:
-      return wl2uint32_t(m_properties.wavelength * 1e9);
+      return wl2uint32_t(m_topLevelModel->wavelength() * 1e9);
 
     case COLORING_CYCLE:
       return colors[m_simCount % (sizeof(colors) / sizeof(colors[0]))];
@@ -1110,6 +1123,7 @@ SimulationState::beamColorCycle() const
 bool
 SimulationState::initSimulation()
 {
+  RZ::Real wavelength = m_wavelengthExpr->evaluate();
   m_i = m_j = 0;
 
   setVariable("i", m_i);
@@ -1117,7 +1131,7 @@ SimulationState::initSimulation()
 
   setVariable("Ni", m_properties.Ni);
   setVariable("Nj", m_properties.Nj);
-  setVariable("wavelength", m_properties.wavelength);
+  setVariable("wavelength", wavelength);
 
   m_steps = m_properties.Ni * m_properties.Nj;
   m_currStep = 0;
@@ -1131,7 +1145,7 @@ SimulationState::initSimulation()
 
   m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
-  m_topLevelModel->setWavelength(m_properties.wavelength);
+  m_topLevelModel->setWavelength(wavelength * 1e-9);
 
   if (m_properties.saveArtifacts) {
     if (!QFile(m_properties.saveDir).exists()) {
@@ -1169,14 +1183,17 @@ SimulationState::initSimulation()
 
   applyDofs();
 
-  m_running = true;
+  // We transition to running state only if we manage to allocate rays.
+  m_running = allocateRays(beamColorCycle());
 
-  return allocateRays(beamColorCycle());
+  return m_running;
 }
 
 bool
 SimulationState::sweepStep()
 {
+  RZ::Real wavelength = m_wavelengthExpr->evaluate();
+
   setVariable("stepN", randNormal());
   setVariable("stepU", randUniform());
 
@@ -1202,6 +1219,9 @@ SimulationState::sweepStep()
   setVariable("i", m_i);
   setVariable("j", m_j);
   setVariable("step", ++m_currStep);
+
+  setVariable("wavelength", wavelength);
+  m_topLevelModel->setWavelength(wavelength * 1e-9);
 
   // Iteration done, apply Dofs
   applyDofs();
