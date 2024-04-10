@@ -30,7 +30,7 @@
    <item row="2" column="0" rowspan="2" colspan="3">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -680,7 +680,7 @@
        <item row="1" column="0">
         <widget class="QGroupBox" name="groupBox">
          <property name="title">
-          <string>Beam color</string>
+          <string>Color cycling</string>
          </property>
          <layout class="QGridLayout" name="colorCycleLayout">
           <property name="leftMargin">

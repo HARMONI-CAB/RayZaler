@@ -34,6 +34,12 @@ AsyncRayTracer::setBeam(std::list<RZ::Ray> const &beam)
   m_beam = &beam;
 }
 
+void
+AsyncRayTracer::setAccumulate(bool acc)
+{
+  m_accumulate = acc;
+}
+
 bool
 AsyncRayTracer::running() const
 {
@@ -126,7 +132,7 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
               this,
               false,
               &m_batchStart,
-              step == 0);
+              !m_accumulate);
       }
 
       m_batchStart = m_model->lastTracerTick();

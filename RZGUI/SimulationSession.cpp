@@ -574,6 +574,12 @@ SimulationState::setVariable(std::string const &name, RZ::Real value)
   return value;
 }
 
+void
+SimulationState::setRepresentationProperties(RepresentationProperties const &repProp)
+{
+  m_repProp = repProp;
+}
+
 bool
 SimulationState::setProperties(SimulationProperties const &prop)
 {
@@ -811,7 +817,8 @@ SimulationState::applyDofs()
     m_topLevelModel->setDof(p.first, m_dictionary["dof_" + p.first]->value);
   }
 
-  m_topLevelModel->clearBeam();
+  if (!m_repProp.accumulate)
+   m_topLevelModel->clearBeam();
 }
 
 void
@@ -999,17 +1006,105 @@ SimulationState::closeCSV()
   }
 }
 
+static inline uint32_t
+QColor2uint32_t(QColor const &color)
+{
+  uint32_t tuple = 0;
+
+  tuple |= color.red()   << 16;
+  tuple |= color.green() << 8;
+  tuple |= color.blue();
+
+  return tuple;
+}
+
+// https://www.johndcook.com/wavelength_to_RGB.html
+static inline uint32_t
+wl2uint32_t(qreal w)
+{
+  qreal red, green, blue;
+  qreal factor, gamma;
+  int R, G, B;
+  uint32_t tuple = 0;
+
+  if (w >= 380 && w < 440) {
+    red   = -(w - 440) / (440 - 380);
+    green = 0.0;
+    blue  = 1.0;
+  } else if (w >= 440 && w < 490) {
+    red   = 0.0;
+    green = (w - 440) / (490 - 440);
+    blue  = 1.0;
+  } else if (w >= 490 && w < 510) {
+    red   = 0.0;
+    green = 1.0;
+    blue  = -(w - 510) / (510 - 490);
+  } else if (w >= 510 && w < 580) {
+    red   = (w - 510) / (580 - 510);
+    green = 1.0;
+    blue  = 0.0;
+  } else if (w >= 580 && w < 645) {
+    red   = 1.0;
+    green = -(w - 645) / (645 - 580);
+    blue  = 0.0;
+  } else if (w >= 645 && w < 781) {
+    red   = 1.0;
+    green = 0.0;
+    blue  = 0.0;
+  } else {
+    red   = 0.0;
+    green = 0.0;
+    blue  = 0.0;
+  }
+
+
+  // Let the intensity fall off near the vision limits
+
+  if (w >= 380 && w < 420)
+      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
+  else if (w >= 420 && w < 701)
+      factor = 1.0;
+  else if (w >= 701 && w < 781)
+      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
+  else
+      factor = 0.0;
+
+  gamma = 0.80;
+
+  R = static_cast<int>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
+  G = static_cast<int>(qBound(0., 255 * pow(green * factor, gamma), 255.));
+  B = static_cast<int>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
+
+  tuple |= R << 16;
+  tuple |= G << 8;
+  tuple |= B;
+
+  return tuple;
+}
+
 uint32_t
 SimulationState::beamColorCycle() const
 {
   uint32_t colors[] =
   {
     0xff0000, 0x00ff00, 0x0000ff,
-    0xffff00, 0xff00ff, 0xffff00,
+    0xffff00, 0xff00ff, 0x00ffff,
     0xffffff
   };
 
-  return colors[m_currStep % (sizeof(colors) / sizeof(colors[0]))];
+  switch (m_repProp.coloringMode) {
+    case COLORING_FIXED:
+      return QColor2uint32_t(m_repProp.fixedBeamColor);
+
+    case COLORING_WAVELENGTH:
+      return wl2uint32_t(m_properties.wavelength * 1e9);
+
+    case COLORING_CYCLE:
+      return colors[m_simCount % (sizeof(colors) / sizeof(colors[0]))];
+
+  }
+
+  return QColor2uint32_t(m_repProp.fixedBeamColor);
 }
 
 bool
@@ -1076,7 +1171,7 @@ SimulationState::initSimulation()
 
   m_running = true;
 
-  return allocateRays();
+  return allocateRays(beamColorCycle());
 }
 
 bool
@@ -1161,6 +1256,12 @@ SimulationProperties
 SimulationState::properties() const
 {
   return m_properties;
+}
+
+RepresentationProperties
+SimulationState::repProperties() const
+{
+  return m_repProp;
 }
 
 std::list<RZ::Ray> const &
@@ -1421,6 +1522,7 @@ SimulationSession::runSimulation()
   gettimeofday(&m_lastModelRefresh, nullptr);
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
+  m_tracer->setAccumulate(m_simState->repProperties().accumulate);
   m_tracer->setDiffraction(
         m_simState->properties().ttype == TRACER_TYPE_DIFFRACTION);
   gettimeofday(&m_simulationStart, nullptr);

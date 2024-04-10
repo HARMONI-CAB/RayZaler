@@ -6,6 +6,7 @@
 #include <TopLevelModel.h>
 #include <ExprTkEvaluator.h>
 #include <QTimer>
+#include <QColor>
 #include "GUIHelpers.h"
 
 #define RZGUI_MODEL_REFRESH_MS 100
@@ -34,6 +35,45 @@ namespace RZ {
   class RayBeamElement;
   class RayColoring;
 };
+
+enum ColoringMode {
+  COLORING_FIXED,
+  COLORING_WAVELENGTH,
+  COLORING_CYCLE
+};
+Q_DECLARE_METATYPE(ColoringMode);
+
+struct RepresentationProperties {
+  bool accumulate      = false;
+  ColoringMode coloringMode = COLORING_FIXED;
+  QColor fixedBeamColor     = QColor(1, 1, 0);
+
+  bool
+  operator==(const RepresentationProperties & o){
+    bool equals = true;
+
+    equals = equals && o.accumulate == accumulate;
+    equals = equals && o.coloringMode == coloringMode;
+    equals = equals && o.fixedBeamColor == fixedBeamColor;
+
+    return equals;
+  }
+
+  friend QDataStream &operator<<(QDataStream &out, const RepresentationProperties &rhs){
+    out << rhs.accumulate;
+    out << rhs.coloringMode;
+    out << rhs.fixedBeamColor;
+    return out;
+  }
+  friend QDataStream &operator>>(QDataStream &in, RepresentationProperties &rhs){
+    in >> rhs.accumulate;
+    in >> rhs.coloringMode;
+    in >> rhs.fixedBeamColor;
+    return in;
+  }
+
+};
+Q_DECLARE_METATYPE(RepresentationProperties);
 
 enum TracerType {
   TRACER_TYPE_GEOMETRIC_OPTICS,
@@ -116,6 +156,7 @@ private:
 
 class SimulationState {
   SimulationProperties     m_properties;
+  RepresentationProperties m_repProp;
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
   RZ::ExprRandomState     *m_randState     = nullptr;
   RZ::RayBeamElement      *m_beamElement   = nullptr;
@@ -197,10 +238,13 @@ public:
   void saveArtifacts();
   bool allocateRays(uint32_t color = RZGUI_MODEL_DEFAULT_RAY_COLOR);
   void releaseRays();
+
   bool setProperties(SimulationProperties const &);
+  void setRepresentationProperties(RepresentationProperties const &repProp);
   std::string getFirstInvalidExpr() const;
   std::string getLastError() const;
   SimulationProperties properties() const;
+  RepresentationProperties repProperties() const;
   std::list<RZ::Ray> const &beam() const;
 };
 

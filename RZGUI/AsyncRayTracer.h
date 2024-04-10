@@ -20,6 +20,7 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
   bool                      m_diffraction = false;
   bool                      m_running     = false;
   bool                      m_updateBeam  = true;
+  bool                      m_accumulate  = false;
   int                       m_currSim     = 0;
   int                       m_numSim      = 1;
   struct timeval            m_batchStart;
@@ -31,6 +32,7 @@ public:
   void setUpdateBeam(bool);
   void setDiffraction(bool);
   void setBeam(std::list<RZ::Ray> const &);
+  void setAccumulate(bool);
   bool running() const;
 
   // Overriden methods

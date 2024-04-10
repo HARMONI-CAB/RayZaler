@@ -8,6 +8,7 @@
 #include "PropertyAndDofExprModel.h"
 #include "CustomTextEditDelegate.h"
 #include "ColorChooserButton.h"
+#include "RZGUI.h"
 
 SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
   QDialog(parent),
@@ -47,11 +48,40 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
         "JSON simulation settings (*.json);;All files (*)");
 
   connectAll();
+
+  applySettings();
 }
 
 SimulationPropertiesDialog::~SimulationPropertiesDialog()
 {
   delete ui;
+}
+
+void
+SimulationPropertiesDialog::applySettings()
+{
+  RZGUISingleton::loadSetting(m_repProperties, "Representation");
+  QRadioButton *coloringRadio = nullptr;
+
+  BLOCKSIG(ui->accumCheck, setChecked(m_repProperties.accumulate));
+  BLOCKSIG(m_fixedColorChooser, setColor(m_repProperties.fixedBeamColor));
+
+  switch (m_repProperties.coloringMode) {
+    case COLORING_FIXED:
+      coloringRadio = ui->fixedColorRadio;
+      break;
+
+    case COLORING_WAVELENGTH:
+      coloringRadio = ui->wlColorRadio;
+      break;
+
+    case COLORING_CYCLE:
+      coloringRadio = ui->incrementalColorRadio;
+      break;
+  }
+
+  if (coloringRadio != nullptr)
+    BLOCKSIG(coloringRadio, setChecked(true));
 }
 
 void
@@ -167,6 +197,12 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(clicked(bool)),
         this,
         SLOT(onExportSettings()));
+
+  connect(
+        ui->fixedColorRadio,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onRepChanged()));
 }
 
 void
@@ -212,6 +248,8 @@ SimulationPropertiesDialog::refreshUi()
 
   ui->refPlaneLabel->setEnabled(m_properties.beam    != BEAM_TYPE_COLLIMATED);
   ui->refApertureEdit->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
+
+  m_fixedColorChooser->setEnabled(ui->fixedColorRadio->isChecked());
 
   switch (m_properties.ref) {
     case BEAM_REFERENCE_INPUT_ELEMENT:
@@ -470,6 +508,21 @@ SimulationPropertiesDialog::parseProperties()
   }
 }
 
+void
+SimulationPropertiesDialog::parseRepProperties()
+{
+  m_repProperties.accumulate = ui->accumCheck->isChecked();
+
+  if (ui->fixedColorRadio->isChecked())
+    m_repProperties.coloringMode = COLORING_FIXED;
+  else if (ui->wlColorRadio->isChecked())
+    m_repProperties.coloringMode = COLORING_WAVELENGTH;
+  else if (ui->incrementalColorRadio->isChecked())
+    m_repProperties.coloringMode = COLORING_CYCLE;
+
+  m_repProperties.fixedBeamColor = m_fixedColorChooser->getColor();
+}
+
 bool
 SimulationPropertiesDialog::doUpdateState()
 {
@@ -527,6 +580,8 @@ SimulationPropertiesDialog::doUpdateState()
         }
       }
     }
+
+    state->setRepresentationProperties(m_repProperties);
   }
 
   return stateUpdated;
@@ -536,6 +591,10 @@ void
 SimulationPropertiesDialog::accept()
 {
   parseProperties();
+  parseRepProperties();
+
+  RZGUISingleton::saveSetting(m_repProperties, "Representation");
+  RZGUISingleton::sync();
 
   if (doUpdateState())
     QDialog::accept();
@@ -679,4 +738,10 @@ SimulationPropertiesDialog::onBrowseOutputDir()
 
   if (!dir.isNull())
     ui->outputDirEdit->setText(dir);
+}
+
+void
+SimulationPropertiesDialog::onRepChanged()
+{
+  refreshUi();
 }

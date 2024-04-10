@@ -13,6 +13,7 @@ namespace RZ
   class Singleton {
       std::map<std::string, ElementFactory *> m_elementFactories;
       std::map<std::string, RayTransferProcessor *> m_rayTransferProcessors;
+
       static Singleton *m_currInstance;
 
       Singleton();

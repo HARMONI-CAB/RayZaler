@@ -22,6 +22,8 @@ class SimulationPropertiesDialog : public QDialog
   SimulationSession       *m_session;
   PropertyAndDofExprModel *m_propModel = nullptr;
   SimulationProperties     m_properties;
+  RepresentationProperties m_repProperties;
+
   QFileDialog             *m_openSettingsDialog = nullptr;
   QFileDialog             *m_saveSettingsDialog = nullptr;
   ColorChooserButton      *m_fixedColorChooser = nullptr;
@@ -29,8 +31,10 @@ class SimulationPropertiesDialog : public QDialog
   void connectAll();
   void refreshUi();
 
+  void applySettings();
   void applyProperties(bool setEdited = false);
   void parseProperties();
+  void parseRepProperties();
   void sanitizeSaveDirectory();
 
 public:
@@ -40,7 +44,10 @@ public:
   void setSession(SimulationSession *);
 
   void setProperties(SimulationProperties const &);
+
   SimulationProperties properties() const;
+  RepresentationProperties repProperties() const;
+
   bool doLoadFromFile();
   bool doUpdateState();
   void accept() override;
@@ -48,6 +55,7 @@ public:
 public slots:
   void onExprEditChanged();
   void onBrowseOutputDir();
+  void onRepChanged();
   void onDataChanged();
   void onLoadSettings();
   void onExportSettings();

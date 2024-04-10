@@ -50,6 +50,8 @@ set(PROJECT_SOURCES
         PropertyAndDofExprModel.cpp
         PropertyAndDofTableModel.h
         PropertyAndDofTableModel.cpp
+        RZGUI.h
+        RZGUI.cpp
         RZGUIGLWidget.h
         RZGUIGLWidget.cpp
         SessionTabWidget.h

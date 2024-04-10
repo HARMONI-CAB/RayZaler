@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <GL/glut.h>
 #include <Singleton.h>
+#include <RZGUI.h>
 
 int main(int argc, char *argv[])
 {
