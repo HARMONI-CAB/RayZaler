@@ -73,10 +73,14 @@ GLUTEngine::showScreen()
     if (!m_fixedLight)
       model()->configureLighting();
 
-    glTranslatef(0, 0, -10.);
-    glRotatef(m_curRot[0], 0, 1, 0);
-    glRotatef(m_curRot[1], 1, 0, 0);
-    glRotatef(m_curRot[2], 0, 0, 1);
+      glTranslatef(0, 0, -10.);
+      auto k = m_incRot.k();
+      auto theta = RZ::rad2deg(m_incRot.theta());
+
+      glRotatef(theta, k.x, k.y, k.z);
+
+      glRotatef(-90, 1, 0, 0);
+      glRotatef(-90, 0, 0, 1);
 
     if (m_fixedLight)
       model()->configureLighting();
@@ -90,15 +94,25 @@ GLUTEngine::showScreen()
 void
 GLUTEngine::keyPress(int c, int x, int y)
 {
+  RZ::Real angle = 0;
+  bool rotate = false;
+
   switch (c) {
     case GLUT_KEY_LEFT:
-      m_curRot[2] -= 10 * GLUT_ENGINE_SHIFT_DELTA;
+      angle = RZ::deg2rad(RZ_GLUT_ENGINE_KBD_ROT_DELTA);
+      rotate = true;
       break;
 
     case GLUT_KEY_RIGHT:
-      m_curRot[2] += 10 * GLUT_ENGINE_SHIFT_DELTA;
+      angle = -RZ::deg2rad(RZ_GLUT_ENGINE_KBD_ROT_DELTA);
+      rotate = true;
       break;
   }
+
+    if (rotate) {
+      m_incRot.rotate(RZ::Vec3::eZ(), angle);
+      m_newViewPort = true;
+    }
 }
 
 void
@@ -137,10 +151,10 @@ GLUTEngine::mouseClick(int button, int state, int x, int y)
 
       case 2: // Right button
         m_rotating = true;
-        m_rotStart[0] = x;
-        m_rotStart[1] = y;
-        m_oldRot[0] = m_curRot[0];
-        m_oldRot[1] = m_curRot[1];
+        m_rotStart[0] = m_prevRotX = x;
+        m_rotStart[1] = m_prevRotY = y;
+        m_oldRot[0] = m_curAzEl[0];
+        m_oldRot[1] = m_curAzEl[1];
         break;
 
       case 3: // Mouse wheel up
@@ -174,13 +188,31 @@ GLUTEngine::mouseMotion(int x, int y)
     shiftY = y - m_dragStart[1];
     m_currentCenter[0] = m_oldCenterCenter[0] + shiftX;
     m_currentCenter[1] = m_oldCenterCenter[1] + shiftY;
+
+    m_newViewPort = true;
   }
 
   if (m_rotating) {
     shiftX = x - m_rotStart[0];
     shiftY = y - m_rotStart[1];
-    m_curRot[0] = m_oldRot[0] + shiftX * GLUT_ENGINE_SHIFT_DELTA;
-    m_curRot[1] = m_oldRot[1] + shiftY * GLUT_ENGINE_SHIFT_DELTA;
+    m_curAzEl[0] = m_oldRot[0] + shiftX * RZ_GLUT_ENGINE_MOUSE_ROT_DELTA;
+    m_curAzEl[1] = m_oldRot[1] + shiftY * RZ_GLUT_ENGINE_MOUSE_ROT_DELTA;
+
+    Real deltaX = x - m_prevRotX;
+    Real deltaY = y - m_prevRotY;
+
+    m_incRot.rotate(
+      Vec3::eY(),
+      deg2rad(deltaX * RZ_GLUT_ENGINE_MOUSE_ROT_DELTA));
+
+    m_incRot.rotate(
+      Vec3::eX(),
+      deg2rad(deltaY * RZ_GLUT_ENGINE_MOUSE_ROT_DELTA));
+
+    m_prevRotX = x;
+    m_prevRotY = y;
+
+    m_newViewPort = true;
   }
 }
 

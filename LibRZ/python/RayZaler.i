@@ -45,6 +45,7 @@ namespace std {
 #include <ExprTkEvaluator.h>
 #include <FlatMirror.h>
 #include <LensletArray.h>
+#include <ModelRenderer.h>
 #include <Obstruction.h>
 #include <ParabolicMirror.h>
 #include <ParserContext.h>
@@ -95,6 +96,7 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "ExprTkEvaluator.h"
 %include "FlatMirror.h"
 %include "LensletArray.h"
+%include "ModelRenderer.h"
 %include "Obstruction.h"
 %include "ParabolicMirror.h"
 %include "ParserContext.h"

@@ -32,6 +32,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
   ${LIBRZ_SRCDIR}/Logger.cpp
+  ${LIBRZ_SRCDIR}/ModelRenderer.cpp
   ${LIBRZ_SRCDIR}/Obstruction.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
@@ -99,6 +100,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
+  ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
   ${LIBRZ_INCLUDEDIR}/Obstruction.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h

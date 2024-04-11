@@ -8,6 +8,11 @@
 #include <GL/glut.h>
 #endif
 
+#include <IncrementalRotation.h>
+
+#define RZ_GLUT_ENGINE_MOUSE_ROT_DELTA 2e-1
+#define RZ_GLUT_ENGINE_KBD_ROT_DELTA   5
+
 namespace RZ {
   class GLUTEngine : public GLRenderEngine {
       static GLUTEngine *currentInstance;
@@ -17,6 +22,7 @@ namespace RZ {
       int     m_hWnd = -1;
       GLfloat m_zoom = 1;
       
+      bool    m_newViewPort = false;
       bool    m_dragging = false;
       GLfloat m_dragStart[2] = {0, 0};
 
@@ -24,8 +30,10 @@ namespace RZ {
       GLfloat m_oldCenterCenter[2] = {0, 0};
 
       bool m_rotating = false;
+      IncrementalRotation m_incRot;
+      GLfloat m_prevRotX, m_prevRotY;
       GLfloat m_rotStart[2] = {0, 0};
-      GLfloat m_curRot[3] = {0, 0, 0};
+      GLfloat m_curAzEl[3] = {0, 0};
       GLfloat m_oldRot[2] = {0, 0};
       
       void adjustViewPort();

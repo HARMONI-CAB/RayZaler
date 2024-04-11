@@ -1,5 +1,6 @@
 find_package(OpenGL REQUIRED)
 find_package(GLUT   REQUIRED)
+find_package(GLEW   REQUIRED)
 
 set_property(SOURCE RayZaler.i PROPERTY CPLUSPLUS ON)
 set_property(SOURCE RayZaler.i PROPERTY SWIG_MODULE_NAME RayZaler)
@@ -32,9 +33,9 @@ elseif(UNIX)
     )
 endif()
 
-target_link_directories(pyRayZaler PRIVATE ${LIBRZ_LIBDIR} ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+target_link_directories(pyRayZaler PRIVATE ${LIBRZ_LIBDIR} ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
 target_compile_options(pyRayZaler PRIVATE ${LIBRZ_CFLAGS})
-target_link_libraries(pyRayZaler PRIVATE RZ  ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
+target_link_libraries(pyRayZaler PRIVATE RZ  ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} ${GLEW_LIBRARIES})
 
 # Variable PYTHON_LIBRARIES can contains keyword `optimized`
 # which won't be interpreted inside a generator expression.

@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <GL/gl.h>
 
-
 namespace RZ {
   class OMModel;
   class Element;
@@ -37,7 +36,7 @@ namespace RZ {
       void pushElement(Element *);
       void pushModel(OMModel *);
       void render();
-
+      bool savePNG(const char *path);
   };
 }
 

@@ -3,6 +3,7 @@
 #include <GLUTEngine.h>
 #include <RZGLModel.h>
 #include <ParserContext.h>
+#include <libgen.h>
 
 using namespace RZ;
 
@@ -49,6 +50,21 @@ graceful_cleanup()
   }
 }
 
+static inline void
+fileExplode(std::string &dir, std::string &filename, const char *path)
+{
+  std::vector<char> alloc;
+  size_t strSz = strlen(path) + 1;
+
+  alloc.resize(strSz);
+
+  memcpy(alloc.data(), path, strSz);
+  dir = dirname(alloc.data());
+
+  memcpy(alloc.data(), path, strSz);
+  filename = basename(alloc.data());
+}
+
 int
 main(int argc, char **argv)
 {
@@ -60,13 +76,25 @@ main(int argc, char **argv)
 
   if (argc == 1) {
     FileParserContext *ctx = new FileParserContext(recipe);
+    ctx->addSearchPath(".");
     ctx->setFile(stdin, "<STDIN>");
-    if (!ctx->parse())
+    try {
+      if (!ctx->parse())
+        exit(EXIT_FAILURE);
+    } catch (std::runtime_error &e) {
+      fprintf(stderr, "%s: failed to parse from stdin\n", argv[0]);
+      fprintf(stderr, "%s: error: %s\n", argv[0], e.what());
       exit(EXIT_FAILURE);
+    }
     delete ctx;
   } else {
     for (int i = 1; i < argc; ++i) {
+      std::string fileName, dirName;
+
+      fileExplode(dirName, fileName, argv[i]);
       FileParserContext *ctx = new FileParserContext(recipe);
+      ctx->addSearchPath(dirName);
+
       FILE *fp = fopen(argv[i], "r");
       
       if (fp == nullptr) {
@@ -79,11 +107,17 @@ main(int argc, char **argv)
         exit(EXIT_FAILURE);
       }
 
-      ctx->setFile(fp, argv[i]);
-      if (!ctx->parse())
-        exit(EXIT_FAILURE);
+      ctx->setFile(fp, fileName);
 
-      fclose(fp);
+      try {
+        if (!ctx->parse())
+          exit(EXIT_FAILURE);
+      } catch (std::runtime_error &e) {
+        fprintf(stderr, "%s: failed to parse `%s'\n", argv[0], fileName.c_str());
+        fprintf(stderr, "%s: error: %s\n", argv[0], e.what());
+        exit(EXIT_FAILURE);
+      }
+      
       delete ctx;
     }
   }
