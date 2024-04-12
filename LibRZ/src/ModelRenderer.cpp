@@ -172,3 +172,48 @@ done:
   
   return ok;
 }
+
+void
+ModelRenderer::zoom(GLfloat delta)
+{
+  m_zoom *= delta;
+}
+
+void
+ModelRenderer::incAzEl(GLfloat deltaAz, GLfloat deltaEl)
+{
+  m_incRot.rotate(RZ::Vec3::eY(), RZ::deg2rad(deltaAz));
+  m_incRot.rotate(RZ::Vec3::eX(), RZ::deg2rad(deltaEl));
+}
+
+void
+ModelRenderer::roll(GLfloat delta)
+{
+  m_incRot.rotate(RZ::Vec3::eZ(), RZ::deg2rad(delta));
+}
+
+void
+ModelRenderer::move(GLfloat deltaX, GLfloat deltaY)
+{
+  m_currentCenter[0] -= deltaX;
+  m_currentCenter[1] -= deltaX;
+}
+
+void
+ModelRenderer::setZoom(GLfloat zoom)
+{
+  m_zoom = zoom;
+}
+
+void
+ModelRenderer::setCenter(GLfloat x0, GLfloat y0)
+{
+  m_currentCenter[0] = x0;
+  m_currentCenter[1] = y0;
+}
+
+void
+ModelRenderer::setRotation(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+{
+  m_incRot.setRotation(Vec3(x, y, z).normalized(), RZ::deg2rad(angle));
+}

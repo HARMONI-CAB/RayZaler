@@ -20,13 +20,7 @@ namespace RZ {
       bool m_fixedLight = false;
       GLfloat m_zoom = 1;
       GLfloat m_currentCenter[2] = {0, 0};
-      GLfloat m_oldCenterCenter[2] = {0, 0};
       IncrementalRotation m_incRot;
-      GLfloat m_prevRotX, m_prevRotY;
-      GLfloat m_rotStart[2] = {0, 0};
-      GLfloat m_curAzEl[3] = {0, 0};
-      GLfloat m_oldRot[2] = {0, 0};
-
       std::vector<uint32_t> m_pixels;
       void showScreen();
       void adjustViewPort();
@@ -37,6 +31,7 @@ namespace RZ {
 
       void zoom(GLfloat delta);
       void incAzEl(GLfloat deltaAz, GLfloat deltaEl);
+      void roll(GLfloat delta);
       void move(GLfloat deltaX, GLfloat deltaY);
 
       void setZoom(GLfloat delta);
