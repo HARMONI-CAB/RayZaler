@@ -21,6 +21,7 @@ namespace RZ {
       std::vector<GLfloat> m_vertices;
       std::vector<GLfloat> m_colors;
       std::vector<int>     m_stages;
+      bool                 m_dynamicAlpha = true;
       void raysToVertices();
 
     public:
@@ -33,6 +34,7 @@ namespace RZ {
 
       void setList(std::list<Ray> const &);
       void setRayColoring(RayColoring const *);
+      void setDynamicAlpha(bool);
       virtual void renderOpenGL() override;
   };
 

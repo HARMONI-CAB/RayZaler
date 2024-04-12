@@ -24,7 +24,7 @@ void
 RayBeamElement::raysToVertices()
 {
   size_t size = m_rays.size();
-  GLfloat transp = sqrt(.125 * 250. / size);
+  GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
   size_t i = 0, j = 0;
 
   if (transp > 1)
@@ -74,6 +74,16 @@ RayBeamElement::setRayColoring(RayColoring const *coloring)
     m_rayColoring = coloring;
     raysToVertices();
   }
+}
+
+void
+RayBeamElement::setDynamicAlpha(bool alpha)
+{
+  if (m_dynamicAlpha != alpha) {
+    m_dynamicAlpha = alpha;
+    raysToVertices();
+  }
+  
 }
 
 void

@@ -7,6 +7,7 @@
 #include <QPainter>
 #include "GUIHelpers.h"
 #include <GenericAperture.h>
+#include <RayBeamElement.h>
 #include <QKeyEvent>
 
 #define RZGUIGL_MOUSE_ROT_DELTA 2e-1
@@ -191,7 +192,9 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
 void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
-  auto beam = model->beam();
+  RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
+
+  beam->setDynamicAlpha(m_displayElements);
 
   if (m_displayElements) {
     for (auto p : model->elementList()) {
