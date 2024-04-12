@@ -17,13 +17,15 @@ class RZGUIGLWidget : public QOpenGLWidget
   GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
 
+  bool    m_displayNames     = false;
+  bool    m_displayApertures = true;
+
   bool    m_fixedLight = false;
   bool    m_newViewPort = false;
   int     m_width;
   int     m_height;
   int     m_hWnd = -1;
   GLfloat m_zoom = 1;
-  bool    m_displayNames = false;
   bool    m_dragging = false;
   GLfloat m_dragStart[2] = {0, 0};
 
@@ -39,10 +41,11 @@ class RZGUIGLWidget : public QOpenGLWidget
 
   void configureViewPort();
   void configureLighting();
-  void pushElementMatrix(RZ::Element *);
+  void pushReferenceFrameMatrix(const RZ::ReferenceFrame *);
+  void pushElementMatrix(const RZ::Element *);
   void popElementMatrix();
   void displayModel(RZ::OMModel *);
-
+  void displayApertures(const RZ::Element *);
   void mouseClick(int button, int state, int x, int y, int shift);
   void mouseMotion(int x, int y);
   void drawAxes();
@@ -87,6 +90,7 @@ public:
   void getCurrentRot(GLfloat *) const;
   void setCurrentRot(const GLfloat *);
   void setDisplayNames(bool);
+  void setDisplayApertures(bool);
 
   // Exposed so other objects can deliver events to the widget
   void keyPressEvent(QKeyEvent *event) override;

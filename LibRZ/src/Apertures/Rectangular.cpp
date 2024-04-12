@@ -1,4 +1,5 @@
 #include <Apertures/Rectangular.h>
+#include <GLHelpers.h>
 
 using namespace RZ;
 
@@ -59,3 +60,22 @@ RectangularAperture::area() const
 {
   return m_width * m_height;
 }
+
+void
+RectangularAperture::renderOpenGL()
+{
+  glBegin(GL_LINE_LOOP);
+    glVertex3f(-m_width / 2, -m_height / 2, 0);
+    glVertex3f(+m_width / 2, -m_height / 2, 0);
+    glVertex3f(+m_width / 2, +m_height / 2, 0);
+    glVertex3f(-m_width / 2, +m_height / 2, 0);
+  glEnd();
+
+  glBegin(GL_LINES);
+    glVertex3f(-m_width / 2, 0, 0);
+    glVertex3f(+m_width / 2, 0, 0);
+    glVertex3f(0, -m_height / 2, 0);
+    glVertex3f(0, +m_height / 2, 0);
+  glEnd();
+}
+

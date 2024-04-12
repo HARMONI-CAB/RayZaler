@@ -35,6 +35,12 @@ OpticalElement::plug(OpticalElement *newElement, std::string const &name) const
   return opticalPath().plug(newElement, name);
 }
 
+const std::list<const OpticalSurface *> &
+OpticalElement::opticalSurfaces() const
+{
+  return m_surfaceList;
+}
+
 void
 OpticalElement::pushOpticalSurface(
   std::string name,
@@ -51,6 +57,10 @@ OpticalElement::pushOpticalSurface(
   surface.parent    = this;
 
   m_internalPath.push_back(surface);
+
+  auto last = &m_internalPath.back();
+
+  m_surfaceList.push_back(last);
 }
 
 OpticalElement::OpticalElement(

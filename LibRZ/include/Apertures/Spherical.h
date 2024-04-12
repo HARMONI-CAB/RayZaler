@@ -1,10 +1,12 @@
 #ifndef _APERTURES_SPHERICAL_H
 #define _APERTURES_SPHERICAL_H
 
+#include <GLHelpers.h>
 #include <GenericAperture.h>
 
 namespace RZ {
   class SphericalAperture : public GenericAperture {
+    Real m_radius;
     Real m_radius2;
     Real m_rCurv  =  1;
     bool m_convex = true;
@@ -13,6 +15,11 @@ namespace RZ {
     Real m_rCurv2 = 1;
     Real m_KRcInv = 1.;
 
+
+    std::vector<GLfloat> m_vertices;
+    std::vector<GLfloat> m_axes;
+
+    void recalcGL();
     void recalcDistribution();
 
   public:
@@ -41,6 +48,8 @@ namespace RZ {
         Real *pointArr,
         Real *normalArr,
         unsigned int N) override;
+
+    virtual void renderOpenGL() override;
   };
 }
 

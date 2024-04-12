@@ -410,6 +410,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionToggleDisplayNames"/>
+   <addaction name="actionToggleApertures"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -588,6 +589,14 @@
    </property>
    <property name="toolTip">
     <string>Clears the current beam</string>
+   </property>
+  </action>
+  <action name="actionToggleApertures">
+   <property name="text">
+    <string>Toggle apertures</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display apertures</string>
    </property>
   </action>
  </widget>

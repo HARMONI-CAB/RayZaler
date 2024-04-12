@@ -5,7 +5,62 @@ using namespace RZ;
 SphericalAperture::SphericalAperture(Real R, Real rCurv)
 {
   setRadius(R);
-  setCurvatureRadius(rCurv);  
+  setCurvatureRadius(rCurv);
+  recalcGL();
+}
+
+void
+SphericalAperture::recalcGL()
+{
+  GLfloat x, y, z, dh;
+  Real theta = 0;
+  Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
+
+  m_vertices.clear();
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
+    x = m_radius * cos(theta);
+    y = m_radius * sin(theta);
+    
+    m_vertices.push_back(x);
+    m_vertices.push_back(y);
+    m_vertices.push_back(0);
+
+    theta += dTheta;
+  }
+
+  m_axes.clear();
+
+  dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
+
+  x = -m_radius;
+  y = -m_radius;
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    z  = m_center - sqrt(m_rCurv * m_rCurv - x * x);
+
+    if (!m_convex)
+      z = -z;
+
+    m_axes.push_back(x);
+    m_axes.push_back(0);
+    m_axes.push_back(z);
+
+    x += dh;
+  }
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    z  = m_center - sqrt(m_rCurv * m_rCurv - y * y);
+    
+    if (!m_convex)
+      z = -z;
+
+    m_axes.push_back(0);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+
+    y += dh;
+  }
 }
 
 void
@@ -19,15 +74,18 @@ SphericalAperture::recalcDistribution()
 void
 SphericalAperture::setRadius(Real R)
 {
+  m_radius  = R;
   m_radius2 = R * R;
   m_center = sqrt(m_rCurv * m_rCurv - m_radius2);
   recalcDistribution();
+  recalcGL();
 }
 
 void
 SphericalAperture::setConvex(bool convex)
 {
   m_convex = convex;
+  recalcGL();
 }
 
 void
@@ -36,6 +94,7 @@ SphericalAperture::setCurvatureRadius(Real rCurv)
   m_rCurv = rCurv;
   m_center = sqrt(m_rCurv * m_rCurv - m_radius2);
   recalcDistribution();
+  recalcGL();
 }
 
 //
@@ -204,4 +263,21 @@ Real
 SphericalAperture::area() const
 {
   return 2 * M_PI * m_rCurv * (m_rCurv - m_center);
+}
+
+void
+SphericalAperture::renderOpenGL()
+{
+  auto N = m_axes.size() / (2 * 3);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
+    glDrawArrays(GL_LINE_LOOP, 0, m_vertices.size() / 3);
+  
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data());
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data() + 3 * N);
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+  glDisableClientState(GL_VERTEX_ARRAY);
 }

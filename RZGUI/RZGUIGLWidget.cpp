@@ -6,6 +6,7 @@
 #include <GL/glut.h>
 #include <QPainter>
 #include "GUIHelpers.h"
+#include <GenericAperture.h>
 #include <QKeyEvent>
 
 #define RZGUIGL_MOUSE_ROT_DELTA 2e-1
@@ -27,9 +28,8 @@ RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 }
 
 void
-RZGUIGLWidget::pushElementMatrix(RZ::Element *element)
+RZGUIGLWidget::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
 {
-  auto frame = element->parentFrame();
   auto R     = frame->getOrientation();
   auto O     = frame->getCenter();
 
@@ -42,6 +42,13 @@ RZGUIGLWidget::pushElementMatrix(RZ::Element *element)
   glPushMatrix();
   glLoadMatrixf(m_refMatrix);
   glMultTransposeMatrixd(viewMatrix);
+}
+
+
+void
+RZGUIGLWidget::pushElementMatrix(const RZ::Element *element)
+{
+  pushReferenceFrameMatrix(element->parentFrame());
 }
 
 void
@@ -150,6 +157,33 @@ RZGUIGLWidget::renderText(
 }
 
 void
+RZGUIGLWidget::displayApertures(const RZ::Element *el)
+{
+  if (el->hasProperty("optical")) {
+    glPushAttrib(GL_LINE_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+
+    glColor3f(0, 0, 1);
+    glLineWidth(2);
+    const RZ::OpticalElement *optEl = static_cast<const RZ::OpticalElement *>(el);
+    auto &surfaces = optEl->opticalSurfaces();
+    
+    for (auto &surf : surfaces) {
+      RZ::GenericAperture *ap = surf->processor->aperture();
+
+      if (ap != nullptr) {
+        pushReferenceFrameMatrix(surf->frame);
+        glTranslatef(0, 0, 1e-3);
+        ap->renderOpenGL();
+        glPopMatrix();
+      }
+    }
+    glPopAttrib();
+  }
+}
+
+void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
   auto beam = model->beam();
@@ -177,7 +211,10 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
       renderText(0, 0, 0, QString::fromStdString(p->name()));
     p->renderOpenGL();
     popElementMatrix();
-
+    
+    if (m_displayApertures)
+      displayApertures(p);
+    
     if (p->nestedModel() != nullptr)
       displayModel(p->nestedModel());
   }
@@ -188,6 +225,15 @@ RZGUIGLWidget::setDisplayNames(bool state)
 {
   if (m_displayNames != state) {
     m_displayNames = state;
+    update();
+  }
+}
+
+void
+RZGUIGLWidget::setDisplayApertures(bool state)
+{
+  if (m_displayApertures != state) {
+    m_displayApertures = state;
     update();
   }
 }

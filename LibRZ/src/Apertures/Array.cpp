@@ -1,4 +1,5 @@
 #include <Apertures/Array.h>
+#include <GLHelpers.h>
 
 using namespace RZ;
 
@@ -105,3 +106,24 @@ ApertureArray::area() const
   // TODO
   return m_width * m_height;
 }
+
+void
+ApertureArray::renderOpenGL()
+{
+  unsigned int i, j;
+  Real halfW  = .5 * m_width;
+  Real halfH  = .5 * m_height;
+
+  for (j = 0; j < m_rows; ++j) {
+    for (i = 0; i < m_cols; ++i) {
+      Real lensOX = - halfW + (i + .5) * m_subApertureWidth;
+      Real lensOY = - halfH + (j + .5) * m_subApertureHeight;
+
+      glPushMatrix();
+        glTranslatef(lensOX, lensOY, 0);
+        m_subAperture->renderOpenGL();
+      glPopMatrix();
+    }
+  }
+}
+

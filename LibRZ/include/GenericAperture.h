@@ -5,6 +5,8 @@
 #include "ReferenceFrame.h"
 #include <Random.h>
 
+#define GENERIC_APERTURE_NUM_SEGMENTS     36
+
 namespace RZ {
   class GenericAperture {
       ExprRandomState m_state;
@@ -36,6 +38,8 @@ namespace RZ {
         Real *pointArr,
         Real *normals,
         unsigned int N) = 0;
+
+      virtual void renderOpenGL();
   };
 }
 

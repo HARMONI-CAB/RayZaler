@@ -6,6 +6,7 @@ ParabolicAperture::ParabolicAperture(Real R, Real fLength)
 {
   setRadius(R);
   setFocalLength(fLength);
+  recalcGL();
 }
 
 void
@@ -23,15 +24,70 @@ ParabolicAperture::recalcDistribution()
 void
 ParabolicAperture::setRadius(Real R)
 {
+  m_radius  = R;
   m_radius2 = R * R;
+
   recalcDistribution();
+  recalcGL();
 }
 
 void
 ParabolicAperture::setFocalLength(Real fLength)
 {
   m_flength = fLength;
+  
   recalcDistribution();
+  recalcGL();
+}
+
+void
+ParabolicAperture::recalcGL()
+{
+  GLfloat x, y, z, dh;
+  Real theta = 0;
+  Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
+
+  m_vertices.clear();
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
+    x = m_radius * cos(theta);
+    y = m_radius * sin(theta);
+    
+    m_vertices.push_back(x);
+    m_vertices.push_back(y);
+    m_vertices.push_back(0);
+
+    theta += dTheta;
+  }
+
+  m_axes.clear();
+
+  dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
+
+  x = -m_radius;
+  y = -m_radius;
+
+  auto K = 1 / (4 * m_flength);
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    z  = -K * x * x + m_depth;
+
+    m_axes.push_back(x);
+    m_axes.push_back(0);
+    m_axes.push_back(z);
+
+    x += dh;
+  }
+
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    z  = -K * y * y + m_depth;
+
+    m_axes.push_back(0);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+
+    y += dh;
+  }
 }
 
 bool
@@ -168,4 +224,21 @@ ParabolicAperture::area() const
 {
   Real A = 2. * M_PI * m_4f2 / 3. * (pow(1 + m_radius2 / m_4f2, 1.5) - 1.);
   return A;
+}
+
+void
+ParabolicAperture::renderOpenGL()
+{
+  auto N = m_axes.size() / (2 * 3);
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
+    glDrawArrays(GL_LINE_LOOP, 0, m_vertices.size() / 3);
+  
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data());
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data() + 3 * N);
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+  glDisableClientState(GL_VERTEX_ARRAY);
 }

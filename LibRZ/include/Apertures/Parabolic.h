@@ -2,15 +2,21 @@
 #define _APERTURES_PARABOLIC_H
 
 #include <GenericAperture.h>
+#include <GLHelpers.h>
 
 namespace RZ {
   class ParabolicAperture : public GenericAperture {
+    Real m_radius;
     Real m_radius2;
     Real m_flength = 1;
     Real m_4f2, m_8f3;
     Real m_6f_K;
     Real m_depth;
 
+    std::vector<GLfloat> m_vertices;
+    std::vector<GLfloat> m_axes;
+
+    void recalcGL();
     void recalcDistribution();
 
   public:
@@ -32,6 +38,8 @@ namespace RZ {
         Real *pointArr,
         Real *normals,
         unsigned int N) override;
+
+    virtual void renderOpenGL() override;
   };
 }
 

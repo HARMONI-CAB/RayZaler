@@ -10,7 +10,7 @@ namespace RZ {
   class RayTransferProcessor;
 
   class OpticalElement;
-
+  
   struct OpticalSurface {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
@@ -28,6 +28,7 @@ namespace RZ {
       using Element::Element;
       std::list<ReferenceFrame *> m_surfaceFrames; // Owned
       std::list<OpticalSurface>   m_internalPath;
+      std::list<const OpticalSurface *> m_surfaceList;
       std::map<std::string, OpticalSurface *> m_nameToSurface;
 
     protected:
@@ -44,6 +45,7 @@ namespace RZ {
     public:
       virtual OpticalPath opticalPath(std::string const &name = "") const;
       OpticalPath plug(OpticalElement *, std::string const &name = "") const;
+      const std::list<const OpticalSurface *> &opticalSurfaces() const;
       virtual ~OpticalElement();
       
   };

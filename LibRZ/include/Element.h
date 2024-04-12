@@ -165,7 +165,7 @@ namespace RZ {
 
       // Determine whether it has a property
       inline bool
-      hasProperty(std::string const &prop)
+      hasProperty(std::string const &prop) const
       {
         return m_properties.find(prop) != m_properties.end();
       }

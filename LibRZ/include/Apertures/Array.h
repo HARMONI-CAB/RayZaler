@@ -77,6 +77,8 @@ namespace RZ {
         Real *pointArr,
         Real *normals,
         unsigned int N) override;
+
+    virtual void renderOpenGL() override;
   };
 }
 

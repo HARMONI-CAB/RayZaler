@@ -1,11 +1,14 @@
 #ifndef _APERTURES_CIRCULAR_H
 #define _APERTURES_CIRCULAR_H
 
+#include <GLHelpers.h>
 #include <GenericAperture.h>
 
 namespace RZ {
   class CircularAperture : public GenericAperture {
+    Real m_radius;
     Real m_radius2;
+    std::vector<GLfloat> m_vertices;
 
   public:
     CircularAperture(Real radius);
@@ -24,6 +27,8 @@ namespace RZ {
         Real *pointArr,
         Real *normals,
         unsigned int N) override;
+
+    virtual void renderOpenGL() override;
   };
 }
 
