@@ -25,6 +25,8 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
   ${LIBRZ_SRCDIR}/GenericAperture.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
+  ${LIBRZ_SRCDIR}/GLModel.cpp
+  ${LIBRZ_SRCDIR}/GLRenderEngine.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
   ${LIBRZ_SRCDIR}/IncrementalRotation.cpp
@@ -94,6 +96,8 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GenericAperture.h
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
+  ${LIBRZ_INCLUDEDIR}/GLModel.h
+  ${LIBRZ_INCLUDEDIR}/GLRenderEngine.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
   ${LIBRZ_INCLUDEDIR}/IncrementalRotation.h
   ${LIBRZ_INCLUDEDIR}/LensletArray.h

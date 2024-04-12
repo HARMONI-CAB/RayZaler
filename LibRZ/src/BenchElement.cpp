@@ -92,7 +92,7 @@ BenchElement::renderOpenGL()
   glPushMatrix();
   glTranslatef(0, 0, m_cachedHeight - BENCH_DEFAULT_TABLE_HEIGHT / 2);
   glScalef(BENCH_DEFAULT_WIDTH, BENCH_DEFAULT_DEPTH, BENCH_DEFAULT_TABLE_HEIGHT);
-  glutSolidCube(1);
+  // glutSolidCube(1);
   glPopMatrix();
 
   // Draw the legs

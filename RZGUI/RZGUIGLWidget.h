@@ -12,6 +12,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   Q_OBJECT
 
   RZ::GLCappedCylinder m_axisCylinder;
+  RZ::GLCone           m_axisArrow;
   RZ::OMModel *m_model = nullptr;
   GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];

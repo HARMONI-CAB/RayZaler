@@ -13,9 +13,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets OpenGLWidgets)
-find_package(GLUT   REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLEW   REQUIRED)
+find_package(OSMesa REQUIRED)
 
 set(PROJECT_SOURCES
         icons.qrc
@@ -100,15 +99,13 @@ target_link_libraries(
   Qt${QT_VERSION_MAJOR}::Widgets
   Qt${QT_VERSION_MAJOR}::OpenGLWidgets
   ${OPENGL_LIBRARIES}
-  ${GLUT_LIBRARIES}
-  ${GLEW_LIBRARIES})
+  ${OSMesa_LIBRARIES})
 
 target_include_directories(
   RZGUI
   PRIVATE ../LibRZ/include
   ${OPENGL_INCLUDE_DIRS}
-  ${GLUT_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS})
+  ${OSMesa_INCLUDE_DIRS})
 
 set_target_properties(RZGUI PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER rayzaler.harmoni.cab.inta-csic.es

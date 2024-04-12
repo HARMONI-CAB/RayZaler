@@ -7,6 +7,98 @@
 
 using namespace RZ;
 
+///////////////////////////////// GLCube ///////////////////////////////////////
+//
+// Normals and faces are numerated according to original SGI implementation
+// back in 1993.
+//
+// See: https://github.com/markkilgard/glut/blob/master/lib/glut/glut_shapes.c
+//
+void
+RZ::GLCube(GLfloat size)
+{
+  static const GLfloat normals[6][3] = {
+    {-1, 0, 0},
+    {0, +1, 0},
+    {+1, 0, 0},
+    {0, -1, 0},
+    {0, 0, +1},
+    {0, 0, -1}
+  };
+
+  static const GLint faces[6][4] = {
+    {0, 1, 2, 3},
+    {3, 2, 6, 7},
+    {7, 6, 5, 4},
+    {4, 5, 1, 0},
+    {5, 6, 2, 1},
+    {7, 4, 0, 3}
+  };
+
+  GLfloat v[8][3];
+
+  v[0][0] = v[1][0] = v[2][0] = v[3][0] = -size / 2;
+  v[4][0] = v[5][0] = v[6][0] = v[7][0] = +size / 2;
+  v[0][1] = v[1][1] = v[4][1] = v[5][1] = -size / 2;
+  v[2][1] = v[3][1] = v[6][1] = v[7][1] = +size / 2;
+  v[0][2] = v[3][2] = v[4][2] = v[7][2] = -size / 2;
+  v[1][2] = v[2][2] = v[5][2] = v[6][2] = +size / 2;
+
+  glBegin(GL_QUADS);
+  for (auto i = 5; i >= 0; --i) {
+    glNormal3fv(normals[i]);
+    glVertex3fv(v[faces[i][0]]);
+    glVertex3fv(v[faces[i][1]]);
+    glVertex3fv(v[faces[i][2]]);
+    glVertex3fv(v[faces[i][3]]);
+  }
+  glEnd();
+}
+
+/////////////////////////////////// GLCone /////////////////////////////////////
+GLCone::GLCone()
+{
+  m_quadric = gluNewQuadric();
+  gluQuadricDrawStyle(m_quadric, GLU_FILL);
+  gluQuadricNormals(m_quadric, GLU_SMOOTH);
+}
+
+GLCone::~GLCone()
+{
+  if (m_quadric != nullptr)
+    gluDeleteQuadric(m_quadric);
+}
+
+void
+GLCone::setBase(GLdouble base)
+{
+  m_base = base;
+}
+
+void
+GLCone::setHeight(GLdouble height)
+{
+  m_height = height;
+}
+
+void
+GLCone::setSlices(GLint slices)
+{
+  m_slices = slices;
+}
+
+void
+GLCone::setStacks(GLint stacks)
+{
+  m_stacks = stacks;
+}
+
+void
+GLCone::display()
+{
+  gluCylinder(m_quadric, m_base, 0, m_height, m_slices, m_stacks);
+}
+
 //////////////////////////// GLCappedCylinder //////////////////////////////////
 GLCappedCylinder::GLCappedCylinder()
 {
@@ -15,7 +107,8 @@ GLCappedCylinder::GLCappedCylinder()
 
 GLCappedCylinder::~GLCappedCylinder()
 {
-  gluDeleteQuadric(m_quadric);
+  if (m_quadric != nullptr)
+    gluDeleteQuadric(m_quadric);
 }
 
 void

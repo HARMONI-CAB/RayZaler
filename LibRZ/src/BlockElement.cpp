@@ -132,7 +132,7 @@ BlockElement::renderOpenGL()
 
   glPushMatrix();
   glScalef(m_cachedLength, m_cachedWidth, m_cachedHeight);
-  glutSolidCube(1);
+  GLCube(1);
   glPopMatrix();
 }
 

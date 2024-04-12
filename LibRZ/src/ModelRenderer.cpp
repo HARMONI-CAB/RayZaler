@@ -1,5 +1,4 @@
-#include <GL/glew.h>
-
+#include "GLModel.h"
 #include "ModelRenderer.h"
 #include "OMModel.h"
 #include <algorithm>
@@ -12,131 +11,91 @@ using namespace RZ;
 
 ModelRenderer::ModelRenderer(
     unsigned int width,
-    unsigned int height,
-    OMModel *model)
+    unsigned int height)
 {
-  glGenFramebuffers(1, &m_fbo);
-  glGenRenderbuffers(1, &m_renderBuf);
+#if OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 305
+   m_ctx = OSMesaCreateContextExt(OSMESA_RGBA, 16, 0, 0, nullptr);
+#else
+   m_ctx = OSMesaCreateContext(OSMESA_RGBA, nullptr);
+#endif
 
-  glBindRenderbuffer(GL_RENDERBUFFER, m_renderBuf);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_BGRA8_EXT, width, height);
-  
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-  glFramebufferRenderbuffer(
-    GL_DRAW_FRAMEBUFFER,
-    GL_COLOR_ATTACHMENT0,
-    GL_RENDERBUFFER,
-    m_renderBuf);
+  if (m_ctx == nullptr)
+    throw std::runtime_error("Cannot create off-screen rendering context");
 
   m_width  = width;
   m_height = height;
 
-  m_pixels.resize(width * height);
+  m_pixels.resize(m_width * m_height);
 }
 
 ModelRenderer::~ModelRenderer()
 {
-  glDeleteFramebuffers(1,&m_fbo);
-  glDeleteRenderbuffers(1, &m_renderBuf);
+  if (m_ctx != nullptr)
+    OSMesaDestroyContext(m_ctx);
 }
 
 void
-ModelRenderer::pushElement(Element *element)
+ModelRenderer::adjustViewPort()
 {
-  m_renderList.push_back(element);
-}
+  GLfloat aspect;
 
-void
-ModelRenderer::pushModel(OMModel *model)
-{
-  auto &orig = model->elementList();
-  m_renderList.insert(m_renderList.end(), orig.begin(), orig.end());
-  m_beams.push_back(model->beam());
-}
+  // Phase 1: Set viewport
+  glViewport(0, 0, m_width, m_height);
 
-void
-ModelRenderer::pushElementMatrix(RZ::Element *element)
-{
-  auto frame = element->parentFrame();
-  auto R     = frame->getOrientation();
-  auto O     = frame->getCenter();
-
-  GLdouble viewMatrix[16] = {
-    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], O.coords[0],
-    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], O.coords[1],
-    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], O.coords[2],
-                      0,                   0,                   0,           1};
-
-  glPushMatrix();
-  glLoadMatrixf(m_refMatrix);
-  glMultTransposeMatrixd(viewMatrix);
-}
-
-#define IN_LIST(list, element) \
-  (std::find(list.begin(), list.end(), element) != list.end())
-  
-void
-ModelRenderer::popElementMatrix()
-{
-  glPopMatrix();
-}
-
-void
-ModelRenderer::renderElements(std::list<Element *> const &list)
-{
-  for (auto &p : list) {
-    if (IN_LIST(m_beams, p))
-      continue;
+  // Phase 2: Configure projection
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glScalef(m_zoom, m_zoom, m_zoom);
+  glTranslatef(
+    +2 * m_currentCenter[0] / (m_zoom * m_width),
+    -2 * m_currentCenter[1] / (m_zoom * m_height),
+    0);
     
-    pushElementMatrix(p);
-    p->renderOpenGL();
-    popElementMatrix();
+  aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
+  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * m_zoom, 20 * m_zoom);
 
-    if (p->nestedModel() != nullptr)
-      renderElements(p->nestedModel()->elementList());
-  }
-
-  for (auto &beam : m_beams) {
-    pushElementMatrix(beam);
-    beam->renderOpenGL();
-    popElementMatrix();
-  }
-
-  for (auto &p : list) {
-    if (IN_LIST(m_beams, p))
-      continue;
-    
-    pushElementMatrix(p);
-    p->renderOpenGL();
-    popElementMatrix();
-
-    if (p->nestedModel() != nullptr)
-      renderElements(p->nestedModel()->elementList());
-  }
+  // Phase 3: Configure normals
+  glMatrixMode (GL_MODELVIEW);
+  glLoadIdentity();
+  glEnable(GL_AUTO_NORMAL);
+  glEnable(GL_NORMALIZE);
 }
 
 void
 ModelRenderer::render()
 {
-  // Enter in render to framebuffer mode
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-
-  renderElements(m_renderList);
-
-  // Retrieve pixels
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
-  glReadBuffer(GL_COLOR_ATTACHMENT0);
-  glReadPixels(
-    0,
-    0,
-    m_width,
-    m_height,
-    GL_BGRA,
+  if (!OSMesaMakeCurrent(
+    m_ctx,
+    m_pixels.data(),
     GL_UNSIGNED_BYTE,
-    m_pixels.data());
-  
-  // Needed to get back to on-screen rendering
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    m_width,
+    m_height))
+    throw std::runtime_error("Cannot create off-screen rendering context");
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  adjustViewPort();
+
+  if (model() != nullptr) {
+    if (!m_fixedLight)
+      model()->configureLighting();
+
+      glTranslatef(0, 0, -10.);
+      auto k = m_incRot.k();
+      auto theta = RZ::rad2deg(m_incRot.theta());
+
+      glRotatef(theta, k.x, k.y, k.z);
+
+      glRotatef(-90, 1, 0, 0);
+      glRotatef(-90, 0, 0, 1);
+
+    if (m_fixedLight)
+      model()->configureLighting();
+    
+    model()->display();
+  }
+
+  glFlush();
 }
 
 bool

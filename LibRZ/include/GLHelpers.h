@@ -20,9 +20,30 @@ namespace RZ {
     }
   };
 
-
+  // TODO: Remove GLUT altogether
+  
+  void GLCube(GLfloat);
+  
   struct GLPrimitive {
     virtual void display() = 0;
+  };
+
+  class GLCone : public GLPrimitive {
+      GLUquadric *m_quadric = nullptr;
+      GLdouble m_base;
+      GLdouble m_height;
+      GLint    m_slices;
+      GLint    m_stacks;
+
+    public:
+      GLCone();
+      ~GLCone();
+
+      void setBase(GLdouble);
+      void setHeight(GLdouble);
+      void setSlices(GLint);
+      void setStacks(GLint);
+      virtual void display() override;
   };
 
   class GLDisc : public GLPrimitive {
@@ -342,6 +363,7 @@ namespace RZ {
       GLRectangle();
       ~GLRectangle();
   };
+
 
 };
 

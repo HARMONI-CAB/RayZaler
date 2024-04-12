@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <Singleton.h>
 #include <RayProcessors.h>
 
@@ -20,8 +19,6 @@
 #include <Tripod.h>
 #include <TubeElement.h>
 #include <Logger.h>
-
-#include <GL/glew.h>
 
 #ifdef PYTHON_SCRIPT_SUPPORT
 #  include  <ScriptLoader.h>
@@ -57,10 +54,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new StlMeshFactory);
   Singleton::instance()->registerElementFactory(new TripodFactory);
   Singleton::instance()->registerElementFactory(new TubeElementFactory);
-  
-  
-  glewInit();
-  
+
   registerRayProcessors();
 
 #ifdef PYTHON_SCRIPT_SUPPORT

@@ -371,14 +371,14 @@ Detector::renderOpenGL()
   glPushMatrix();
   material("detector");
   glScalef(m_width, m_height, thickness);
-  glutSolidCube(1);
+  GLCube(1);
   glPopMatrix();
 
   glTranslatef(0, 0, -thickness);
   glPushMatrix();
   material("substrate");
   glScalef(m_width + 1e-3, m_height + 1e-3, thickness);
-  glutSolidCube(1);
+  GLCube(1);
   glPopMatrix();
 }
 

@@ -69,6 +69,8 @@ GLUTEngine::showScreen()
 
   adjustViewPort();
 
+  glClearColor(0, 0, .4, 1);
+  
   if (model() != nullptr) {
     if (!m_fixedLight)
       model()->configureLighting();

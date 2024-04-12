@@ -18,8 +18,12 @@ RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
   m_axisCylinder.setSlices(24);
   m_axisCylinder.setVisibleCaps(true, false);
 
-  setMouseTracking(true);
+  m_axisArrow.setHeight(m_axisCylinder.height() / 3);
+  m_axisArrow.setBase(2 * m_axisCylinder.radius());
+  m_axisArrow.setSlices(20);
+  m_axisArrow.setStacks(20);
 
+  setMouseTracking(true);
 }
 
 void
@@ -521,7 +525,7 @@ RZGUIGLWidget::drawAxes()
         glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, .1));
         m_axisCylinder.display();
         glTranslatef(0, 0, axisHeight);
-        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+        m_axisArrow.display();
       glPopMatrix();
 
       // Y-axis
@@ -531,7 +535,7 @@ RZGUIGLWidget::drawAxes()
         glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, .1, 0));
         m_axisCylinder.display();
         glTranslatef(0, 0, axisHeight);
-        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+        m_axisArrow.display();
       glPopMatrix();
 
       // X-axis
@@ -542,7 +546,7 @@ RZGUIGLWidget::drawAxes()
         glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, 0, 0));
         m_axisCylinder.display();
         glTranslatef(0, 0, axisHeight);
-        glutSolidCone(2 * m_axisCylinder.radius(), axisHeight / 3, 20, 20);
+        m_axisArrow.display();
       glPopMatrix();
 
     glPopMatrix();
@@ -591,7 +595,7 @@ RZGUIGLWidget::paintGL()
   } else {
     glRotatef(45, 1, 0, 0);
     glRotatef(45, 0, 1, 0);
-    glutSolidCube(1);
+    RZ::GLCube(1);
   }
 }
 

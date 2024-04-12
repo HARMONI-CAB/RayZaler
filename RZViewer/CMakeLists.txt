@@ -3,7 +3,7 @@ set(RZVIEWER_SRCDIR src)
 
 find_package(OpenGL REQUIRED)
 find_package(GLUT   REQUIRED)
-find_package(GLEW   REQUIRED)
+find_package(OSMesa REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -20,7 +20,7 @@ file(GLOB_RECURSE HEADER_FILES
 add_executable(RZViewer ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_directories(RZViewer PRIVATE ${LIBRZ_LIBDIR})
-target_link_libraries(RZViewer PRIVATE RZ ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} ${GLEW_LIBRARIES})
+target_link_libraries(RZViewer PRIVATE RZ ${OSMesa_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 target_compile_options(RZViewer PRIVATE ${LIBRZ_CFLAGS})
 
 target_include_directories(
@@ -29,4 +29,4 @@ target_include_directories(
   ${RZVIEWER_INCLUDEDIR}
   ${OPENGL_INCLUDE_DIRS}
   ${GLUT_INCLUDE_DIRS}
-  ${GLEW_INCLUDE_DIRS})
+  ${OSMesa_INCLUDE_DIRS})

@@ -4,6 +4,7 @@
 #include <RZGLModel.h>
 #include <ParserContext.h>
 #include <libgen.h>
+#include <ModelRenderer.h>
 
 using namespace RZ;
 
@@ -65,6 +66,7 @@ fileExplode(std::string &dir, std::string &filename, const char *path)
   filename = basename(alloc.data());
 }
 
+
 int
 main(int argc, char **argv)
 {
@@ -122,21 +124,28 @@ main(int argc, char **argv)
     }
   }
 
-  
   try {
     TopLevelModel *tlModel = new TopLevelModel(recipe);
     MyEventListener listener(tlModel);
 
+
     // Create OpenGL model
     RZGLModel *model = new RZGLModel();
-    GLUTEngine *engine = GLUTEngine::instance();
-    
+
     g_tlModel = tlModel;
     g_model   = model;
 
     model->pushOptoMechanicalModel(tlModel);
     model->setEventListener(&listener);
 
+    {
+      ModelRenderer renderer(1024, 768);
+      renderer.setModel(model);
+      renderer.render();
+      renderer.savePNG("model.png");
+    }
+
+    GLUTEngine *engine = GLUTEngine::instance();
     auto defPath = tlModel->lookupOpticalPath();
     if (defPath != nullptr) {
       fprintf(

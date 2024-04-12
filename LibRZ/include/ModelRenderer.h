@@ -5,36 +5,45 @@
 #include <vector>
 #include <cstdint>
 #include <GL/gl.h>
+#include <GL/osmesa.h>
+#include "GLRenderEngine.h"
+#include "IncrementalRotation.h"
 
 namespace RZ {
   class OMModel;
   class Element;
 
-  class ModelRenderer {
-      std::list<Element *> m_renderList;
-      std::list<Element *> m_beams;
-
+  class ModelRenderer : public GLRenderEngine {
+      OSMesaContext        m_ctx;
       unsigned int m_width = 680;
       unsigned int m_height = 480;
-      GLfloat m_refMatrix[16];
+      bool m_fixedLight = false;
+      GLfloat m_zoom = 1;
+      GLfloat m_currentCenter[2] = {0, 0};
+      GLfloat m_oldCenterCenter[2] = {0, 0};
+      IncrementalRotation m_incRot;
+      GLfloat m_prevRotX, m_prevRotY;
+      GLfloat m_rotStart[2] = {0, 0};
+      GLfloat m_curAzEl[3] = {0, 0};
+      GLfloat m_oldRot[2] = {0, 0};
 
       std::vector<uint32_t> m_pixels;
-      GLuint m_fbo;
-      GLuint m_renderBuf;
-
-      void pushElementMatrix(Element *);
-      void popElementMatrix();
-      void renderElements(std::list<Element *> const &);
+      void showScreen();
+      void adjustViewPort();
 
     public:
-      ModelRenderer(
-        unsigned int width,
-        unsigned int height,
-        OMModel *model = nullptr);
+      ModelRenderer(unsigned int width, unsigned int height);
       ~ModelRenderer();
 
-      void pushElement(Element *);
-      void pushModel(OMModel *);
+      void zoom(GLfloat delta);
+      void incAzEl(GLfloat deltaAz, GLfloat deltaEl);
+      void move(GLfloat deltaX, GLfloat deltaY);
+
+      void setZoom(GLfloat delta);
+      void setCenter(GLfloat, GLfloat);
+      void setRotation(GLfloat, GLfloat, GLfloat, GLfloat);
+      
+      void pushOptoMechanicalModel(OMModel *);
       void render();
       bool savePNG(const char *path);
   };
