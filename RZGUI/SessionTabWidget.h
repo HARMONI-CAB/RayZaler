@@ -20,7 +20,9 @@ class SessionTabWidget : public QWidget
   RZGUIGLWidget     *m_glWidget; // Borrowed
   DetectorWindow    *m_detWindow = nullptr; // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
-  bool               m_displayNames = false;
+  bool               m_displayNames     = false;
+  bool               m_displayApertures = false;
+  bool               m_displayElements  = true;
 
   void connectAll();
 
@@ -34,7 +36,11 @@ public:
   void updateModel();
   void setRotation(qreal, qreal, qreal);
   bool displayNames() const;
+  bool displayApertures() const;
+  bool displayElements() const;
   void setDisplayNames(bool);
+  void setDisplayApertures(bool);
+  void setDisplayElements(bool);
 
   void keyPressEvent(QKeyEvent *event) override;
 

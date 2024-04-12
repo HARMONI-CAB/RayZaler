@@ -411,6 +411,7 @@
    </attribute>
    <addaction name="actionToggleDisplayNames"/>
    <addaction name="actionToggleApertures"/>
+   <addaction name="actionToggleElements"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -592,11 +593,25 @@
    </property>
   </action>
   <action name="actionToggleApertures">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Toggle apertures</string>
    </property>
    <property name="toolTip">
     <string>Toggle display apertures</string>
+   </property>
+  </action>
+  <action name="actionToggleElements">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle elements</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle display elements</string>
    </property>
   </action>
  </widget>

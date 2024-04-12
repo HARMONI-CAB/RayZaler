@@ -164,7 +164,11 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
     glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 
-    glColor3f(0, 0, 1);
+    if (m_displayElements)
+      glColor3f(0, 0, 1);
+    else
+      glColor3f(1, 1, 1);
+
     glLineWidth(2);
     const RZ::OpticalElement *optEl = static_cast<const RZ::OpticalElement *>(el);
     auto &surfaces = optEl->opticalSurfaces();
@@ -174,7 +178,8 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);
-        glTranslatef(0, 0, 1e-3);
+        if (m_displayElements)
+          glTranslatef(0, 0, 1e-3);
         ap->renderOpenGL();
         glPopMatrix();
       }
@@ -188,35 +193,56 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
   auto beam = model->beam();
 
-  for (auto p : model->elementList()) {
-    if (p == beam)
-      continue;
-    pushElementMatrix(p);
-    p->renderOpenGL();
-    popElementMatrix();
+  if (m_displayElements) {
+    for (auto p : model->elementList()) {
+      if (p == beam)
+        continue;
+      pushElementMatrix(p);
+      p->renderOpenGL();
+      popElementMatrix();
 
-    if (p->nestedModel() != nullptr)
-      displayModel(p->nestedModel());
+      if (p->nestedModel() != nullptr)
+        displayModel(p->nestedModel());
+    }
   }
 
   pushElementMatrix(beam);
   beam->renderOpenGL();
   popElementMatrix();
 
-  for (auto p : model->elementList()) {
-    if (p == beam)
-      continue;
-    pushElementMatrix(p);
-    if (m_displayNames)
-      renderText(0, 0, 0, QString::fromStdString(p->name()));
-    p->renderOpenGL();
-    popElementMatrix();
-    
-    if (m_displayApertures)
-      displayApertures(p);
-    
-    if (p->nestedModel() != nullptr)
-      displayModel(p->nestedModel());
+  if (m_displayElements) {
+    for (auto p : model->elementList()) {
+      if (p == beam)
+        continue;
+      pushElementMatrix(p);
+      if (m_displayNames)
+        renderText(0, 0, 0, QString::fromStdString(p->name()));
+      p->renderOpenGL();
+      popElementMatrix();
+
+      if (m_displayApertures)
+        displayApertures(p);
+
+      if (p->nestedModel() != nullptr)
+        displayModel(p->nestedModel());
+    }
+  } else {
+    for (auto p : model->elementList()) {
+      if (p == beam)
+        continue;
+
+      if (m_displayNames) {
+        pushElementMatrix(p);
+        renderText(0, 0, 0, QString::fromStdString(p->name()));
+        popElementMatrix();
+      }
+
+      if (m_displayApertures)
+        displayApertures(p);
+
+      if (p->nestedModel() != nullptr)
+        displayModel(p->nestedModel());
+    }
   }
 }
 
@@ -237,6 +263,16 @@ RZGUIGLWidget::setDisplayApertures(bool state)
     update();
   }
 }
+
+void
+RZGUIGLWidget::setDisplayElements(bool state)
+{
+  if (m_displayElements != state) {
+    m_displayElements = state;
+    update();
+  }
+}
+
 
 void
 RZGUIGLWidget::configureLighting()

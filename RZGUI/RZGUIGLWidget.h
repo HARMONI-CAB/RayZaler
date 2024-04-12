@@ -18,7 +18,8 @@ class RZGUIGLWidget : public QOpenGLWidget
   GLfloat m_refMatrix[16];
 
   bool    m_displayNames     = false;
-  bool    m_displayApertures = true;
+  bool    m_displayApertures = false;
+  bool    m_displayElements  = true;
 
   bool    m_fixedLight = false;
   bool    m_newViewPort = false;
@@ -91,6 +92,7 @@ public:
   void setCurrentRot(const GLfloat *);
   void setDisplayNames(bool);
   void setDisplayApertures(bool);
+  void setDisplayElements(bool);
 
   // Exposed so other objects can deliver events to the widget
   void keyPressEvent(QKeyEvent *event) override;

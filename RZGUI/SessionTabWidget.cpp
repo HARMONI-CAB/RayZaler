@@ -38,10 +38,38 @@ SessionTabWidget::displayNames() const
 }
 
 void
-SessionTabWidget::setDisplayNames(bool label)
+SessionTabWidget::setDisplayNames(bool disp)
 {
-  m_glWidget->setDisplayNames(label);
+  m_displayNames = disp;
+  m_glWidget->setDisplayNames(disp);
 }
+
+bool
+SessionTabWidget::displayElements() const
+{
+  return m_displayElements;
+}
+
+void
+SessionTabWidget::setDisplayElements(bool disp)
+{
+  m_displayElements = disp;
+  m_glWidget->setDisplayElements(disp);
+}
+
+bool
+SessionTabWidget::displayApertures() const
+{
+  return m_displayApertures;
+}
+
+void
+SessionTabWidget::setDisplayApertures(bool disp)
+{
+  m_displayApertures = disp;
+  m_glWidget->setDisplayApertures(disp);
+}
+
 
 void
 SessionTabWidget::keyPressEvent(QKeyEvent *event)
