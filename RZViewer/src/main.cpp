@@ -139,10 +139,11 @@ main(int argc, char **argv)
     model->setEventListener(&listener);
 
     {
-      ModelRenderer renderer(1024, 768);
-      renderer.setModel(model);
-      renderer.render();
-      renderer.savePNG("model.png");
+      ModelRenderer *renderer = ModelRenderer::fromOMModel(tlModel, 1024, 768);
+      renderer->roll(180);
+      renderer->render();
+      renderer->savePNG("model.png");
+      delete renderer;
     }
 
     GLUTEngine *engine = GLUTEngine::instance();

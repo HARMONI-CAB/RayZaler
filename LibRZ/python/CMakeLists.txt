@@ -32,9 +32,9 @@ elseif(UNIX)
     )
 endif()
 
-target_link_directories(pyRayZaler PRIVATE ${LIBRZ_LIBDIR} ${OPENGL_INCLUDE_DIRS} ${OSMesa_INCLUDE_DIRS})
+target_link_directories(pyRayZaler PRIVATE ${LIBRZ_LIBDIR} ${OSMesa_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIRS})
 target_compile_options(pyRayZaler PRIVATE ${LIBRZ_CFLAGS})
-target_link_libraries(pyRayZaler PRIVATE RZ  ${OPENGL_LIBRARIES} ${OSMesa_LIBRARIES})
+target_link_libraries(pyRayZaler PRIVATE RZ ${OSMesa_LIBRARIES} ${OPENGL_LIBRARIES})
 
 # Variable PYTHON_LIBRARIES can contains keyword `optimized`
 # which won't be interpreted inside a generator expression.

@@ -16,7 +16,7 @@ IncrementalRotation::S12(Vec3 const &r)
 {
   if (releq(r.norm(), M_PI)
    && (isZero(r.x) && isZero(r.y) && r.z < 0)
-   || (isZero(r.x) && r.z < 0)
+   || (isZero(r.x) && r.y < 0)
    || r.x < 0)
      return -r;
   
@@ -48,14 +48,15 @@ IncrementalRotation::toRodrigues()
 
     u = v.normalized();
     r = S12(M_PI * u);
-
-    c = 1;
   }
 
   if (!isZero(s)) {
     m_k     = rho / s;
     m_theta = atan2(s, c);
     m_k.x = -m_k.x;
+  } else {
+    m_theta = atan2(s, c);
+    m_k     = u;
   }
 
   m_R = Matrix3::rot(m_k, m_theta);

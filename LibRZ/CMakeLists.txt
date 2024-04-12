@@ -50,6 +50,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
   ${LIBRZ_SRCDIR}/RodElement.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
+  ${LIBRZ_SRCDIR}/RZGLModel.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/StlMesh.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
@@ -120,6 +121,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
   ${LIBRZ_INCLUDEDIR}/RodElement.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
+  ${LIBRZ_INCLUDEDIR}/RZGLModel.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/StlMesh.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h

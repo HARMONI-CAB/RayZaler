@@ -96,10 +96,10 @@ target_compile_options(RZGUI PRIVATE ${LIBRZ_CFLAGS})
 target_link_libraries(
   RZGUI PRIVATE
   RZ
+  ${OSMesa_LIBRARIES}
   Qt${QT_VERSION_MAJOR}::Widgets
   Qt${QT_VERSION_MAJOR}::OpenGLWidgets
-  ${OPENGL_LIBRARIES}
-  ${OSMesa_LIBRARIES})
+  ${OPENGL_LIBRARIES})
 
 target_include_directories(
   RZGUI

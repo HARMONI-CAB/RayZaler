@@ -12,9 +12,11 @@
 namespace RZ {
   class OMModel;
   class Element;
+  class GLModel;
 
   class ModelRenderer : public GLRenderEngine {
       OSMesaContext        m_ctx;
+      GLModel           *m_ownModel;
       unsigned int m_width = 680;
       unsigned int m_height = 480;
       bool m_fixedLight = false;
@@ -26,21 +28,33 @@ namespace RZ {
       void adjustViewPort();
 
     public:
-      ModelRenderer(unsigned int width, unsigned int height);
+      ModelRenderer(unsigned int width, unsigned int height, GLModel *own = nullptr);
       ~ModelRenderer();
 
-      void zoom(GLfloat delta);
-      void incAzEl(GLfloat deltaAz, GLfloat deltaEl);
-      void roll(GLfloat delta);
-      void move(GLfloat deltaX, GLfloat deltaY);
+      inline unsigned
+      width() const {
+        return m_width;
+      }
 
-      void setZoom(GLfloat delta);
-      void setCenter(GLfloat, GLfloat);
-      void setRotation(GLfloat, GLfloat, GLfloat, GLfloat);
+      inline unsigned
+      height() const {
+        return m_height;
+      }
       
-      void pushOptoMechanicalModel(OMModel *);
+      void zoom(Real delta);
+      void incAzEl(Real deltaAz, Real deltaEl);
+      void roll(Real delta);
+      void move(Real deltaX, Real deltaY);
+
+      void setZoom(Real delta);
+      void setCenter(Real, Real);
+      void setRotation(Real, Real, Real, Real);
+      
       void render();
       bool savePNG(const char *path);
+      const uint32_t *pixels() const;
+
+      static ModelRenderer *fromOMModel(OMModel *, unsigned, unsigned);
   };
 }
 

@@ -225,6 +225,33 @@ PyMODINIT_FUNC PyInit_RZ();
   }
 }
 
+%extend RZ::ModelRenderer {
+  PyObject *
+  image()
+  {
+    unsigned int imgWidth  = self->width();
+    unsigned int imgHeight = self->height();
+    const uint32_t *data   = self->pixels();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {imgHeight, imgWidth, 4};
+    npy_intp strides[] = {imgWidth * 4, 4, 1};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      3,
+      dims,
+      NPY_UINT8,
+      strides,
+      const_cast<uint32_t *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+}
+
 %extend RZ::Detector {
   PyObject *
   image()

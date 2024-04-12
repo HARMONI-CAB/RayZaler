@@ -4,14 +4,15 @@
 #include <algorithm>
 #include <png.h>
 #include <Logger.h>
-
 #include <GL/glu.h>
+#include "RZGLModel.h"
 
 using namespace RZ;
 
 ModelRenderer::ModelRenderer(
     unsigned int width,
-    unsigned int height)
+    unsigned int height,
+    GLModel *own)
 {
 #if OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 305
    m_ctx = OSMesaCreateContextExt(OSMESA_RGBA, 16, 0, 0, nullptr);
@@ -22,16 +23,23 @@ ModelRenderer::ModelRenderer(
   if (m_ctx == nullptr)
     throw std::runtime_error("Cannot create off-screen rendering context");
 
-  m_width  = width;
-  m_height = height;
+  m_width    = width;
+  m_height   = height;
+  m_ownModel = own;
 
   m_pixels.resize(m_width * m_height);
+
+  if (m_ownModel != nullptr)
+    setModel(m_ownModel);
 }
 
 ModelRenderer::~ModelRenderer()
 {
   if (m_ctx != nullptr)
     OSMesaDestroyContext(m_ctx);
+
+  if (m_ownModel != nullptr)
+    delete m_ownModel;
 }
 
 void
@@ -96,6 +104,12 @@ ModelRenderer::render()
   }
 
   glFlush();
+}
+
+const uint32_t *
+ModelRenderer::pixels() const
+{
+  return m_pixels.data();
 }
 
 bool
@@ -174,46 +188,56 @@ done:
 }
 
 void
-ModelRenderer::zoom(GLfloat delta)
+ModelRenderer::zoom(Real delta)
 {
   m_zoom *= delta;
 }
 
 void
-ModelRenderer::incAzEl(GLfloat deltaAz, GLfloat deltaEl)
+ModelRenderer::incAzEl(Real deltaAz, Real deltaEl)
 {
   m_incRot.rotate(RZ::Vec3::eY(), RZ::deg2rad(deltaAz));
   m_incRot.rotate(RZ::Vec3::eX(), RZ::deg2rad(deltaEl));
 }
 
 void
-ModelRenderer::roll(GLfloat delta)
+ModelRenderer::roll(Real delta)
 {
   m_incRot.rotate(RZ::Vec3::eZ(), RZ::deg2rad(delta));
 }
 
 void
-ModelRenderer::move(GLfloat deltaX, GLfloat deltaY)
+ModelRenderer::move(Real deltaX, Real deltaY)
 {
   m_currentCenter[0] -= deltaX;
-  m_currentCenter[1] -= deltaX;
+  m_currentCenter[1] -= deltaY;
 }
 
 void
-ModelRenderer::setZoom(GLfloat zoom)
+ModelRenderer::setZoom(Real zoom)
 {
   m_zoom = zoom;
 }
 
 void
-ModelRenderer::setCenter(GLfloat x0, GLfloat y0)
+ModelRenderer::setCenter(Real x0, Real y0)
 {
   m_currentCenter[0] = x0;
   m_currentCenter[1] = y0;
 }
 
 void
-ModelRenderer::setRotation(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+ModelRenderer::setRotation(Real angle, Real x, Real y, Real z)
 {
   m_incRot.setRotation(Vec3(x, y, z).normalized(), RZ::deg2rad(angle));
+}
+
+ModelRenderer *
+ModelRenderer::fromOMModel(OMModel *model, unsigned width, unsigned height)
+{
+  RZGLModel *glModel = new RZGLModel;
+
+  glModel->pushOptoMechanicalModel(model);
+
+  return new ModelRenderer(width, height, glModel);
 }
