@@ -45,5 +45,6 @@
         <file>icons/composite-element.svg</file>
         <file>icons/elements.svg</file>
         <file>icons/optical-elements.svg</file>
+        <file>icons/world.svg</file>
     </qresource>
 </RCC>

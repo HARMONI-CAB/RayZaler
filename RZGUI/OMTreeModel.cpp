@@ -100,6 +100,10 @@ OMTreeModel::assignItemIcon(OMTreeItem *item)
 
     case OM_TREE_ITEM_TYPE_FRAME:
       switch (item->frame->typeId()) {
+        case RZ_REF_FRAME_WORLD_ID:
+          item->icon = &getIcon("world");
+          break;
+
         case RZ_REF_FRAME_ROTATION_ID:
           item->icon = &getIcon("rotated");
           break;
