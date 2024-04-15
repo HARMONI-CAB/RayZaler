@@ -3,6 +3,8 @@
 #include "ImageNavWidget.h"
 #include "SimulationSession.h"
 #include "GUIHelpers.h"
+#include <QMessageBox>
+#include <QFileDialog>
 
 DetectorWindow::DetectorWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -15,6 +17,15 @@ DetectorWindow::DetectorWindow(QWidget *parent) :
 
   ui->viewGrid->addWidget(m_navWidget, 1, 0);
 
+  m_saveDialog = new QFileDialog(this);
+  m_saveDialog->setWindowTitle("Export detector data");
+  m_saveDialog->setFileMode(QFileDialog::AnyFile);
+  m_saveDialog->setAcceptMode(QFileDialog::AcceptSave);
+  m_saveDialog->setNameFilter(
+    "Normalized PNG image (*.png);;"
+    "Raw counts (*.raw);;"
+    "Complex float64 amplitude (*.bin)");
+  
   populateDetectorMenu();
   connectAll();
 }
@@ -216,6 +227,12 @@ DetectorWindow::connectAll()
         SIGNAL(toggled(bool)),
         this,
         SLOT(onToggleShowPhase()));
+
+  connect(
+        ui->actionExportAs,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onExport()));
 }
 
 void
@@ -376,4 +393,32 @@ DetectorWindow::onToggleShowPhase()
 {
   m_navWidget->setShowPhase(ui->actionTogglePhase->isChecked());
   refreshUi();
+}
+
+void
+DetectorWindow::onExport()
+{
+  if (m_detector != nullptr) {
+    bool ok = false;
+
+    if (m_saveDialog->exec() && !m_saveDialog->selectedFiles().empty()) {
+      QString fileName = m_saveDialog->selectedFiles()[0];
+      auto filter      = m_saveDialog->selectedNameFilter();
+      std::string path = fileName.toStdString();
+
+      if (filter.contains("*.png"))
+        ok = m_detector->savePNG(path);
+      else if (filter.contains("*.raw"))
+        ok = m_detector->saveRawData(path);
+      else if (filter.contains("*.bin"))
+        ok = m_detector->saveAmplitude(path);
+
+      if (!ok) {
+        QMessageBox::critical(
+          this,
+          "Export data",
+          "Cannot export current detector state. Open log window for details");
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@
 #include <Singleton.h>
 #include <GLHelpers.h>
 #include <GL/glut.h>
+#include <Logger.h>
 #include <RayTracingEngine.h>
 #include <Apertures/Rectangular.h>
 #include <png++/png.hpp>
@@ -120,6 +121,63 @@ DetectorStorage::savePNG(std::string const &path) const
   image.write(path);
 
   return true; // Cross your fingers
+}
+
+bool
+DetectorStorage::saveRawData(std::string const &path) const
+{
+  FILE *fp = nullptr;
+  size_t chunkSize = sizeof(uint32_t) * m_cols;
+  bool ok = false;
+
+  if ((fp = fopen(path.c_str(), "wb")) == nullptr) {
+    RZError("Cannot save raw data to `%s': %s\n", path.c_str(), strerror(errno));
+    goto done;
+  }
+
+  for (auto j = 0; j < m_rows; ++j) {
+    const uint32_t *data = m_photons.data() + j * m_stride;
+    if (fwrite(data, chunkSize, 1, fp) < 1) {
+      RZError("Failed to write raw data to `%s': %s\n", path.c_str(), strerror(errno));
+      goto done;
+    }
+  }
+
+  ok = true;
+done:
+  if (fp != nullptr)
+    fclose(fp);
+
+  return ok;
+}
+
+bool
+DetectorStorage::saveAmplitude(std::string const &path) const
+{
+  FILE *fp = nullptr;
+  size_t chunkSize = sizeof(RZ::Complex) * m_cols;
+  bool ok = false;
+
+  if ((fp = fopen(path.c_str(), "wb")) == nullptr) {
+    RZError("Cannot save complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
+    goto done;
+  }
+
+  for (auto j = 0; j < m_rows; ++j) {
+    const RZ::Complex *data = m_amplitude.data() + j * m_stride;
+    if (fwrite(data, chunkSize, 1, fp) < 1) {
+      RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
+      goto done;
+    }
+  }
+
+  ok = true;
+
+done:
+  if (fp != nullptr)
+    fclose(fp);
+
+  return ok;
 }
 
 const std::vector<DetectorHit> &
@@ -308,11 +366,24 @@ Detector::clear()
   m_storage->clear();
 }
 
-void
+bool
 Detector::savePNG(std::string const &path) const
 {
-  m_storage->savePNG(path);
+  return m_storage->savePNG(path);
 }
+
+bool
+Detector::saveRawData(std::string const &path) const
+{
+  return m_storage->saveRawData(path);
+}
+
+bool
+Detector::saveAmplitude(std::string const &path) const
+{
+  return m_storage->saveAmplitude(path);
+}
+
 
 uint32_t
 Detector::maxCounts() const

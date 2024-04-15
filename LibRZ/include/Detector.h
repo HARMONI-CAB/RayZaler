@@ -97,6 +97,8 @@ namespace RZ {
 
       void clear();
       bool savePNG(std::string const &) const;
+      bool saveRawData(std::string const &) const;
+      bool saveAmplitude(std::string const &) const;
 
       unsigned int    cols() const;
       unsigned int    rows() const;
@@ -149,7 +151,9 @@ namespace RZ {
       virtual void renderOpenGL() override;
 
       void clear();
-      virtual void savePNG(std::string const &) const;
+      virtual bool savePNG(std::string const &) const;
+      virtual bool saveRawData(std::string const &) const;
+      virtual bool saveAmplitude(std::string const &) const;
 
       unsigned int    cols() const;
       unsigned int    rows() const;

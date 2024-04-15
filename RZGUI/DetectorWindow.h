@@ -15,6 +15,7 @@ namespace RZ {
 class QResizeEvent;
 class ImageNavWidget;
 class SimulationSession;
+class QFileDialog;
 
 class DetectorWindow : public QMainWindow
 {
@@ -23,6 +24,7 @@ class DetectorWindow : public QMainWindow
   ImageNavWidget       *m_navWidget;
   RZ::Detector         *m_detector;
   SimulationSession    *m_session = nullptr;
+  QFileDialog          *m_saveDialog = nullptr;
 
   bool                  m_showPhotons = true;
   std::list<QAction *>  m_detectorActions;
@@ -53,6 +55,7 @@ public slots:
   void onHoverPixel(QPointF loc);
   void onChangeDetectorRep();
   void onToggleShowPhase();
+  void onExport();
 
 private:
   Ui::DetectorWindow *ui;
