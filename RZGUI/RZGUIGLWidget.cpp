@@ -15,16 +15,6 @@
 
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
-  m_axisCylinder.setHeight(1e-1);
-  m_axisCylinder.setRadius(5e-3);
-  m_axisCylinder.setSlices(24);
-  m_axisCylinder.setVisibleCaps(true, false);
-
-  m_axisArrow.setHeight(m_axisCylinder.height() / 3);
-  m_axisArrow.setBase(2 * m_axisCylinder.radius());
-  m_axisArrow.setSlices(20);
-  m_axisArrow.setStacks(20);
-
   setMouseTracking(true);
 }
 
@@ -564,8 +554,9 @@ RZGUIGLWidget::resizeGL(int w, int h)
 void
 RZGUIGLWidget::drawAxes()
 {
-  RZ::GLVectorStorage vec;
-  GLfloat aspect, axisHeight = m_axisCylinder.height();
+  GLfloat aspect;
+  GLfloat axisHeight = m_glAxes.height();
+  
   QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
 
   glMatrixMode(GL_PROJECTION);
@@ -589,6 +580,7 @@ RZGUIGLWidget::drawAxes()
       glVertex3f(+2., 2. / aspect, 10);
       glVertex3f(-2., 2. / aspect, 10);
       glEnd();
+
       glEnable(GL_LIGHTING);
       glEnable(GL_DEPTH_TEST);
 
@@ -602,37 +594,7 @@ RZGUIGLWidget::drawAxes()
       glRotatef(-90, 1, 0, 0);
       glRotatef(-90, 0, 0, 1);
 
-      glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-
-      // Z-axis
-      glPushMatrix();
-        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, 1.));
-        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, .1));
-        m_axisCylinder.display();
-        glTranslatef(0, 0, axisHeight);
-        m_axisArrow.display();
-      glPopMatrix();
-
-      // Y-axis
-      glPushMatrix();
-        glRotatef(-90, 1, 0, 0);
-        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 1, 0));
-        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, .1, 0));
-        m_axisCylinder.display();
-        glTranslatef(0, 0, axisHeight);
-        m_axisArrow.display();
-      glPopMatrix();
-
-      // X-axis
-      glPushMatrix();
-        glRotatef(+90, 0, 1, 0);
-
-        glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(1, 0, 0));
-        glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, 0, 0));
-        m_axisCylinder.display();
-        glTranslatef(0, 0, axisHeight);
-        m_axisArrow.display();
-      glPopMatrix();
+      m_glAxes.display();
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);

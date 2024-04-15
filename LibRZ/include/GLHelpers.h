@@ -365,6 +365,51 @@ namespace RZ {
   };
 
 
+  class GLReferenceFrame : public GLPrimitive {
+      RZ::GLCappedCylinder m_axisCylinder;
+      RZ::GLCone           m_axisArrow;
+
+      GLfloat              m_height = 1e-1;
+      GLfloat              m_radius = 5e-3;
+      GLfloat              m_arrowHeight = 1e-1 / 3;
+      GLfloat              m_arrowBase   = 1e-2;
+
+    public:
+      void setHeight(GLfloat);
+      void setRadius(GLfloat);
+      void setArrowHeight(GLfloat);
+      void setArrowBase(GLfloat);
+
+      GLfloat
+      height() const
+      {
+        return m_height;
+      }
+
+      GLfloat
+      radius() const
+      {
+        return m_radius;
+      }
+
+      GLfloat
+      arrowHeight() const
+      {
+        return m_arrowHeight;
+      }
+
+      GLfloat
+      arrowBase() const
+      {
+        return m_arrowBase;
+      }
+
+      virtual void display() override;
+
+      GLReferenceFrame();
+      ~GLReferenceFrame();
+  };
+  
 };
 
 #endif // _GLHELPERS_H

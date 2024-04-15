@@ -1031,3 +1031,92 @@ GLRectangle::display()
   glNormal3f(0, 0, 1.);
   glRectfv(m_vertices.data(), m_vertices.data() + 2);
 }
+
+/////////////////////////////// GLReferenceFrame ///////////////////////////////
+void
+GLReferenceFrame::setHeight(GLfloat height)
+{
+  m_height = height;
+  m_axisCylinder.setHeight(height);
+}
+
+void
+GLReferenceFrame::setRadius(GLfloat radius)
+{
+  m_radius = radius;
+  m_axisCylinder.setRadius(radius);
+}
+
+void
+GLReferenceFrame::setArrowHeight(GLfloat height)
+{
+  m_arrowHeight = height;
+  m_axisArrow.setHeight(height);
+}
+
+void
+GLReferenceFrame::setArrowBase(GLfloat base)
+{
+  m_arrowBase = base;
+  m_axisArrow.setBase(base);
+}
+
+void
+GLReferenceFrame::display()
+{
+  RZ::GLVectorStorage vec;
+
+  glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+    glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
+
+    // Z-axis
+    glPushMatrix();
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, 1.));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, .1));
+      m_axisCylinder.display();
+      glTranslatef(0, 0, m_height);
+      m_axisArrow.display();
+    glPopMatrix();
+
+    // Y-axis
+    glPushMatrix();
+      glRotatef(-90, 1, 0, 0);
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 1, 0));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, .1, 0));
+      m_axisCylinder.display();
+      glTranslatef(0, 0, m_height);
+      m_axisArrow.display();
+    glPopMatrix();
+
+    // X-axis
+    glPushMatrix();
+      glRotatef(+90, 0, 1, 0);
+
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(1, 0, 0));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, 0, 0));
+      m_axisCylinder.display();
+      glTranslatef(0, 0, m_height);
+      m_axisArrow.display();
+    glPopMatrix();
+  glPopAttrib();
+}
+
+GLReferenceFrame::GLReferenceFrame()
+{
+  m_axisCylinder.setHeight(m_height);
+  m_axisCylinder.setRadius(m_radius);
+  m_axisCylinder.setSlices(24);
+  m_axisCylinder.setVisibleCaps(true, false);
+
+  m_axisArrow.setHeight(m_arrowHeight);
+  m_axisArrow.setBase(m_arrowBase);
+  m_axisArrow.setSlices(20);
+  m_axisArrow.setStacks(20);
+}
+
+GLReferenceFrame::~GLReferenceFrame()
+{
+
+}
