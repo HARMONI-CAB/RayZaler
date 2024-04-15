@@ -9,6 +9,7 @@ namespace Ui {
 
 namespace RZ {
   class ReferenceFrame;
+  class OpticalPath;
 }
 
 class SimulationSession;
@@ -48,6 +49,7 @@ public:
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *);
+  void setSelectedOpticalPath(const RZ::OpticalPath *);
 
   void keyPressEvent(QKeyEvent *event) override;
 

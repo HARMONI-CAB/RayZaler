@@ -4,6 +4,7 @@
 #include <GL/gl.h>
 #include <cmath>
 #include <cstdio>
+#include <Vector.h>
 
 using namespace RZ;
 
@@ -1120,6 +1121,44 @@ GLReferenceFrame::GLReferenceFrame()
 }
 
 GLReferenceFrame::~GLReferenceFrame()
+{
+
+}
+
+////////////////////////////////// GLArrow /////////////////////////////////////
+void
+GLArrow::setThickness(GLfloat thickness)
+{
+  m_thickness = thickness;
+}
+
+void
+GLArrow::setDirection(Vec3 const &vec)
+{
+  m_direction = vec;
+}
+
+void
+GLArrow::display()
+{
+  glPushAttrib(GL_LINE_BIT | GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_COLOR);
+    glLineWidth(m_thickness);
+
+    glBegin(GL_LINES);
+      glVertex3f(0, 0, 0);
+      glVertex3f(m_direction.x, m_direction.y, m_direction.z);
+    glEnd();
+  glPopAttrib();
+}
+
+GLArrow::GLArrow()
+{
+
+}
+
+GLArrow::~GLArrow()
 {
 
 }

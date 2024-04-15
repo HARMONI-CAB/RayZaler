@@ -11,8 +11,11 @@ class RZGUIGLWidget : public QOpenGLWidget
 {
   Q_OBJECT
 
-  RZ::GLReferenceFrame m_glAxes;
-  RZ::ReferenceFrame  *m_selectedRefFrame = nullptr;
+  RZ::GLReferenceFrame      m_glAxes;
+  std::vector<RZ::GLArrow>  m_pathArrows;
+  const RZ::ReferenceFrame *m_selectedRefFrame = nullptr;
+  const RZ::OpticalPath    *m_selectedPath = nullptr;
+
   RZ::OMModel *m_model = nullptr;
   GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
@@ -95,7 +98,7 @@ public:
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
-
+  void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel);
   
   // Exposed so other objects can deliver events to the widget

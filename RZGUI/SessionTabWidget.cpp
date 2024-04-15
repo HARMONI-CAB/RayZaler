@@ -76,6 +76,12 @@ SessionTabWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
   m_glWidget->setSelectedReferenceFrame(frame);
 }
 
+void
+SessionTabWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
+{
+  m_glWidget->setSelectedOpticalPath(path);
+}
+
 bool
 SessionTabWidget::displayRefFrames() const
 {

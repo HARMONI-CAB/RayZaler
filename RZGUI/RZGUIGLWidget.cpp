@@ -184,7 +184,7 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
   RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
   bool shouldEnterElementFrame = m_displayElements || m_displayNames || m_displayRefFrames;
-  
+
   beam->setDynamicAlpha(m_displayElements);
 
   if (m_displayElements) {
@@ -204,6 +204,26 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 
       if (p->nestedModel() != nullptr)
         displayModel(p->nestedModel());
+    }
+
+    if (!m_pathArrows.empty() && model == m_model) {
+      auto path = m_selectedPath;
+
+      glColor3f(1, 0, 1);
+      if (path != nullptr) {
+        unsigned int i = 0;
+        for (auto p = path->m_sequence.begin();
+              p != path->m_sequence.end();
+              ++p) {
+            auto q = std::next(p);
+          if (q == path->m_sequence.end())
+            break;
+
+          pushReferenceFrameMatrix(p->frame);
+          m_pathArrows[i++].display();
+          glPopMatrix();
+        }
+      }
     }
   }
 
@@ -262,11 +282,31 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
     }
   }
 
-  if (m_selectedRefFrame) {
+  if (m_selectedRefFrame && model == m_model) {
     pushReferenceFrameMatrix(m_selectedRefFrame);
     glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
     m_glAxes.display();
     glPopMatrix();
+  }
+
+  if (!m_pathArrows.empty() && model == m_model) {
+    auto path = m_selectedPath;
+
+    if (path != nullptr) {
+      glColor3f(1, 0, 1);
+      unsigned int i = 0;
+      for (auto p = path->m_sequence.begin();
+            p != path->m_sequence.end();
+            ++p) {
+          auto q = std::next(p);
+        if (q == path->m_sequence.end())
+          break;
+
+        pushReferenceFrameMatrix(p->frame);
+        m_pathArrows[i++].display();
+        glPopMatrix();
+      }
+    }
   }
 }
 
@@ -303,6 +343,37 @@ RZGUIGLWidget::setDisplayElements(bool state)
   if (m_displayElements != state) {
     m_displayElements = state;
     update();
+  }
+}
+
+void
+RZGUIGLWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
+{
+  if (m_selectedPath != path) {
+    m_selectedPath = path;
+
+    m_pathArrows.clear();
+
+    if (path != nullptr) {
+      for (auto p = path->m_sequence.begin();
+          p != path->m_sequence.end();
+          ++p) {
+        auto q = std::next(p);
+        if (q == path->m_sequence.end())
+          break;
+
+        RZ::GLArrow arrow;
+        RZ::Vec3 direction = q->frame->getCenter() - p->frame->getCenter();
+
+        direction = p->frame->getOrientation() * direction;
+        
+        arrow.setDirection(direction);
+        arrow.setThickness(4);
+        m_pathArrows.push_back(arrow);
+      }
+
+      update();
+    }
   }
 }
 

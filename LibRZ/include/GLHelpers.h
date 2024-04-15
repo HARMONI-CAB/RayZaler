@@ -3,8 +3,12 @@
 
 #include <GL/glu.h>
 #include <vector>
+#include <Vector.h>
+#include <ReferenceFrame.h>
 
 namespace RZ {
+  struct Vec3;
+
   struct GLVectorStorage {
     GLfloat m_params[4];
 
@@ -366,8 +370,8 @@ namespace RZ {
 
 
   class GLReferenceFrame : public GLPrimitive {
-      RZ::GLCappedCylinder m_axisCylinder;
-      RZ::GLCone           m_axisArrow;
+      GLCappedCylinder     m_axisCylinder;
+      GLCone               m_axisArrow;
 
       GLfloat              m_height = 1e-1;
       GLfloat              m_radius = 5e-3;
@@ -410,6 +414,19 @@ namespace RZ {
       ~GLReferenceFrame();
   };
   
+  class GLArrow : public GLPrimitive {
+      Vec3            m_direction;
+      GLfloat         m_thickness = 2;
+      
+    public:
+      void setThickness(GLfloat thickness);
+      void setDirection(Vec3 const &vec);
+      
+      virtual void display() override;
+
+      GLArrow();
+      ~GLArrow(); 
+  };
 };
 
 #endif // _GLHELPERS_H
