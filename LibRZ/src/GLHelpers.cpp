@@ -1066,6 +1066,8 @@ GLReferenceFrame::display()
 {
   RZ::GLVectorStorage vec;
 
+  glPushMatrix();
+  
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -1101,6 +1103,7 @@ GLReferenceFrame::display()
       m_axisArrow.display();
     glPopMatrix();
   glPopAttrib();
+  glPopMatrix();
 }
 
 GLReferenceFrame::GLReferenceFrame()

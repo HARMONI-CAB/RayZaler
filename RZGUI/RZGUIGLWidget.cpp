@@ -183,7 +183,8 @@ void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
   RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
-
+  bool shouldEnterElementFrame = m_displayElements || m_displayNames || m_displayRefFrames;
+  
   beam->setDynamicAlpha(m_displayElements);
 
   if (m_displayElements) {
@@ -191,6 +192,13 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
       if (p == beam)
         continue;
       pushElementMatrix(p);
+      if (m_displayRefFrames) {
+        glPushMatrix();
+        glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+        m_glAxes.display();
+        glPopMatrix();
+      }
+
       p->renderOpenGL();
       popElementMatrix();
 
@@ -216,6 +224,13 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
       if (m_displayApertures)
         displayApertures(p);
 
+        if (m_displayRefFrames) {
+          glPushMatrix();
+          glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+          m_glAxes.display();
+          glPopMatrix();
+        }
+
       if (p->nestedModel() != nullptr)
         displayModel(p->nestedModel());
     }
@@ -224,9 +239,18 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
       if (p == beam)
         continue;
 
-      if (m_displayNames) {
+      if (shouldEnterElementFrame) {
         pushElementMatrix(p);
-        renderText(0, 0, 0, QString::fromStdString(p->name()));
+        if (m_displayNames)
+          renderText(0, 0, 0, QString::fromStdString(p->name()));
+
+        if (m_displayRefFrames) {
+          glPushMatrix();
+          glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+          m_glAxes.display();
+          glPopMatrix();
+        }
+        
         popElementMatrix();
       }
 
@@ -237,6 +261,13 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
         displayModel(p->nestedModel());
     }
   }
+
+  if (m_selectedRefFrame) {
+    pushReferenceFrameMatrix(m_selectedRefFrame);
+    glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+    m_glAxes.display();
+    glPopMatrix();
+  }
 }
 
 void
@@ -244,6 +275,15 @@ RZGUIGLWidget::setDisplayNames(bool state)
 {
   if (m_displayNames != state) {
     m_displayNames = state;
+    update();
+  }
+}
+
+void
+RZGUIGLWidget::setDisplayRefFrames(bool state)
+{
+  if (m_displayRefFrames != state) {
+    m_displayRefFrames = state;
     update();
   }
 }
@@ -266,7 +306,14 @@ RZGUIGLWidget::setDisplayElements(bool state)
   }
 }
 
-
+void
+RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
+{
+  if (m_selectedRefFrame != frame) {
+    m_selectedRefFrame = frame;
+    update();
+  }
+}
 void
 RZGUIGLWidget::configureLighting()
 {

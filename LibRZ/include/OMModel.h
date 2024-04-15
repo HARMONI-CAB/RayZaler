@@ -110,6 +110,7 @@ namespace RZ {
       ~OMModel();
 
       bool registerFrame(ReferenceFrame *);
+      void setFrameAlias(ReferenceFrame *, std::string const &name);
       Element *autoRegisterElement(Element *);
 
       inline ReferenceFrame *

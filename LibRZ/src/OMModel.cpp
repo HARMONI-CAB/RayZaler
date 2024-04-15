@@ -127,6 +127,12 @@ OMModel::registerFrame(ReferenceFrame *frame)
   return true;
 }
 
+void
+OMModel::setFrameAlias(ReferenceFrame *frame, std::string const &alias)
+{
+  m_nameToFrame[alias] = frame;
+}
+
 bool
 OMModel::registerElement(Element *element)
 {

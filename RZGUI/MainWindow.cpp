@@ -241,6 +241,12 @@ MainWindow::connectAll()
         SIGNAL(toggled(bool)),
         this,
         SLOT(onChangeDisplay()));
+
+    connect(
+        ui->actionToggleReferenceFrames,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onChangeDisplay()));
 }
 
 void
@@ -319,6 +325,10 @@ MainWindow::refreshCurrentSession()
           ui->actionToggleElements,
           setChecked(m_sessionToUi[m_currSession].tab->displayElements()));
 
+    BLOCKSIG(
+          ui->actionToggleReferenceFrames,
+          setChecked(m_sessionToUi[m_currSession].tab->displayRefFrames()));
+
     reconnectModels();
   } else {
     m_propModel->setModel(nullptr);
@@ -329,9 +339,11 @@ MainWindow::refreshCurrentSession()
     ui->viewToolBar->setEnabled(false);
     ui->simToolBar->setEnabled(false);
     ui->displayToolBar->setEnabled(false);
-    BLOCKSIG(ui->actionToggleDisplayNames, setChecked(false));
-    BLOCKSIG(ui->actionToggleApertures,    setChecked(false));
-    BLOCKSIG(ui->actionToggleElements,     setChecked(true));
+    BLOCKSIG(ui->actionToggleDisplayNames,    setChecked(false));
+    BLOCKSIG(ui->actionToggleApertures,       setChecked(false));
+    BLOCKSIG(ui->actionToggleElements,        setChecked(true));
+    BLOCKSIG(ui->actionToggleReferenceFrames, setChecked(false));
+
     ui->propTableView->setModel(nullptr);
     setWindowTitle("RayZaler - No model file");
   }
@@ -606,8 +618,12 @@ void
 MainWindow::onTreeItemSelectionChanged()
 {
   if (m_currSession != nullptr) {
+    SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
     QModelIndex index = ui->omTreeView->currentIndex();
     RZ::Element *selectedElement = nullptr;
+    RZ::ReferenceFrame *selectedFrame = nullptr;
+
     auto item = m_omModel->itemFromIndex(index);
 
     if (item != nullptr) {
@@ -615,10 +631,13 @@ MainWindow::onTreeItemSelectionChanged()
           || item->type == OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT
           || item->type == OM_TREE_ITEM_TYPE_DETECTOR) {
         selectedElement = item->element;
+      } else if (item->type == OM_TREE_ITEM_TYPE_FRAME) {
+        selectedFrame = item->frame;
       }
     }
 
     m_currSession->selectElement(selectedElement);
+    widget->setSelectedReferenceFrame(selectedFrame);
   }
 
   refreshCurrentElement();
@@ -634,8 +653,8 @@ MainWindow::onChangeDisplay()
     widget->setDisplayNames(ui->actionToggleDisplayNames->isChecked());
     widget->setDisplayApertures(ui->actionToggleApertures->isChecked());
     widget->setDisplayElements(ui->actionToggleElements->isChecked());
+    widget->setDisplayRefFrames(ui->actionToggleReferenceFrames->isChecked());
   }
-
 }
 
 void
@@ -643,7 +662,6 @@ MainWindow::onUpdateModel()
 {
   if (m_currSession != nullptr) {
     auto &ui = m_sessionToUi[m_currSession];
-
     ui.tab->updateModel();
   }
 }

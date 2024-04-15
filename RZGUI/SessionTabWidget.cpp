@@ -70,6 +70,24 @@ SessionTabWidget::setDisplayApertures(bool disp)
   m_glWidget->setDisplayApertures(disp);
 }
 
+void
+SessionTabWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
+{
+  m_glWidget->setSelectedReferenceFrame(frame);
+}
+
+bool
+SessionTabWidget::displayRefFrames() const
+{
+  return m_displayRefFrames;
+}
+
+void
+SessionTabWidget::setDisplayRefFrames(bool disp)
+{
+  m_displayRefFrames = disp;
+  m_glWidget->setDisplayRefFrames(disp);
+}
 
 void
 SessionTabWidget::keyPressEvent(QKeyEvent *event)

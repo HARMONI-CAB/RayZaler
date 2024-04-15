@@ -13,7 +13,7 @@ OMTreeItem::data(int col)
         return displayText;
 
       case OM_TREE_ITEM_TYPE_FRAME:
-        return QString::fromStdString(frame->name());
+        return displayText;
 
       case OM_TREE_ITEM_TYPE_ELEMENT:
         if (element->name().size() == 0)
@@ -197,7 +197,7 @@ OMTreeModel::populateSubModel(OMTreeItem *root, RZ::OMModel *model)
     for (auto &p : frameList) {
       auto frame = model->lookupReferenceFrame(p);
       if (frame != nullptr) {
-        auto item = allocItem(OM_TREE_ITEM_TYPE_FRAME, frames);
+        auto item = allocItem(OM_TREE_ITEM_TYPE_FRAME, frames, p.c_str());
         item->frame = frame;
         assignItemIcon(item);
       }

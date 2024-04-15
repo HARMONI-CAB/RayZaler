@@ -25,6 +25,9 @@
         <file>icons/Efield.svg</file>
         <file>icons/photons.svg</file>
         <file>icons/RGB_color_wheel_36.svg</file>
+        <file>icons/toggle-aperture.svg</file>
+        <file>icons/toggle-elements.svg</file>
+        <file>icons/toggle-frames.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

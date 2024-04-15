@@ -7,6 +7,10 @@ namespace Ui {
   class SessionTabWidget;
 }
 
+namespace RZ {
+  class ReferenceFrame;
+}
+
 class SimulationSession;
 class RZGUIGLWidget;
 class SimulationProgressDialog;
@@ -23,7 +27,7 @@ class SessionTabWidget : public QWidget
   bool               m_displayNames     = false;
   bool               m_displayApertures = false;
   bool               m_displayElements  = true;
-
+  bool               m_displayRefFrames = false;
   void connectAll();
 
 public:
@@ -38,9 +42,12 @@ public:
   bool displayNames() const;
   bool displayApertures() const;
   bool displayElements() const;
+  bool displayRefFrames() const;
   void setDisplayNames(bool);
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
+  void setDisplayRefFrames(bool);
+  void setSelectedReferenceFrame(RZ::ReferenceFrame *);
 
   void keyPressEvent(QKeyEvent *event) override;
 

@@ -12,7 +12,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   Q_OBJECT
 
   RZ::GLReferenceFrame m_glAxes;
-
+  RZ::ReferenceFrame  *m_selectedRefFrame = nullptr;
   RZ::OMModel *m_model = nullptr;
   GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
@@ -20,6 +20,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   bool    m_displayNames     = false;
   bool    m_displayApertures = false;
   bool    m_displayElements  = true;
+  bool    m_displayRefFrames = false;
 
   bool    m_fixedLight = false;
   bool    m_newViewPort = false;
@@ -93,7 +94,10 @@ public:
   void setDisplayNames(bool);
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
+  void setDisplayRefFrames(bool);
 
+  void setSelectedReferenceFrame(RZ::ReferenceFrame *sel);
+  
   // Exposed so other objects can deliver events to the widget
   void keyPressEvent(QKeyEvent *event) override;
 };

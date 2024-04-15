@@ -412,6 +412,7 @@
    <addaction name="actionToggleDisplayNames"/>
    <addaction name="actionToggleApertures"/>
    <addaction name="actionToggleElements"/>
+   <addaction name="actionToggleReferenceFrames"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -596,6 +597,10 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/toggle-aperture.svg</normaloff>:/toolbar/icons/toggle-aperture.svg</iconset>
+   </property>
    <property name="text">
     <string>Toggle apertures</string>
    </property>
@@ -607,11 +612,30 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/toggle-elements.svg</normaloff>:/toolbar/icons/toggle-elements.svg</iconset>
+   </property>
    <property name="text">
     <string>Toggle elements</string>
    </property>
    <property name="toolTip">
     <string>Toggle display elements</string>
+   </property>
+  </action>
+  <action name="actionToggleReferenceFrames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/toggle-frames.svg</normaloff>:/toolbar/icons/toggle-frames.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle reference Frames</string>
+   </property>
+   <property name="toolTip">
+    <string>Show/hide reference frames</string>
    </property>
   </action>
  </widget>

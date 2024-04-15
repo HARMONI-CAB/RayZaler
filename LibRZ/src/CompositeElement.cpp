@@ -59,6 +59,8 @@ CompositeElement::exposePort(
   // Ports are ADDED, because they belong to the underlying OMModel.
   if (!addPort(name, frame))
     throw std::runtime_error("Internal error: port `" + name + "' redefined");
+
+  m_model->setFrameAlias(frame, name);
 }
 
 bool

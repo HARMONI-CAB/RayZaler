@@ -34,6 +34,7 @@ TopLevelModel::registerParam(std::string const &name, GenericModelParam *param)
 void
 TopLevelModel::exposePort(std::string const &name, ReferenceFrame *frame)
 {
+  setFrameAlias(frame, name);
   m_focalPlanes[name] = frame;
 }
 
