@@ -9,12 +9,17 @@ namespace Ui {
 }
 
 class RZMHighLighter;
+class QLabel;
 
 class SourceEditorWindow : public QMainWindow
 {
   Q_OBJECT
 
+  QLabel         *m_lineLabel = nullptr;
+  QLabel         *m_colLabel  = nullptr;
   RZMHighLighter *m_highlighter = nullptr;
+
+  void connectAll();
 
 public:
   explicit SourceEditorWindow(QWidget *parent = nullptr);
@@ -22,6 +27,9 @@ public:
   void loadFromFp(FILE *fp);
 
   ~SourceEditorWindow();
+
+public slots:
+  void onCursorChanged();
 
 private:
   Ui::SourceEditorWindow *ui;

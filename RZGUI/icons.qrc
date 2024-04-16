@@ -30,6 +30,9 @@
         <file>icons/toggle-frames.svg</file>
         <file>icons/view-refresh.svg</file>
         <file>icons/text-x-script.svg</file>
+        <file>icons/applications-development.svg</file>
+        <file>icons/document-save-as.svg</file>
+        <file>icons/text-x-install.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>
