@@ -25,6 +25,7 @@
 // + getRecipe(): gets the current recipe object
 // + getModel(): gets the current, top-level, optomechanical model
 // + getFileName(): gets the filename
+//
 
 class AsyncRayTracer;
 class FileParserContext;
@@ -228,6 +229,7 @@ public:
   SimulationState(RZ::TopLevelModel *);
   ~SimulationState();
 
+  bool setTopLevelModel(RZ::TopLevelModel *);
   bool canRun() const;
   bool running() const;
   bool initSimulation();
@@ -257,6 +259,7 @@ class SimulationSession : public QObject
 
   QString            m_path;
   QString            m_fileName;
+  QString            m_searchPath;
   RZ::FileParserContext *m_context       = nullptr;
   RZ::Recipe        *m_recipe            = nullptr;
   RZ::TopLevelModel *m_topLevelModel     = nullptr;
@@ -293,6 +296,7 @@ public:
 
   bool                 runSimulation();
 
+  void                 reload();
   void                 animPause();
   void                 animStop();
   void                 animBegin();

@@ -9,6 +9,16 @@ AsyncRayTracer::AsyncRayTracer(RZ::OMModel *model, QObject *parent)
   m_cancelled = false;
 }
 
+bool
+AsyncRayTracer::setModel(RZ::OMModel *model)
+{
+  if (m_running)
+    return false;
+
+  m_model = model;
+  return true;
+}
+
 void
 AsyncRayTracer::cancel()
 {

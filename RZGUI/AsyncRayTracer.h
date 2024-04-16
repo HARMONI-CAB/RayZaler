@@ -28,6 +28,7 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
 public:
   explicit AsyncRayTracer(RZ::OMModel *model, QObject *parent = nullptr);
 
+  bool setModel(RZ::OMModel *model);
   void cancel();
   void setUpdateBeam(bool);
   void setDiffraction(bool);

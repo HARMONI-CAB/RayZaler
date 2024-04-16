@@ -1290,11 +1290,26 @@ SimulationState::beam() const
   return *m_currBeam;
 }
 
+bool
+SimulationState::setTopLevelModel(RZ::TopLevelModel *model)
+{
+  if (m_running) {
+    RZError("Attempting to change top level model while a simulation is running!\n");
+    return false;
+  }
+
+  m_topLevelModel = model;
+  m_simCount = 0;
+
+  return true;
+}
+
 SimulationState::SimulationState(RZ::TopLevelModel *model)
 {
-  m_topLevelModel = model;
   m_currBeam      = m_beamAlloc.end();
   m_randState     = new RZ::ExprRandomState();
+
+  setTopLevelModel(model);
 }
 
 SimulationState::~SimulationState()
@@ -1309,6 +1324,120 @@ SimulationState::~SimulationState()
 
 ////////////////////////////////// Simulation session /////////////////////////
 
+void
+SimulationSession::reload()
+{
+  bool ok = false;
+  RZ::Recipe *recipe = nullptr;
+  RZ::FileParserContext *context = nullptr;
+  RZ::TopLevelModel *topLevelModel = nullptr;
+  std::string strPath = m_path.toStdString();
+  std::string strName = m_fileName.toStdString();
+  std::string error;
+
+  FILE *fp = fopen(strPath.c_str(), "r");
+
+  if (fp == nullptr) {
+    error = "Cannot open " + strName + " for reading: ";
+    error += strerror(errno);
+    goto done;
+  }
+
+  recipe = new RZ::Recipe();
+  recipe->addDof("t", 0, 0, 1e6);
+
+  context = new RZ::FileParserContext(recipe);
+  context->addSearchPath(m_searchPath.toStdString());
+  context->setFile(fp, strName.c_str());
+
+  try {
+    context->parse();
+  } catch (std::runtime_error const &e) {
+    error = "Model file has errors:<pre>";
+    error += e.what();
+    error += "</pre>";
+
+    goto done;
+  }
+
+  try {
+    topLevelModel = new RZ::TopLevelModel(recipe);
+  } catch (std::runtime_error const &e) {
+    error = "Model has errors: ";
+    error += e.what();
+    goto done;
+  }
+
+  topLevelModel->setBeamColoring(m_rgbColoring);
+
+  /////////////////////// From here, nothing should fail //////////////////////
+  if (m_simState == nullptr) {
+    m_simState = new SimulationState(topLevelModel);
+  } else {
+    if (!m_simState->setTopLevelModel(topLevelModel)) {
+      error = "Failed to top model of simulation state (memory leak)!";
+      goto done;
+    }
+  }
+
+  if (m_tracer == nullptr) {
+    m_tracer = new AsyncRayTracer(topLevelModel);
+    m_tracer->moveToThread(m_tracerThread);
+
+    connect(
+          this,
+          SIGNAL(triggerSimulation(QString, int, int)),
+          m_tracer,
+          SLOT(onStartRequested(QString, int, int)));
+
+    connect(
+          m_tracer,
+          SIGNAL(finished(bool)),
+          this,
+          SLOT(onSimulationDone(bool)));
+
+    connect(
+          m_tracer,
+          SIGNAL(aborted()),
+          this,
+          SLOT(onSimulationAborted()));
+
+    connect(
+          m_tracer,
+          SIGNAL(error(QString)),
+          this,
+          SLOT(onSimulationError(QString)));
+  } else {
+    if (!m_tracer->setModel(topLevelModel)) {
+      error = "Failed to top model of simulation state (memory leak)!";
+      goto done;
+    }
+  }
+
+  ok = true;
+
+done:
+  if (ok) {
+    std::swap(recipe, m_recipe);
+    std::swap(context, m_context);
+    std::swap(topLevelModel, m_topLevelModel);
+
+    m_selectedElement = nullptr;
+  }
+
+  if (topLevelModel != nullptr)
+    delete topLevelModel;
+
+  if (context != nullptr)
+    delete context;
+
+  if (recipe != nullptr)
+    delete recipe;
+
+  if (!ok)
+    throw std::runtime_error(error);
+}
+
 SimulationSession::SimulationSession(
     QString const &path,
     QObject *parent)
@@ -1318,6 +1447,7 @@ SimulationSession::SimulationSession(
 
   m_path        = path;
   m_fileName    = info.fileName();
+  m_searchPath  = info.dir().absolutePath();
   m_rgbColoring = &g_rgbColoring;
 
   m_timer    = new QTimer(this);
@@ -1327,84 +1457,14 @@ SimulationSession::SimulationSession(
         this,
         SLOT(onTimerTick()));
 
-  std::string strPath = path.toStdString();
-  std::string strName = m_fileName.toStdString();
-
-  FILE *fp = fopen(strPath.c_str(), "r");
-
-  if (fp == nullptr) {
-    std::string error = "Cannot open " + strName + " for reading: ";
-    error += strerror(errno);
-
-    throw std::runtime_error(error);
-  }
-
-  m_recipe  = new RZ::Recipe();
-  m_recipe->addDof("t", 0, 0, 1e6);
-  m_context = new RZ::FileParserContext(m_recipe);
-  m_context->addSearchPath(info.dir().absolutePath().toStdString());
-  m_context->setFile(fp, strName.c_str());
-
-  try {
-    m_context->parse();
-  } catch (std::runtime_error &e) {
-    std::string error = "Model file has errors:<pre>";
-    error += e.what();
-    error += "</pre>";
-
-    throw std::runtime_error(error);
-  }
-
-  delete m_context;
-  m_context = nullptr;
-
-  try {
-    m_topLevelModel = new RZ::TopLevelModel(m_recipe);
-  } catch (std::runtime_error &e) {
-    std::string error = "Model has errors: ";
-    error += e.what();
-
-    throw std::runtime_error(error);
-  }
-
-  m_topLevelModel->setBeamColoring(m_rgbColoring);
-
-  m_simState     = new SimulationState(m_topLevelModel);
   m_tracerThread = new QThread;
-  m_tracer       = new AsyncRayTracer(m_topLevelModel);
-
-  m_tracer->moveToThread(m_tracerThread);
-
   connect(
         m_tracerThread,
         SIGNAL(finished()),
         m_tracerThread,
         SLOT(deleteLater()));
 
-  connect(
-        this,
-        SIGNAL(triggerSimulation(QString, int, int)),
-        m_tracer,
-        SLOT(onStartRequested(QString, int, int)));
-
-  connect(
-        m_tracer,
-        SIGNAL(finished(bool)),
-        this,
-        SLOT(onSimulationDone(bool)));
-
-  connect(
-        m_tracer,
-        SIGNAL(aborted()),
-        this,
-        SLOT(onSimulationAborted()));
-
-  connect(
-        m_tracer,
-        SIGNAL(error(QString)),
-        this,
-        SLOT(onSimulationError(QString)));
-
+  reload();
 
   m_tracerThread->start();
 }
