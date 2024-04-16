@@ -190,6 +190,12 @@ MainWindow::connectAll()
         SLOT(onSimulationRun()));
 
   connect(
+        ui->actionClearBeam,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onClearBeam()));
+
+  connect(
         ui->actionSimResult,
         SIGNAL(triggered(bool)),
         this,
@@ -579,6 +585,16 @@ MainWindow::onSimulationRun()
       }
     }
   }
+}
+
+void
+MainWindow::onClearBeam()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->clearBeam();
 }
 
 void

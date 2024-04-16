@@ -32,6 +32,7 @@ namespace RZ {
         Element *parent = nullptr);
       virtual ~RayBeamElement();
 
+      void clear();
       void setList(std::list<Ray> const &);
       void setRayColoring(RayColoring const *);
       void setDynamicAlpha(bool);

@@ -87,6 +87,12 @@ RayBeamElement::setDynamicAlpha(bool alpha)
 }
 
 void
+RayBeamElement::clear()
+{
+  setList(std::list<Ray>());
+}
+
+void
 RayBeamElement::setList(std::list<Ray> const &list)
 {
   pthread_mutex_lock(&m_rayMutex);

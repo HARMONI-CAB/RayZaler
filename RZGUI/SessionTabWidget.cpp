@@ -6,6 +6,7 @@
 #include "RZGUIGLWidget.h"
 #include "SimulationProgressDialog.h"
 #include "DetectorWindow.h"
+#include <RayBeamElement.h>
 
 SessionTabWidget::SessionTabWidget(
     SimulationSession *session,
@@ -153,6 +154,15 @@ SessionTabWidget::setRotation(qreal x, qreal y, qreal z)
     static_cast<GLfloat>(z)};
 
   m_glWidget->setCurrentRot(rot);
+}
+
+void
+SessionTabWidget::clearBeam()
+{
+  RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(m_session->topLevelModel()->beam());
+
+  beam->clear();
+  m_glWidget->update();
 }
 
 void

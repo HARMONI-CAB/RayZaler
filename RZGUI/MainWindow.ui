@@ -45,9 +45,50 @@
     </property>
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionReloadModel"/>
+    <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
+   <widget class="QMenu" name="menu_Animation">
+    <property name="title">
+     <string>&amp;Animation</string>
+    </property>
+    <addaction name="actionAnimPlay"/>
+    <addaction name="actionAnimPause"/>
+    <addaction name="actionAnimStop"/>
+    <addaction name="actionAnimStart"/>
+    <addaction name="actionAnimEnd"/>
+   </widget>
+   <widget class="QMenu" name="menu_Simulation">
+    <property name="title">
+     <string>&amp;Simulation</string>
+    </property>
+    <addaction name="actionSimProp"/>
+    <addaction name="actionRunSim"/>
+    <addaction name="actionClearBeam"/>
+    <addaction name="separator"/>
+    <addaction name="actionSimResult"/>
+   </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionViewTop"/>
+    <addaction name="actionViewBottom"/>
+    <addaction name="actionViewFront"/>
+    <addaction name="actionViewRear"/>
+    <addaction name="actionViewLeft"/>
+    <addaction name="actionViewRight"/>
+    <addaction name="separator"/>
+    <addaction name="actionToggleDisplayNames"/>
+    <addaction name="actionToggleApertures"/>
+    <addaction name="actionToggleElements"/>
+    <addaction name="actionToggleReferenceFrames"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_View"/>
+   <addaction name="menu_Simulation"/>
+   <addaction name="menu_Animation"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="fileToolBar">
@@ -435,7 +476,7 @@
      <normaloff>:/toolbar/icons/media-skip-backward.svg</normaloff>:/toolbar/icons/media-skip-backward.svg</iconset>
    </property>
    <property name="text">
-    <string>Skip to start of animation</string>
+    <string>Rewind</string>
    </property>
   </action>
   <action name="actionAnimEnd">
@@ -444,7 +485,7 @@
      <normaloff>:/toolbar/icons/media-skip-forward.svg</normaloff>:/toolbar/icons/media-skip-forward.svg</iconset>
    </property>
    <property name="text">
-    <string>Skip to end of Animation</string>
+    <string>Skip to end</string>
    </property>
   </action>
   <action name="actionAnimPause">
@@ -453,7 +494,7 @@
      <normaloff>:/toolbar/icons/media-playback-pause.svg</normaloff>:/toolbar/icons/media-playback-pause.svg</iconset>
    </property>
    <property name="text">
-    <string>Pause animatin</string>
+    <string>Pause</string>
    </property>
   </action>
   <action name="actionAnimStop">
@@ -462,7 +503,7 @@
      <normaloff>:/toolbar/icons/media-playback-stop.svg</normaloff>:/toolbar/icons/media-playback-stop.svg</iconset>
    </property>
    <property name="text">
-    <string>Animation stop</string>
+    <string>Stop</string>
    </property>
   </action>
   <action name="actionAnimPlay">
@@ -471,7 +512,7 @@
      <normaloff>:/toolbar/icons/media-playback-start.svg</normaloff>:/toolbar/icons/media-playback-start.svg</iconset>
    </property>
    <property name="text">
-    <string>Play animation</string>
+    <string>Play</string>
    </property>
   </action>
   <action name="actionSimProp">
@@ -480,7 +521,7 @@
      <normaloff>:/toolbar/icons/open-menu.svg</normaloff>:/toolbar/icons/open-menu.svg</iconset>
    </property>
    <property name="text">
-    <string>Simulation properties</string>
+    <string>Properties</string>
    </property>
   </action>
   <action name="actionRunSim">
@@ -489,7 +530,7 @@
      <normaloff>:/toolbar/icons/trace.svg</normaloff>:/toolbar/icons/trace.svg</iconset>
    </property>
    <property name="text">
-    <string>Run simulation</string>
+    <string>&amp;Run</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -501,7 +542,7 @@
      <normaloff>:/toolbar/icons/image-x-generic.svg</normaloff>:/toolbar/icons/image-x-generic.svg</iconset>
    </property>
    <property name="text">
-    <string>Simulation result</string>
+    <string>&amp;Detector window</string>
    </property>
   </action>
   <action name="actionViewTop">
@@ -567,7 +608,7 @@
      <normaloff>:/toolbar/icons/folder-tag.svg</normaloff>:/toolbar/icons/folder-tag.svg</iconset>
    </property>
    <property name="text">
-    <string>Toggle display names</string>
+    <string>Show/hide names</string>
    </property>
   </action>
   <action name="actionRunSimFile">
@@ -603,7 +644,7 @@
      <normaloff>:/toolbar/icons/toggle-aperture.svg</normaloff>:/toolbar/icons/toggle-aperture.svg</iconset>
    </property>
    <property name="text">
-    <string>Toggle apertures</string>
+    <string>&amp;Show/hide apertures</string>
    </property>
    <property name="toolTip">
     <string>Toggle display apertures</string>
@@ -618,7 +659,7 @@
      <normaloff>:/toolbar/icons/toggle-elements.svg</normaloff>:/toolbar/icons/toggle-elements.svg</iconset>
    </property>
    <property name="text">
-    <string>Toggle elements</string>
+    <string>&amp;Show/hide elements</string>
    </property>
    <property name="toolTip">
     <string>Toggle display elements</string>
@@ -633,7 +674,7 @@
      <normaloff>:/toolbar/icons/toggle-frames.svg</normaloff>:/toolbar/icons/toggle-frames.svg</iconset>
    </property>
    <property name="text">
-    <string>Toggle reference Frames</string>
+    <string>&amp;Show/hide reference frames</string>
    </property>
    <property name="toolTip">
     <string>Show/hide reference frames</string>

@@ -36,6 +36,7 @@ public:
   ~SessionTabWidget() override;
 
   SimulationSession *session() const;
+  void clearBeam();
   void showDetectorWindow();
   void updateDetectorWindow();
   void updateModel();

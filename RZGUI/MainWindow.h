@@ -75,6 +75,7 @@ public slots:
   void onSimulationLoadAndRun();
   void onSimulationEditProperties();
   void onSimulationRun();
+  void onClearBeam();
   void onSimulationShowResult();
 
   void onModelsChanged();
