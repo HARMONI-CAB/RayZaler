@@ -32,9 +32,9 @@ class FileParserContext;
 class QAbstractTableModel;
 
 namespace RZ {
-  class FileParserContext;
   class RayBeamElement;
   class RayColoring;
+  class ParserContext;
 };
 
 enum ColoringMode {
@@ -260,7 +260,6 @@ class SimulationSession : public QObject
   QString            m_path;
   QString            m_fileName;
   QString            m_searchPath;
-  RZ::FileParserContext *m_context       = nullptr;
   RZ::Recipe        *m_recipe            = nullptr;
   RZ::TopLevelModel *m_topLevelModel     = nullptr;
   RZ::Element       *m_selectedElement   = nullptr;
@@ -293,11 +292,12 @@ public:
   void                 selectElement(RZ::Element *);
   RZ::Element         *getSelectedElement() const;
   QString              path() const;
+  QString              searchPath() const;
   QString              fileName() const;
 
   bool                 runSimulation();
 
-  void                 reload();
+  void                 reload(RZ::ParserContext *context = nullptr);
   void                 animPause();
   void                 animStop();
   void                 animBegin();

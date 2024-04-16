@@ -3,6 +3,22 @@
 #include "RZMHighLighter.h"
 #include <QLabel>
 
+SourceEditorParserContext::SourceEditorParserContext(
+    RZ::Recipe *recipe,
+    QTextEdit *edit) : RZ::ParserContext(recipe)
+{
+  m_source = edit->toPlainText().toStdString();
+}
+
+int
+SourceEditorParserContext::read()
+{
+  if (m_pos >= m_source.size())
+    return -1;
+
+  return m_source[m_pos++];
+}
+
 SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::SourceEditorWindow)
@@ -38,6 +54,12 @@ SourceEditorWindow::connectAll()
         SIGNAL(cursorPositionChanged()),
         this,
         SLOT(onCursorChanged()));
+
+  connect(
+        ui->actionBuildModel,
+        SIGNAL(triggered(bool)),
+        this,
+        SIGNAL(build()));
 }
 
 void
@@ -63,6 +85,12 @@ SourceEditorWindow::loadFromFp(FILE *fp)
   fseek(fp, curr, SEEK_SET);
 
   ui->sourceTextEdit->setPlainText(text);
+}
+
+SourceEditorParserContext *
+SourceEditorWindow::makeParserContext(RZ::Recipe *recipe)
+{
+  return new SourceEditorParserContext(recipe, ui->sourceTextEdit);
 }
 
 SourceEditorWindow::~SourceEditorWindow()

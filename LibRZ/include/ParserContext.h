@@ -130,7 +130,6 @@ namespace RZ {
 
       
     protected:
-      void setFile(std::string const &);
       int  tokenType() const;
       std::string token() const;
       int  lex();
@@ -235,6 +234,19 @@ namespace RZ {
       ParserContext(Recipe *recipe, int recursion = 0);
       ParserContext(ParserContext *parent, int recursion);
 
+      inline Recipe *
+      recipe() const
+      {
+        return m_recipe;
+      }
+
+      inline Recipe *
+      rootRecipe() const
+      {
+        return m_rootRecipe;
+      }
+      
+      void setFile(std::string const &);
       bool parse();
       void addSearchPath(std::string const &path);
       void inheritSearchPaths(ParserContext const *);

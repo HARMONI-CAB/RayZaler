@@ -1325,11 +1325,11 @@ SimulationState::~SimulationState()
 ////////////////////////////////// Simulation session /////////////////////////
 
 void
-SimulationSession::reload()
+SimulationSession::reload(RZ::ParserContext *context)
 {
   bool ok = false;
   RZ::Recipe *recipe = nullptr;
-  RZ::FileParserContext *context = nullptr;
+  RZ::FileParserContext *fileCtx = nullptr;
   RZ::TopLevelModel *topLevelModel = nullptr;
   std::string strPath = m_path.toStdString();
   std::string strName = m_fileName.toStdString();
@@ -1343,12 +1343,17 @@ SimulationSession::reload()
     goto done;
   }
 
-  recipe = new RZ::Recipe();
-  recipe->addDof("t", 0, 0, 1e6);
+  if (context == nullptr) {
+    recipe = new RZ::Recipe();
+    recipe->addDof("t", 0, 0, 1e6);
 
-  context = new RZ::FileParserContext(recipe);
-  context->addSearchPath(m_searchPath.toStdString());
-  context->setFile(fp, strName.c_str());
+    fileCtx = new RZ::FileParserContext(recipe);
+    fileCtx->addSearchPath(m_searchPath.toStdString());
+    fileCtx->setFile(fp, strName.c_str());
+    context = fileCtx;
+  } else {
+    recipe = context->recipe();
+  }
 
   try {
     context->parse();
@@ -1419,7 +1424,6 @@ SimulationSession::reload()
 done:
   if (ok) {
     std::swap(recipe, m_recipe);
-    std::swap(context, m_context);
     std::swap(topLevelModel, m_topLevelModel);
 
     m_selectedElement = nullptr;
@@ -1428,8 +1432,8 @@ done:
   if (topLevelModel != nullptr)
     delete topLevelModel;
 
-  if (context != nullptr)
-    delete context;
+  if (fileCtx != nullptr)
+    delete fileCtx;
 
   if (recipe != nullptr)
     delete recipe;
@@ -1481,9 +1485,6 @@ SimulationSession::~SimulationSession()
 
  if (m_recipe != nullptr)
    delete m_recipe;
-
- if (m_context != nullptr)
-   delete m_context;
 }
 
 void
@@ -1543,6 +1544,12 @@ QString
 SimulationSession::path() const
 {
   return m_path;
+}
+
+QString
+SimulationSession::searchPath() const
+{
+  return m_searchPath;
 }
 
 QString

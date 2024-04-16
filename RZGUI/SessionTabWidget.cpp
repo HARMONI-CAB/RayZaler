@@ -136,6 +136,12 @@ SessionTabWidget::connectAll()
         SIGNAL(sweepFinished()),
         this,
         SLOT(onSweepFinished()));
+
+  connect(
+        m_sourceEditorWindow,
+        SIGNAL(build()),
+        this,
+        SLOT(onSourceEditorBuild()));
 }
 
 SessionTabWidget::~SessionTabWidget()
@@ -216,6 +222,36 @@ SessionTabWidget::reloadModel()
   m_progressDialog->setTracer(m_session->tracer());
 }
 
+void
+SessionTabWidget::reloadModelFromEditor()
+{
+  m_detWindow->setSession(nullptr);
+  m_glWidget->setModel(nullptr);
+  m_progressDialog->setTracer(nullptr);
+
+  try {
+    auto *recipe = new RZ::Recipe();
+    recipe->addDof("t", 0, 0, 1e6);
+    auto *ctx = m_sourceEditorWindow->makeParserContext(recipe);
+
+    ctx->setFile(m_session->fileName().toStdString());
+    ctx->addSearchPath(m_session->searchPath().toStdString());
+
+    // Will release memory always, even after an error
+    m_session->reload(ctx);
+  } catch (std::runtime_error const &e) {
+    QMessageBox::critical(
+          this,
+          "Build model",
+          "Cannot build model from editor: " + QString::fromStdString(e.what()));
+  }
+
+  m_glWidget->setModel(m_session->topLevelModel());
+  m_detWindow->setSession(m_session);
+  m_progressDialog->setTracer(m_session->tracer());
+}
+
+
 ////////////////////////////////// Slots ///////////////////////////////////////
 void
 SessionTabWidget::onModelChanged()
@@ -239,3 +275,8 @@ SessionTabWidget::onSweepFinished()
   m_progressDialog->simFinished();
 }
 
+void
+SessionTabWidget::onSourceEditorBuild()
+{
+  reloadModelFromEditor();
+}

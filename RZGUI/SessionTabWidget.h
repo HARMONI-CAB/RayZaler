@@ -44,6 +44,7 @@ public:
   void updateDetectorWindow();
   void updateModel();
   void reloadModel();
+  void reloadModelFromEditor();
   void setRotation(qreal, qreal, qreal);
   void showSourceWindow();
   bool displayNames() const;
@@ -66,6 +67,7 @@ public slots:
   void onModelChanged();
   void onSimulationTriggered(QString, int, int);
   void onSweepFinished();
+  void onSourceEditorBuild();
 };
 
 #endif // SESSIONTABWIDGET_H
