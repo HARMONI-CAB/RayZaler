@@ -16,20 +16,23 @@ class SimulationSession;
 class RZGUIGLWidget;
 class SimulationProgressDialog;
 class DetectorWindow;
+class SourceEditorWindow;
 
 class SessionTabWidget : public QWidget
 {
   Q_OBJECT
 
-  SimulationSession *m_session;  // Borrowed
-  RZGUIGLWidget     *m_glWidget; // Borrowed
-  DetectorWindow    *m_detWindow = nullptr; // Owned
+  SimulationSession        *m_session;  // Borrowed
+  RZGUIGLWidget            *m_glWidget; // Borrowed
+  DetectorWindow           *m_detWindow = nullptr; // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
-  bool               m_displayNames     = false;
-  bool               m_displayApertures = false;
-  bool               m_displayElements  = true;
-  bool               m_displayRefFrames = false;
-  void               connectAll();
+  SourceEditorWindow       *m_sourceEditorWindow = nullptr;
+  bool                      m_displayNames     = false;
+  bool                      m_displayApertures = false;
+  bool                      m_displayElements  = true;
+  bool                      m_displayRefFrames = false;
+
+  void connectAll();
 
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
@@ -42,6 +45,7 @@ public:
   void updateModel();
   void reloadModel();
   void setRotation(qreal, qreal, qreal);
+  void showSourceWindow();
   bool displayNames() const;
   bool displayApertures() const;
   bool displayElements() const;

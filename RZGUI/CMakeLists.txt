@@ -54,6 +54,8 @@ set(PROJECT_SOURCES
         RZGUI.cpp
         RZGUIGLWidget.h
         RZGUIGLWidget.cpp
+        RZMHighLighter.h
+        RZMHighLighter.cpp
         SessionTabWidget.h
         SessionTabWidget.cpp
         SessionTabWidget.ui
@@ -65,7 +67,9 @@ set(PROJECT_SOURCES
         SimulationPropertiesDialog.ui
         SimulationSession.h
         SimulationSession.cpp
-)
+        SourceEditorWindow.h
+        SourceEditorWindow.cpp
+        SourceEditorWindow.ui)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(RZGUI

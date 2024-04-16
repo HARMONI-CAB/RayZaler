@@ -1540,6 +1540,12 @@ SimulationSession::getSelectedElement() const
 }
 
 QString
+SimulationSession::path() const
+{
+  return m_path;
+}
+
+QString
 SimulationSession::fileName() const
 {
   return m_fileName;

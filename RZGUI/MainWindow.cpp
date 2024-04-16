@@ -255,11 +255,17 @@ MainWindow::connectAll()
         this,
         SLOT(onChangeDisplay()));
 
-    connect(
+  connect(
         ui->actionToggleReferenceFrames,
         SIGNAL(toggled(bool)),
         this,
         SLOT(onChangeDisplay()));
+
+  connect(
+        ui->actionModelSource,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onModelSource()));
 }
 
 void
@@ -713,4 +719,14 @@ MainWindow::onUpdateModel()
     auto &ui = m_sessionToUi[m_currSession];
     ui.tab->updateModel();
   }
+}
+
+void
+MainWindow::onModelSource()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->showSourceWindow();
 }

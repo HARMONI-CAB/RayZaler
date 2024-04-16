@@ -29,6 +29,7 @@
         <file>icons/toggle-elements.svg</file>
         <file>icons/toggle-frames.svg</file>
         <file>icons/view-refresh.svg</file>
+        <file>icons/text-x-script.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

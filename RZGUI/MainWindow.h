@@ -88,6 +88,7 @@ public slots:
   void onChangeView();
   void onChangeDisplay();
   void onUpdateModel();
+  void onModelSource();
 
 private:
   Ui::MainWindow *ui;

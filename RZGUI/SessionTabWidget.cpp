@@ -7,6 +7,7 @@
 #include "SimulationProgressDialog.h"
 #include "DetectorWindow.h"
 #include <RayBeamElement.h>
+#include "SourceEditorWindow.h"
 
 SessionTabWidget::SessionTabWidget(
     SimulationSession *session,
@@ -29,6 +30,16 @@ SessionTabWidget::SessionTabWidget(
 
   m_detWindow = new DetectorWindow(this);
   m_detWindow->setSession(m_session);
+
+
+  FILE *fp = fopen(session->path().toStdString().c_str(), "rb");
+
+  if (fp != nullptr) {
+    m_sourceEditorWindow = new SourceEditorWindow(this);
+    m_sourceEditorWindow->loadFromFp(fp);
+    m_sourceEditorWindow->setWindowTitle("Source editor - " + session->fileName());
+    fclose(fp);
+  }
 
   connectAll();
 }
@@ -130,6 +141,7 @@ SessionTabWidget::connectAll()
 SessionTabWidget::~SessionTabWidget()
 {
   delete m_progressDialog;
+  delete m_sourceEditorWindow;
   delete ui;
 }
 
@@ -169,6 +181,12 @@ void
 SessionTabWidget::showDetectorWindow()
 {
   m_detWindow->show();
+}
+
+void
+SessionTabWidget::showSourceWindow()
+{
+  m_sourceEditorWindow->show();
 }
 
 void
