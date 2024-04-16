@@ -43,6 +43,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   void refreshCurrentElement();
   void registerSession(SimulationSession *);
   void doOpen();
+  void doReload();
 
   void reconnectModels();
   void connectAll();
@@ -61,6 +62,7 @@ public:
 
 public slots:
   void onOpen();
+  void onReload();
   void onCloseTab(int);
   void onTabChanged();
 

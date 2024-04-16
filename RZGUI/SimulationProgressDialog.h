@@ -32,6 +32,7 @@ public:
 
   void setPath(QString);
   void setMaxSim(unsigned int);
+  void setTracer(AsyncRayTracer *);
 
 public slots:
   void onProgress(int, int);

@@ -768,8 +768,13 @@ void
 RZGUIGLWidget::setModel(RZ::OMModel *model)
 {
   m_model = model;
+  m_selectedPath = nullptr;
+  m_selectedRefFrame = nullptr;
+
   if (m_model != nullptr)
     m_model->recalculate();
+
+  update();
 }
 
 void

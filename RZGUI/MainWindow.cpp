@@ -99,6 +99,13 @@ MainWindow::connectAll()
         SLOT(onOpen()));
 
   connect(
+        ui->actionReloadModel,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onReload()));
+
+
+  connect(
         ui->sessionTabWidget,
         SIGNAL(tabCloseRequested(int)),
         this,
@@ -300,6 +307,7 @@ MainWindow::refreshCurrentSession()
 
     ui->animationToolBar->setEnabled(true);
     ui->viewToolBar->setEnabled(true);
+    ui->actionReloadModel->setEnabled(true);
     ui->actionAnimPause->setEnabled(m_currSession->playing());
     ui->actionAnimStop->setEnabled(!m_currSession->stopped());
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
@@ -339,6 +347,7 @@ MainWindow::refreshCurrentSession()
     ui->viewToolBar->setEnabled(false);
     ui->simToolBar->setEnabled(false);
     ui->displayToolBar->setEnabled(false);
+    ui->actionReloadModel->setEnabled(false);
     BLOCKSIG(ui->actionToggleDisplayNames,    setChecked(false));
     BLOCKSIG(ui->actionToggleApertures,       setChecked(false));
     BLOCKSIG(ui->actionToggleElements,        setChecked(true));
@@ -419,6 +428,20 @@ MainWindow::doOpen()
   } while (!done);
 }
 
+void
+MainWindow::doReload()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr) {
+    widget->reloadModel();
+    m_propModel->setModel(m_currSession->topLevelModel());
+    m_omModel->setModel(m_currSession->topLevelModel());
+    m_simPropertiesDialog->setSession(m_currSession);
+  }
+}
+
 MainWindow::~MainWindow()
 {
   delete ui;
@@ -428,6 +451,12 @@ void
 MainWindow::onOpen()
 {
   doOpen();
+}
+
+void
+MainWindow::onReload()
+{
+  doReload();
 }
 
 void

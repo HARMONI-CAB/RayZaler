@@ -1,6 +1,7 @@
 #include "SessionTabWidget.h"
 #include "SimulationSession.h"
 #include "ui_SessionTabWidget.h"
+#include <QMessageBox>
 
 #include "RZGUIGLWidget.h"
 #include "SimulationProgressDialog.h"
@@ -166,6 +167,28 @@ SessionTabWidget::updateDetectorWindow()
   m_detWindow->refreshImage();
 }
 
+void
+SessionTabWidget::reloadModel()
+{
+  m_detWindow->setSession(nullptr);
+  m_glWidget->setModel(nullptr);
+  m_progressDialog->setTracer(nullptr);
+
+  try {
+    m_session->reload();
+  } catch (std::runtime_error const &e) {
+    QMessageBox::critical(
+          this,
+          "Reload model",
+          "Cannot reload model: " + QString::fromStdString(e.what()));
+  }
+
+  m_glWidget->setModel(m_session->topLevelModel());
+  m_detWindow->setSession(m_session);
+  m_progressDialog->setTracer(m_session->tracer());
+}
+
+////////////////////////////////// Slots ///////////////////////////////////////
 void
 SessionTabWidget::onModelChanged()
 {

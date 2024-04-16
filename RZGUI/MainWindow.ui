@@ -61,6 +61,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpen"/>
+   <addaction name="actionReloadModel"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <attribute name="dockWidgetArea">
@@ -636,6 +637,18 @@
    </property>
    <property name="toolTip">
     <string>Show/hide reference frames</string>
+   </property>
+  </action>
+  <action name="actionReloadModel">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-refresh.svg</normaloff>:/toolbar/icons/view-refresh.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reload model</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

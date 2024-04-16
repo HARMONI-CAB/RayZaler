@@ -244,7 +244,10 @@ DetectorWindow::setDetector(RZ::Detector *detector)
   m_navWidget->setDetector(detector);
 
   if (detector == nullptr) {
-    title = "Simulation result - " + m_session->fileName() + " (no detector)";
+    if (m_session != nullptr)
+      title = "Simulation result - " + m_session->fileName() + " (no detector)";
+    else
+      title = "Simulation result - no simulation session";
     ui->detGroupBox->setTitle("No detector");
   } else {
     auto detName = QString::fromStdString(detector->name());

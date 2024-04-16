@@ -7,12 +7,28 @@ SimulationProgressDialog::SimulationProgressDialog(AsyncRayTracer *tracer, QWidg
   QDialog(parent),
   ui(new Ui::SimulationProgressDialog)
 {
-  m_tracer = tracer;
-
   ui->setupUi(this);
 
-  connectAll();
+  setTracer(tracer);
 }
+
+void
+SimulationProgressDialog::setTracer(AsyncRayTracer *tracer)
+{
+  if (m_tracer != nullptr) {
+    disconnect(this, SLOT(onProgress(int, int)));
+    disconnect(this, SLOT(onGlobalProgress(QString, int, int)));
+    disconnect(this, SLOT(onFinished()));
+    disconnect(this, SLOT(onAborted()));
+    disconnect(this, SLOT(onError(QString)));
+  }
+
+  m_tracer = tracer;
+
+  if (m_tracer != nullptr)
+    connectAll();
+}
+
 
 void
 SimulationProgressDialog::connectAll()

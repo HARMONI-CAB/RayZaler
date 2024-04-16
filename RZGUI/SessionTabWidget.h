@@ -29,7 +29,7 @@ class SessionTabWidget : public QWidget
   bool               m_displayApertures = false;
   bool               m_displayElements  = true;
   bool               m_displayRefFrames = false;
-  void connectAll();
+  void               connectAll();
 
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
@@ -39,6 +39,7 @@ public:
   void showDetectorWindow();
   void updateDetectorWindow();
   void updateModel();
+  void reloadModel();
   void setRotation(qreal, qreal, qreal);
   bool displayNames() const;
   bool displayApertures() const;
