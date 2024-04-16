@@ -755,13 +755,8 @@ RZGUIGLWidget::paintGL()
   if (m_fixedLight)
     configureLighting();
 
-  if (m_model != nullptr) {
+  if (m_model != nullptr)
     displayModel(m_model);
-  } else {
-    glRotatef(45, 1, 0, 0);
-    glRotatef(45, 0, 1, 0);
-    RZ::GLCube(1);
-  }
 }
 
 void
