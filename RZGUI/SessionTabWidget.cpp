@@ -37,7 +37,7 @@ SessionTabWidget::SessionTabWidget(
   if (fp != nullptr) {
     m_sourceEditorWindow = new SourceEditorWindow(this);
     m_sourceEditorWindow->loadFromFp(fp);
-    m_sourceEditorWindow->setWindowTitle("Source editor - " + session->fileName());
+    m_sourceEditorWindow->setFileName(session->fileName().toStdString());
     fclose(fp);
   }
 
@@ -239,11 +239,17 @@ SessionTabWidget::reloadModelFromEditor()
 
     // Will release memory always, even after an error
     m_session->reload(ctx);
+  } catch (RZ::ParserError const &e) {
+    m_sourceEditorWindow->highlightError(
+          e.file(),
+          e.line(),
+          e.col(),
+          e.message());
   } catch (std::runtime_error const &e) {
     QMessageBox::critical(
-          this,
-          "Build model",
-          "Cannot build model from editor: " + QString::fromStdString(e.what()));
+          m_sourceEditorWindow,
+          "Build error",
+          "Model has errors: " + QString(e.what()));
   }
 
   m_glWidget->setModel(m_session->topLevelModel());

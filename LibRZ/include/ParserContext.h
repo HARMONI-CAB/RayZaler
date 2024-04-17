@@ -6,6 +6,7 @@
 #include <string>
 #include <variant>
 #include <Recipe.h>
+#include <stdexcept>
 
 #define PARSER_CONTEXT_MAX_RECURSION 20
 
@@ -30,6 +31,41 @@ namespace RZ {
 
   struct UndefinedValueType {};
   
+  class ParserError : public std::runtime_error {
+    std::string m_msg;
+    std::string m_file;
+    int m_line = 0;
+    int m_char = 0;
+
+  public:
+    ParserError();
+    ParserError(std::string const &, int, int, std::string const &);
+
+    inline int
+    line() const
+    {
+      return m_line;
+    }
+
+    inline int
+    col() const
+    {
+      return m_char;
+    }
+
+    inline std::string const &
+    message() const
+    {
+      return m_msg;
+    }
+
+    inline std::string const &
+    file() const
+    {
+      return m_file;
+    }
+  };
+
   typedef std::variant<
     UndefinedValueType, 
     std::string,

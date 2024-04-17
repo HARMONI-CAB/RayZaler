@@ -2,6 +2,9 @@
 #include "ui_SourceEditorWindow.h"
 #include "RZMHighLighter.h"
 #include <QLabel>
+#include <QMessageBox>
+#include <QTextCharFormat>
+#include "GUIHelpers.h"
 
 SourceEditorParserContext::SourceEditorParserContext(
     RZ::Recipe *recipe,
@@ -24,6 +27,8 @@ SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   ui(new Ui::SourceEditorWindow)
 {
   QFont font;
+  QTextCharFormat fmt;
+
   font.setFamily("Cascadia Mono PL");
   font.setFixedPitch(true);
   font.setPointSize(10);
@@ -42,6 +47,8 @@ SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   ui->sourceTextEdit->setFont(font);
 
   m_highlighter = new RZMHighLighter(ui->sourceTextEdit->document());
+  //fmt.setBackground(ui->sourceTextEdit->textBackgroundColor());
+  //m_highlighter->defineFormat("background", fmt);
 
   connectAll();
 }
@@ -60,6 +67,20 @@ SourceEditorWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SIGNAL(build()));
+
+  connect(
+        ui->sourceTextEdit,
+        SIGNAL(textChanged()),
+        this,
+        SLOT(onTextEditChanged()));
+}
+
+
+void
+SourceEditorWindow::setFileName(std::string const &fileName)
+{
+  m_fileName = fileName;
+  setWindowTitle("Source editor - " + QString::fromStdString(fileName));
 }
 
 void
@@ -87,6 +108,30 @@ SourceEditorWindow::loadFromFp(FILE *fp)
   ui->sourceTextEdit->setPlainText(text);
 }
 
+void
+SourceEditorWindow::highlightError(
+    std::string const &file,
+    int line,
+    int character,
+    std::string const &error)
+{
+  if (file == m_fileName) {
+    m_notifyingError = true;
+    ui->statusbar->showMessage(
+          QString::asprintf(
+          "%s: line %d, character %d: %s",
+          file.c_str(),
+          line,
+          character,
+          error.c_str()));
+    m_highlighter->highlightError(line);
+    QTextCursor cursor(ui->sourceTextEdit->document()->findBlockByLineNumber(line - 2));
+    ui->sourceTextEdit->setTextCursor(cursor);
+    ui->sourceTextEdit->setFocus();
+    m_notifyingError = false;
+  }
+}
+
 SourceEditorParserContext *
 SourceEditorWindow::makeParserContext(RZ::Recipe *recipe)
 {
@@ -108,4 +153,13 @@ SourceEditorWindow::onCursorChanged()
 
   m_lineLabel->setText(QString::asprintf("Line: %d", y));
   m_colLabel->setText(QString::asprintf("Col: %d", x));
+}
+
+void
+SourceEditorWindow::onTextEditChanged()
+{
+  if (!m_notifyingError) {
+    m_highlighter->highlightError(-1);
+    ui->statusbar->clearMessage();
+  }
 }

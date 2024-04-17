@@ -28,6 +28,9 @@ class SourceEditorWindow : public QMainWindow
 
   QLabel         *m_lineLabel = nullptr;
   QLabel         *m_colLabel  = nullptr;
+  std::string     m_fileName;
+
+  bool            m_notifyingError = false;
   RZMHighLighter *m_highlighter = nullptr;
 
   void connectAll();
@@ -36,15 +39,17 @@ public:
   explicit SourceEditorWindow(QWidget *parent = nullptr);
 
   void loadFromFp(FILE *fp);
+  void setFileName(std::string const &);
   SourceEditorParserContext *makeParserContext(RZ::Recipe *);
-
-  ~SourceEditorWindow();
+  void highlightError(std::string const &, int, int, std::string const &);
+  ~SourceEditorWindow() override;
 
 signals:
   void build();
 
 public slots:
   void onCursorChanged();
+  void onTextEditChanged();
 
 private:
   Ui::SourceEditorWindow *ui;

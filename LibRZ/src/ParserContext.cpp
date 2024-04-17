@@ -19,8 +19,25 @@ yyerror(RZ::ParserContext *ctx, const char *msg)
   ctx->error(msg);
 }
 
-
 using namespace RZ;
+
+ParserError::ParserError() : std::runtime_error("No error")
+{
+
+}
+
+ParserError::ParserError(
+  std::string const &file,
+  int line,
+  int col,
+  std::string const &msg) : 
+  std::runtime_error(file + ":" + std::to_string(line + 1) + ":" + std::to_string(col + 1) + ": " + msg)
+{
+  m_file = file;
+  m_line = line;
+  m_char = col;
+  m_msg  = msg;
+}
 
 bool
 ParserContext::isOperatorChar(int c)
@@ -602,13 +619,7 @@ ParserContext::parse()
   try {
     yyparse(this);
   } catch (std::runtime_error const &e) {
-    throw std::runtime_error(
-      m_file + ":" +
-      std::to_string(m_tokLine + 1) + ":" +
-      std::to_string(m_tokChar + 1) + ":" +
-      e.what());
-    
-    return false;
+    throw ParserError(m_file, m_tokLine + 1, m_tokChar + 1, e.what());
   }
 
   return true;

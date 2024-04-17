@@ -1330,11 +1330,12 @@ SimulationSession::reload(RZ::ParserContext *context)
   bool ok = false;
   RZ::Recipe *recipe = nullptr;
   RZ::FileParserContext *fileCtx = nullptr;
+  RZ::ParserError parserError;
   RZ::TopLevelModel *topLevelModel = nullptr;
   std::string strPath = m_path.toStdString();
   std::string strName = m_fileName.toStdString();
   std::string error;
-
+  bool isParserError = false;
   FILE *fp = fopen(strPath.c_str(), "r");
 
   if (fp == nullptr) {
@@ -1357,6 +1358,11 @@ SimulationSession::reload(RZ::ParserContext *context)
 
   try {
     context->parse();
+  } catch (RZ::ParserError const &e) {
+    isParserError = true;
+    parserError = e;
+
+    goto done;
   } catch (std::runtime_error const &e) {
     error = "Model file has errors:<pre>";
     error += e.what();
@@ -1438,8 +1444,12 @@ done:
   if (recipe != nullptr)
     delete recipe;
 
-  if (!ok)
-    throw std::runtime_error(error);
+  if (!ok) {
+    if (isParserError)
+      throw parserError;
+    else
+      throw std::runtime_error(error);
+  }
 }
 
 SimulationSession::SimulationSession(

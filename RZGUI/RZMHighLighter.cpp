@@ -1,6 +1,9 @@
 #include "RZMHighLighter.h"
+#include <QTextDocument>
+#include "GUIHelpers.h"
 
 #define WORD(wrd) QStringLiteral("\\b" wrd "\\b")
+
 void
 RZMHighLighter::addRule(QString const &what, QString const &regex)
 {
@@ -22,12 +25,43 @@ RZMHighLighter::defineFormat(QString const &name, QTextCharFormat const &fmt)
 void
 RZMHighLighter::highlightBlock(const QString &text)
 {
+  int line = currentBlock().firstLineNumber() + 2;
+  m_highlighting = true;
+
+  if (m_errCleared && line == m_prevErrLine) {
+    QTextCursor cursor(currentBlock());
+    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+    cursor.mergeCharFormat(m_formats["background"]);
+    m_errCleared = false;
+  }
+
   for (const HighlightingRule &rule : std::as_const(m_rules)) {
     QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
 
     while (matchIterator.hasNext()) {
       QRegularExpressionMatch match = matchIterator.next();
       setFormat(match.capturedStart(), match.capturedLength(), rule.format);
+    }
+  }
+
+  if (line == m_errLine) {
+    QTextCursor cursor(currentBlock());
+    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+    cursor.mergeCharFormat(m_formats["error"]);
+  }
+
+  m_highlighting = false;
+}
+
+void
+RZMHighLighter::highlightError(int line)
+{
+  if (m_errLine != line) {
+    if (!m_highlighting) {
+      m_prevErrLine = m_errLine;
+      m_errCleared = true;
+      m_errLine = line;
+      rehighlight();
     }
   }
 }
@@ -72,6 +106,14 @@ RZMHighLighter::RZMHighLighter(QTextDocument *parent) : QSyntaxHighlighter(paren
   fmt.setFontWeight(QFont::Bold);
   fmt.setForeground(Qt::red);
   defineFormat("string", fmt);
+
+  fmt = QTextCharFormat();
+  fmt.setBackground(QColor(255, 127, 127));
+  defineFormat("error", fmt);
+
+  fmt = QTextCharFormat();
+  fmt.setBackground(QColor(255, 255, 255));
+  defineFormat("background", fmt);
 
   addRule("constant", QStringLiteral("[+-]?\\.?(\\d+([.]\\d*)?([eE][+-]?\\d+)?|[.]\\d+([eE][+-]?\\d+)?)\\b"));
   addRule("identifier", WORD("[A-Za-z_][A-Za-z0-9_]*"));
