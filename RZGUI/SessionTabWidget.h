@@ -33,6 +33,8 @@ class SessionTabWidget : public QWidget
   bool                      m_displayRefFrames = false;
 
   void connectAll();
+  void addGridStep(QString const &, qreal);
+  void addGridDiv(unsigned);
 
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
@@ -58,6 +60,9 @@ public:
   void setSelectedReferenceFrame(RZ::ReferenceFrame *);
   void setSelectedOpticalPath(const RZ::OpticalPath *);
 
+  void setGridStep(qreal);
+  void setGridDivs(unsigned);
+
   void keyPressEvent(QKeyEvent *event) override;
 
 private:
@@ -68,6 +73,8 @@ public slots:
   void onSimulationTriggered(QString, int, int);
   void onSweepFinished();
   void onSourceEditorBuild();
+  void onGridStepChanged(int);
+  void onGridDivChanged(int);
 };
 
 #endif // SESSIONTABWIDGET_H

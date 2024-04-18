@@ -427,6 +427,27 @@ namespace RZ {
       GLArrow();
       ~GLArrow(); 
   };
+
+  class GLGrid : public GLPrimitive {
+      std::vector<GLfloat> m_vertices;
+      unsigned             m_stepsX = 10;
+      unsigned             m_stepsY = 10;
+      Real                 m_step = 0.1;
+      GLfloat              m_thickness = 1;
+
+      void recalculate();
+
+    public:
+      virtual void display() override;
+
+      void setStepsX(unsigned);
+      void setStepsY(unsigned);
+      void setStep(Real);
+      void setThickness(GLfloat);
+
+      GLGrid();
+      ~GLGrid();
+  };
 };
 
 #endif // _GLHELPERS_H

@@ -3,6 +3,7 @@
 #include "ui_SessionTabWidget.h"
 #include <QMessageBox>
 
+#include "GUIHelpers.h"
 #include "RZGUIGLWidget.h"
 #include "SimulationProgressDialog.h"
 #include "DetectorWindow.h"
@@ -41,7 +42,74 @@ SessionTabWidget::SessionTabWidget(
     fclose(fp);
   }
 
+  addGridStep("1 µm", 1e-6);
+  addGridStep("10 µm", 1e-5);
+  addGridStep("15 µm", 1.5e-5);
+  addGridStep("100 µm", 1e-4);
+  addGridStep("1 mm", 1e-3);
+  addGridStep("1 cm", 1e-2);
+  addGridStep("10 cm", 1e-1);
+  addGridStep("1 m", 1);
+
+  setGridStep(1e-3);
+
+  addGridDiv(5);
+  addGridDiv(10);
+  addGridDiv(20);
+  addGridDiv(25);
+  addGridDiv(50);
+  addGridDiv(100);
+  addGridDiv(250);
+  addGridDiv(500);
+  addGridDiv(1000);
+
+  setGridDivs(100);
+
   connectAll();
+}
+
+void
+SessionTabWidget::addGridStep(QString const &text, qreal size)
+{
+  BLOCKSIG(ui->gridStepCombo, addItem(text, QVariant::fromValue<qreal>(size)));
+}
+
+void
+SessionTabWidget::addGridDiv(unsigned num)
+{
+  BLOCKSIG(
+        ui->gridDivCombo,
+        addItem(QString::number(num), QVariant::fromValue<unsigned>(num)));
+}
+
+void
+SessionTabWidget::setGridStep(qreal step)
+{
+  int index = ui->gridStepCombo->findData(QVariant::fromValue(step));
+
+  if (index == -1) {
+    addGridStep("Custom (" + asScientific(step) + " m)", step);
+    index = ui->gridStepCombo->count() - 1;
+  }
+
+  m_glWidget->setGridStep(step);
+
+  BLOCKSIG(ui->gridStepCombo, setCurrentIndex(index));
+}
+
+void
+SessionTabWidget::setGridDivs(unsigned num)
+{
+  int index = ui->gridDivCombo->findData(QVariant::fromValue(num));
+
+  if (index == -1) {
+    addGridDiv(num);
+    index = ui->gridDivCombo->count() - 1;
+  }
+
+  m_glWidget->setGridDivs(num);
+
+  BLOCKSIG(ui->gridDivCombo, setCurrentIndex(index));
 }
 
 bool
@@ -142,6 +210,18 @@ SessionTabWidget::connectAll()
         SIGNAL(build()),
         this,
         SLOT(onSourceEditorBuild()));
+
+  connect(
+        ui->gridStepCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onGridStepChanged(int)));
+
+  connect(
+        ui->gridDivCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onGridDivChanged(int)));
 }
 
 SessionTabWidget::~SessionTabWidget()
@@ -285,4 +365,18 @@ void
 SessionTabWidget::onSourceEditorBuild()
 {
   reloadModelFromEditor();
+}
+
+void
+SessionTabWidget::onGridStepChanged(int ndx)
+{
+  if (ndx >= 0)
+    setGridStep(ui->gridStepCombo->itemData(ndx).value<qreal>());
+}
+
+void
+SessionTabWidget::onGridDivChanged(int ndx)
+{
+  if (ndx >= 0)
+    setGridDivs(ui->gridDivCombo->itemData(ndx).value<unsigned>());
 }

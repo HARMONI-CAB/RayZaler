@@ -35,6 +35,30 @@ RZGUIGLWidget::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
   glMultTransposeMatrixd(viewMatrix);
 }
 
+void
+RZGUIGLWidget::setGridDivs(unsigned num)
+{
+  m_xyCoarseGrid.setStepsX(num / 10);
+  m_xyCoarseGrid.setStepsY(num / 10);
+
+  m_xyMediumGrid.setStepsX(num / 5);
+  m_xyMediumGrid.setStepsY(num / 5);
+
+  m_xyFineGrid.setStepsX(num);
+  m_xyFineGrid.setStepsY(num);
+
+  update();
+}
+
+void
+RZGUIGLWidget::setGridStep(qreal step)
+{
+  m_xyCoarseGrid.setStep(step * 10);
+  m_xyMediumGrid.setStep(step * 5);
+  m_xyFineGrid.setStep(step);
+
+  update();
+}
 
 void
 RZGUIGLWidget::pushElementMatrix(const RZ::Element *element)
@@ -284,6 +308,14 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 
   if (m_selectedRefFrame && model == m_model) {
     pushReferenceFrameMatrix(m_selectedRefFrame);
+    if (m_displayGrids) {
+      glColor4f(1, 1, 1, 1);
+      m_xyCoarseGrid.display();
+      glColor4f(1, 1, 1, .75);
+      m_xyMediumGrid.display();
+      glColor4f(1, 1, 1, .5);
+      m_xyFineGrid.display();
+    }
     glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
     m_glAxes.display();
     glPopMatrix();

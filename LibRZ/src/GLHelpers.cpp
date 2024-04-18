@@ -1162,3 +1162,90 @@ GLArrow::~GLArrow()
 {
 
 }
+
+//////////////////////////////// GLGrid ////////////////////////////////////////
+void
+GLGrid::recalculate()
+{
+  Real x0 = - .5 * m_stepsX * m_step;
+  Real y0 = - .5 * m_stepsY * m_step;
+  int i, j;
+
+  m_vertices.clear();
+
+  for (i = 0; i <= m_stepsX; ++i) {
+    Real x = (i - .5 * m_stepsX) * m_step;
+
+    m_vertices.push_back(x);
+    m_vertices.push_back(y0);
+    m_vertices.push_back(0);
+
+    m_vertices.push_back(x);
+    m_vertices.push_back(-y0);
+    m_vertices.push_back(0);
+  }
+  
+  for (j = 0; j <= m_stepsY; ++j) {
+    Real y = (j - .5 * m_stepsY) * m_step;
+    m_vertices.push_back(x0);
+    m_vertices.push_back(y);
+    m_vertices.push_back(0);
+    
+    m_vertices.push_back(-x0);
+    m_vertices.push_back(y);
+    m_vertices.push_back(0);
+  }
+}
+
+void
+GLGrid::display()
+{
+  glPushAttrib(GL_LINE_BIT | GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_COLOR);
+    glLineWidth(m_thickness);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
+      glDrawArrays(GL_LINES, 0, m_vertices.size() / 3);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+  glPopAttrib();
+}
+
+void
+GLGrid::setStepsX(unsigned stepsX)
+{
+  m_stepsX = stepsX;
+  recalculate();
+}
+
+void
+GLGrid::setStepsY(unsigned stepsY)
+{
+  m_stepsY = stepsY;
+  recalculate();
+}
+
+void
+GLGrid::setStep(Real step)
+{
+  m_step = step;
+  recalculate();
+}
+
+void
+GLGrid::setThickness(GLfloat thickness)
+{
+  m_thickness = thickness;
+}
+
+GLGrid::GLGrid()
+{
+  recalculate();
+}
+
+GLGrid::~GLGrid()
+{
+
+}
