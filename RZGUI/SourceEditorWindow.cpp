@@ -100,7 +100,11 @@ SourceEditorWindow::connectAll()
         this,
         SLOT(onRedo()));
 
-
+  connect(
+        ui->actionReload,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onUndoAll()));
 }
 
 void
@@ -114,6 +118,7 @@ SourceEditorWindow::refreshUi()
 
   ui->actionUndo->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
   ui->actionRedo->setEnabled(ui->sourceTextEdit->document()->isRedoAvailable());
+  ui->actionReload->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
 }
 
 void
@@ -220,6 +225,7 @@ SourceEditorWindow::onTextEditChanged()
     ui->statusbar->clearMessage();
     ui->actionUndo->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
     ui->actionRedo->setEnabled(ui->sourceTextEdit->document()->isRedoAvailable());
+    ui->actionReload->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
     notifyChanged();
   }
 }
@@ -251,6 +257,17 @@ SourceEditorWindow::onRedoAvailable(bool b)
 void
 SourceEditorWindow::onUndoAll()
 {
+  if (m_changed) {
+    auto response = QMessageBox::question(
+          this,
+          "Reload original file",
+          "Reloading the original file will clear the undo history. Are you sure?",
+          QMessageBox::Yes | QMessageBox::No,
+          QMessageBox::No);
+    if (response != QMessageBox::Yes)
+      return;
+  }
+
   ui->sourceTextEdit->setPlainText(m_original.c_str());
   refreshUi();
 }
