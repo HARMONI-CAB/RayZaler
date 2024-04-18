@@ -35,6 +35,7 @@
         <file>icons/text-x-install.svg</file>
         <file>icons/edit-redo.svg</file>
         <file>icons/edit-undo.svg</file>
+        <file>icons/Draft_Grid.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

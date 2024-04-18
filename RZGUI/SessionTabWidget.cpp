@@ -51,7 +51,7 @@ SessionTabWidget::SessionTabWidget(
   addGridStep("10 cm", 1e-1);
   addGridStep("1 m", 1);
 
-  setGridStep(1e-3);
+  setGridStep(1e-2);
 
   addGridDiv(5);
   addGridDiv(10);
@@ -129,6 +129,21 @@ bool
 SessionTabWidget::displayElements() const
 {
   return m_displayElements;
+}
+
+
+void
+SessionTabWidget::setDisplayGrid(bool disp)
+{
+  m_displayGrid = disp;
+  m_glWidget->setDisplayGrid(disp);
+  ui->gridWidget->setEnabled(disp);
+}
+
+bool
+SessionTabWidget::displayGrid() const
+{
+  return m_displayGrid;
 }
 
 void

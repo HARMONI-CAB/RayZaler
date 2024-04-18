@@ -102,9 +102,11 @@ public:
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
+  void setDisplayGrid(bool);
+
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel);
-  
+
   void setGridDivs(unsigned);
   void setGridStep(qreal);
 

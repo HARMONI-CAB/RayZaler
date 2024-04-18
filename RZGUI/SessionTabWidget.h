@@ -31,6 +31,7 @@ class SessionTabWidget : public QWidget
   bool                      m_displayApertures = false;
   bool                      m_displayElements  = true;
   bool                      m_displayRefFrames = false;
+  bool                      m_displayGrid      = true;
 
   void connectAll();
   void addGridStep(QString const &, qreal);
@@ -49,14 +50,19 @@ public:
   void reloadModelFromEditor();
   void setRotation(qreal, qreal, qreal);
   void showSourceWindow();
+
   bool displayNames() const;
   bool displayApertures() const;
   bool displayElements() const;
   bool displayRefFrames() const;
+  bool displayGrid() const;
+
   void setDisplayNames(bool);
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
+  void setDisplayGrid(bool);
+
   void setSelectedReferenceFrame(RZ::ReferenceFrame *);
   void setSelectedOpticalPath(const RZ::OpticalPath *);
 

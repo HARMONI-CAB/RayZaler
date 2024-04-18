@@ -361,6 +361,16 @@ RZGUIGLWidget::setDisplayRefFrames(bool state)
 }
 
 void
+RZGUIGLWidget::setDisplayGrid(bool state)
+{
+  if (m_displayGrids != state) {
+    m_displayGrids = state;
+    update();
+  }
+}
+
+
+void
 RZGUIGLWidget::setDisplayApertures(bool state)
 {
   if (m_displayApertures != state) {

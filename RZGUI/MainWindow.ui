@@ -84,6 +84,7 @@
     <addaction name="actionToggleApertures"/>
     <addaction name="actionToggleElements"/>
     <addaction name="actionToggleReferenceFrames"/>
+    <addaction name="actionToggleGrid"/>
     <addaction name="separator"/>
     <addaction name="actionModelSource"/>
    </widget>
@@ -458,6 +459,7 @@
    <addaction name="actionToggleApertures"/>
    <addaction name="actionToggleElements"/>
    <addaction name="actionToggleReferenceFrames"/>
+   <addaction name="actionToggleGrid"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -711,6 +713,21 @@
    </property>
    <property name="shortcut">
     <string>F12</string>
+   </property>
+  </action>
+  <action name="actionToggleGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/Draft_Grid.svg</normaloff>:/toolbar/icons/Draft_Grid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show/hide grid</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

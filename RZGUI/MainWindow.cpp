@@ -262,6 +262,12 @@ MainWindow::connectAll()
         SLOT(onChangeDisplay()));
 
   connect(
+        ui->actionToggleGrid,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onChangeDisplay()));
+
+  connect(
         ui->actionModelSource,
         SIGNAL(triggered(bool)),
         this,
@@ -349,6 +355,9 @@ MainWindow::refreshCurrentSession()
           ui->actionToggleReferenceFrames,
           setChecked(m_sessionToUi[m_currSession].tab->displayRefFrames()));
 
+    BLOCKSIG(
+          ui->actionToggleGrid,
+          setChecked(m_sessionToUi[m_currSession].tab->displayGrid()));
     reconnectModels();
   } else {
     m_propModel->setModel(nullptr);
@@ -366,6 +375,7 @@ MainWindow::refreshCurrentSession()
     BLOCKSIG(ui->actionToggleApertures,       setChecked(false));
     BLOCKSIG(ui->actionToggleElements,        setChecked(true));
     BLOCKSIG(ui->actionToggleReferenceFrames, setChecked(false));
+    BLOCKSIG(ui->actionToggleGrid,            setChecked(true));
 
     ui->propTableView->setModel(nullptr);
     setWindowTitle("RayZaler - No model file");
@@ -711,6 +721,7 @@ MainWindow::onChangeDisplay()
     widget->setDisplayApertures(ui->actionToggleApertures->isChecked());
     widget->setDisplayElements(ui->actionToggleElements->isChecked());
     widget->setDisplayRefFrames(ui->actionToggleReferenceFrames->isChecked());
+    widget->setDisplayGrid(ui->actionToggleGrid->isChecked());
   }
 }
 
