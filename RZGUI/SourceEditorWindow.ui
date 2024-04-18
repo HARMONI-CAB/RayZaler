@@ -43,6 +43,8 @@
    </attribute>
    <addaction name="actionSave"/>
    <addaction name="actionSaveAs"/>
+   <addaction name="actionUndo"/>
+   <addaction name="actionRedo"/>
    <addaction name="actionBuildModel"/>
    <addaction name="actionReload"/>
   </widget>
@@ -92,6 +94,30 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/edit-undo.svg</normaloff>:/toolbar/icons/edit-undo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/edit-redo.svg</normaloff>:/toolbar/icons/edit-redo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

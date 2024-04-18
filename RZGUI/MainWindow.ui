@@ -420,6 +420,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionModelSource"/>
    <addaction name="actionRunSimFile"/>
    <addaction name="actionSimProp"/>
    <addaction name="actionRunSim"/>

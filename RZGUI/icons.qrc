@@ -33,6 +33,8 @@
         <file>icons/applications-development.svg</file>
         <file>icons/document-save-as.svg</file>
         <file>icons/text-x-install.svg</file>
+        <file>icons/edit-redo.svg</file>
+        <file>icons/edit-undo.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

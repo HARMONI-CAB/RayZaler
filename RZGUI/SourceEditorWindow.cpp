@@ -45,6 +45,7 @@ SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   ui->statusbar->addPermanentWidget(m_colLabel);
 
   ui->sourceTextEdit->setFont(font);
+  ui->sourceTextEdit->setUndoRedoEnabled(true);
 
   m_highlighter = new RZMHighLighter(ui->sourceTextEdit->document());
   //fmt.setBackground(ui->sourceTextEdit->textBackgroundColor());
@@ -63,6 +64,19 @@ SourceEditorWindow::connectAll()
         SLOT(onCursorChanged()));
 
   connect(
+        ui->sourceTextEdit,
+        SIGNAL(undoAvailable(bool)),
+        this,
+        SLOT(onUndoAvailable(bool)));
+
+  connect(
+        ui->sourceTextEdit,
+        SIGNAL(redoAvailable(bool)),
+        this,
+        SLOT(onRedoAvailable(bool)));
+
+
+  connect(
         ui->actionBuildModel,
         SIGNAL(triggered(bool)),
         this,
@@ -73,14 +87,40 @@ SourceEditorWindow::connectAll()
         SIGNAL(textChanged()),
         this,
         SLOT(onTextEditChanged()));
+
+  connect(
+        ui->actionUndo,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onUndo()));
+
+  connect(
+        ui->actionRedo,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onRedo()));
+
+
 }
 
+void
+SourceEditorWindow::refreshUi()
+{
+  if (m_changed) {
+    setWindowTitle("Source editor - " + QString::fromStdString(m_fileName) + " [changed]");
+  } else {
+    setWindowTitle("Source editor - " + QString::fromStdString(m_fileName));
+  }
+
+  ui->actionUndo->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
+  ui->actionRedo->setEnabled(ui->sourceTextEdit->document()->isRedoAvailable());
+}
 
 void
 SourceEditorWindow::setFileName(std::string const &fileName)
 {
   m_fileName = fileName;
-  setWindowTitle("Source editor - " + QString::fromStdString(fileName));
+  refreshUi();
 }
 
 void
@@ -94,18 +134,25 @@ SourceEditorWindow::loadFromFp(FILE *fp)
   buffer.resize(4096 + 1);
 
   fseek(fp, 0, SEEK_SET);
+  m_original = "";
 
   while (!feof(fp)) {
     size = fread(buffer.data(), sizeof(char), buffer.size() - 1, fp);
     if (size > 0) {
       buffer.data()[size] = 0;
       text += buffer.data();
+      m_original += buffer.data();
     }
   }
 
   fseek(fp, curr, SEEK_SET);
 
   ui->sourceTextEdit->setPlainText(text);
+  ui->sourceTextEdit->document()->clearUndoRedoStacks();
+
+  m_changed = false;
+
+  refreshUi();
 }
 
 void
@@ -121,11 +168,12 @@ SourceEditorWindow::highlightError(
           QString::asprintf(
           "%s: line %d, character %d: %s",
           file.c_str(),
-          line,
+          line + 1,
           character,
           error.c_str()));
     m_highlighter->highlightError(line);
-    QTextCursor cursor(ui->sourceTextEdit->document()->findBlockByLineNumber(line - 2));
+    QTextCursor cursor(ui->sourceTextEdit->document()->findBlockByLineNumber(line));
+    cursor.movePosition(QTextCursor::Right, QTextCursor::MoveAnchor, character - 1);
     ui->sourceTextEdit->setTextCursor(cursor);
     ui->sourceTextEdit->setFocus();
     m_notifyingError = false;
@@ -141,6 +189,15 @@ SourceEditorWindow::makeParserContext(RZ::Recipe *recipe)
 SourceEditorWindow::~SourceEditorWindow()
 {
   delete ui;
+}
+
+void
+SourceEditorWindow::notifyChanged()
+{
+  if (!m_changed) {
+    m_changed = true;
+    refreshUi();
+  }
 }
 
 /////////////////////////////////// Slots /////////////////////////////////////
@@ -161,5 +218,39 @@ SourceEditorWindow::onTextEditChanged()
   if (!m_notifyingError) {
     m_highlighter->highlightError(-1);
     ui->statusbar->clearMessage();
+    ui->actionUndo->setEnabled(ui->sourceTextEdit->document()->isUndoAvailable());
+    ui->actionRedo->setEnabled(ui->sourceTextEdit->document()->isRedoAvailable());
+    notifyChanged();
   }
+}
+
+void
+SourceEditorWindow::onUndo()
+{
+  ui->sourceTextEdit->undo();
+}
+
+void
+SourceEditorWindow::onRedo()
+{
+  ui->sourceTextEdit->redo();
+}
+
+void
+SourceEditorWindow::onUndoAvailable(bool b)
+{
+  ui->actionUndo->setEnabled(b);
+}
+
+void
+SourceEditorWindow::onRedoAvailable(bool b)
+{
+  ui->actionRedo->setEnabled(b);
+}
+
+void
+SourceEditorWindow::onUndoAll()
+{
+  ui->sourceTextEdit->setPlainText(m_original.c_str());
+  refreshUi();
 }

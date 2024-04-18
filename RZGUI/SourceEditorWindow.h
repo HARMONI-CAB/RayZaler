@@ -32,12 +32,16 @@ class SourceEditorWindow : public QMainWindow
 
   bool            m_notifyingError = false;
   RZMHighLighter *m_highlighter = nullptr;
+  std::string     m_original;
+  bool            m_changed = false;
 
   void connectAll();
+  void notifyChanged();
 
 public:
   explicit SourceEditorWindow(QWidget *parent = nullptr);
 
+  void refreshUi();
   void loadFromFp(FILE *fp);
   void setFileName(std::string const &);
   SourceEditorParserContext *makeParserContext(RZ::Recipe *);
@@ -50,6 +54,11 @@ signals:
 public slots:
   void onCursorChanged();
   void onTextEditChanged();
+  void onUndoAll();
+  void onUndo();
+  void onRedo();
+  void onUndoAvailable(bool);
+  void onRedoAvailable(bool);
 
 private:
   Ui::SourceEditorWindow *ui;

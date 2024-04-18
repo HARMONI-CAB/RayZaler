@@ -323,7 +323,7 @@ MainWindow::refreshCurrentSession()
     ui->actionAnimPause->setEnabled(m_currSession->playing());
     ui->actionAnimStop->setEnabled(!m_currSession->stopped());
     ui->actionAnimPlay->setEnabled(!m_currSession->playing());
-
+    ui->actionModelSource->setEnabled(true);
     ui->dofStack->insertWidget(1, m_sessionToUi[m_currSession].dofWidget);
     ui->dofStack->setCurrentIndex(1);
 
@@ -360,6 +360,8 @@ MainWindow::refreshCurrentSession()
     ui->simToolBar->setEnabled(false);
     ui->displayToolBar->setEnabled(false);
     ui->actionReloadModel->setEnabled(false);
+    ui->actionModelSource->setEnabled(false);
+
     BLOCKSIG(ui->actionToggleDisplayNames,    setChecked(false));
     BLOCKSIG(ui->actionToggleApertures,       setChecked(false));
     BLOCKSIG(ui->actionToggleElements,        setChecked(true));
@@ -619,7 +621,7 @@ MainWindow::onModelsChanged()
   ui->propTableView->setModel(nullptr);
   ui->propTableView->setModel(m_propModel);
 
-  ui->propTableView->horizontalHeader()->resizeSections(QHeaderView::Stretch);
+  ui->propTableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
   ui->propTableView->horizontalHeader()->setStretchLastSection(true);
 
   ui->omTreeView->setModel(nullptr);

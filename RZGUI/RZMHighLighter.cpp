@@ -25,15 +25,12 @@ RZMHighLighter::defineFormat(QString const &name, QTextCharFormat const &fmt)
 void
 RZMHighLighter::highlightBlock(const QString &text)
 {
-  int line = currentBlock().firstLineNumber() + 2;
+  int line = currentBlock().firstLineNumber();
   m_highlighting = true;
 
-  if (m_errCleared && line == m_prevErrLine) {
-    QTextCursor cursor(currentBlock());
-    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-    cursor.mergeCharFormat(m_formats["background"]);
-    m_errCleared = false;
-  }
+  if (m_errLine < 0)
+   setFormat(0, text.size(), m_formats["background"]);
+
 
   for (const HighlightingRule &rule : std::as_const(m_rules)) {
     QRegularExpressionMatchIterator matchIterator = rule.pattern.globalMatch(text);
@@ -44,11 +41,8 @@ RZMHighLighter::highlightBlock(const QString &text)
     }
   }
 
-  if (line == m_errLine) {
-    QTextCursor cursor(currentBlock());
-    cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-    cursor.mergeCharFormat(m_formats["error"]);
-  }
+  if (line == m_errLine)
+    setFormat(0, text.size(), m_formats["error"]);
 
   m_highlighting = false;
 }
@@ -58,8 +52,6 @@ RZMHighLighter::highlightError(int line)
 {
   if (m_errLine != line) {
     if (!m_highlighting) {
-      m_prevErrLine = m_errLine;
-      m_errCleared = true;
       m_errLine = line;
       rehighlight();
     }

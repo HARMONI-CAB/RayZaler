@@ -22,8 +22,7 @@ class RZMHighLighter : public QSyntaxHighlighter
   QList<HighlightingRule>        m_rules;
   QMap<QString, QTextCharFormat> m_formats;
   int                            m_errLine = -1;
-  int                            m_prevErrLine = -1;
-  bool                           m_errCleared = false;
+  bool                           m_clearingErrors = false;
   bool                           m_highlighting = false;
   void addRule(QString const &what, QString const &regex);
 

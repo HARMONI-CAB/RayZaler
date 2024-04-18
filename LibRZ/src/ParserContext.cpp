@@ -26,12 +26,28 @@ ParserError::ParserError() : std::runtime_error("No error")
 
 }
 
+//
+// Character and columns represented in the error message differ from those
+// in the ParserError. In particular:
+// - m_line: represents the line index (starting by zero) of the error.
+// - m_char: represents the number of consumed characters in the current line
+// before triggering the error (starting by zero).
+//
+// Since errors in a given line can only occur right after the first character
+// of the line was consumed, m_char will always be at least 1 (hence the offending
+// character is at m_char - 1)
+//
+// Since people expect lines and columns to start from 1, the error message must
+// state that the failing line is m_line + 1. On the other hand, since the
+// offending character is m_char - 1, we must report m_char - 1 + 1 = m_char
+//
+
 ParserError::ParserError(
   std::string const &file,
   int line,
   int col,
   std::string const &msg) : 
-  std::runtime_error(file + ":" + std::to_string(line + 1) + ":" + std::to_string(col + 1) + ": " + msg)
+  std::runtime_error(file + ":" + std::to_string(line + 1) + ":" + std::to_string(col) + ": " + msg)
 {
   m_file = file;
   m_line = line;
@@ -114,13 +130,18 @@ ParserContext::getChar()
   }
 
   m_last = read();
-  if (m_last == '\n') {
+  if (m_newLine) {
+    m_newLine = false;
     m_char = 0;
     ++m_line;
-    m_commentFound = false;
-  } else {
-    ++m_char;
   }
+
+  if (m_last == '\n') {
+    m_newLine = true;
+    m_commentFound = false;
+  } 
+
+  ++m_char;
 
   return m_last;
 }
@@ -619,7 +640,7 @@ ParserContext::parse()
   try {
     yyparse(this);
   } catch (std::runtime_error const &e) {
-    throw ParserError(m_file, m_tokLine + 1, m_tokChar + 1, e.what());
+    throw ParserError(m_file, m_tokLine, m_tokChar, e.what());
   }
 
   return true;

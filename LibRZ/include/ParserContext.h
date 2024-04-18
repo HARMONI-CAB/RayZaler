@@ -137,6 +137,7 @@ namespace RZ {
       int m_recursion = 0;
       int m_line = 0;
       int m_char = 0;
+      bool m_newLine = false;
       int m_tokLine = 0;
       int m_tokChar = 0;
       bool m_commentFound = false;
