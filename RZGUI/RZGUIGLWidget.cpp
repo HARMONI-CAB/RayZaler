@@ -528,6 +528,14 @@ void
 RZGUIGLWidget::mouseMotion(int x, int y)
 {
   GLfloat shiftX, shiftY;
+  GLfloat wX, wY;
+  RZ::Vec3 v;
+
+  // wX = +4 * (x - m_currentCenter[0] - m_width  * .5) / (m_zoom * m_width);
+  // wY = -4 * (y - m_currentCenter[1] - m_height * .5) / (m_zoom * m_width);
+
+  wX = +4 * (x - m_width  * .5) / (m_zoom * m_width);
+  wY = -4 * (y - m_height * .5) / (m_zoom * m_width);
 
   if (m_dragging) {
     shiftX = x - m_dragStart[0];
@@ -536,6 +544,7 @@ RZGUIGLWidget::mouseMotion(int x, int y)
     m_currentCenter[1] = m_oldCenterCenter[1] + shiftY;
 
     m_newViewPort = true;
+
     update();
   }
 
