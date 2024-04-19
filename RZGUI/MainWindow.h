@@ -89,6 +89,7 @@ public slots:
   void onChangeDisplay();
   void onUpdateModel();
   void onModelSource();
+  void onCenterToSelected();
 
 private:
   Ui::MainWindow *ui;

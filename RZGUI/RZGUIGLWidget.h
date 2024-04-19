@@ -50,6 +50,7 @@ class RZGUIGLWidget : public QOpenGLWidget
 
   void configureViewPort();
   void configureLighting();
+  void setOrientationAndCenter(RZ::Matrix3 const &, RZ::Vec3 const &);
   void pushReferenceFrameMatrix(const RZ::ReferenceFrame *);
   void pushElementMatrix(const RZ::Element *);
   void popElementMatrix();
@@ -57,6 +58,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   void displayApertures(const RZ::Element *);
   void mouseClick(int button, int state, int x, int y, int shift);
   void mouseMotion(int x, int y);
+
   void drawAxes();
 
   inline GLint project(
@@ -106,6 +108,7 @@ public:
 
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel);
+  void rotateToCurrentFrame();
 
   void setGridDivs(unsigned);
   void setGridStep(qreal);

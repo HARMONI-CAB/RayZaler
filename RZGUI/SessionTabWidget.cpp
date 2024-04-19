@@ -146,6 +146,12 @@ SessionTabWidget::displayGrid() const
   return m_displayGrid;
 }
 
+const RZ::ReferenceFrame *
+SessionTabWidget::selectedFrame() const
+{
+  return m_selectedFrame;
+}
+
 void
 SessionTabWidget::setDisplayElements(bool disp)
 {
@@ -169,6 +175,7 @@ SessionTabWidget::setDisplayApertures(bool disp)
 void
 SessionTabWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
 {
+  m_selectedFrame = frame;
   m_glWidget->setSelectedReferenceFrame(frame);
 }
 
@@ -288,6 +295,12 @@ void
 SessionTabWidget::showSourceWindow()
 {
   m_sourceEditorWindow->show();
+}
+
+void
+SessionTabWidget::centerSelectedFrame()
+{
+  m_glWidget->rotateToCurrentFrame();
 }
 
 void

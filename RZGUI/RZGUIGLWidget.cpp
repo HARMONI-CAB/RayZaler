@@ -19,20 +19,27 @@ RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 }
 
 void
+RZGUIGLWidget::setOrientationAndCenter(RZ::Matrix3 const &R, RZ::Vec3 const &O)
+{
+   GLdouble viewMatrix[16] = {
+    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], O.coords[0],
+    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], O.coords[1],
+    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], O.coords[2],
+                      0,                   0,                   0,           1
+   };
+
+  glMultTransposeMatrixd(viewMatrix);
+}
+
+void
 RZGUIGLWidget::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
 {
   auto R     = frame->getOrientation();
   auto O     = frame->getCenter();
 
-  GLdouble viewMatrix[16] = {
-    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], O.coords[0],
-    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], O.coords[1],
-    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], O.coords[2],
-                      0,                   0,                   0,           1};
-
   glPushMatrix();
   glLoadMatrixf(m_refMatrix);
-  glMultTransposeMatrixd(viewMatrix);
+  setOrientationAndCenter(R, O);
 }
 
 void
@@ -750,7 +757,7 @@ RZGUIGLWidget::drawAxes()
       auto theta = RZ::rad2deg(m_incRot.theta());
 
       glRotatef(theta, k.x, k.y, k.z);
-
+      
       glRotatef(-90, 1, 0, 0);
       glRotatef(-90, 0, 0, 1);
 
@@ -831,4 +838,25 @@ RZGUIGLWidget::setCurrentRot(const GLfloat *rot)
     m_incRot.setRotation(RZ::Vec3::eX(), RZ::deg2rad(rot[1]));
 
   update();
+}
+
+void
+RZGUIGLWidget::rotateToCurrentFrame()
+{
+  if (m_selectedRefFrame != nullptr) {
+    RZ::Vec3 center = m_selectedRefFrame->getCenter();
+    
+    m_incRot.setRotation(m_selectedRefFrame->getOrientation());\
+
+    RZ::Vec3 result = m_incRot.matrix() * center;
+    
+    m_incRot.rotateRelative(RZ::Vec3::eZ(), M_PI / 2);
+    m_incRot.rotateRelative(RZ::Vec3::eX(), M_PI / 2);
+    
+    m_currentCenter[0] = -.25 * result.x * m_zoom * m_width;
+    m_currentCenter[1] = .25 * result.y * m_zoom * m_width;
+    
+    m_newViewPort = true;
+    update();
+  }
 }

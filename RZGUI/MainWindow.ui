@@ -444,6 +444,7 @@
    <addaction name="actionViewRear"/>
    <addaction name="actionViewLeft"/>
    <addaction name="actionViewRight"/>
+   <addaction name="actionCenterSelection"/>
   </widget>
   <widget class="QToolBar" name="displayToolBar">
    <property name="windowTitle">
@@ -728,6 +729,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionCenterSelection">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/zoom-selection.svg</normaloff>:/toolbar/icons/zoom-selection.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Center selected frame</string>
    </property>
   </action>
  </widget>

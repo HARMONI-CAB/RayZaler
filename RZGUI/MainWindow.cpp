@@ -238,6 +238,12 @@ MainWindow::connectAll()
         SLOT(onChangeView()));
 
   connect(
+        ui->actionCenterSelection,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onCenterToSelected()));
+
+  connect(
         ui->actionToggleDisplayNames,
         SIGNAL(toggled(bool)),
         this,
@@ -332,6 +338,11 @@ MainWindow::refreshCurrentSession()
     ui->actionModelSource->setEnabled(true);
     ui->dofStack->insertWidget(1, m_sessionToUi[m_currSession].dofWidget);
     ui->dofStack->setCurrentIndex(1);
+
+    SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+          ui->sessionTabWidget->currentWidget());
+    if (widget != nullptr)
+      ui->actionCenterSelection->setEnabled(widget->selectedFrame() != nullptr);
 
     ui->simToolBar->setEnabled(true);
     ui->actionSimResult->setEnabled(
@@ -702,6 +713,7 @@ MainWindow::onTreeItemSelectionChanged()
       }
     }
 
+    ui->actionCenterSelection->setEnabled(widget->selectedFrame() != nullptr);
     m_currSession->selectElement(selectedElement);
     widget->setSelectedReferenceFrame(selectedFrame);
     widget->setSelectedOpticalPath(selectedPath);
@@ -742,4 +754,14 @@ MainWindow::onModelSource()
 
   if (widget != nullptr)
     widget->showSourceWindow();
+}
+
+void
+MainWindow::onCenterToSelected()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr)
+    widget->centerSelectedFrame();
 }

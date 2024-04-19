@@ -27,6 +27,7 @@ class SessionTabWidget : public QWidget
   DetectorWindow           *m_detWindow = nullptr; // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
   SourceEditorWindow       *m_sourceEditorWindow = nullptr;
+  const RZ::ReferenceFrame *m_selectedFrame    = nullptr;
   bool                      m_displayNames     = false;
   bool                      m_displayApertures = false;
   bool                      m_displayElements  = true;
@@ -50,12 +51,14 @@ public:
   void reloadModelFromEditor();
   void setRotation(qreal, qreal, qreal);
   void showSourceWindow();
+  void centerSelectedFrame();
 
   bool displayNames() const;
   bool displayApertures() const;
   bool displayElements() const;
   bool displayRefFrames() const;
   bool displayGrid() const;
+  const RZ::ReferenceFrame *selectedFrame() const;
 
   void setDisplayNames(bool);
   void setDisplayApertures(bool);

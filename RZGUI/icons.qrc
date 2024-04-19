@@ -36,6 +36,7 @@
         <file>icons/edit-redo.svg</file>
         <file>icons/edit-undo.svg</file>
         <file>icons/Draft_Grid.svg</file>
+        <file>icons/zoom-selection.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>
