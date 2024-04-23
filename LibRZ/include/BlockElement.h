@@ -14,6 +14,7 @@ namespace RZ {
       RotatedFrame *m_rotatedSides[6];
 
       Real m_cachedLength, m_cachedWidth, m_cachedHeight;
+      bool m_wireFrame = false;
       void initSides();
 
     protected:

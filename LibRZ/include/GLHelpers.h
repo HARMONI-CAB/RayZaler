@@ -45,8 +45,8 @@ public:
     void set(std::string const &, Real) const;
 };
 
-  void GLCube(GLfloat);
-  
+  void GLCube(GLfloat, bool wireFrame = false);
+
   struct GLPrimitive {
     virtual void display() = 0;
   };

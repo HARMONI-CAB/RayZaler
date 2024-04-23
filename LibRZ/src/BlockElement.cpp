@@ -35,6 +35,9 @@ BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
     m_sides[5]->recalculate();
     m_cachedHeight = value;
     return true;
+  } else if (name == "wireFrame") {
+    m_wireFrame = value > .5;
+    return true;
   }
   
   return Element::propertyChanged(name, val);
@@ -106,7 +109,8 @@ BlockElement::BlockElement(
   registerProperty("length",  BLOCK_DEFAULT_LENGTH);
   registerProperty("width",   BLOCK_DEFAULT_WIDTH);
   registerProperty("height",  BLOCK_DEFAULT_HEIGHT);
-
+  registerProperty("wireFrame", 0.);
+  
   m_cachedLength = BLOCK_DEFAULT_LENGTH;
   m_cachedWidth  = BLOCK_DEFAULT_WIDTH;
   m_cachedHeight = BLOCK_DEFAULT_HEIGHT;
@@ -128,12 +132,21 @@ BlockElement::BlockElement(
 void
 BlockElement::renderOpenGL()
 {
-  material("cube");
+  glPushAttrib(GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_LINE_BIT);
+    if (m_wireFrame) {
+      glEnable(GL_COLOR);
+      glDisable(GL_LIGHTING);
+      glLineWidth(2);
+      glColor3f(red(), green(), blue());
+    } else {
+      material("cube");
+    }
 
-  glPushMatrix();
-  glScalef(m_cachedLength, m_cachedWidth, m_cachedHeight);
-  GLCube(1);
-  glPopMatrix();
+    glPushMatrix();
+    glScalef(m_cachedLength, m_cachedWidth, m_cachedHeight);
+    GLCube(1, m_wireFrame);
+    glPopMatrix();
+  glPopAttrib();
 }
 
 

@@ -138,6 +138,10 @@ namespace RZ {
     public:
       virtual ~Element();
       
+      inline Real red() const { return m_red; }
+      inline Real green() const { return m_green; }
+      inline Real blue() const { return m_blue; }
+
       ElementFactory *
       factory() const
       {

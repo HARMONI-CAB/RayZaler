@@ -117,7 +117,7 @@ GLShader::checkBuildErrors(unsigned int shader, std::string const &type)
 // See: https://github.com/markkilgard/glut/blob/master/lib/glut/glut_shapes.c
 //
 void
-RZ::GLCube(GLfloat size)
+RZ::GLCube(GLfloat size, bool wireFrame)
 {
   static const GLfloat normals[6][3] = {
     {-1, 0, 0},
@@ -140,22 +140,26 @@ RZ::GLCube(GLfloat size)
   GLfloat v[8][3];
 
   v[0][0] = v[1][0] = v[2][0] = v[3][0] = -size / 2;
-  v[4][0] = v[5][0] = v[6][0] = v[7][0] = +size / 2;
   v[0][1] = v[1][1] = v[4][1] = v[5][1] = -size / 2;
-  v[2][1] = v[3][1] = v[6][1] = v[7][1] = +size / 2;
   v[0][2] = v[3][2] = v[4][2] = v[7][2] = -size / 2;
+  
+  v[4][0] = v[5][0] = v[6][0] = v[7][0] = +size / 2;
+  v[2][1] = v[3][1] = v[6][1] = v[7][1] = +size / 2;  
   v[1][2] = v[2][2] = v[5][2] = v[6][2] = +size / 2;
 
-  glBegin(GL_QUADS);
   for (auto i = 5; i >= 0; --i) {
-    glNormal3fv(normals[i]);
+    glBegin(wireFrame ? GL_LINE_LOOP : GL_QUADS);
+    if (!wireFrame)
+      glNormal3fv(normals[i]);
     glVertex3fv(v[faces[i][0]]);
     glVertex3fv(v[faces[i][1]]);
     glVertex3fv(v[faces[i][2]]);
     glVertex3fv(v[faces[i][3]]);
+    glEnd();
   }
-  glEnd();
+  
 }
+
 
 /////////////////////////////////// GLCone /////////////////////////////////////
 GLCone::GLCone()
