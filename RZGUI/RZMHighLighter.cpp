@@ -68,7 +68,7 @@ RZMHighLighter::rebuildRules()
 QList<QString>
 RZMHighLighter::formats() const
 {
-
+  return QList<QString>();
 }
 
 RZMHighLighter::RZMHighLighter(QTextDocument *parent) : QSyntaxHighlighter(parent)

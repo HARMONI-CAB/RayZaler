@@ -5,8 +5,109 @@
 #include <cmath>
 #include <cstdio>
 #include <Vector.h>
+#include <Singleton.h>
+#include <FT2Facade.h>
+#include <Logger.h>
 
 using namespace RZ;
+
+///////////////////////////////// GLShader /////////////////////////////////////
+//
+// Refactorized from https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/shader_s.h
+//
+
+GLShader::GLShader(const char *vertexCode, const char *fragCode)
+{
+  unsigned int vertex, fragment;
+
+  // Allocate shaders
+  vertex = glCreateShader(GL_VERTEX_SHADER);
+  fragment = glCreateShader(GL_FRAGMENT_SHADER);
+
+  glShaderSource(vertex, 1, &vertexCode, nullptr);
+  glCompileShader(vertex);
+  if (!checkBuildErrors(vertex, "VERTEX"))
+    goto done;
+ 
+  glShaderSource(fragment, 1, &fragCode, nullptr);
+  glCompileShader(fragment);
+  if (!checkBuildErrors(fragment, "FRAGMENT"))
+    goto done;
+        
+  // Create shader program
+  m_id = glCreateProgram();
+  glAttachShader(m_id, vertex);
+  glAttachShader(m_id, fragment);
+  glLinkProgram(m_id);
+  if (!checkBuildErrors(m_id, "PROGRAM"))
+    goto done;
+
+  m_initialized = true;
+
+done:
+  // delete the shaders as they're linked into our program now and no longer necessary
+  glDeleteShader(vertex);
+  glDeleteShader(fragment);
+}
+
+GLShader::~GLShader()
+{
+  if (m_id >= 0)
+    glDeleteProgram(m_id);
+}
+
+void
+GLShader::use()
+{
+  if (m_initialized)
+    glUseProgram(m_id);
+}
+
+void
+GLShader::set(std::string const &name, bool value) const
+{
+  if (m_initialized)
+    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+}
+
+void
+GLShader::set(std::string const &name, int value) const
+{
+  if (m_initialized)
+    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+}
+
+void
+GLShader::set(std::string const &name, Real value) const
+{
+  if (m_initialized)
+    glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
+}
+
+bool
+GLShader::checkBuildErrors(unsigned int shader, std::string const &type)
+{
+  int success = 0;
+  std::vector<char> buf;
+
+  buf.resize(1024);
+
+  if (type != "PROGRAM") {
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      glGetShaderInfoLog(shader, buf.size(), nullptr, buf.data());
+      RZError("Shader build error: %s\n", buf.data());
+    }
+  } else {
+    glGetProgramiv(shader, GL_LINK_STATUS, &success);
+    if (!success) {
+      glGetProgramInfoLog(shader, buf.size(), nullptr, buf.data());
+      RZError("Shader linking error: %s\n", buf.data());
+    }
+  }
+
+  return success != 0;
+}
 
 ///////////////////////////////// GLCube ///////////////////////////////////////
 //
@@ -1164,6 +1265,48 @@ GLArrow::~GLArrow()
 }
 
 //////////////////////////////// GLGrid ////////////////////////////////////////
+
+#define GLGRID_ANGLE_SEGS 36
+
+void
+GLGrid::recalculateHighlight()
+{
+  m_hlVertices.clear();
+
+  if (m_x * m_x + m_y * m_y > std::numeric_limits<GLfloat>::epsilon()) {
+    Real R = sqrt(m_x * m_x + m_y * m_y);
+
+    m_hlVertices.push_back(m_x);
+    m_hlVertices.push_back(m_y);
+    m_hlVertices.push_back(0);
+
+    m_hlVertices.push_back(0);
+    m_hlVertices.push_back(0);
+    m_hlVertices.push_back(0);
+
+    m_hlVertices.push_back(R);
+    m_hlVertices.push_back(0);
+    m_hlVertices.push_back(0);
+
+    Real theta = atan2(m_y, m_x);
+
+    if (theta < 0)
+      theta += 2 * M_PI;
+    
+    unsigned int steps = ceil(theta / (2 * M_PI) * GLGRID_ANGLE_SEGS);
+
+    Real dTheta = theta / steps;
+    
+    R *= .3;
+
+    for (unsigned int i = 0; i <= steps; ++i) {
+      m_hlVertices.push_back(R * cos(i * dTheta));
+      m_hlVertices.push_back(R * sin(i * dTheta));
+      m_hlVertices.push_back(0);
+    }
+  }
+}
+
 void
 GLGrid::recalculate()
 {
@@ -1198,6 +1341,34 @@ GLGrid::recalculate()
 }
 
 void
+GLGrid::highlight(GLfloat x, GLfloat y)
+{
+  if (!iszero(x - m_x) || !iszero(y - m_y)) {
+    m_x = x;
+    m_y = y;
+    recalculateHighlight();
+  }
+}
+
+void
+GLGrid::setGridColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+  m_gridColor[0] = r;
+  m_gridColor[1] = g;
+  m_gridColor[2] = b;
+  m_gridColor[3] = a;
+}
+
+void
+GLGrid::setHighlightColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+  m_hlColor[0] = r;
+  m_hlColor[1] = g;
+  m_hlColor[2] = b;
+  m_hlColor[3] = a;
+}
+
+void
 GLGrid::display()
 {
   glPushAttrib(GL_LINE_BIT | GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT);
@@ -1205,11 +1376,20 @@ GLGrid::display()
     glEnable(GL_COLOR);
     glLineWidth(m_thickness);
 
+    glColor4f(m_gridColor[0], m_gridColor[1], m_gridColor[2], m_gridColor[3]);
     glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
       glDrawArrays(GL_LINES, 0, m_vertices.size() / 3);
     glDisableClientState(GL_VERTEX_ARRAY);
 
+    glLineWidth(2 * m_thickness);
+    if (m_hlVertices.size() > 0) {
+      glColor4f(m_hlColor[0], m_hlColor[1], m_hlColor[2], m_hlColor[3]);
+      glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_hlVertices.data());
+        glDrawArrays(GL_LINE_STRIP, 0, m_hlVertices.size() / 3);
+      glDisableClientState(GL_VERTEX_ARRAY);
+    }
   glPopAttrib();
 }
 
@@ -1248,4 +1428,247 @@ GLGrid::GLGrid()
 GLGrid::~GLGrid()
 {
 
+}
+
+//////////////////////////////////// GLText ////////////////////////////////////
+void
+GLText::composeTexture()
+{
+  unsigned int x = 0, height = 0, advance = 0, charWidth = 0;
+  int x0, y0, x1, y1;
+  int ymin = 0, ymax = 0, xmin = 0, xmax = 0;
+
+  FT2Facade *ft = Singleton::instance()->freetype();
+  FT_Error error;
+  FT_Face face = ft->loadFace(m_face, error);
+
+  m_texLoaded = false;
+  m_needsReload = true;
+
+  if (m_text.empty())
+    return;
+  
+  FT_Set_Pixel_Sizes(face, 0, m_fontSize);
+
+  // Dry run: estimate texture size
+  for (auto i = 0; i < m_text.size(); ++i) {
+    x += advance;
+
+    if (FT_Load_Char(face, m_text[i], FT_LOAD_RENDER)) {
+      RZError("FreeType2: cannot load glyph for ASCII = %d\n", m_text[i]);
+      goto done;
+    }
+
+    charWidth = face->glyph->bitmap.width;
+
+    // Calculate bounding box. The interpretation of the bitmap_top and
+    // height is a bit tricky: it means that the character starts at `bitmap_top`
+    // vertically upwards, and develops itself `rows` downards. This means that:
+    //
+    // ymin = top - height
+    // ymax = ymin + height = top
+    x0 = x + face->glyph->bitmap_left;
+    y0 = face->glyph->bitmap_top - face->glyph->bitmap.rows;
+    x1 = x0 + charWidth;
+    y1 = face->glyph->bitmap_top;
+
+    if (x0 < xmin)
+      xmin = x0;
+    if (y0 < ymin)
+      ymin = y0;
+    if (x1 > xmax)
+      xmax = x1;
+    if (y1 > ymax)
+      ymax = y1;
+
+    advance = face->glyph->advance.x >> 6;
+  }
+
+  m_texWidth  = xmax - xmin;
+  m_texHeight = ymax - ymin;
+
+  // Allocate texture and load glyphs
+  m_texture.resize(m_texWidth * m_texHeight);
+  memset(m_texture.data(), 0, m_texture.size() * sizeof(uint32_t));
+
+  x = 0;
+  advance = 0;
+
+  for (auto i = 0; i < m_text.size(); ++i) {
+    x += advance;
+
+    if (FT_Load_Char(face, m_text[i], FT_LOAD_RENDER)) {
+      RZError("FreeType2: cannot load glyph for ASCII = %d\n", m_text[i]);
+      goto done;
+    }
+
+    advance = face->glyph->advance.x >> 6;
+
+    auto glyphWidth  = face->glyph->bitmap.width;
+    auto glyphHeight = face->glyph->bitmap.rows;
+
+    // Calculate bounding box
+    x0 = x + face->glyph->bitmap_left;
+    y0 = face->glyph->bitmap_top - glyphHeight;
+    
+    for (auto j = 0; j < glyphHeight; ++j) {
+      for (auto i = 0; i < glyphWidth; ++i) {
+        m_texture[x0 + i + (j + (y0 - ymin)) * m_texWidth] = 
+          0xffffff00 | face->glyph->bitmap.buffer[i + (glyphHeight - j - 1) * glyphWidth];
+      }
+    }
+  }
+
+  m_haveTexture = true;
+
+done:
+  if (m_haveTexture) {
+    // Define vertices and finish
+    GLfloat vertices[6][2] = {
+          { 0,                    m_scale * m_texHeight},
+          { 0,                    0                    },
+          { m_scale * m_texWidth, 0                    },
+          { 0,                    m_scale * m_texHeight},
+          { m_scale * m_texWidth, 0                    },
+          { m_scale * m_texWidth, m_scale * m_texHeight}};
+
+    memcpy(m_vertices, vertices, sizeof(vertices));
+  }
+}
+
+void
+GLText::setColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+{
+  m_color[0] = r;
+  m_color[1] = g;
+  m_color[2] = b;
+  m_color[3] = a;
+}
+
+void
+GLText::setSize(unsigned size)
+{
+  if (m_fontSize != size) {
+    m_fontSize = size;
+    composeTexture();
+  }
+}
+
+void
+GLText::setScale(GLfloat scale)
+{
+  m_scale = scale;
+  composeTexture();
+}
+
+void
+GLText::setText(std::string const &text)
+{
+  if (text != m_text) {
+    m_text = text;
+    composeTexture();
+  }
+}
+
+void
+GLText::setFace(std::string const &face)
+{
+  if (face != m_face) {
+    m_face = face;
+    composeTexture();
+  }
+}
+
+void
+GLText::reloadTexture()
+{
+  if (!m_haveTexture)
+    return;
+  
+  if (m_texLoaded) {
+    glDeleteTextures(1, &m_texId);
+    m_texLoaded = false;
+  }
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+  
+  glGenTextures(1, &m_texId);
+  glBindTexture(GL_TEXTURE_2D, m_texId);
+
+  glTexImage2D(
+      GL_TEXTURE_2D,
+      0,
+      GL_RGBA8,
+      m_texWidth,
+      m_texHeight,
+      0,
+      GL_RGBA,
+      GL_UNSIGNED_INT_8_8_8_8,
+      m_texture.data()
+  );
+
+  // set texture options
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  
+  m_texLoaded = true;
+
+done:
+  return;
+}
+
+GLText::~GLText()
+{
+
+}
+
+static const GLfloat g_textTexCoords[6][2] = {
+  {0, 1},
+  {0, 0},
+  {1, 0},
+  {0, 1},
+  {1, 0},
+  {1, 1}
+};
+
+void
+GLText::display()
+{
+  GLfloat x = 0;
+
+  if (m_needsReload) {
+    reloadTexture();
+    m_needsReload = false;
+  }
+
+  if (!m_texLoaded)
+    return;
+
+  glPushAttrib(GL_LINE_BIT | GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+    glDisable(GL_LIGHTING);
+    glEnable(GL_COLOR);
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+
+    glActiveTexture(GL_TEXTURE0);
+    glColor4fv(m_color);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+      glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(float), g_textTexCoords);
+      glVertexPointer(2, GL_FLOAT, 2 * sizeof(float), m_vertices);
+
+      glBindTexture(GL_TEXTURE_2D, m_texId);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+  glPopAttrib();
 }

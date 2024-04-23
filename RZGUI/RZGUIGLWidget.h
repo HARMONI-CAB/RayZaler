@@ -15,6 +15,8 @@ class RZGUIGLWidget : public QOpenGLWidget
   RZ::GLGrid                m_xyCoarseGrid;
   RZ::GLGrid                m_xyMediumGrid;
   RZ::GLGrid                m_xyFineGrid;
+  RZ::GLText                m_glText;
+
   std::vector<RZ::GLArrow>  m_pathArrows;
   const RZ::ReferenceFrame *m_selectedRefFrame = nullptr;
   const RZ::OpticalPath    *m_selectedPath = nullptr;
@@ -107,7 +109,7 @@ public:
   void setDisplayGrid(bool);
 
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
-  void setSelectedReferenceFrame(RZ::ReferenceFrame *sel);
+  void setSelectedReferenceFrame(RZ::ReferenceFrame *sel, const char *name = nullptr);
   void rotateToCurrentFrame();
 
   void setGridDivs(unsigned);
@@ -115,6 +117,9 @@ public:
 
   // Exposed so other objects can deliver events to the widget
   void keyPressEvent(QKeyEvent *event) override;
+
+signals:
+  void planeCoords(qreal x, qreal y);
 };
 
 #endif // RZGUIGLWIDGET_H

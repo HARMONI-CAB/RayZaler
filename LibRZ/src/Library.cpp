@@ -1,6 +1,5 @@
 #include <Singleton.h>
 #include <RayProcessors.h>
-
 #include <ApertureStop.h>
 #include <BenchElement.h>
 #include <BlockElement.h>
@@ -19,6 +18,8 @@
 #include <Tripod.h>
 #include <TubeElement.h>
 #include <Logger.h>
+
+#include <FT2Facade.h>
 
 #ifdef PYTHON_SCRIPT_SUPPORT
 #  include  <ScriptLoader.h>
@@ -65,5 +66,9 @@ RZ::RZInit()
   RZInfo("Python support disabled at compile time.\n");
 #endif // PYTHON_SCRIPT_SUPPORT
 
+  // Initialize FreeType
+  
+
+    
   Singleton::instance()->logInitMessage();
 }

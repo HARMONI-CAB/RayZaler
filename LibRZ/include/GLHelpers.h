@@ -23,9 +23,28 @@ namespace RZ {
       return m_params;
     }
   };
-
-  // TODO: Remove GLUT altogether
   
+  class GLShader {
+    int m_id = -1;
+    bool m_initialized = false;
+    bool checkBuildErrors(unsigned int shader, std::string const &type);
+
+public:
+    GLShader(const char * , const char *);
+    ~GLShader();
+
+    inline int
+    program() const
+    {
+      return m_id;
+    }
+
+    void use();
+    void set(std::string const &, bool) const;
+    void set(std::string const &, int) const;
+    void set(std::string const &, Real) const;
+};
+
   void GLCube(GLfloat);
   
   struct GLPrimitive {
@@ -38,7 +57,7 @@ namespace RZ {
       GLdouble m_height;
       GLint    m_slices;
       GLint    m_stacks;
-
+      
     public:
       GLCone();
       ~GLCone();
@@ -378,6 +397,7 @@ namespace RZ {
       GLfloat              m_arrowHeight = 1e-1 / 3;
       GLfloat              m_arrowBase   = 1e-2;
 
+    
     public:
       void setHeight(GLfloat);
       void setRadius(GLfloat);
@@ -428,22 +448,85 @@ namespace RZ {
       ~GLArrow(); 
   };
 
+  class GLText : public GLPrimitive {
+    unsigned int               m_texId;
+    std::vector<uint32_t>      m_texture;
+    std::string                m_text;
+    std::string                m_face;
+    GLfloat                    m_vertices[6][2];
+    unsigned int               m_texWidth, m_texHeight;
+    unsigned int               m_fontSize = 48;
+
+    GLfloat                    m_scale = 1e-3;
+    GLfloat                    m_color[4] = {1, 1, 1, 1};
+
+    unsigned int m_size = 48;
+
+    bool m_haveTexture = false;
+    bool m_texLoaded = false;
+    bool m_needsReload = false;
+
+    void composeTexture();
+    void reloadTexture();
+
+  public:
+    ~GLText();
+
+    void setSize(unsigned);
+    void setScale(GLfloat);
+    void setColor(GLfloat, GLfloat, GLfloat, GLfloat = 1);
+    void setText(std::string const &);
+    void setFace(std::string const &);
+    
+    virtual void display() override;
+  };
+
   class GLGrid : public GLPrimitive {
       std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_hlVertices;
+      GLfloat              m_gridColor[4] = {1, 1, 1, 1};
+      GLfloat              m_hlColor[4] = {1, 0, 0, 1};
+
       unsigned             m_stepsX = 10;
       unsigned             m_stepsY = 10;
       Real                 m_step = 0.1;
       GLfloat              m_thickness = 1;
+      GLfloat              m_x = 0;
+      GLfloat              m_y = 0;
 
+      void recalculateHighlight();
       void recalculate();
 
     public:
+      inline GLfloat
+      width() const
+      {
+        return m_stepsX * m_step;
+      }
+      
+      inline GLfloat
+      height() const
+      {
+        return m_stepsY * m_step;
+      }
+
+      inline GLfloat
+      step() const
+      {
+        return m_step;
+      }
+      
       virtual void display() override;
 
+      void setGridColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1);
+      void setHighlightColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a = 1);
+      
       void setStepsX(unsigned);
       void setStepsY(unsigned);
       void setStep(Real);
       void setThickness(GLfloat);
+
+      void highlight(GLfloat x, GLfloat y);
 
       GLGrid();
       ~GLGrid();

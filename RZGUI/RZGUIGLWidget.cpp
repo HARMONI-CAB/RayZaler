@@ -15,7 +15,15 @@
 
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
+  m_xyCoarseGrid.setGridColor(1, 1, 1, 1);
+  m_xyCoarseGrid.setHighlightColor(1, 1, 0, 1);
+  m_xyMediumGrid.setGridColor(1, 1, 1, .75);
+  m_xyFineGrid.setGridColor(1, 1, 1, .5);
+
   setMouseTracking(true);
+
+  m_glText.setFace("gridfont-semibold");
+  m_glText.setText("This is a test");
 }
 
 void
@@ -258,6 +266,7 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
     }
   }
 
+
   pushElementMatrix(beam);
   beam->renderOpenGL();
   popElementMatrix();
@@ -316,12 +325,14 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
   if (m_selectedRefFrame && model == m_model) {
     pushReferenceFrameMatrix(m_selectedRefFrame);
     if (m_displayGrids) {
-      glColor4f(1, 1, 1, 1);
       m_xyCoarseGrid.display();
-      glColor4f(1, 1, 1, .75);
       m_xyMediumGrid.display();
-      glColor4f(1, 1, 1, .5);
       m_xyFineGrid.display();
+
+      glPushMatrix();
+        glTranslatef(-m_xyFineGrid.width() / 2, +m_xyFineGrid.height() / 2 + m_xyFineGrid.step(), 0);
+        m_glText.display();
+      glPopMatrix();
     }
     glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
     m_glAxes.display();
@@ -347,6 +358,7 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
       }
     }
   }
+  
 }
 
 void
@@ -427,10 +439,17 @@ RZGUIGLWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
 }
 
 void
-RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
+RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame, const char *name)
 {
   if (m_selectedRefFrame != frame) {
+    if (frame != nullptr) {
+      if (name ==  nullptr)
+        name = frame->name().c_str();
+      m_glText.setText(name);
+    }
+    
     m_selectedRefFrame = frame;
+    
     update();
   }
 }
@@ -531,12 +550,57 @@ RZGUIGLWidget::mouseMotion(int x, int y)
   GLfloat wX, wY;
   RZ::Vec3 v;
 
-  // wX = +4 * (x - m_currentCenter[0] - m_width  * .5) / (m_zoom * m_width);
-  // wY = -4 * (y - m_currentCenter[1] - m_height * .5) / (m_zoom * m_width);
+  // Screen coordinates, wrt world center
+  wX = +4 * (x - m_currentCenter[0] - m_width  * .5) / (m_zoom * m_width);
+  wY = -4 * (y - m_currentCenter[1] - m_height * .5) / (m_zoom * m_width);
 
-  wX = +4 * (x - m_width  * .5) / (m_zoom * m_width);
-  wY = -4 * (y - m_height * .5) / (m_zoom * m_width);
+  // Screen coordinates, zoom corrected
+  //wX = +4 * (x - m_width  * .5) / (m_zoom * m_width);
+  //wY = -4 * (y - m_height * .5) / (m_zoom * m_width);
 
+
+  if (m_selectedRefFrame != nullptr) {
+    RZ::Vec3 coords(wX, wY, 0);
+    RZ::Vec3 screenNormal, screenCoords;
+
+    RZ::IncrementalRotation correctedRotation = m_incRot;
+
+    correctedRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
+    correctedRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
+
+    //
+    // p0: m_selectedFrame.getCenter()
+    // sx: correctedRotation.matrix().vx
+    // sy: correctedRotation.matrix().vy
+    // ns: correctedRotation.matrix().vz
+    // z:  m_selectedFrame.z
+    //
+
+    auto p0    = m_selectedRefFrame->getCenter();
+    auto sx    = correctedRotation.matrix().vx();
+    auto sy    = correctedRotation.matrix().vy();
+    auto ns    = correctedRotation.matrix().vz();
+    auto dx    = wX * sx;
+    auto dy    = wY * sy;
+    auto ez    = m_selectedRefFrame->getOrientation().vz();
+
+    auto sproj = (p0 - dx - dy) * ez;
+    auto nproj = ns * ez;
+
+    if (!RZ::isZero(nproj)) {
+      RZ::Real t  = sproj / nproj;
+      auto pt     = dx + dy + t * ns; // Point in the frame
+      auto result = m_selectedRefFrame->toRelative(pt);
+      m_xyCoarseGrid.highlight(result.x, result.y);
+      emit planeCoords(result.x, result.y);
+      update();
+    } else {
+      m_xyCoarseGrid.highlight(0, 0);
+    }
+  } else {
+    m_xyCoarseGrid.highlight(0, 0);
+  }
+  
   if (m_dragging) {
     shiftX = x - m_dragStart[0];
     shiftY = y - m_dragStart[1];

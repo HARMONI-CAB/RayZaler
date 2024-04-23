@@ -173,10 +173,13 @@ SessionTabWidget::setDisplayApertures(bool disp)
 }
 
 void
-SessionTabWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame)
+SessionTabWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame, const char *name)
 {
   m_selectedFrame = frame;
-  m_glWidget->setSelectedReferenceFrame(frame);
+  m_glWidget->setSelectedReferenceFrame(frame, name);
+
+  if (frame == nullptr)
+    ui->xyLabel->setText("N/A");
 }
 
 void
@@ -244,6 +247,12 @@ SessionTabWidget::connectAll()
         SIGNAL(activated(int)),
         this,
         SLOT(onGridDivChanged(int)));
+
+    connect(
+        m_glWidget,
+        SIGNAL(planeCoords(qreal, qreal)),
+        this,
+        SLOT(onNewCoords(qreal, qreal)));
 }
 
 SessionTabWidget::~SessionTabWidget()
@@ -407,4 +416,15 @@ SessionTabWidget::onGridDivChanged(int ndx)
 {
   if (ndx >= 0)
     setGridDivs(ui->gridDivCombo->itemData(ndx).value<unsigned>());
+}
+
+void
+SessionTabWidget::onNewCoords(qreal x, qreal y)
+{
+  qreal theta = RZ::rad2deg(atan2(y, x));
+  qreal length = sqrt(x * x + y * y);
+
+  ui->xyLabel->setText(
+   toSensibleUnits(x) + ", " + toSensibleUnits(y) + " (" + toSensibleUnits(length) + ", " + asScientific(theta) + "º)"
+  );
 }

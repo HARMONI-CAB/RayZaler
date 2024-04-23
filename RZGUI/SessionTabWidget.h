@@ -66,7 +66,7 @@ public:
   void setDisplayRefFrames(bool);
   void setDisplayGrid(bool);
 
-  void setSelectedReferenceFrame(RZ::ReferenceFrame *);
+  void setSelectedReferenceFrame(RZ::ReferenceFrame *, const char * = nullptr);
   void setSelectedOpticalPath(const RZ::OpticalPath *);
 
   void setGridStep(qreal);
@@ -84,6 +84,7 @@ public slots:
   void onSourceEditorBuild();
   void onGridStepChanged(int);
   void onGridDivChanged(int);
+  void onNewCoords(qreal, qreal);
 };
 
 #endif // SESSIONTABWIDGET_H

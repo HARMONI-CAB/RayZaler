@@ -35,6 +35,38 @@ toSuperIndex(QString const &string)
         .replace(QString("+"), QString("⁺"))
         .replace(QString("-"), QString("⁻"));
 }
+void
+sensibleUnits(qreal &value, QString &units)
+{
+  qreal absValue  = fabs(value);
+  QString names[] = {"fm", "pm", "nm", "µm", "mm", "cm", "m", "km"};
+  qreal factors[] = {1e-15, 1e-12, 1e-9, 1e-6, 1e-3, 1e-2, 1, 1e3};
+
+  if (iszero(absValue)) {
+    value = 0;
+    units = "m";
+  } else {
+    unsigned int N   = sizeof(factors) / sizeof(factors[0]);
+    unsigned int i = 0;
+
+    for (i = 1; i < N; ++i)
+      if (absValue < factors[i])
+        break;
+    
+    value /= factors[i - 1];
+    units  = names[i - 1];
+  }
+}
+
+QString
+toSensibleUnits(qreal val)
+{
+  QString units;
+
+  sensibleUnits(val, units);
+
+  return QString::asprintf("%.3g ", val) + units;
+}
 
 QString
 asScientific(qreal value)

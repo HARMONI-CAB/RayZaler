@@ -56,4 +56,11 @@
         <file>icons/optical-elements.svg</file>
         <file>icons/world.svg</file>
     </qresource>
+    <qresource prefix="/fonts">
+        <file>fonts/LTSuperior-Bold.otf</file>
+        <file>fonts/LTSuperior-Medium.otf</file>
+        <file>fonts/LTSuperior-Regular.otf</file>
+        <file>fonts/LTSuperior-Semibold.otf</file>
+    </qresource>
+    <qresource prefix="/"/>
 </RCC>

@@ -10,6 +10,7 @@ set(LIBRZ_LIBDIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 
 find_package(BISON REQUIRED)
 find_package(Python OPTIONAL_COMPONENTS Development)
+find_package(Freetype REQUIRED)
 
 set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ApertureStop.cpp
@@ -23,6 +24,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
+  ${LIBRZ_SRCDIR}/FT2Facade.cpp
   ${LIBRZ_SRCDIR}/GenericAperture.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLModel.cpp
@@ -94,6 +96,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Element.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/exprtk.hpp
+  ${LIBRZ_INCLUDEDIR}/FT2Facade.h
   ${LIBRZ_INCLUDEDIR}/GenericAperture.h
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
@@ -180,8 +183,8 @@ add_library(
 if(Python_FOUND)
   set(LIBRZ_LOCAL_CFLAGS "-DPYTHON_SCRIPT_SUPPORT")
   target_compile_options(RZ PRIVATE ${LIBRZ_LOCAL_CFLAGS})
-  target_include_directories(RZ PRIVATE ${Python_INCLUDE_DIRS})
-  target_link_libraries(RZ PRIVATE ${Python_LIBRARIES})
+  target_include_directories(RZ PRIVATE ${Python_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS})
+  target_link_libraries(RZ PRIVATE ${Python_LIBRARIES} ${FREETYPE_LIBRARIES})
 endif()
 
 set(LIBRZ_CFLAGS ${LIBRZ_LOCAL_CFLAGS} PARENT_SCOPE)

@@ -696,6 +696,8 @@ MainWindow::onTreeItemSelectionChanged()
         ui->sessionTabWidget->currentWidget());
     QModelIndex index = ui->omTreeView->currentIndex();
     RZ::Element *selectedElement = nullptr;
+    std::string displayText;
+    const char *name = nullptr;
     RZ::ReferenceFrame *selectedFrame = nullptr;
     const RZ::OpticalPath *selectedPath = nullptr;
 
@@ -708,6 +710,8 @@ MainWindow::onTreeItemSelectionChanged()
         selectedElement = item->element;
       } else if (item->type == OM_TREE_ITEM_TYPE_FRAME) {
         selectedFrame = item->frame;
+        displayText   = item->displayText.toStdString();
+        name          = displayText.c_str();
       } else if (item->type == OM_TREE_ITEM_TYPE_OPTICAL_PATH) {
         selectedPath = item->path;
       }
@@ -715,7 +719,7 @@ MainWindow::onTreeItemSelectionChanged()
 
     ui->actionCenterSelection->setEnabled(widget->selectedFrame() != nullptr);
     m_currSession->selectElement(selectedElement);
-    widget->setSelectedReferenceFrame(selectedFrame);
+    widget->setSelectedReferenceFrame(selectedFrame, name);
     widget->setSelectedOpticalPath(selectedPath);
   }
 

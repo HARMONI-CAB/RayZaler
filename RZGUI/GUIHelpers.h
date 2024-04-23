@@ -26,6 +26,8 @@ struct timeval;
 qreal   randUniform();
 qreal   randNormal();
 
+void sensibleUnits(qreal &, QString &);
+QString toSensibleUnits(qreal val);
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);

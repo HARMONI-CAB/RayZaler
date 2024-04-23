@@ -2,6 +2,7 @@
 #include <Element.h>
 #include <RayProcessors.h>
 #include <Logger.h>
+#include <FT2Facade.h>
 
 using namespace RZ;
 
@@ -9,6 +10,7 @@ Singleton *Singleton::m_currInstance = nullptr;
 
 Singleton::Singleton()
 {
+  m_freeType = new FT2Facade();  
 }
 
 Singleton *
@@ -66,6 +68,12 @@ Singleton::lookupRayTransferProcessor(std::string const &name) const
     return nullptr;
 
   return it->second;
+}
+
+FT2Facade *
+Singleton::freetype() const
+{
+  return m_freeType;
 }
 
 void
