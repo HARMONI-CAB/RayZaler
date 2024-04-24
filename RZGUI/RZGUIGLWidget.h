@@ -15,7 +15,8 @@ class RZGUIGLWidget : public QOpenGLWidget
   RZ::GLGrid                m_xyCoarseGrid;
   RZ::GLGrid                m_xyMediumGrid;
   RZ::GLGrid                m_xyFineGrid;
-  RZ::GLText                m_glText;
+  RZ::GLText                m_glGridText;
+  RZ::GLText                m_glLabelText;
 
   std::vector<RZ::GLArrow>  m_pathArrows;
   const RZ::ReferenceFrame *m_selectedRefFrame = nullptr;
@@ -25,14 +26,15 @@ class RZGUIGLWidget : public QOpenGLWidget
   GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
 
-  bool    m_displayNames     = false;
-  bool    m_displayApertures = false;
-  bool    m_displayElements  = true;
-  bool    m_displayRefFrames = false;
-  bool    m_displayGrids     = true;
+  bool    m_displayNames        = false;
+  bool    m_displayApertures    = false;
+  bool    m_displayElements     = true;
+  bool    m_displayRefFrames    = false;
+  bool    m_displayGrids        = true;
+  bool    m_displayMeasurements = false;
 
-  bool    m_fixedLight = false;
-  bool    m_newViewPort = false;
+  bool    m_fixedLight          = false;
+  bool    m_newViewPort         = false;
   int     m_width;
   int     m_height;
   int     m_hWnd = -1;
@@ -60,6 +62,19 @@ class RZGUIGLWidget : public QOpenGLWidget
   void displayApertures(const RZ::Element *);
   void mouseClick(int button, int state, int x, int y, int shift);
   void mouseMotion(int x, int y);
+
+  void displayAxes();
+  void displayBeam(RZ::RayBeamElement *, bool dynamicAlpha);
+  void displayCurrentGrid();
+  void displayCurrentPath();
+  void displayCurrentRefFrame();
+
+  void displayLoop(
+    RZ::OMModel *model,
+    bool elements,
+    bool apertures,
+    bool frames,
+    bool labels);
 
   void drawAxes();
 
@@ -106,8 +121,9 @@ public:
   void setDisplayApertures(bool);
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
+  void setDisplayMeasurements(bool);
   void setDisplayGrid(bool);
-
+  
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel, const char *name = nullptr);
   void rotateToCurrentFrame();

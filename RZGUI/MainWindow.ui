@@ -445,6 +445,7 @@
    <addaction name="actionViewLeft"/>
    <addaction name="actionViewRight"/>
    <addaction name="actionCenterSelection"/>
+   <addaction name="actionToggleMeasurements"/>
   </widget>
   <widget class="QToolBar" name="displayToolBar">
    <property name="windowTitle">
@@ -738,6 +739,18 @@
    </property>
    <property name="text">
     <string>Center selected frame</string>
+   </property>
+  </action>
+  <action name="actionToggleMeasurements">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/view-measurement.svg</normaloff>:/toolbar/icons/view-measurement.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Show/hide measurements</string>
    </property>
   </action>
  </widget>

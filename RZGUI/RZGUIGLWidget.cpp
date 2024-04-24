@@ -22,8 +22,8 @@ RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 
   setMouseTracking(true);
 
-  m_glText.setFace("gridfont-semibold");
-  m_glText.setText("This is a test");
+  m_glGridText.setFace("gridfont-semibold");
+  m_glLabelText.setFace("gridfont");
 }
 
 void
@@ -71,6 +71,7 @@ RZGUIGLWidget::setGridStep(qreal step)
   m_xyCoarseGrid.setStep(step * 10);
   m_xyMediumGrid.setStep(step * 5);
   m_xyFineGrid.setStep(step);
+  m_glGridText.setScale(step * 1e-1);
 
   update();
 }
@@ -219,153 +220,147 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
 }
 
 void
-RZGUIGLWidget::displayModel(RZ::OMModel *model)
+RZGUIGLWidget::displayBeam(RZ::RayBeamElement *beam, bool dynAlpha)
 {
-  RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
-  bool shouldEnterElementFrame = m_displayElements || m_displayNames || m_displayRefFrames;
-
-  beam->setDynamicAlpha(m_displayElements);
-
-  if (m_displayElements) {
-    for (auto p : model->elementList()) {
-      if (p == beam)
-        continue;
-      pushElementMatrix(p);
-      if (m_displayRefFrames) {
-        glPushMatrix();
-        glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
-        m_glAxes.display();
-        glPopMatrix();
-      }
-
-      p->renderOpenGL();
-      popElementMatrix();
-
-      if (p->nestedModel() != nullptr)
-        displayModel(p->nestedModel());
-    }
-
-    if (!m_pathArrows.empty() && model == m_model) {
-      auto path = m_selectedPath;
-
-      glColor3f(1, 0, 1);
-      if (path != nullptr) {
-        unsigned int i = 0;
-        for (auto p = path->m_sequence.begin();
-              p != path->m_sequence.end();
-              ++p) {
-            auto q = std::next(p);
-          if (q == path->m_sequence.end())
-            break;
-
-          pushReferenceFrameMatrix(p->frame);
-          m_pathArrows[i++].display();
-          glPopMatrix();
-        }
-      }
-    }
-  }
-
+  beam->setDynamicAlpha(dynAlpha);
 
   pushElementMatrix(beam);
   beam->renderOpenGL();
   popElementMatrix();
+}
 
-  if (m_displayElements) {
-    for (auto p : model->elementList()) {
-      if (p == beam)
-        continue;
-      pushElementMatrix(p);
-      if (m_displayNames)
-        renderText(0, 0, 0, QString::fromStdString(p->name()));
+void
+RZGUIGLWidget::displayLoop(
+  RZ::OMModel *model,
+  bool elements,
+  bool apertures,
+  bool frames,
+  bool labels)
+{
+  RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
+
+  for (auto p : model->elementList()) {
+    if (p == beam)
+      continue;
+    
+    pushElementMatrix(p);
+    // vvvvvvvvvvvvvvvvvvvv BEGIN: Display at p's frame vvvvvvvvvvvvvvvvvvvv
+    
+    if (labels) {
+      QString str = QString::fromStdString(p->name());
+      renderText(0, 0, 0, str);
+    }
+
+    if (frames)
+      displayAxes();
+
+    if (elements)
       p->renderOpenGL();
-      popElementMatrix();
 
-      if (m_displayApertures)
-        displayApertures(p);
+    if (apertures)
+      displayApertures(p);
 
-        if (m_displayRefFrames) {
-          glPushMatrix();
-          glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
-          m_glAxes.display();
-          glPopMatrix();
-        }
+    // ^^^^^^^^^^^^^^^^^^^^^ END: Display at p's frame ^^^^^^^^^^^^^^^^^^^^^
+    popElementMatrix();
 
-      if (p->nestedModel() != nullptr)
-        displayModel(p->nestedModel());
-    }
-  } else {
-    for (auto p : model->elementList()) {
-      if (p == beam)
-        continue;
+    if (p->nestedModel() != nullptr)
+      displayModel(p->nestedModel());
+  }
+}
 
-      if (shouldEnterElementFrame) {
-        pushElementMatrix(p);
-        if (m_displayNames)
-          renderText(0, 0, 0, QString::fromStdString(p->name()));
+void
+RZGUIGLWidget::displayCurrentRefFrame()
+{
+  pushReferenceFrameMatrix(m_selectedRefFrame);
+  if (m_displayGrids)
+    displayCurrentGrid();
+  
+  displayAxes();
+  glPopMatrix();
+}
 
-        if (m_displayRefFrames) {
-          glPushMatrix();
-          glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
-          m_glAxes.display();
-          glPopMatrix();
-        }
-        
-        popElementMatrix();
-      }
+void
+RZGUIGLWidget::displayModel(RZ::OMModel *model)
+{
+  if (m_displayElements)
+    displayLoop(
+      model,
+      true,   // Elements
+      false,  // Apertures
+      false,  // Frames
+      false); // Labels
 
-      if (m_displayApertures)
-        displayApertures(p);
-
-      if (p->nestedModel() != nullptr)
-        displayModel(p->nestedModel());
-    }
+  if (model == m_model) {
+    RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
+    displayBeam(beam, m_displayElements);
   }
 
-  if (m_selectedRefFrame && model == m_model) {
-    pushReferenceFrameMatrix(m_selectedRefFrame);
-    if (m_displayGrids) {
-      m_xyCoarseGrid.display();
-      m_xyMediumGrid.display();
-      m_xyFineGrid.display();
+  displayLoop(
+    model,
+    m_displayElements,
+    m_displayApertures,
+    m_displayRefFrames,
+    m_displayNames);
 
-      glPushMatrix();
-        glTranslatef(-m_xyFineGrid.width() / 2, +m_xyFineGrid.height() / 2 + m_xyFineGrid.step(), 0);
-        m_glText.display();
+  // The following elements are displayed only in the top-level model
+  if (model == m_model) {
+    if (m_selectedRefFrame != nullptr)
+      displayCurrentRefFrame();
+
+    if (!m_pathArrows.empty())
+      displayCurrentPath();
+  }
+}
+
+void
+RZGUIGLWidget::displayAxes()
+{
+  glPushMatrix();
+  glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+  m_glAxes.display();
+  glPopMatrix();
+}
+
+void
+RZGUIGLWidget::displayCurrentPath()
+{
+  auto path = m_selectedPath;
+
+  if (path != nullptr) {
+    glColor3f(1, 0, 1);
+    unsigned int i = 0;
+    for (auto p = path->m_sequence.begin();
+          p != path->m_sequence.end();
+          ++p) {
+        auto q = std::next(p);
+      if (q == path->m_sequence.end())
+        break;
+
+      pushReferenceFrameMatrix(p->frame);
+      m_pathArrows[i++].display();
       glPopMatrix();
     }
-    glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
-    m_glAxes.display();
-    glPopMatrix();
   }
+}
 
-  if (!m_pathArrows.empty() && model == m_model) {
-    auto path = m_selectedPath;
+void
+RZGUIGLWidget::displayCurrentGrid()
+{
+  m_xyCoarseGrid.display();
+  m_xyMediumGrid.display();
+  m_xyFineGrid.display();
 
-    if (path != nullptr) {
-      glColor3f(1, 0, 1);
-      unsigned int i = 0;
-      for (auto p = path->m_sequence.begin();
-            p != path->m_sequence.end();
-            ++p) {
-          auto q = std::next(p);
-        if (q == path->m_sequence.end())
-          break;
-
-        pushReferenceFrameMatrix(p->frame);
-        m_pathArrows[i++].display();
-        glPopMatrix();
-      }
-    }
-  }
-  
+  glPushMatrix();
+    glTranslatef(-m_xyFineGrid.width() / 2, +m_xyFineGrid.height() / 2 + m_xyFineGrid.step(), 0);
+    m_glGridText.display();
+  glPopMatrix();
 }
 
 void
 RZGUIGLWidget::setDisplayNames(bool state)
 {
   if (m_displayNames != state) {
-    m_displayNames = state;
+    m_displayNames = state;    
     update();
   }
 }
@@ -388,6 +383,18 @@ RZGUIGLWidget::setDisplayGrid(bool state)
   }
 }
 
+void
+RZGUIGLWidget::setDisplayMeasurements(bool state)
+{
+  if (state != m_displayMeasurements) {
+    m_displayMeasurements = state;
+
+    if (!state)
+      m_xyCoarseGrid.highlight(0, 0);
+    
+    update();
+  }
+}
 
 void
 RZGUIGLWidget::setDisplayApertures(bool state)
@@ -445,7 +452,7 @@ RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame, const char *
     if (frame != nullptr) {
       if (name ==  nullptr)
         name = frame->name().c_str();
-      m_glText.setText(name);
+      m_glGridText.setText(name);
     }
     
     m_selectedRefFrame = frame;
@@ -559,7 +566,7 @@ RZGUIGLWidget::mouseMotion(int x, int y)
   //wY = -4 * (y - m_height * .5) / (m_zoom * m_width);
 
 
-  if (m_selectedRefFrame != nullptr) {
+  if (m_selectedRefFrame != nullptr && m_displayMeasurements) {
     RZ::Vec3 coords(wX, wY, 0);
     RZ::Vec3 screenNormal, screenCoords;
 

@@ -201,6 +201,22 @@ SessionTabWidget::setDisplayRefFrames(bool disp)
   m_glWidget->setDisplayRefFrames(disp);
 }
 
+bool
+SessionTabWidget::displayMeasurements() const
+{
+  return m_displayMeasurements;
+}
+
+void
+SessionTabWidget::setDisplayMeasurements(bool disp)
+{
+  m_displayMeasurements = disp;
+  m_glWidget->setDisplayMeasurements(disp);
+
+  if (!disp)
+    ui->xyLabel->setText("N/A");
+}
+
 void
 SessionTabWidget::keyPressEvent(QKeyEvent *event)
 {

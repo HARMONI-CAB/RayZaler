@@ -26,17 +26,18 @@ ApertureStop::propertyChanged(
   if (name == "radius") {
     m_radius = value;
     recalcModel();
+    return true;
   } else if (name == "width") {
     m_width = value;
     recalcModel();
+    return true;
   } else if (name == "height") {
     m_height = value;
     recalcModel();
-  } else {
-    return false;
+    return true;
   }
 
-  return true;
+  return Element::propertyChanged(name, value);
 }
 
 

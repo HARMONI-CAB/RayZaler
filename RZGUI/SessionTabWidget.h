@@ -26,13 +26,14 @@ class SessionTabWidget : public QWidget
   RZGUIGLWidget            *m_glWidget; // Borrowed
   DetectorWindow           *m_detWindow = nullptr; // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
-  SourceEditorWindow       *m_sourceEditorWindow = nullptr;
-  const RZ::ReferenceFrame *m_selectedFrame    = nullptr;
-  bool                      m_displayNames     = false;
-  bool                      m_displayApertures = false;
-  bool                      m_displayElements  = true;
-  bool                      m_displayRefFrames = false;
-  bool                      m_displayGrid      = true;
+  SourceEditorWindow       *m_sourceEditorWindow  = nullptr;
+  const RZ::ReferenceFrame *m_selectedFrame       = nullptr;
+  bool                      m_displayNames        = false;
+  bool                      m_displayApertures    = false;
+  bool                      m_displayElements     = true;
+  bool                      m_displayRefFrames    = false;
+  bool                      m_displayGrid         = true;
+  bool                      m_displayMeasurements = false;
 
   void connectAll();
   void addGridStep(QString const &, qreal);
@@ -58,6 +59,8 @@ public:
   bool displayElements() const;
   bool displayRefFrames() const;
   bool displayGrid() const;
+  bool displayMeasurements() const;
+
   const RZ::ReferenceFrame *selectedFrame() const;
 
   void setDisplayNames(bool);
@@ -65,6 +68,7 @@ public:
   void setDisplayElements(bool);
   void setDisplayRefFrames(bool);
   void setDisplayGrid(bool);
+  void setDisplayMeasurements(bool);
 
   void setSelectedReferenceFrame(RZ::ReferenceFrame *, const char * = nullptr);
   void setSelectedOpticalPath(const RZ::OpticalPath *);
