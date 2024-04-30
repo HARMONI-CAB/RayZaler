@@ -482,10 +482,13 @@ MainWindow::doReload()
         ui->sessionTabWidget->currentWidget());
 
   if (widget != nullptr) {
+    auto current = m_currSession;
+    m_currSession = nullptr;
+    refreshCurrentSession();
+
     widget->reloadModel();
-    m_propModel->setModel(m_currSession->topLevelModel());
-    m_omModel->setModel(m_currSession->topLevelModel());
-    m_simPropertiesDialog->setSession(m_currSession);
+    m_currSession = current;
+    refreshCurrentSession();
   }
 }
 
