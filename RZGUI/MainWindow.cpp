@@ -413,13 +413,8 @@ MainWindow::registerSession(SimulationSession *session)
   SessionUI sessUi;
 
   sessUi.tab = new SessionTabWidget(session);
-  sessUi.dofWidget = new DOFWidget(session);
-
-  connect(
-        sessUi.dofWidget,
-        SIGNAL(dofChanged()),
-        this,
-        SLOT(onUpdateModel()));
+  
+  initDOFWidget(sessUi, session);
 
   m_sessions.push_back(session);
   m_sessionToUi.insert(session, sessUi);
@@ -476,17 +471,45 @@ MainWindow::doOpen()
 }
 
 void
+MainWindow::initDOFWidget(SessionUI &sessUI, SimulationSession *sess)
+{
+  sessUI.dofWidget = new DOFWidget(sess);
+  connect(
+      sessUI.dofWidget,
+      SIGNAL(dofChanged()),
+      this,
+      SLOT(onUpdateModel()));
+}
+
+void
+MainWindow::finalizeDOFWidget(SessionUI &sessUI)
+{
+  sessUI.dofWidget->deleteLater();
+  sessUI.dofWidget = nullptr;
+}
+
+void
 MainWindow::doReload()
 {
   SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
         ui->sessionTabWidget->currentWidget());
 
   if (widget != nullptr) {
+    // We need to remove the DOF widget from the current session UI, 
+    // as it will refer to objects that will no longer exist after the reload.
+
     auto current = m_currSession;
+    auto &sessUI = m_sessionToUi[current];
+    finalizeDOFWidget(sessUI);
+
     m_currSession = nullptr;
     refreshCurrentSession();
 
     widget->reloadModel();
+
+    // Add the up-to-date DOF widget.
+    initDOFWidget(sessUI, current);
+    
     m_currSession = current;
     refreshCurrentSession();
   }
@@ -525,7 +548,7 @@ MainWindow::onCloseTab(int index)
   m_sessionToUi.remove(session);
 
   sessUI.tab->deleteLater();
-  sessUI.dofWidget->deleteLater();
+  finalizeDOFWidget(sessUI);
 
   session->deleteLater();
 }

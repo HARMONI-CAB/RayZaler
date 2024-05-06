@@ -209,8 +209,8 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);
-        if (m_displayElements)
-          glTranslatef(0, 0, 1e-3);
+        /*if (m_displayElements)
+          glTranslatef(0, 0, 1e-3);*/
         ap->renderOpenGL();
         glPopMatrix();
       }

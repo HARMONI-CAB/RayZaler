@@ -48,6 +48,9 @@ class MainWindow : public QMainWindow, public RZ::Logger
   void reconnectModels();
   void connectAll();
 
+  void initDOFWidget(SessionUI &sessUI, SimulationSession *sess);
+  void finalizeDOFWidget(SessionUI &sessUI);
+  
 public:
   virtual void logFunction(
           RZ::LogLevel level,

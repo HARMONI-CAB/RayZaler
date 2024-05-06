@@ -1057,7 +1057,7 @@ OMModel::addFocalPlaneFocusedBeam(
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
-  Real    radius    = .5 * distance / fNum;
+  Real    radius    = .5 * distance / fabs(fNum);
   UniformCircleSampler uSamp;
   Vec3 displ;
 
