@@ -1275,6 +1275,8 @@ GLArrow::~GLArrow()
 void
 GLGrid::recalculateHighlight()
 {
+  Real halfWidth = .5 * m_stepsX * m_step;
+
   m_hlVertices.clear();
 
   if (m_x * m_x + m_y * m_y > std::numeric_limits<GLfloat>::epsilon()) {
@@ -1288,7 +1290,7 @@ GLGrid::recalculateHighlight()
     m_hlVertices.push_back(0);
     m_hlVertices.push_back(0);
 
-    m_hlVertices.push_back(R);
+    m_hlVertices.push_back(.3 * R < halfWidth ? halfWidth : .3 * R);
     m_hlVertices.push_back(0);
     m_hlVertices.push_back(0);
 
