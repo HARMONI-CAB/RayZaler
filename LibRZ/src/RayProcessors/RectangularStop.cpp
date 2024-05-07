@@ -9,7 +9,7 @@ RectangularStopProcessor::RectangularStopProcessor()
   defineAperture(new RectangularAperture());
 
   aperture<RectangularAperture>()->setHeight(m_height);
-  aperture<RectangularAperture>()->setHeight(m_width);
+  aperture<RectangularAperture>()->setWidth(m_width);
 }
 
 std::string
@@ -22,7 +22,7 @@ void
 RectangularStopProcessor::setWidth(Real width)
 {
   m_width = width;
-  aperture<RectangularAperture>()->setHeight(m_width);
+  aperture<RectangularAperture>()->setWidth(m_width);
 }
 
 void
