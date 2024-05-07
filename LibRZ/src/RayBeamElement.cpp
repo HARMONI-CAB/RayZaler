@@ -108,15 +108,19 @@ RayBeamElement::renderOpenGL()
 
   pthread_mutex_lock(&m_rayMutex);
 
-  glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
 
   glDisable(GL_LIGHTING);
-  glDepthFunc(GL_ALWAYS);
+
+  if (m_dynamicAlpha)
+    glDepthFunc(GL_ALWAYS);
   glEnable(GL_DEPTH_TEST);
 
   // THESE CANNOT BE OR'd
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_COLOR_ARRAY);
+
+  glLineWidth(.25);
 
   glColorPointer(4, GL_FLOAT, 4 * sizeof(GLfloat), m_colors.data());
   glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());

@@ -282,7 +282,9 @@ RZGUIGLWidget::displayCurrentRefFrame()
 void
 RZGUIGLWidget::displayModel(RZ::OMModel *model)
 {
-  if (m_displayElements)
+  bool dynAlpha = m_displayElements && false;
+
+  if (dynAlpha)
     displayLoop(
       model,
       true,   // Elements
@@ -292,7 +294,7 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 
   if (model == m_model) {
     RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
-    displayBeam(beam, m_displayElements);
+    displayBeam(beam, dynAlpha);
   }
 
   displayLoop(

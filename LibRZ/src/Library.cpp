@@ -3,6 +3,7 @@
 #include <ApertureStop.h>
 #include <BenchElement.h>
 #include <BlockElement.h>
+#include <CircularWindow.h>
 #include <ConvexLens.h>
 #include <Detector.h>
 #include <FlatMirror.h>
@@ -41,6 +42,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new ApertureStopFactory);
   Singleton::instance()->registerElementFactory(new BenchElementFactory);
   Singleton::instance()->registerElementFactory(new BlockElementFactory);
+  Singleton::instance()->registerElementFactory(new CircularWindowFactory);
   Singleton::instance()->registerElementFactory(new ConvexLensFactory);
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
@@ -67,8 +69,6 @@ RZ::RZInit()
 #endif // PYTHON_SCRIPT_SUPPORT
 
   // Initialize FreeType
-  
-
     
   Singleton::instance()->logInitMessage();
 }

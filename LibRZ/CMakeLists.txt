@@ -18,6 +18,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Detector.cpp
   ${LIBRZ_SRCDIR}/FlatMirror.cpp
+  ${LIBRZ_SRCDIR}/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
   ${LIBRZ_SRCDIR}/ConvexLens.cpp
   ${LIBRZ_SRCDIR}/SphericalMirror.cpp
@@ -64,6 +65,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Zernike.cpp
   
   ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/InfiniteMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/LensletArray.cpp
@@ -88,6 +90,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/BenchElement.h
   ${LIBRZ_INCLUDEDIR}/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/FlatMirror.h
+  ${LIBRZ_INCLUDEDIR}/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
   ${LIBRZ_INCLUDEDIR}/ConvexLens.h
   ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
@@ -137,6 +140,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Zernike.h
 
   ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/InfiniteMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/LensletArray.h

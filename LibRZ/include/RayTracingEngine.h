@@ -145,6 +145,7 @@ namespace RZ {
     snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
     {
       Vec3 nXu = muIORatio * normal.cross(u);
+
       return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
     }
 
