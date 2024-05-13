@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/icons/applogo-mini.svg</normaloff>:/icons/icons/applogo-mini.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -88,10 +92,17 @@
     <addaction name="separator"/>
     <addaction name="actionModelSource"/>
    </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="action_About_RZGUI"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
    <addaction name="menu_Simulation"/>
    <addaction name="menu_Animation"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="fileToolBar">
@@ -751,6 +762,15 @@
    </property>
    <property name="text">
     <string>Show/hide measurements</string>
+   </property>
+  </action>
+  <action name="action_About_RZGUI">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/icons/applogo-mini.svg</normaloff>:/icons/icons/applogo-mini.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;About RZGUI...</string>
    </property>
   </action>
  </widget>

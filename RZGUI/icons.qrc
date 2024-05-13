@@ -64,4 +64,9 @@
         <file>fonts/LTSuperior-Semibold.otf</file>
     </qresource>
     <qresource prefix="/"/>
+    <qresource prefix="/icons">
+        <file>icons/applogo.svg</file>
+        <file>icons/applogo-mini.svg</file>
+        <file>icons/applogo-notext.svg</file>
+    </qresource>
 </RCC>

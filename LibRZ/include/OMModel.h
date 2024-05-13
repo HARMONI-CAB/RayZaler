@@ -170,7 +170,7 @@ namespace RZ {
       }
       
       void recalculate();
-      Element *beam() const;
+      RayBeamElement *beam() const;
       void clearBeam();
       void setBeamColoring(RayColoring const *coloring);
 

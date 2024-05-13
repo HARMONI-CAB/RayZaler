@@ -5,12 +5,28 @@
 #include <RayTracingEngine.h>
 #include <GLHelpers.h>
 #include <pthread.h>
+#include <map>
 
 namespace RZ {
   class RayColoring {
     public:
       virtual void id2color(uint32_t, GLfloat *rgba) const;
       virtual void id2color(uint32_t, GLfloat alpha, GLfloat *rgba) const;
+  };
+
+  struct CrappyCplusplusColorWrapper {
+    GLfloat rgb[3];
+  };
+
+  class PaletteBasedColoring : public RayColoring {
+    std::map<uint32_t, CrappyCplusplusColorWrapper> m_colors;
+    GLfloat m_defaultColor[3] = {1., 1., 0};
+
+    public:
+      virtual void id2color(uint32_t, GLfloat *rgb) const override;
+      
+      void setColor(uint32_t id, Real r, Real g, Real b);
+      void setDefaultColor(Real r, Real g, Real b);
   };
 
   class RayBeamElement : public Element {
@@ -21,7 +37,8 @@ namespace RZ {
       std::vector<GLfloat> m_vertices;
       std::vector<GLfloat> m_colors;
       std::vector<int>     m_stages;
-      bool                 m_dynamicAlpha = true;
+      GLfloat              m_lineWidth = .25;
+      bool                 m_dynamicAlpha = false;
       void raysToVertices();
 
     public:
@@ -35,6 +52,8 @@ namespace RZ {
       void clear();
       void setList(std::list<Ray> const &);
       void setRayColoring(RayColoring const *);
+      void setRayColoring(RayColoring const &);
+      void setRayWidth(Real width);
       void setDynamicAlpha(bool);
       virtual void renderOpenGL() override;
   };

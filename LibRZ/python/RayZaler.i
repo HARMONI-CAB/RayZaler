@@ -313,9 +313,19 @@ PyMODINIT_FUNC PyInit_RZ();
         Real radius = .5,
         Real azimuth = 0,
         Real elevation = 90,
-        Real distance = 10)
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true)
   {
-    OMModel::addSkyBeam(*self, number, radius, azimuth, elevation, distance);
+    OMModel::addSkyBeam(
+      *self,
+      number,
+      radius,
+      azimuth,
+      elevation,
+      distance,
+      id,
+      random);
   }
 
   void
@@ -327,7 +337,9 @@ PyMODINIT_FUNC PyInit_RZ();
         Real elevation = 90,
         Real offX = 0,
         Real offY = 0,
-        Real distance = 10)
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true)
   {
     OMModel::addElementRelativeBeam(
       *self,
@@ -338,7 +350,9 @@ PyMODINIT_FUNC PyInit_RZ();
       elevation,
       offX,
       offY,
-      distance);
+      distance,
+      id,
+      random);
   }
 
   void
@@ -352,7 +366,9 @@ PyMODINIT_FUNC PyInit_RZ();
         Real elevation = 90,
         Real offX = 0,
         Real offY = 0,
-        Real distance = 10)
+        Real distance = 10,
+        uint32_t id = 0,
+        bool random = true)
   {
     OMModel::addElementRelativeFocusBeam(
       *self,
@@ -365,7 +381,9 @@ PyMODINIT_FUNC PyInit_RZ();
       elevation,
       offX,
       offY,
-      distance);
+      distance,
+      id,
+      random);
   }
 
   void
@@ -377,7 +395,9 @@ PyMODINIT_FUNC PyInit_RZ();
     Real elevation = 90,
     Real offX = 0,
     Real offY = 0,
-    Real distance = 10)
+    Real distance = 10,
+    uint32_t id = 0,
+    bool random = true)
   {
     OMModel::addFocalPlaneFocusedBeam(
       *self,
@@ -388,6 +408,8 @@ PyMODINIT_FUNC PyInit_RZ();
       elevation,
       offX,
       offY,
-      distance);
+      distance,
+      id,
+      random);
   }
 }

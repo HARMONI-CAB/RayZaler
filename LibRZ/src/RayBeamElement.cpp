@@ -21,6 +21,36 @@ RayColoring::id2color(uint32_t id, GLfloat alpha, GLfloat *rgb) const
 }
 
 void
+PaletteBasedColoring::id2color(uint32_t id, GLfloat *rgb) const
+{
+  auto it = m_colors.find(id);
+
+  if (it == m_colors.cend())
+    memcpy(rgb, m_defaultColor, 3 * sizeof(GLfloat));
+  else
+    memcpy(rgb, it->second.rgb, 3 * sizeof(GLfloat));
+}
+
+void
+PaletteBasedColoring::setColor(uint32_t id, Real r, Real g, Real b)
+{
+  CrappyCplusplusColorWrapper wrapper;
+  GLfloat rgb[3] = {r, g, b};
+
+  memcpy(wrapper.rgb, rgb, sizeof(rgb));
+
+  m_colors[id] = wrapper;
+}
+
+void
+PaletteBasedColoring::setDefaultColor(Real r, Real g, Real b)
+{
+  m_defaultColor[0] = r;
+  m_defaultColor[1] = g;
+  m_defaultColor[2] = b;
+}
+
+void
 RayBeamElement::raysToVertices()
 {
   size_t size = m_rays.size();
@@ -77,6 +107,12 @@ RayBeamElement::setRayColoring(RayColoring const *coloring)
 }
 
 void
+RayBeamElement::setRayColoring(RayColoring const &ref)
+{
+  setRayColoring(&ref);
+}
+
+void
 RayBeamElement::setDynamicAlpha(bool alpha)
 {
   if (m_dynamicAlpha != alpha) {
@@ -102,6 +138,12 @@ RayBeamElement::setList(std::list<Ray> const &list)
 }
 
 void
+RayBeamElement::setRayWidth(Real width)
+{
+  m_lineWidth = width;
+}
+
+void
 RayBeamElement::renderOpenGL()
 {
   GLVectorStorage vec;
@@ -120,7 +162,7 @@ RayBeamElement::renderOpenGL()
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_COLOR_ARRAY);
 
-  glLineWidth(.25);
+  glLineWidth(m_lineWidth);
 
   glColorPointer(4, GL_FLOAT, 4 * sizeof(GLfloat), m_colors.data());
   glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());

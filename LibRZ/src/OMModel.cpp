@@ -562,10 +562,10 @@ OMModel::elementList() const
   return m_elements;
 }
 
-Element *
+RayBeamElement *
 OMModel::beam() const
 {
-  return static_cast<Element *>(m_beam);
+  return m_beam;
 }
 
 void
