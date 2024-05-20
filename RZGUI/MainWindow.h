@@ -18,6 +18,7 @@ class OMTreeModel;
 class SimulationPropertiesDialog;
 class QFileDialog;
 class DOFWidget;
+class AboutDialog;
 
 struct SessionUI {
   SessionTabWidget *tab       = nullptr;
@@ -38,6 +39,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   PropertyAndDofTableModel   *m_propModel           = nullptr;
   ElementPropertyModel       *m_compPropModel       = nullptr;
   OMTreeModel                *m_omModel             = nullptr;
+  AboutDialog                *m_aboutDialog         = nullptr;
 
   void refreshCurrentSession();
   void refreshCurrentElement();

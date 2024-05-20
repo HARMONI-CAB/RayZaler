@@ -13,13 +13,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets OpenGLWidgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets OpenGLWidgets)
-find_package(OpenGL REQUIRED)
+#find_package(OpenGL REQUIRED)
 find_package(OSMesa REQUIRED)
 find_package(Freetype REQUIRED)
 
 set(PROJECT_SOURCES
         icons.qrc
         main.cpp
+        AboutDialog.h
+        AboutDialog.cpp
+        AboutDialog.ui
         AsyncRayTracer.h
         AsyncRayTracer.cpp
         ColorChooserButton.cpp

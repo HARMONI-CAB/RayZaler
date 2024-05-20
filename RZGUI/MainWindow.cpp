@@ -8,6 +8,7 @@
 #include "CustomTextEditDelegate.h"
 #include "ElementPropertyModel.h"
 #include "DOFWidget.h"
+#include "AboutDialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -23,6 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
   m_compPropModel       = new ElementPropertyModel;
   m_omModel             = new OMTreeModel;
   m_simPropertiesDialog = new SimulationPropertiesDialog(this);
+
+  m_aboutDialog         = new AboutDialog(this);
 
   ui->propTableView->setModel(m_propModel);
   ui->propTableView->setItemDelegateForColumn(
@@ -284,6 +287,12 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onModelSource()));
+
+  connect(
+        ui->action_About_RZGUI,
+        SIGNAL(triggered(bool)),
+        m_aboutDialog,
+        SLOT(exec()));
 }
 
 void
