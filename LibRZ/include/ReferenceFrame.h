@@ -102,19 +102,19 @@ namespace RZ{
       inline Vec3
       eX() const
       {
-        return m_orientation.rows[0];
+        return m_orientation.t().rows[0];
       }
 
       inline Vec3
       eY() const
       {
-        return m_orientation.rows[1];
+        return m_orientation.t().rows[1];
       }
 
       inline Vec3
       eZ() const
       {
-        return m_orientation.rows[2];
+        return m_orientation.t().rows[2];
       }
 
       inline uint32_t
@@ -126,25 +126,25 @@ namespace RZ{
       inline Vec3
       toRelative(Vec3 const &absv) const
       {
-        return m_orientation * (absv - getCenter());
+        return m_orientation.t() * (absv - getCenter());
       }
 
       inline Vec3
       fromRelative(Vec3 const &relv) const
       {
-        return m_orientation.t() * relv + getCenter();
+        return m_orientation * relv + getCenter();
       }
 
       inline Vec3
       toRelativeVec(Vec3 const &absv) const
       {
-        return m_orientation * absv;
+        return m_orientation.t() * absv;
       }
 
       inline Vec3
       fromRelativeVec(Vec3 const &relv) const
       {
-        return m_orientation.t() * relv;
+        return m_orientation * relv;
       }
 
       int replaceAxis(std::string const &, Vec3 const &);
@@ -172,6 +172,8 @@ namespace RZ{
       
       Vec3 *getAxis(int);           // Global
       Point3 *getPoint(int);          // Global
+
+      friend class WorldFrame;
   };
 }
 

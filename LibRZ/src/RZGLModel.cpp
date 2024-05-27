@@ -29,15 +29,16 @@ RZGLModel::pushElementMatrix(Element *element)
   auto R     = frame->getOrientation();
   auto O     = frame->getCenter();
 
-  GLdouble viewMatrix[16] = {
-    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], O.coords[0],
-    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], O.coords[1],
-    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], O.coords[2],
-                      0,                   0,                   0,           1};
+   GLdouble viewMatrix[16] = {
+    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], 0,
+    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], 0,
+    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], 0,
+            O.coords[0],         O.coords[1],         O.coords[2], 1
+   };
   
   glPushMatrix();
   glLoadMatrixf(m_refMatrix);
-  glMultTransposeMatrixd(viewMatrix);
+  glMultMatrixd(viewMatrix);
 }
 
 void

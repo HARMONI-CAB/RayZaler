@@ -75,7 +75,7 @@ TripodFrame::recalculateData()
   Vec3 dir2 = m2_2 * v2.cross(C);
 
   m_center  = m_p3 + (dir1 + dir2) / (2 * Cm2);
-  m_R       = R;
+  m_R       = R.t();
 }
 
 void
@@ -116,7 +116,7 @@ TripodFrame::TripodFrame(
 void
 TripodFrame::recalculateFrame()
 {
-  Matrix3 absOrientation = m_R * parent()->getOrientation();
+  Matrix3 absOrientation = parent()->getOrientation() * m_R;
   setOrientation(absOrientation);
-  setCenter(parent()->getCenter() + absOrientation.t() * m_center);
+  setCenter(parent()->getCenter() + absOrientation * m_center);
 }

@@ -119,6 +119,8 @@ namespace RZ {
         return m_world;
       }
 
+      void linkWorld(ReferenceFrame *);
+      
       template <class T>
       inline T *
       plug(

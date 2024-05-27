@@ -65,7 +65,7 @@ RodElement::initSides()
 
   Real rotations[][4] = {
     {  0, 0, 1, 0}, // Top
-    {+90, 0, 1, 0}, // Middle
+    {-90, 0, 1, 0}, // Middle
     {180, 0, 1, 0}  // Bottom
   };
 

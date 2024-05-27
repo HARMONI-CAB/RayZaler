@@ -134,7 +134,8 @@ CompositeElement::CompositeElement(
   GenericCompositeModel(recipe, model(), parentCompositeModel)
 {
   m_model = model();
-
+  m_model->linkWorld(pFrame);
+  
   setRandomState(parentCompositeModel->randState());
 
   build(pFrame);

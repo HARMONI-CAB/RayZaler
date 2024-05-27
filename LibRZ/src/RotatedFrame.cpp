@@ -85,6 +85,6 @@ RotatedFrame::RotatedFrame(
 void
 RotatedFrame::recalculateFrame()
 {
-  setOrientation(m_rotMatrix * parent()->getOrientation());
+  setOrientation(parent()->getOrientation() * m_rotMatrix);
   setCenter(parent()->getCenter());
 }

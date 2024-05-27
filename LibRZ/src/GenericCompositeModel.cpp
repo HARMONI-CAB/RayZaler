@@ -440,7 +440,7 @@ GenericCompositeModel::build(
   // 6. Define optical paths
 
   m_prefix = prefix;
-
+  
   createParams();
   loadScripts();
   initGlobalScope();

@@ -25,11 +25,28 @@ WorldFrame::WorldFrame(std::string const &name) : ReferenceFrame(name)
 }
 
 void
+WorldFrame::linkParent(ReferenceFrame *frame)
+{
+  if (m_parent != nullptr)
+    throw std::runtime_error("Cannot link parent frame of world frame twice");
+  
+  m_parent = frame;
+  m_parent->addChild(this);
+  
+  recalculate();
+}
+
+void
 WorldFrame::recalculateFrame()
 {
-  // Sane orientation
-  setOrientation(Matrix3::eye());
+  if (m_parent == nullptr) {
+    // Sane orientation
+    setOrientation(Matrix3::eye());
 
-  // Reasonable center
-  setCenter(Vec3::zero());
+    // Reasonable center
+    setCenter(Vec3::zero());
+  } else {
+    setOrientation(m_parent->getOrientation());
+    setCenter(m_parent->getCenter());
+  }
 }

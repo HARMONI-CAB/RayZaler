@@ -30,13 +30,13 @@ void
 RZGUIGLWidget::setOrientationAndCenter(RZ::Matrix3 const &R, RZ::Vec3 const &O)
 {
    GLdouble viewMatrix[16] = {
-    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], O.coords[0],
-    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], O.coords[1],
-    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], O.coords[2],
-                      0,                   0,                   0,           1
+    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], 0,
+    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], 0,
+    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], 0,
+            O.coords[0],         O.coords[1],         O.coords[2], 1
    };
 
-  glMultTransposeMatrixd(viewMatrix);
+  glMultMatrixd(viewMatrix);
 }
 
 void
@@ -435,7 +435,7 @@ RZGUIGLWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
         RZ::GLArrow arrow;
         RZ::Vec3 direction = q->frame->getCenter() - p->frame->getCenter();
 
-        direction = p->frame->getOrientation() * direction;
+        direction = p->frame->toRelativeVec(direction);
         
         arrow.setDirection(direction);
         arrow.setThickness(4);
@@ -591,7 +591,7 @@ RZGUIGLWidget::mouseMotion(int x, int y)
     auto ns    = correctedRotation.matrix().vz();
     auto dx    = wX * sx;
     auto dy    = wY * sy;
-    auto ez    = m_selectedRefFrame->getOrientation().vz();
+    auto ez    = m_selectedRefFrame->getOrientation().t().vz();
 
     auto sproj = (p0 - dx - dy) * ez;
     auto nproj = ns * ez;
@@ -928,7 +928,7 @@ RZGUIGLWidget::rotateToCurrentFrame()
   if (m_selectedRefFrame != nullptr) {
     RZ::Vec3 center = m_selectedRefFrame->getCenter();
     
-    m_incRot.setRotation(m_selectedRefFrame->getOrientation());\
+    m_incRot.setRotation(m_selectedRefFrame->getOrientation().t());\
 
     RZ::Vec3 result = m_incRot.matrix() * center;
     

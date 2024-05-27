@@ -951,7 +951,7 @@ OMModel::addElementRelativeBeam(
   } else {
      frame = element->parentFrame();
   }
-  Matrix3 elOrient  = frame->getOrientation();
+  Matrix3 elOrient  = frame->getOrientation().t();
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
@@ -1014,7 +1014,7 @@ OMModel::addElementRelativeFocusBeam(
     frame = element->parentFrame();
   }
 
-  Matrix3 elOrient  = frame->getOrientation();
+  Matrix3 elOrient  = frame->getOrientation().t();
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
@@ -1071,7 +1071,7 @@ OMModel::addFocalPlaneFocusedBeam(
     uint32_t id,
   bool random)
 {
-  Matrix3 elOrient  = frame->getOrientation();
+  Matrix3 elOrient  = frame->getOrientation().t();
   Vec3    elCenter  = frame->getCenter();
   Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
   Matrix3 orient    = beamSys.t();
@@ -1115,6 +1115,13 @@ OMModel::addFocalPlaneFocusedBeam(
     ray.id        = id;
     dest.push_back(ray);
   }
+}
+
+void
+OMModel::linkWorld(ReferenceFrame *frame)
+{
+  WorldFrame *world = static_cast<WorldFrame *>(m_world);
+  world->linkParent(frame);
 }
 
 OMModel::OMModel()
