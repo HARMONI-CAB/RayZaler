@@ -53,18 +53,24 @@ void
 TopLevelModel::exposePort(std::string const &name, ReferenceFrame *frame)
 {
   setFrameAlias(frame, name);
-  m_focalPlanes[name] = frame;
+  m_ports[name] = frame;
 }
 
 std::list<std::string>
 TopLevelModel::focalPlanes() const
 {
-  std::list<std::string> planes;
+  return ports();
+}
 
-  for (auto p : m_focalPlanes)
-    planes.push_back(p.first);
+std::list<std::string>
+TopLevelModel::ports() const
+{
+  std::list<std::string> ports;
+
+  for (auto p : m_ports)
+    ports.push_back(p.first);
   
-  return planes;
+  return ports;
 }
 
 std::list<std::string>
@@ -100,9 +106,15 @@ TopLevelModel::getApertureStop(std::string const &name) const
 ReferenceFrame *
 TopLevelModel::getFocalPlane(std::string const &name) const
 {
-  auto p = m_focalPlanes.find(name);
+  return getPort(name);
+}
 
-  if (p == m_focalPlanes.end())
+ReferenceFrame *
+TopLevelModel::getPort(std::string const &name) const
+{
+  auto p = m_ports.find(name);
+
+  if (p == m_ports.end())
     return nullptr;
 
   return p->second;

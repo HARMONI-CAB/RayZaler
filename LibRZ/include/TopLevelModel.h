@@ -9,7 +9,7 @@ namespace RZ {
   class ApertureStop;
 
   class TopLevelModel : public GenericCompositeModel, public OMModel {
-      std::map<std::string, ReferenceFrame *> m_focalPlanes;
+      std::map<std::string, ReferenceFrame *> m_ports;
 
     protected:
       // Interface methods
@@ -40,10 +40,12 @@ namespace RZ {
       ~TopLevelModel();
 
       std::list<std::string> focalPlanes() const;
+      std::list<std::string> ports() const;
       std::list<std::string> apertureStops() const;
 
       ApertureStop   *getApertureStop(std::string const &) const;
       ReferenceFrame *getFocalPlane(std::string const &) const;
+      ReferenceFrame *getPort(std::string const &) const;
 
       virtual void notifyDetector(
         std::string const &preferredName,
