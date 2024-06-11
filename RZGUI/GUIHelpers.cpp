@@ -1,6 +1,8 @@
 #include "GUIHelpers.h"
 #include <cstdlib>
 #include <sys/time.h>
+#include <QLabel>
+#include <QFontMetrics>
 
 qreal
 randUniform()
@@ -14,6 +16,24 @@ randNormal()
   // Box-Muller method
   qreal u = SCAST(qreal, rand() + 1) / (SCAST(qreal, RAND_MAX) + 1);
   return sqrt(-log(u));
+}
+
+void
+fixLabelSizeToContents(QLabel *label, QString text)
+{
+  QFont font;
+  QFontMetrics fm(font);
+
+  label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+  QSize size = label->size();
+
+  auto advance = fm.horizontalAdvance(text);
+  size.setWidth(advance);
+
+  label->setMinimumSize(size);
+  label->setMaximumSize(size);
+
 }
 
 QString

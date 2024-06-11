@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>717</width>
-    <height>522</height>
+    <width>790</width>
+    <height>553</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,479 +54,29 @@
        <property name="spacing">
         <number>0</number>
        </property>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0">
-        <widget class="QGroupBox" name="detGroupBox">
+        <widget class="QLabel" name="label">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="title">
-          <string>GroupBox</string>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>1</height>
+          </size>
          </property>
-         <layout class="QGridLayout" name="gridLayout_2">
-          <property name="leftMargin">
-           <number>6</number>
-          </property>
-          <property name="topMargin">
-           <number>6</number>
-          </property>
-          <property name="rightMargin">
-           <number>6</number>
-          </property>
-          <property name="bottomMargin">
-           <number>6</number>
-          </property>
-          <property name="spacing">
-           <number>3</number>
-          </property>
-          <item row="0" column="6">
-           <widget class="QLabel" name="label_18">
-            <property name="text">
-             <string>Detector width</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="pxHeightLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Pixel width</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="posYLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Pixel X</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="verticalPixelsLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>60</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>8192 px</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="pxWidthLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="7">
-           <widget class="QLabel" name="rangeLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QLabel" name="pixelXLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>60</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>8192 px</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Vertical pixels</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="7">
-           <widget class="QLabel" name="widthLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_11">
-            <property name="text">
-             <string>Position Y</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="horizontalPixelsLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>60</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>8192 px</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="6">
-           <widget class="QLabel" name="label_19">
-            <property name="text">
-             <string>Detector height</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="posXLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>120</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="7">
-           <widget class="QLabel" name="heightLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="6">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Range</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="7">
-           <widget class="QLabel" name="countsLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>80</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>N/A</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="8" rowspan="4">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Pixel height</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="3">
-           <widget class="QLabel" name="label_13">
-            <property name="text">
-             <string>Pixel Y</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="4">
-           <widget class="QLabel" name="pixelYLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>60</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>Monospace</family>
-             </font>
-            </property>
-            <property name="text">
-             <string>8192 px</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Horizontal pixels</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_10">
-            <property name="text">
-             <string>Position X</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="6">
-           <widget class="QLabel" name="label_22">
-            <property name="text">
-             <string>Counts</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" rowspan="4">
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="5" rowspan="4">
-           <widget class="Line" name="line_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
         </widget>
        </item>
       </layout>
@@ -559,7 +109,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>717</width>
+     <width>790</width>
      <height>25</height>
     </rect>
    </property>
@@ -606,7 +156,7 @@
   </widget>
   <action name="actionExportAs">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/document-export.svg</normaloff>:/toolbar/icons/document-export.svg</iconset>
    </property>
    <property name="text">
@@ -618,7 +168,7 @@
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/draw-eraser.svg</normaloff>:/toolbar/icons/draw-eraser.svg</iconset>
    </property>
    <property name="text">
@@ -638,7 +188,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/logscale.svg</normaloff>:/toolbar/icons/logscale.svg</iconset>
    </property>
    <property name="text">
@@ -650,7 +200,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/photons.svg</normaloff>:/toolbar/icons/photons.svg</iconset>
    </property>
    <property name="text">
@@ -662,7 +212,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/Efield.svg</normaloff>:/toolbar/icons/Efield.svg</iconset>
    </property>
    <property name="text">
@@ -674,7 +224,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</iconset>
    </property>
    <property name="text">
@@ -685,8 +235,6 @@
    </property>
   </action>
  </widget>
- <resources>
-  <include location="icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -48,9 +48,21 @@ class ImageNavWidget : public QWidget
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
+
+  QPointF px2img(QPointF) const;
+  QPointF img2px(QPointF) const;
+
   QPoint px2imgcenter(QPoint) const;
-  QPointF pxF2imgcenterF(QPointF) const;
+  QPointF px2imgcenter(QPointF) const;
+
   QPoint imgcenter2px(QPoint) const;
+  QPointF imgcenter2px(QPointF) const;
+
+  static QPoint boundToRect(QPoint const &, QRect const &);
+  static QPointF boundToRect(QPointF const &, QRectF const &);
+
+
+  void paintGrid(QPainter &) const;
 
   inline void psetRGB(unsigned p, qreal norm, qreal phase);
   inline qreal pixelValue(unsigned p);
@@ -78,7 +90,7 @@ public:
   void    setZoom(qreal);
   void    resetZoom();
   void    zoomToPoint(QPointF const &);
-
+  
   void    setShowPhotons(bool);
   void    setShowPhase(bool);
 

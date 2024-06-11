@@ -16,6 +16,7 @@ class QResizeEvent;
 class ImageNavWidget;
 class SimulationSession;
 class QFileDialog;
+class QLabel;
 
 class DetectorWindow : public QMainWindow
 {
@@ -26,10 +27,24 @@ class DetectorWindow : public QMainWindow
   SimulationSession    *m_session = nullptr;
   QFileDialog          *m_saveDialog = nullptr;
 
+  QLabel               *m_pxSizeLabel  = nullptr;
+  QLabel               *m_detSizeLabel = nullptr;
+  QLabel               *m_pixelsLabel  = nullptr;
+  QLabel               *m_rangeLabel   = nullptr;
+  QLabel               *m_countsLabel  = nullptr;
+  QLabel               *m_posLabel     = nullptr;
+  QLabel               *m_pxLabel      = nullptr;
+  int                   m_lastX    = 0;
+  int                   m_lastY    = 0;
+
+  int                   m_scrollDx = 0;
+  int                   m_scrollDy = 0;
+
   bool                  m_showPhotons = true;
   std::list<QAction *>  m_detectorActions;
 
   void populateDetectorMenu();
+  void populateStatusBar();
   void connectAll();
   void refreshUi();
   void refreshDetectorParams();

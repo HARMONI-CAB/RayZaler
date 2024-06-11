@@ -5,6 +5,7 @@
 #include "GUIHelpers.h"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QFrame>
 
 DetectorWindow::DetectorWindow(QWidget *parent) :
   QMainWindow(parent),
@@ -27,8 +28,54 @@ DetectorWindow::DetectorWindow(QWidget *parent) :
     "Complex float64 amplitude (*.bin)");
   
   populateDetectorMenu();
+  populateStatusBar();
+
   connectAll();
 }
+
+#define MAKE_STATUS_LABEL(name)            \
+do {                                       \
+  name = new QLabel;                       \
+  name->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed); \
+  name->setAlignment(Qt::AlignRight); \
+  ui->statusbar->addPermanentWidget(name); \
+} while(false)
+
+void
+DetectorWindow::populateStatusBar()
+{
+  MAKE_STATUS_LABEL(m_pxSizeLabel);
+  m_pxSizeLabel->setFrameShape(QFrame::StyledPanel);
+
+  MAKE_STATUS_LABEL(m_detSizeLabel);
+  m_detSizeLabel->setFrameShape(QFrame::StyledPanel);
+
+  MAKE_STATUS_LABEL(m_pixelsLabel);
+  m_pixelsLabel->setFrameShape(QFrame::StyledPanel);
+
+  MAKE_STATUS_LABEL(m_rangeLabel);
+  m_rangeLabel->setFrameShape(QFrame::StyledPanel);
+
+  QLabel *spacer = new QLabel;
+  QLabel *cLabel, *xyLabel;
+
+  ui->statusbar->addPermanentWidget(spacer, 1);
+  spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+
+  MAKE_STATUS_LABEL(m_posLabel);
+
+  MAKE_STATUS_LABEL(cLabel);
+  MAKE_STATUS_LABEL(m_countsLabel);
+
+  MAKE_STATUS_LABEL(xyLabel);
+  MAKE_STATUS_LABEL(m_pxLabel);
+
+  cLabel->setText("C:");
+  xyLabel->setText("XY:");
+}
+
+#undef MAKE_STATUS_LABEL
 
 DetectorWindow::~DetectorWindow()
 {
@@ -78,39 +125,38 @@ DetectorWindow::refreshDetectorParams()
       p->setChecked(stdName == m_detector->name());
     }
 
-    ui->pxWidthLabel->setText(
-          QString::number(m_detector->pxWidth() * 1e6) + " µm");
-    ui->pxHeightLabel->setText(
-          QString::number(m_detector->pxHeight() * 1e6) + " µm");
-    ui->widthLabel->setText(
-          QString::number(m_detector->width() * 1e3) + " mm");
-    ui->heightLabel->setText(
-          QString::number(m_detector->height() * 1e3) + " mm");
-    ui->horizontalPixelsLabel->setText(
-          QString::number(m_detector->cols()) + " px");
-    ui->verticalPixelsLabel->setText(
-          QString::number(m_detector->rows()) + " px");
-    ui->rangeLabel->setText(
-          QString::asprintf("[%g, %g]",
-          m_navWidget->imgMin(),
-          m_navWidget->imgMax()));
+    m_pxSizeLabel->setText(
+          QString::asprintf(
+            "P: %g µm×%g µm",
+            m_detector->pxWidth() * 1e6,
+            m_detector->pxHeight() * 1e6));
+
+    m_detSizeLabel->setText(
+          QString::asprintf(
+            "D: %g mm×%g mm",
+            m_detector->width()  * 1e3,
+            m_detector->height() * 1e3));
+
+    m_pixelsLabel->setText(
+          QString::asprintf(
+            "G: %d×%d",
+            m_detector->cols(),
+            m_detector->rows()));
+
+    m_rangeLabel->setText(
+          QString::asprintf("R: [%g, %g]",
+            m_navWidget->imgMin(),
+            m_navWidget->imgMax()));
   } else {
-    ui->pxWidthLabel->setText("N/A");
-    ui->pxHeightLabel->setText("N/A");
-    ui->widthLabel->setText("N/A");
-    ui->heightLabel->setText("N/A");
-    ui->horizontalPixelsLabel->setText("N/A");
-    ui->verticalPixelsLabel->setText("N/A");
-    ui->rangeLabel->setText("N/A");
+    m_pxSizeLabel->setText("P: N/A");
+    m_detSizeLabel->setText("D: N/A");
+    m_pixelsLabel->setText("G: N/A");
+    m_rangeLabel->setText("R: N/A");
   }
 
-  ui->posXLabel->setText("N/A");
-  ui->posYLabel->setText("N/A");
-
-  ui->pixelXLabel->setText("N/A");
-  ui->pixelYLabel->setText("N/A");
-
-  ui->countsLabel->setText("N/A");
+  m_posLabel->setText("M: N/A");
+  m_pxLabel->setText("N/A");
+  m_countsLabel->setText("N/A");
 }
 
 void
@@ -120,7 +166,9 @@ DetectorWindow::refreshUi()
     qreal zoom    = m_navWidget->zoom();
     auto imgSize  = QSizeF(m_navWidget->imageSize()) * zoom;
     auto viewSize = QSizeF(ui->viewFrame->size());
-    auto pos      = m_navWidget->currPoint() * zoom;
+
+    int currScrollX = ui->horizontalScrollBar->value();
+    int currScrollY = ui->verticalScrollBar->value();
 
     BLOCKSIG_BEGIN(ui->horizontalScrollBar);
     if (viewSize.width() < imgSize.width()) {
@@ -133,7 +181,7 @@ DetectorWindow::refreshUi()
 
 
       ui->horizontalScrollBar->setPageStep(static_cast<int>(viewSize.width()));
-      ui->horizontalScrollBar->setValue(static_cast<int>(pos.x()));
+      ui->horizontalScrollBar->setValue(currScrollX);
       ui->horizontalScrollBar->setEnabled(true);
     } else {
       ui->horizontalScrollBar->setRange(0, 0);
@@ -149,7 +197,7 @@ DetectorWindow::refreshUi()
       ui->verticalScrollBar->setMaximum(verticalRange - verticalRange / 2);
 
       ui->verticalScrollBar->setPageStep(static_cast<int>(viewSize.height()));
-      ui->verticalScrollBar->setValue(static_cast<int>(pos.y()));
+      ui->verticalScrollBar->setValue(currScrollY);
       ui->verticalScrollBar->setEnabled(true);
     } else {
       ui->verticalScrollBar->setRange(0, 0);
@@ -248,16 +296,24 @@ DetectorWindow::setDetector(RZ::Detector *detector)
       title = "Simulation result - " + m_session->fileName() + " (no detector)";
     else
       title = "Simulation result - no simulation session";
-    ui->detGroupBox->setTitle("No detector");
+    // TODO: Set detector name somewhere
   } else {
     auto detName = QString::fromStdString(detector->name());
-    ui->detGroupBox->setTitle(detName);
+    // TODO: Set detector name somewhere
     title = "Simulation result - "
         +  m_session->fileName()
         + " ("
         + detName
         + ")";
     m_navWidget->setShowPhotons(m_showPhotons);
+
+    fixLabelSizeToContents(
+          m_countsLabel,
+          QString::number(qBound(100, SCAST(int, m_navWidget->imgMax()), 10000000)));
+
+    fixLabelSizeToContents(
+          m_pxLabel,
+          QString::number(m_detector->cols()) + ", " + QString::number(m_detector->rows()));
   }
 
   setWindowTitle(title);
@@ -312,11 +368,21 @@ DetectorWindow::onViewChanged()
 void
 DetectorWindow::onScrollBarsChanged()
 {
-  QPointF p = QPointF(
-        ui->horizontalScrollBar->value(),
-        ui->verticalScrollBar->value()) / m_navWidget->zoom();
+  int x = ui->horizontalScrollBar->value();
+  int y = ui->verticalScrollBar->value();
+
+  m_scrollDx = x - m_lastX;
+  m_scrollDy = y - m_lastY;
+
+  QPointF p = m_navWidget->currPoint();
+
+  p.setX(p.x() - m_scrollDx);
+  p.setY(p.y() - m_scrollDy);
 
   m_navWidget->setCurrPoint(p);
+
+  m_lastX = x;
+  m_lastY = y;
 }
 
 void
@@ -354,25 +420,20 @@ DetectorWindow::onHoverPixel(QPointF loc)
     qreal posX = (loc.x()) * m_detector->pxWidth();
     qreal posY = (loc.y()) * m_detector->pxHeight();
 
-    int pixelX = SCAST(int, -.5 + loc.x() + .5 * m_detector->cols());
-    int pixelY = SCAST(int, -.5 + loc.y() + .5 * m_detector->rows());
+    int pixelX = SCAST(int, floor(loc.x() + .5 * m_detector->cols()));
+    int pixelY = SCAST(int, floor(loc.y() + .5 * m_detector->rows()));
 
     if (pixelX < 0 || pixelX >= SCAST(int, m_detector->cols())
         || pixelY < 0 || pixelY >= SCAST(int, m_detector->rows())) {
-      ui->pixelXLabel->setText("N/A");
-      ui->pixelYLabel->setText("N/A");
-      ui->countsLabel->setText("N/A");
+      m_pxLabel->setText("N/A");
+      m_countsLabel->setText("N/A");
     } else {
       int index = pixelX + pixelY * SCAST(int, m_detector->stride());
-      ui->pixelXLabel->setText(QString::number(pixelX));
-      ui->pixelYLabel->setText(QString::number(pixelY));
-      ui->countsLabel->setText(QString::number(m_detector->data()[index]));
+      m_pxLabel->setText(QString::asprintf("%d, %d", pixelX, pixelY));
+      m_countsLabel->setText(QString::asprintf("%d", m_detector->data()[index]));
     }
 
-    ui->posXLabel->setText(
-          (posX > 0 ? "+" : "") + QString::number(posX * 1e3, 'f', 6) + " mm");
-    ui->posYLabel->setText(
-          (posY > 0 ? "+" : "") + QString::number(posY * 1e3, 'f', 6) + " mm");
+    m_posLabel->setText(QString::asprintf("M: %+g mm, %+g mm", posX * 1e3, posY * 1e3));
   }
 }
 

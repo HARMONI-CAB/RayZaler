@@ -140,39 +140,53 @@ ImageNavWidget::recalcImage()
 QPoint
 ImageNavWidget::px2img(QPoint p) const
 {
-  auto imgcenter = px2imgcenter(p);
-  auto center = QPoint(m_image.width(), m_image.height()) / 2;
-  return imgcenter + center;
+  return px2img(QPointF(p)).toPoint();
 }
 
 QPoint
 ImageNavWidget::img2px(QPoint xy) const
 {
-  auto center = QPoint(m_image.width(), m_image.height()) / 2;
+  return img2px(QPointF(xy)).toPoint();
+}
+
+QPointF
+ImageNavWidget::px2img(QPointF p) const
+{
+  auto imgcenter = px2imgcenter(p);
+  auto center = QPointF(m_image.width(), m_image.height()) * .5;
+  return imgcenter + center;
+}
+
+QPointF
+ImageNavWidget::img2px(QPointF xy) const
+{
+  auto center = QPointF(m_image.width(), m_image.height()) * .5;
   return imgcenter2px(xy - center);
 }
 
 QPoint
 ImageNavWidget::px2imgcenter(QPoint p) const
 {
-  return
-        (p
-         - QPoint(width(), height()) / 2
-         - m_currPos.toPoint()) / m_zoom;
+  return px2imgcenter(QPointF(p)).toPoint();
 }
 
 QPointF
-ImageNavWidget::pxF2imgcenterF(QPointF p) const
+ImageNavWidget::px2imgcenter(QPointF p) const
 {
-  return (p - QPointF(width(), height()) / 2. - m_currPos) / m_zoom;
+  return (p - QPointF(width(), height()) * .5 - m_currPos) / m_zoom;
 }
 
 QPoint
 ImageNavWidget::imgcenter2px(QPoint xy) const
 {
-  return xy * m_zoom + m_currPos.toPoint() + QPoint(width(), height()) / 2;
+  return imgcenter2px(QPointF(xy)).toPoint();
 }
 
+QPointF
+ImageNavWidget::imgcenter2px(QPointF xy) const
+{
+  return xy * m_zoom + m_currPos + QPointF(width(), height()) * .5;
+}
 
 QPointF
 ImageNavWidget::getSelection() const
@@ -213,7 +227,6 @@ ImageNavWidget::setDetector(RZ::Detector *det)
   if (det != nullptr) {
     unsigned int width  = m_detector->cols();
     unsigned int height = m_detector->rows();
-    unsigned int stride = m_detector->stride();
 
     m_sane_min = 0;
     m_sane_max = m_showPhotons 
@@ -353,22 +366,67 @@ ImageNavWidget::setCurrPoint(QPointF const &p)
   update();
 }
 
+QPoint
+ImageNavWidget::boundToRect(QPoint const &p, QRect const &rect)
+{
+  return QPoint(
+    qBound(rect.x(), p.x(), rect.x() + rect.width()),
+    qBound(rect.y(), p.y(), rect.y() + rect.height()));
+}
+
+void
+ImageNavWidget::paintGrid(QPainter &painter) const
+{
+  auto x0y0 = boundToRect(px2img(QPoint(0, 0)), m_image.rect());
+  auto xnyn = boundToRect(px2img(QPoint(width(), height())), m_image.rect());
+
+  int x0 = x0y0.x();
+  int y0 = x0y0.y();
+  int xn = xnyn.x();
+  int yn = xnyn.y();
+
+  painter.save();
+
+  QPen pen;
+  QColor color(Qt::red);
+  auto alpha = qBound(0.f, m_zoom * m_zoom / 64.f, 1.f);
+
+  color.setAlphaF(alpha);
+
+  pen.setWidth(1);
+  pen.setColor(color);
+  painter.setPen(pen);
+
+  for (int j = y0; j <= yn; ++j) {
+    auto v0 = img2px(QPoint(qBound(0, x0 - 1, m_image.width()), j));
+    auto vn = img2px(QPoint(qBound(0, xn + 1, m_image.width()), j));
+
+    painter.drawLine(v0, vn);
+  }
+
+  for (int i = x0; i <= xn; ++i) {
+    auto h0 = img2px(QPoint(i, qBound(0, y0 - 1, m_image.height())));
+    auto hn = img2px(QPoint(i, qBound(0, yn + 1, m_image.height())));
+    painter.drawLine(h0, hn);
+  }
+
+  painter.restore();
+}
+
 void
 ImageNavWidget::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
   if (!m_image.isNull()) {
-    auto target_width  = m_image.width()  * m_zoom;
-    auto target_height = m_image.height() * m_zoom;
-    auto target        = imgcenter2px(
-          QPoint(-m_image.width() / 2, -m_image.height() / 2));
+    auto target_width  = static_cast<int>(ceil(m_image.width()  * m_zoom));
+    auto target_height = static_cast<int>(ceil(m_image.height() * m_zoom));
+    auto targetF        = imgcenter2px(
+          QPointF(-m_image.width() * .5, -m_image.height() * .5));
 
     painter.drawPixmap(
-          QRect(
-            target,
-            QSize(
-              static_cast<int>(target_width),
-              static_cast<int>(target_height))),
+          QRectF(
+            targetF,
+            QSize(target_width, target_height)).toRect(),
           QPixmap::fromImage(m_image));
 
     auto px_sel_start = img2px(m_currSel);
@@ -381,6 +439,9 @@ ImageNavWidget::paintEvent(QPaintEvent *)
       painter.setPen(QColor(0, 255, 0));
       painter.drawRect(QRectF(px_sel_start, px_sel_end));
     }
+
+    if (m_zoom > 2)
+      paintGrid(painter);
   } else {
     QBrush brush;
     brush.setColor(QColor(0, 0, 0));
@@ -394,6 +455,7 @@ void
 ImageNavWidget::mousePressEvent(QMouseEvent *event)
 {
   if (event->button() == Qt::MouseButton::MiddleButton) {
+    // Drag start
     m_move_ref_pos = event->position();
     m_have_ref_pos = true;
   }
@@ -412,6 +474,7 @@ ImageNavWidget::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::MouseButton::RightButton)
       resetZoom();
 
+    // Drag end, if any
     m_have_ref_pos  = false;
     m_have_last_pos = false;
 
@@ -429,6 +492,8 @@ ImageNavWidget::mouseMoveEvent(QMouseEvent *event)
   if (m_interactive) {
     if (m_have_ref_pos) {
       if (m_have_last_pos) {
+
+        // Dragging
         auto delta = event->position() - m_move_last_pos;
         m_currPos += delta;
       }
@@ -438,7 +503,7 @@ ImageNavWidget::mouseMoveEvent(QMouseEvent *event)
       emit viewChanged();
       update();
     } else {
-      emit mouseMoved(pxF2imgcenterF(event->position()));
+      emit mouseMoved(px2imgcenter(event->position()));
     }
 
     if (m_movingSelection)
@@ -451,7 +516,7 @@ ImageNavWidget::wheelEvent(QWheelEvent *event)
 {
   if (m_interactive) {
     qreal prev_zoom = m_zoom;
-    auto xy = px2imgcenter(event->position().toPoint());
+    auto xy = px2imgcenter(event->position());
     m_zoom    *= exp(event->angleDelta().y() / 1200.);
     m_currPos += xy * (prev_zoom - m_zoom);
 

@@ -3,6 +3,8 @@
 
 #include <QString>
 
+class QLabel;
+
 #define SCAST(type, value) static_cast<type>(value)
 #define TOINT(value) SCAST(int, value)
 
@@ -31,5 +33,6 @@ QString toSensibleUnits(qreal val);
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);
+void fixLabelSizeToContents(QLabel *label, QString text);
 
 #endif // GUIHELPERS_H
