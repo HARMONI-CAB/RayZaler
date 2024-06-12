@@ -20,17 +20,14 @@ namespace RZ {
       int     m_width;
       int     m_height;
       int     m_hWnd = -1;
-      GLfloat m_zoom = 1;
       
       bool    m_newViewPort = false;
       bool    m_dragging = false;
       GLfloat m_dragStart[2] = {0, 0};
 
-      GLfloat m_currentCenter[2] = {0, 0};
       GLfloat m_oldCenterCenter[2] = {0, 0};
 
-      bool m_rotating = false;
-      IncrementalRotation m_incRot;
+      bool    m_rotating = false;
       GLfloat m_prevRotX, m_prevRotY;
       GLfloat m_rotStart[2] = {0, 0};
       GLfloat m_curAzEl[3] = {0, 0};

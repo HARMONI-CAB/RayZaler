@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
+   <iconset>
     <normaloff>:/icons/icons/applogo-mini.svg</normaloff>:/icons/icons/applogo-mini.svg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -50,6 +50,8 @@
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
     <addaction name="actionReloadModel"/>
+    <addaction name="separator"/>
+    <addaction name="actionExportView"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -476,7 +478,7 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/folder-open.svg</normaloff>:/toolbar/icons/folder-open.svg</iconset>
    </property>
    <property name="text">
@@ -496,7 +498,7 @@
   </action>
   <action name="actionAnimStart">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/media-skip-backward.svg</normaloff>:/toolbar/icons/media-skip-backward.svg</iconset>
    </property>
    <property name="text">
@@ -505,7 +507,7 @@
   </action>
   <action name="actionAnimEnd">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/media-skip-forward.svg</normaloff>:/toolbar/icons/media-skip-forward.svg</iconset>
    </property>
    <property name="text">
@@ -514,7 +516,7 @@
   </action>
   <action name="actionAnimPause">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/media-playback-pause.svg</normaloff>:/toolbar/icons/media-playback-pause.svg</iconset>
    </property>
    <property name="text">
@@ -523,7 +525,7 @@
   </action>
   <action name="actionAnimStop">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/media-playback-stop.svg</normaloff>:/toolbar/icons/media-playback-stop.svg</iconset>
    </property>
    <property name="text">
@@ -532,7 +534,7 @@
   </action>
   <action name="actionAnimPlay">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/media-playback-start.svg</normaloff>:/toolbar/icons/media-playback-start.svg</iconset>
    </property>
    <property name="text">
@@ -541,7 +543,7 @@
   </action>
   <action name="actionSimProp">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/open-menu.svg</normaloff>:/toolbar/icons/open-menu.svg</iconset>
    </property>
    <property name="text">
@@ -550,7 +552,7 @@
   </action>
   <action name="actionRunSim">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/trace.svg</normaloff>:/toolbar/icons/trace.svg</iconset>
    </property>
    <property name="text">
@@ -562,7 +564,7 @@
   </action>
   <action name="actionSimResult">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/image-x-generic.svg</normaloff>:/toolbar/icons/image-x-generic.svg</iconset>
    </property>
    <property name="text">
@@ -571,7 +573,7 @@
   </action>
   <action name="actionViewTop">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-top.svg</normaloff>:/toolbar/icons/view-top.svg</iconset>
    </property>
    <property name="text">
@@ -580,7 +582,7 @@
   </action>
   <action name="actionViewBottom">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-bottom.svg</normaloff>:/toolbar/icons/view-bottom.svg</iconset>
    </property>
    <property name="text">
@@ -589,7 +591,7 @@
   </action>
   <action name="actionViewFront">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-front.svg</normaloff>:/toolbar/icons/view-front.svg</iconset>
    </property>
    <property name="text">
@@ -598,7 +600,7 @@
   </action>
   <action name="actionViewRear">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-rear.svg</normaloff>:/toolbar/icons/view-rear.svg</iconset>
    </property>
    <property name="text">
@@ -607,7 +609,7 @@
   </action>
   <action name="actionViewLeft">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-left.svg</normaloff>:/toolbar/icons/view-left.svg</iconset>
    </property>
    <property name="text">
@@ -616,7 +618,7 @@
   </action>
   <action name="actionViewRight">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-right.svg</normaloff>:/toolbar/icons/view-right.svg</iconset>
    </property>
    <property name="text">
@@ -628,7 +630,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/folder-tag.svg</normaloff>:/toolbar/icons/folder-tag.svg</iconset>
    </property>
    <property name="text">
@@ -637,7 +639,7 @@
   </action>
   <action name="actionRunSimFile">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/application-x-desktop.svg</normaloff>:/toolbar/icons/application-x-desktop.svg</iconset>
    </property>
    <property name="text">
@@ -649,7 +651,7 @@
   </action>
   <action name="actionClearBeam">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/clear-beam.svg</normaloff>:/toolbar/icons/clear-beam.svg</iconset>
    </property>
    <property name="text">
@@ -664,7 +666,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/toggle-aperture.svg</normaloff>:/toolbar/icons/toggle-aperture.svg</iconset>
    </property>
    <property name="text">
@@ -679,7 +681,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/toggle-elements.svg</normaloff>:/toolbar/icons/toggle-elements.svg</iconset>
    </property>
    <property name="text">
@@ -694,7 +696,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/toggle-frames.svg</normaloff>:/toolbar/icons/toggle-frames.svg</iconset>
    </property>
    <property name="text">
@@ -706,7 +708,7 @@
   </action>
   <action name="actionReloadModel">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-refresh.svg</normaloff>:/toolbar/icons/view-refresh.svg</iconset>
    </property>
    <property name="text">
@@ -718,7 +720,7 @@
   </action>
   <action name="actionModelSource">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/text-x-script.svg</normaloff>:/toolbar/icons/text-x-script.svg</iconset>
    </property>
    <property name="text">
@@ -733,7 +735,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/Draft_Grid.svg</normaloff>:/toolbar/icons/Draft_Grid.svg</iconset>
    </property>
    <property name="text">
@@ -745,7 +747,7 @@
   </action>
   <action name="actionCenterSelection">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/zoom-selection.svg</normaloff>:/toolbar/icons/zoom-selection.svg</iconset>
    </property>
    <property name="text">
@@ -757,7 +759,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/toolbar/icons/view-measurement.svg</normaloff>:/toolbar/icons/view-measurement.svg</iconset>
    </property>
    <property name="text">
@@ -766,16 +768,22 @@
   </action>
   <action name="action_About_RZGUI">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset>
      <normaloff>:/icons/icons/applogo-mini.svg</normaloff>:/icons/icons/applogo-mini.svg</iconset>
    </property>
    <property name="text">
     <string>&amp;About RZGUI...</string>
    </property>
   </action>
+  <action name="actionExportView">
+   <property name="text">
+    <string>Export view as...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+E</string>
+   </property>
+  </action>
  </widget>
- <resources>
-  <include location="icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

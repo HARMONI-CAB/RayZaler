@@ -6,6 +6,8 @@
 #include <GLHelpers.h>
 #include <IncrementalRotation.h>
 #include <QKeyEvent>
+#include <GLModel.h>
+#include <GLRenderEngine.h>
 
 class RZGUIGLWidget : public QOpenGLWidget
 {
@@ -17,13 +19,13 @@ class RZGUIGLWidget : public QOpenGLWidget
   RZ::GLGrid                m_xyFineGrid;
   RZ::GLText                m_glGridText;
   RZ::GLText                m_glLabelText;
+  RZ::GLCurrentView         m_view;
 
   std::vector<RZ::GLArrow>  m_pathArrows;
   const RZ::ReferenceFrame *m_selectedRefFrame = nullptr;
   const RZ::OpticalPath    *m_selectedPath = nullptr;
 
   RZ::OMModel *m_model = nullptr;
-  GLfloat m_viewPortMatrix[16];
   GLfloat m_refMatrix[16];
 
   bool    m_displayNames        = false;
@@ -38,22 +40,17 @@ class RZGUIGLWidget : public QOpenGLWidget
   int     m_width;
   int     m_height;
   int     m_hWnd = -1;
-  GLfloat m_zoom = 1;
   bool    m_dragging = false;
   GLfloat m_dragStart[2] = {0, 0};
-
-  GLfloat m_currentCenter[2] = {0, 0};
   GLfloat m_oldCenterCenter[2] = {0, 0};
 
   bool m_rotating = false;
-  RZ::IncrementalRotation m_incRot;
   GLfloat m_prevRotX, m_prevRotY;
   GLfloat m_rotStart[2] = {0, 0};
   GLfloat m_curAzEl[3] = {0, 0};
   GLfloat m_oldRot[2] = {0, 0};
 
   void configureViewPort();
-  void configureLighting();
   void setOrientationAndCenter(RZ::Matrix3 const &, RZ::Vec3 const &);
   void pushReferenceFrameMatrix(const RZ::ReferenceFrame *);
   void pushElementMatrix(const RZ::Element *);
@@ -114,6 +111,9 @@ protected:
 
 public:
   RZGUIGLWidget(QWidget *);
+  
+  RZ::GLCurrentView *view();
+
   void setModel(RZ::OMModel *model);
   void getCurrentRot(GLfloat *) const;
   void setCurrentRot(const GLfloat *);
@@ -130,6 +130,9 @@ public:
 
   void setGridDivs(unsigned);
   void setGridStep(qreal);
+
+  void display();
+  void configureLighting();
 
   // Exposed so other objects can deliver events to the widget
   void keyPressEvent(QKeyEvent *event) override;

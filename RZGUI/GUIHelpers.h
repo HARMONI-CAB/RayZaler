@@ -33,6 +33,7 @@ QString toSensibleUnits(qreal val);
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);
+QString appendExtToPath(QString const &path, QString const &ext);
 void fixLabelSizeToContents(QLabel *label, QString text);
 
 #endif // GUIHELPERS_H

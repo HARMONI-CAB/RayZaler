@@ -7,6 +7,8 @@
 #include <GL/glut.h>
 #endif
 
+#include "IncrementalRotation.h"
+
 namespace RZ {
   class GLModelEventListener {
     public:

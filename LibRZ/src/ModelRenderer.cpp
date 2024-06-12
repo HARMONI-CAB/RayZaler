@@ -45,6 +45,8 @@ ModelRenderer::ModelRenderer(
   m_height   = height;
   m_ownModel = own;
 
+  view()->setScreenGeom(width, height);
+  
   m_pixels.resize(m_width * m_height);
 
   if (m_ownModel != nullptr)
@@ -63,28 +65,7 @@ ModelRenderer::~ModelRenderer()
 void
 ModelRenderer::adjustViewPort()
 {
-  GLfloat aspect;
-
-  // Phase 1: Set viewport
-  glViewport(0, 0, m_width, m_height);
-
-  // Phase 2: Configure projection
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glScalef(m_zoom, m_zoom, m_zoom);
-  glTranslatef(
-    +2 * m_currentCenter[0] / (m_zoom * m_width),
-    -2 * m_currentCenter[1] / (m_zoom * m_height),
-    0);
-    
-  aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * m_zoom, 20 * m_zoom);
-
-  // Phase 3: Configure normals
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity();
-  glEnable(GL_AUTO_NORMAL);
-  glEnable(GL_NORMALIZE);
+  view()->configureViewPort(m_width, m_height);
 }
 
 void
@@ -106,14 +87,7 @@ ModelRenderer::render()
     if (!m_fixedLight)
       model()->configureLighting();
 
-      glTranslatef(0, 0, -10.);
-      auto k = m_incRot.k();
-      auto theta = RZ::rad2deg(m_incRot.theta());
-
-      glRotatef(theta, k.x, k.y, k.z);
-
-      glRotatef(-90, 1, 0, 0);
-      glRotatef(-90, 0, 0, 1);
+    view()->configureOrientation();
 
     if (m_fixedLight)
       model()->configureLighting();
@@ -203,51 +177,6 @@ done:
     fclose(fp);
   
   return ok;
-}
-
-void
-ModelRenderer::zoom(Real delta)
-{
-  m_zoom *= delta;
-}
-
-void
-ModelRenderer::incAzEl(Real deltaAz, Real deltaEl)
-{
-  m_incRot.rotate(RZ::Vec3::eY(), RZ::deg2rad(deltaAz));
-  m_incRot.rotate(RZ::Vec3::eX(), RZ::deg2rad(deltaEl));
-}
-
-void
-ModelRenderer::roll(Real delta)
-{
-  m_incRot.rotate(RZ::Vec3::eZ(), RZ::deg2rad(delta));
-}
-
-void
-ModelRenderer::move(Real deltaX, Real deltaY)
-{
-  m_currentCenter[0] -= deltaX;
-  m_currentCenter[1] -= deltaY;
-}
-
-void
-ModelRenderer::setZoom(Real zoom)
-{
-  m_zoom = zoom;
-}
-
-void
-ModelRenderer::setCenter(Real x0, Real y0)
-{
-  m_currentCenter[0] = x0;
-  m_currentCenter[1] = y0;
-}
-
-void
-ModelRenderer::setRotation(Real angle, Real x, Real y, Real z)
-{
-  m_incRot.setRotation(Vec3(x, y, z).normalized(), RZ::deg2rad(angle));
 }
 
 ModelRenderer *

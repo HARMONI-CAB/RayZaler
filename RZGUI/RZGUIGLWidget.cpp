@@ -317,8 +317,10 @@ RZGUIGLWidget::displayModel(RZ::OMModel *model)
 void
 RZGUIGLWidget::displayAxes()
 {
+  auto zoom = m_view.zoomLevel;
+
   glPushMatrix();
-  glScalef(1. / m_zoom, 1. / m_zoom, 1. / m_zoom);
+  glScalef(1. / zoom, 1. / zoom, 1. / zoom);
   m_glAxes.display();
   glPopMatrix();
 }
@@ -489,11 +491,9 @@ RZGUIGLWidget::configureLighting()
 void
 RZGUIGLWidget::mouseClick(int button, int state, int x, int y, int shift)
 {
-  GLfloat wX, wY;
-  GLfloat sX, sY;
+  RZ::Real wX, wY;
 
-  wX = +4 * (x - m_currentCenter[0] - m_width  * .5) / (m_zoom * m_width) - 2;
-  wY = -4 * (y - m_currentCenter[1] - m_height * .5) / (m_zoom * m_width) + 2;
+  m_view.screenToWorld(wX, wY, x, y);
 
   if (state == 1) {
     // Released
@@ -515,8 +515,8 @@ RZGUIGLWidget::mouseClick(int button, int state, int x, int y, int shift)
         m_dragging = true;
         m_dragStart[0] = x;
         m_dragStart[1] = y;
-        m_oldCenterCenter[0] = m_currentCenter[0];
-        m_oldCenterCenter[1] = m_currentCenter[1];
+        m_oldCenterCenter[0] = m_view.center[0];
+        m_oldCenterCenter[1] = m_view.center[1];
 
         break;
 
@@ -529,22 +529,26 @@ RZGUIGLWidget::mouseClick(int button, int state, int x, int y, int shift)
         break;
 
       case 3: // Mouse wheel up
-        m_zoom *= pow(1.1, shift / 120.);
+        m_view.zoom(pow(1.1, +shift / 120.));
         newZoom = true;
         break;
 
       case 4: // Mouse wheel down
-        m_zoom /= pow(1.1, shift / 120.);
+        m_view.zoom(pow(1.1, -shift / 120.));
         newZoom = true;
         break;
     }
 
     if (newZoom) {
-      sX = x - (wX + 2) / 4 * (m_zoom * m_width) - m_width * .5;
-      sY = y + (wY - 2) / 4 * (m_zoom * m_width) - m_height * .5;
+      RZ::Real prevSX, prevSY;
+      RZ::Real dX, dY;
 
-      m_currentCenter[0] = sX;
-      m_currentCenter[1] = sY;
+      m_view.worldToScreen(prevSX, prevSY, wX, wY);
+
+      dX = x - prevSX;
+      dY = y - prevSY;
+
+      m_view.move(-dX, -dY);
     }
   }
 
@@ -556,23 +560,18 @@ void
 RZGUIGLWidget::mouseMotion(int x, int y)
 {
   GLfloat shiftX, shiftY;
-  GLfloat wX, wY;
   RZ::Vec3 v;
 
-  // Screen coordinates, wrt world center
-  wX = +4 * (x - m_currentCenter[0] - m_width  * .5) / (m_zoom * m_width);
-  wY = -4 * (y - m_currentCenter[1] - m_height * .5) / (m_zoom * m_width);
+  RZ::Real wX, wY;
 
-  // Screen coordinates, zoom corrected
-  //wX = +4 * (x - m_width  * .5) / (m_zoom * m_width);
-  //wY = -4 * (y - m_height * .5) / (m_zoom * m_width);
+  m_view.screenToWorld(wX, wY, x, y);
 
 
   if (m_selectedRefFrame != nullptr && m_displayMeasurements) {
     RZ::Vec3 coords(wX, wY, 0);
     RZ::Vec3 screenNormal, screenCoords;
 
-    RZ::IncrementalRotation correctedRotation = m_incRot;
+    RZ::IncrementalRotation correctedRotation = m_view.rotation;
 
     correctedRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
     correctedRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
@@ -613,8 +612,9 @@ RZGUIGLWidget::mouseMotion(int x, int y)
   if (m_dragging) {
     shiftX = x - m_dragStart[0];
     shiftY = y - m_dragStart[1];
-    m_currentCenter[0] = m_oldCenterCenter[0] + shiftX;
-    m_currentCenter[1] = m_oldCenterCenter[1] + shiftY;
+    m_view.setCenter(
+      m_oldCenterCenter[0] + shiftX,
+      m_oldCenterCenter[1] + shiftY);
 
     m_newViewPort = true;
 
@@ -630,13 +630,10 @@ RZGUIGLWidget::mouseMotion(int x, int y)
     RZ::Real deltaX = x - m_prevRotX;
     RZ::Real deltaY = y - m_prevRotY;
 
-    m_incRot.rotate(
-      RZ::Vec3::eY(),
-      RZ::deg2rad(deltaX * RZGUIGL_MOUSE_ROT_DELTA));
 
-    m_incRot.rotate(
-      RZ::Vec3::eX(),
-      RZ::deg2rad(deltaY * RZGUIGL_MOUSE_ROT_DELTA));
+    m_view.incAzEl(
+      deltaX * RZGUIGL_MOUSE_ROT_DELTA,
+      deltaY * RZGUIGL_MOUSE_ROT_DELTA);
 
     m_newViewPort = true;
     
@@ -719,12 +716,12 @@ RZGUIGLWidget::keyPressEvent(QKeyEvent *event)
 
   switch (event->key()) {
     case Qt::Key_Up:
-      angle = RZ::deg2rad(RZGUIGL_KBD_ROT_DELTA);
+      angle  = RZGUIGL_KBD_ROT_DELTA;
       rotate = true;
       break;
 
     case Qt::Key_Down:
-      angle = -RZ::deg2rad(RZGUIGL_KBD_ROT_DELTA);
+      angle  = RZGUIGL_KBD_ROT_DELTA;
       rotate = true;
       break;
 
@@ -733,7 +730,7 @@ RZGUIGLWidget::keyPressEvent(QKeyEvent *event)
   }
 
   if (rotate) {
-    m_incRot.rotate(RZ::Vec3::eZ(), angle);
+    m_view.roll(angle);
     m_newViewPort = true;
     update();
   }
@@ -754,41 +751,17 @@ RZGUIGLWidget::initializeGL()
 void
 RZGUIGLWidget::configureViewPort()
 {
-  GLfloat aspect;
-  QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
-
-  // Phase 1: Set viewport
-  f->glViewport(0, 0, m_width, m_height);
-
-  // Phase 2: Configure projection
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  glScalef(m_zoom, m_zoom, m_zoom);
-  glTranslatef(
-    +2 * m_currentCenter[0] / (m_zoom * m_width),
-    -2 * m_currentCenter[1] / (m_zoom * m_height),
-    0);
-
-  aspect = static_cast<GLfloat>(m_width) / static_cast<GLfloat>(m_height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -1000 * m_zoom, 1000 * m_zoom);
-  f->glGetFloatv(GL_MODELVIEW_MATRIX, m_viewPortMatrix);
-
-  // Phase 3: Configure normals
-  glMatrixMode (GL_MODELVIEW);
-  glLoadIdentity();
-
-  f->glEnable(GL_AUTO_NORMAL);
-  f->glEnable(GL_NORMALIZE);
-
+  m_view.configureViewPort(m_width, m_height);
   m_newViewPort = false;
 }
 
 void
 RZGUIGLWidget::resizeGL(int w, int h)
 {
-  m_width = w;
+  m_width  = w;
   m_height = h;
+
+  m_view.setScreenGeom(w, h);
 
   configureViewPort();
 }
@@ -800,6 +773,7 @@ RZGUIGLWidget::resizeGL(int w, int h)
 #define BELOW_RED   0x75
 #define BELOW_GREEN 0x75
 #define BELOW_BLUE  0xe9
+
 void
 RZGUIGLWidget::drawAxes()
 {
@@ -835,20 +809,30 @@ RZGUIGLWidget::drawAxes()
 
       glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
 
-      auto k = m_incRot.k();
-      auto theta = RZ::rad2deg(m_incRot.theta());
-
-      glRotatef(theta, k.x, k.y, k.z);
+      m_view.configureOrientation(false);
       
-      glRotatef(-90, 1, 0, 0);
-      glRotatef(-90, 0, 0, 1);
-
       m_glAxes.display();
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   glMatrixMode (GL_MODELVIEW);
+}
+
+
+RZ::GLCurrentView *
+RZGUIGLWidget::view()
+{
+  return &m_view;
+}
+
+void
+RZGUIGLWidget::display()
+{
+  glGetFloatv(GL_MODELVIEW_MATRIX, m_refMatrix);
+
+  if (m_model != nullptr)
+    displayModel(m_model);
 }
 
 void
@@ -872,22 +856,12 @@ RZGUIGLWidget::paintGL()
 
   drawAxes();
 
-  glTranslatef(0, 0, -10.);
-  auto k = m_incRot.k();
-  auto theta = RZ::rad2deg(m_incRot.theta());
-
-  glRotatef(theta, k.x, k.y, k.z);
-
-  glRotatef(-90, 1, 0, 0);
-  glRotatef(-90, 0, 0, 1);
-
-  f->glGetFloatv(GL_MODELVIEW_MATRIX, m_refMatrix);
-
   if (m_fixedLight)
     configureLighting();
 
-  if (m_model != nullptr)
-    displayModel(m_model);
+  m_view.configureOrientation();
+
+  display();
 }
 
 void
@@ -913,11 +887,11 @@ void
 RZGUIGLWidget::setCurrentRot(const GLfloat *rot)
 {
   if (!RZ::isZero(rot[0]))
-    m_incRot.setRotation(RZ::Vec3::eY(), RZ::deg2rad(rot[0]));      
+    m_view.setRotation(RZ::Vec3::eY(), rot[0]);      
   else if (!RZ::isZero(rot[2]))
-    m_incRot.rotateRelative(RZ::Vec3::eZ(), RZ::deg2rad(rot[2]));
+    m_view.rotateRelative(RZ::Vec3::eZ(), rot[2]);
   else
-    m_incRot.setRotation(RZ::Vec3::eX(), RZ::deg2rad(rot[1]));
+    m_view.setRotation(RZ::Vec3::eX(), rot[1]);
 
   update();
 }
@@ -928,16 +902,18 @@ RZGUIGLWidget::rotateToCurrentFrame()
   if (m_selectedRefFrame != nullptr) {
     RZ::Vec3 center = m_selectedRefFrame->getCenter();
     
-    m_incRot.setRotation(m_selectedRefFrame->getOrientation().t());\
+    m_view.setRotation(m_selectedRefFrame->getOrientation().t());
 
-    RZ::Vec3 result = m_incRot.matrix() * center;
+    RZ::Vec3 result = m_view.rotation.matrix() * center;
     
-    m_incRot.rotateRelative(RZ::Vec3::eZ(), M_PI / 2);
-    m_incRot.rotateRelative(RZ::Vec3::eX(), M_PI / 2);
+    m_view.rotateRelative(RZ::Vec3::eZ(), 90);
+    m_view.rotateRelative(RZ::Vec3::eX(), 90);
     
-    m_currentCenter[0] = -.25 * result.x * m_zoom * m_width;
-    m_currentCenter[1] = .25 * result.y * m_zoom * m_width;
+    auto cX = -.25 * result.x * m_view.zoomLevel * m_width;
+    auto cY = +.25 * result.y * m_view.zoomLevel * m_width;
     
+    m_view.setCenter(cX, cY);
+
     m_newViewPort = true;
     update();
   }

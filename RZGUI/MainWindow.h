@@ -19,6 +19,7 @@ class SimulationPropertiesDialog;
 class QFileDialog;
 class DOFWidget;
 class AboutDialog;
+class ExportViewDialog;
 
 struct SessionUI {
   SessionTabWidget *tab       = nullptr;
@@ -40,6 +41,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   ElementPropertyModel       *m_compPropModel       = nullptr;
   OMTreeModel                *m_omModel             = nullptr;
   AboutDialog                *m_aboutDialog         = nullptr;
+  ExportViewDialog           *m_exportViewDialog    = nullptr;
 
   void refreshCurrentSession();
   void refreshCurrentElement();
@@ -95,6 +97,7 @@ public slots:
   void onUpdateModel();
   void onModelSource();
   void onCenterToSelected();
+  void onExportImage();
 
 private:
   Ui::MainWindow *ui;

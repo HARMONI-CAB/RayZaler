@@ -44,6 +44,7 @@ public:
   ~SessionTabWidget() override;
 
   SimulationSession *session() const;
+  RZGUIGLWidget *glWidget() const;
   void clearBeam();
   void showDetectorWindow();
   void updateDetectorWindow();

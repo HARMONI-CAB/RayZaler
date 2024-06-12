@@ -284,6 +284,12 @@ SessionTabWidget::session() const
   return m_session;
 }
 
+RZGUIGLWidget *
+SessionTabWidget::glWidget() const
+{
+  return m_glWidget;
+}
+
 void
 SessionTabWidget::updateModel()
 {
@@ -353,6 +359,8 @@ SessionTabWidget::reloadModel()
   m_glWidget->setModel(m_session->topLevelModel());
   m_detWindow->setSession(m_session);
   m_progressDialog->setTracer(m_session->tracer());
+
+  
 }
 
 void

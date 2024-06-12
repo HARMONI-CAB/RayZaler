@@ -18,6 +18,28 @@ randNormal()
   return sqrt(-log(u));
 }
 
+QString
+appendExtToPath(QString const &path, QString const &ext)
+{
+  qsizetype indexDot, indexBar;
+
+  indexDot = path.lastIndexOf('.');
+  indexBar = path.lastIndexOf('/');
+
+  //
+  // a.x       2 -1
+  // a        -1 -1 (indexDot < 0)
+  // /a/b.x    4  2
+  // /a.x/b    2  4 (indexDot < indexBar)
+  // /a.x/b.x  6  4
+
+
+  if (indexDot < 0 || indexDot < indexBar)
+    return path + "." + ext;
+
+  return path.first(indexDot) + "." + ext;
+}
+
 void
 fixLabelSizeToContents(QLabel *label, QString text)
 {

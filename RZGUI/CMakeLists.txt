@@ -41,6 +41,9 @@ set(PROJECT_SOURCES
         DOFWidget.ui
         ElementPropertyModel.h
         ElementPropertyModel.cpp
+        ExportViewDialog.h
+        ExportViewDialog.cpp
+        ExportViewDialog.ui
         GUIHelpers.h
         GUIHelpers.cpp
         ImageNavWidget.h
@@ -63,6 +66,9 @@ set(PROJECT_SOURCES
         SessionTabWidget.h
         SessionTabWidget.cpp
         SessionTabWidget.ui
+        SettingsDialog.h
+        SettingsDialog.cpp
+        SettingsDialog.ui
         SimulationProgressDialog.h
         SimulationProgressDialog.cpp
         SimulationProgressDialog.ui

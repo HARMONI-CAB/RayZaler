@@ -9,6 +9,7 @@
 #include "ElementPropertyModel.h"
 #include "DOFWidget.h"
 #include "AboutDialog.h"
+#include "ExportViewDialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -24,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
   m_compPropModel       = new ElementPropertyModel;
   m_omModel             = new OMTreeModel;
   m_simPropertiesDialog = new SimulationPropertiesDialog(this);
-
+  m_exportViewDialog    = new ExportViewDialog(this);
   m_aboutDialog         = new AboutDialog(this);
 
   ui->propTableView->setModel(m_propModel);
@@ -185,6 +186,12 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onSimulationLoadAndRun()));
+
+  connect(
+        ui->actionExportView,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onExportImage()));
 
   connect(
         ui->actionRunSim,
@@ -353,6 +360,7 @@ MainWindow::refreshCurrentSession()
     ui->actionModelSource->setEnabled(true);
     ui->dofStack->insertWidget(1, m_sessionToUi[m_currSession].dofWidget);
     ui->dofStack->setCurrentIndex(1);
+    ui->actionExportView->setEnabled(true);
 
     SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
           ui->sessionTabWidget->currentWidget());
@@ -401,7 +409,8 @@ MainWindow::refreshCurrentSession()
     ui->displayToolBar->setEnabled(false);
     ui->actionReloadModel->setEnabled(false);
     ui->actionModelSource->setEnabled(false);
-    
+    ui->actionExportView->setEnabled(false);
+
     BLOCKSIG(ui->actionToggleDisplayNames,    setChecked(false));
     BLOCKSIG(ui->actionToggleApertures,       setChecked(false));
     BLOCKSIG(ui->actionToggleElements,        setChecked(true));
@@ -816,4 +825,17 @@ MainWindow::onCenterToSelected()
 
   if (widget != nullptr)
     widget->centerSelectedFrame();
+}
+
+void
+MainWindow::onExportImage()
+{
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+
+  if (widget != nullptr) {
+    m_exportViewDialog->setSessionTabWidget(widget);
+    m_exportViewDialog->setModal(true);
+    m_exportViewDialog->show();
+  }
 }
