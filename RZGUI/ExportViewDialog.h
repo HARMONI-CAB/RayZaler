@@ -22,6 +22,8 @@ class ExportViewDialog : public QDialog
 
   void               renderAndSave();
   void               connectAll();
+  void               adjustHeight(qreal ratio);
+  void               adjustWidth(qreal ratio);
 
 public:
   explicit ExportViewDialog(QWidget *parent = nullptr);
@@ -36,6 +38,7 @@ public slots:
   void onBrowse();
   void onChangeWidthSpin();
   void onChangeHeightSpin();
+  void onLockToggled();
   void onResetSame();
   void onSave();
   void onCancel();

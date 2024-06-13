@@ -89,20 +89,47 @@ ExportViewDialog::~ExportViewDialog()
   delete ui;
 }
 
+//
+// Now, there is a couple of things that must be adjusted here. When
+// the display resolution (given by the m_glWidget) and the offscreen
+// renderer resolution are different, keeping the same absolute center
+// makes the relative center change. We need to calculate the relative
+// center as:
+//
+// RelCenterX = ViewCenterX / (zoom * width)
+// RelCenterY = ViewCenterY / (zoom * width)
+//
+// Finally, we update the ViewCenterX,Y wrt the new RelCenterX,Y, leaving
+// things properly framed
+//
+
+
 void
 ExportViewDialog::renderAndSave()
 {
   RZ::ModelRenderer *renderer = nullptr;
+  RZ::Real relCenterX, relCenterY;
+  auto view = m_glWidget->view();
 
   setCursor(Qt::CursorShape::WaitCursor);
+  QCoreApplication::processEvents();
+
+  relCenterX = view->center[0] / (view->zoomLevel * view->width);
+  relCenterY = view->center[1] / (view->zoomLevel * view->width);
 
   renderer = RZ::ModelRenderer::fromOMModel(
         m_sessionTab->session()->topLevelModel(),
         SCAST(unsigned, ui->widthSpin->value()),
         SCAST(unsigned, ui->heightSpin->value()));
 
-
   renderer->setView(m_glWidget->view());
+
+  // Recenter
+  view = renderer->view();
+  renderer->setCenter(
+        relCenterX * view->zoomLevel * view->width,
+        relCenterY * view->zoomLevel * view->width);
+
   renderer->render();
   renderer->savePNG(ui->pathEdit->text().toStdString().c_str());
 
@@ -111,41 +138,57 @@ ExportViewDialog::renderAndSave()
   setCursor(Qt::CursorShape::ArrowCursor);
 }
 
+void
+ExportViewDialog::adjustHeight(qreal ratio)
+{
+  int newHeight = ui->heightSpin->value();
+  m_nominalHeight = m_nominalWidth * ratio;
+  newHeight       = floor(m_nominalHeight);
+  BLOCKSIG(ui->heightSpin, setValue(newHeight));
+}
+
+void
+ExportViewDialog::adjustWidth(qreal ratio)
+{
+  int newWidth  = ui->widthSpin->value();
+  m_nominalWidth = m_nominalHeight * ratio;
+  newWidth       = floor(m_nominalWidth);
+  BLOCKSIG(ui->widthSpin, setValue(newWidth));
+}
+
 ///////////////////////////////// Slots ///////////////////////////////////////
 void
 ExportViewDialog::onChangeWidthSpin()
 {
   qreal ratio;
   int newWidth  = ui->widthSpin->value();
-  int newHeight = ui->heightSpin->value();
 
   ratio = m_nominalHeight / m_nominalWidth;
 
   m_nominalWidth = m_nominalWidth - floor(m_nominalWidth) + newWidth;
 
-  if (ui->lockButton->isChecked()) {
-    m_nominalHeight = m_nominalWidth * ratio;
-    newHeight       = floor(m_nominalHeight);
-    BLOCKSIG(ui->heightSpin, setValue(newHeight));
-  }
+  if (ui->lockButton->isChecked())
+    adjustHeight(ratio);
 }
 
 void
 ExportViewDialog::onChangeHeightSpin()
 {
   qreal ratio;
-  int newWidth  = ui->widthSpin->value();
   int newHeight = ui->heightSpin->value();
 
   ratio = m_nominalWidth / m_nominalHeight;
 
   m_nominalHeight = m_nominalHeight - floor(m_nominalHeight) + newHeight;
 
-  if (ui->lockButton->isChecked()) {
-    m_nominalWidth = m_nominalHeight * ratio;
-    newWidth       = floor(m_nominalWidth);
-    BLOCKSIG(ui->widthSpin, setValue(newWidth));
-  }
+  if (ui->lockButton->isChecked())
+    adjustWidth(ratio);
+}
+
+void
+ExportViewDialog::onLockToggled()
+{
+
 }
 
 void
