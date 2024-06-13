@@ -12,6 +12,11 @@ find_package(BISON REQUIRED)
 find_package(Python OPTIONAL_COMPONENTS Development)
 find_package(Freetype REQUIRED)
 
+# Make sure CMAKE_INSTALL_LIBDIR is defined for all systems
+if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
+  set(CMAKE_INSTALL_LIBDIR lib)
+endif()
+
 set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/BenchElement.cpp
@@ -194,3 +199,6 @@ endif()
 set(LIBRZ_CFLAGS ${LIBRZ_LOCAL_CFLAGS} PARENT_SCOPE)
 target_include_directories(RZ PRIVATE ${LIBRZ_INCLUDEDIR} ${PNG++_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(RZ PRIVATE ${PNG++_LIBRARIES})
+
+install(FILES ${LIBRZ_HEADERS} DESTINATION include/RZ)
+install(TARGETS RZ DESTINATION ${CMAKE_INSTALL_LIBDIR})

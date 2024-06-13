@@ -131,6 +131,8 @@ set_target_properties(RZGUI PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
+install(TARGETS RZGUI DESTINATION bin)
+
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(RZGUI)
 endif()
