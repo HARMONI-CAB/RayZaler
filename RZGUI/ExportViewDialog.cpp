@@ -231,7 +231,7 @@ ExportViewDialog::onBrowse()
   QString path = QFileDialog::getSaveFileName(
         this,
         "Export view",
-        QString(),
+        ui->pathEdit->text(),
         ".png",
         nullptr,
         QFileDialog::Option::DontConfirmOverwrite);

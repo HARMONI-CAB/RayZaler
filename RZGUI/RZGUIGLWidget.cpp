@@ -716,12 +716,12 @@ RZGUIGLWidget::keyPressEvent(QKeyEvent *event)
 
   switch (event->key()) {
     case Qt::Key_Up:
-      angle  = RZGUIGL_KBD_ROT_DELTA;
+      angle  = +RZGUIGL_KBD_ROT_DELTA;
       rotate = true;
       break;
 
     case Qt::Key_Down:
-      angle  = RZGUIGL_KBD_ROT_DELTA;
+      angle  = -RZGUIGL_KBD_ROT_DELTA;
       rotate = true;
       break;
 

@@ -109,7 +109,7 @@ GLCurrentView::configureViewPort(unsigned int width, unsigned int height) const
     0);
     
   aspect = static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -1000 * zoomLevel, 1000 * zoomLevel);
+  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * zoomLevel, 20 * zoomLevel);
 
   // Phase 3: Configure normals
   glMatrixMode (GL_MODELVIEW);
