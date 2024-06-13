@@ -44,22 +44,24 @@ GLUTEngine::showScreen()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   adjustViewPort();
+  glLoadIdentity();
 
   glClearColor(0, 0, .4, 1);
+
 
   if (model() != nullptr) {
     if (!m_fixedLight)
       model()->configureLighting();
 
-    view()->configureOrientation();
+    drawCornerAxes();
 
     if (m_fixedLight)
       model()->configureLighting();
     
+    view()->configureOrientation();
     model()->display();
   }
 
-  drawCornerAxes();
   glutSwapBuffers();
 }
 

@@ -269,39 +269,25 @@ GLRenderEngine::drawCornerAxes()
 {
   GLfloat axisHeight = m_glAxes.height();
   GLfloat aspect = m_view.width / m_view.height;
-
-  // Axes are drawn in its own projection with its own zoom, hence we need
-  // to save the projection matrix first
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-
-  // Let's start from scratch. Identity, then configure viewport to the
-  // right dimensions.
-  glLoadIdentity();
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20, 20);
   
-  // We are going to place the axes in the bottom right corner
-  glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
-
-  // Back to model mode, save it
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-
-  // Orientate according to view
-  m_view.configureOrientation(false);
-      
-  // Paint
-  m_glAxes.display();
-
-  // Restore orientation
-  glPopMatrix();
-
-  // Restore projection
   glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
+  glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20, 20);
 
-  // Back to model
-  glMatrixMode(GL_MODELVIEW);
+    glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+
+      glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
+
+      m_view.configureOrientation(false);
+      
+      m_glAxes.display();
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode (GL_MODELVIEW);
 }
 
 void
