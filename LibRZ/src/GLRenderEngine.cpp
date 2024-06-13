@@ -21,6 +21,83 @@
 
 using namespace RZ;
 
+GLHelperGrid::GLHelperGrid()
+{
+  m_glGridText.setFace("gridfont-semibold");
+
+  setColor(m_color);
+  setGridStep(1e-3);
+  setGridDivs(100);
+}
+
+void
+GLHelperGrid::display()
+{
+  m_xyCoarseGrid.display();
+  m_xyMediumGrid.display();
+  m_xyFineGrid.display();
+
+  glPushMatrix();
+    glTranslatef(-m_xyFineGrid.width() / 2, +m_xyFineGrid.height() / 2 + m_xyFineGrid.step(), 0);
+    m_glGridText.display();
+  glPopMatrix();
+}
+
+void
+GLHelperGrid::setColor(GLfloat r, GLfloat g, GLfloat b)
+{
+  m_xyCoarseGrid.setGridColor(r, g, b, 1);
+  m_xyCoarseGrid.setHighlightColor(1, 1, 0, 1);
+  m_xyMediumGrid.setGridColor(r, g, b, .75);
+  m_xyFineGrid.setGridColor(r, g, b, .5);
+}
+
+void
+GLHelperGrid::setColor(const GLfloat *color)
+{
+  setColor(color[0], color[1], color[2]);
+}
+
+void
+GLHelperGrid::setGridText(std::string const &text)
+{
+  m_glGridText.setText(text);
+}
+
+void
+GLHelperGrid::setGridStep(Real step)
+{
+  m_step = step;
+  m_xyCoarseGrid.setStep(step * 10);
+  m_xyMediumGrid.setStep(step * 5);
+  m_xyFineGrid.setStep(step);
+  m_glGridText.setScale(step * 1e-1);
+}
+
+void
+GLHelperGrid::setGridDivs(unsigned int num)
+{
+  if (num != m_divs) {
+    m_divs = num;
+
+    m_xyCoarseGrid.setStepsX(num / 10);
+    m_xyCoarseGrid.setStepsY(num / 10);
+
+    m_xyMediumGrid.setStepsX(num / 5);
+    m_xyMediumGrid.setStepsY(num / 5);
+
+    m_xyFineGrid.setStepsX(num);
+    m_xyFineGrid.setStepsY(num);
+  }
+}
+
+void
+GLHelperGrid::highlight(Real x, Real y)
+{
+  m_xyCoarseGrid.highlight(x, y);
+}
+
+////////////////////////////// GLCurrentView ///////////////////////////////////
 void
 GLCurrentView::zoom(Real delta)
 {
@@ -163,10 +240,94 @@ GLRenderEngine::model() const
   return m_model;
 }
 
+void
+GLRenderEngine::setOrientationAndCenter(RZ::Matrix3 const &R, RZ::Vec3 const &O)
+{
+   GLdouble viewMatrix[16] = {
+    R.rows[0].coords[0], R.rows[1].coords[0], R.rows[2].coords[0], 0,
+    R.rows[0].coords[1], R.rows[1].coords[1], R.rows[2].coords[1], 0,
+    R.rows[0].coords[2], R.rows[1].coords[2], R.rows[2].coords[2], 0,
+            O.coords[0],         O.coords[1],         O.coords[2], 1
+   };
+
+  glMultMatrixd(viewMatrix);
+}
+
+void
+GLRenderEngine::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
+{
+  auto R     = frame->getOrientation();
+  auto O     = frame->getCenter();
+
+  glPushMatrix();
+  glLoadMatrixf(m_refMatrix);
+  setOrientationAndCenter(R, O);
+}
+
+void
+GLRenderEngine::drawCornerAxes()
+{
+  GLfloat axisHeight = m_glAxes.height();
+  GLfloat aspect = m_view.width / m_view.height;
+
+  // Axes are drawn in its own projection with its own zoom, hence we need
+  // to save the projection matrix first
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+
+  // Let's start from scratch. Identity, then configure viewport to the
+  // right dimensions.
+  glLoadIdentity();
+  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20, 20);
+  
+  // We are going to place the axes in the bottom right corner
+  glTranslatef(2 - 1.5 * axisHeight, -2 / aspect + 1.5 * axisHeight, 0.);
+
+  // Back to model mode, save it
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+
+  // Orientate according to view
+  m_view.configureOrientation(false);
+      
+  // Paint
+  m_glAxes.display();
+
+  // Restore orientation
+  glPopMatrix();
+
+  // Restore projection
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+
+  // Back to model
+  glMatrixMode(GL_MODELVIEW);
+}
+
+void
+GLRenderEngine::drawReferenceFrames()
+{
+  auto zoom = m_view.zoomLevel;
+
+  for (auto &frame : m_grids) {
+    pushReferenceFrameMatrix(frame.frame);
+    frame.grid.display();
+    glScalef(1. / zoom, 1. / zoom, 1. / zoom);
+    m_glAxes.display();
+    glPopMatrix();
+  }
+}
+
 GLCurrentView *
 GLRenderEngine::view()
 {
   return &m_view;
+}
+
+GLfloat *
+GLRenderEngine::refMatrix()
+{
+  return m_refMatrix;
 }
 
 void

@@ -15,14 +15,7 @@
 
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
-  m_xyCoarseGrid.setGridColor(1, 1, 1, 1);
-  m_xyCoarseGrid.setHighlightColor(1, 1, 0, 1);
-  m_xyMediumGrid.setGridColor(1, 1, 1, .75);
-  m_xyFineGrid.setGridColor(1, 1, 1, .5);
-
   setMouseTracking(true);
-
-  m_glGridText.setFace("gridfont-semibold");
   m_glLabelText.setFace("gridfont");
 }
 
@@ -53,26 +46,14 @@ RZGUIGLWidget::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
 void
 RZGUIGLWidget::setGridDivs(unsigned num)
 {
-  m_xyCoarseGrid.setStepsX(num / 10);
-  m_xyCoarseGrid.setStepsY(num / 10);
-
-  m_xyMediumGrid.setStepsX(num / 5);
-  m_xyMediumGrid.setStepsY(num / 5);
-
-  m_xyFineGrid.setStepsX(num);
-  m_xyFineGrid.setStepsY(num);
-
+  m_grid.setGridDivs(num);
   update();
 }
 
 void
 RZGUIGLWidget::setGridStep(qreal step)
 {
-  m_xyCoarseGrid.setStep(step * 10);
-  m_xyMediumGrid.setStep(step * 5);
-  m_xyFineGrid.setStep(step);
-  m_glGridText.setScale(step * 1e-1);
-
+  m_grid.setGridStep(step);
   update();
 }
 
@@ -273,7 +254,7 @@ RZGUIGLWidget::displayCurrentRefFrame()
 {
   pushReferenceFrameMatrix(m_selectedRefFrame);
   if (m_displayGrids)
-    displayCurrentGrid();
+    m_grid.display();
   
   displayAxes();
   glPopMatrix();
@@ -348,19 +329,6 @@ RZGUIGLWidget::displayCurrentPath()
 }
 
 void
-RZGUIGLWidget::displayCurrentGrid()
-{
-  m_xyCoarseGrid.display();
-  m_xyMediumGrid.display();
-  m_xyFineGrid.display();
-
-  glPushMatrix();
-    glTranslatef(-m_xyFineGrid.width() / 2, +m_xyFineGrid.height() / 2 + m_xyFineGrid.step(), 0);
-    m_glGridText.display();
-  glPopMatrix();
-}
-
-void
 RZGUIGLWidget::setDisplayNames(bool state)
 {
   if (m_displayNames != state) {
@@ -394,7 +362,7 @@ RZGUIGLWidget::setDisplayMeasurements(bool state)
     m_displayMeasurements = state;
 
     if (!state)
-      m_xyCoarseGrid.highlight(0, 0);
+      m_grid.highlight(0, 0);
     
     update();
   }
@@ -456,7 +424,7 @@ RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame, const char *
     if (frame != nullptr) {
       if (name ==  nullptr)
         name = frame->name().c_str();
-      m_glGridText.setText(name);
+      m_grid.setGridText(name);
     }
     
     m_selectedRefFrame = frame;
@@ -599,14 +567,14 @@ RZGUIGLWidget::mouseMotion(int x, int y)
       RZ::Real t  = sproj / nproj;
       auto pt     = dx + dy + t * ns; // Point in the frame
       auto result = m_selectedRefFrame->toRelative(pt);
-      m_xyCoarseGrid.highlight(result.x, result.y);
+      m_grid.highlight(result.x, result.y);
       emit planeCoords(result.x, result.y);
       update();
     } else {
-      m_xyCoarseGrid.highlight(0, 0);
+      m_grid.highlight(0, 0);
     }
   } else {
-    m_xyCoarseGrid.highlight(0, 0);
+    m_grid.highlight(0, 0);
   }
   
   if (m_dragging) {

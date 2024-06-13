@@ -13,11 +13,8 @@ class RZGUIGLWidget : public QOpenGLWidget
 {
   Q_OBJECT
 
+  RZ::GLHelperGrid          m_grid;
   RZ::GLReferenceFrame      m_glAxes;
-  RZ::GLGrid                m_xyCoarseGrid;
-  RZ::GLGrid                m_xyMediumGrid;
-  RZ::GLGrid                m_xyFineGrid;
-  RZ::GLText                m_glGridText;
   RZ::GLText                m_glLabelText;
   RZ::GLCurrentView         m_view;
 
@@ -62,7 +59,6 @@ class RZGUIGLWidget : public QOpenGLWidget
 
   void displayAxes();
   void displayBeam(RZ::RayBeamElement *, bool dynamicAlpha);
-  void displayCurrentGrid();
   void displayCurrentPath();
   void displayCurrentRefFrame();
 

@@ -59,6 +59,7 @@ GLUTEngine::showScreen()
     model()->display();
   }
 
+  drawCornerAxes();
   glutSwapBuffers();
 }
 
