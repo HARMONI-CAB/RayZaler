@@ -1,5 +1,11 @@
 # RayZaler
-A free-as-in-freedom opto-mechanical framework.
+A free-as-in-freedom opto-mechanical simulation framework.
 
-* [Build instructions](doc/install.md)
+![Screenshot](doc/screenshot.png)
+
+## Build instructions
+* [Build & install](doc/install.md)
+
+## Getting started
 * [Getting started with the Python API](doc/gettingstarted.md)
+
