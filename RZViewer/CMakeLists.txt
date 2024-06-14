@@ -30,3 +30,5 @@ target_include_directories(
   ${OPENGL_INCLUDE_DIRS}
   ${GLUT_INCLUDE_DIRS}
   ${OSMesa_INCLUDE_DIRS})
+
+install(TARGETS RZViewer DESTINATION bin)
