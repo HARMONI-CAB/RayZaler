@@ -12,10 +12,11 @@ namespace RZ {
   class OMModel;
   class Element;
   class GLModel;
+  class RZGLModel;
 
   class ModelRenderer : public GLRenderEngine {
       OSMesaContext         m_ctx;
-      GLModel              *m_ownModel;
+      RZGLModel            *m_ownModel;
       unsigned int          m_width = 680;
       unsigned int          m_height = 480;
       bool                  m_fixedLight = false;
@@ -24,8 +25,9 @@ namespace RZ {
       void showScreen();
       void adjustViewPort();
 
+      ModelRenderer(unsigned int width, unsigned int height, RZGLModel *own = nullptr);
+
     public:
-      ModelRenderer(unsigned int width, unsigned int height, GLModel *own = nullptr);
       ~ModelRenderer();
 
       inline unsigned
@@ -42,7 +44,12 @@ namespace RZ {
       bool savePNG(const char *path);
       const uint32_t *pixels() const;
 
-      static ModelRenderer *fromOMModel(OMModel *, unsigned, unsigned);
+      static ModelRenderer *fromOMModel(
+        OMModel *,
+        unsigned,
+        unsigned,
+        bool showElements = true,
+        bool showApertures = false);
   };
 }
 

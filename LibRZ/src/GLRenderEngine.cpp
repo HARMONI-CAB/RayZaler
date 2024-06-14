@@ -18,6 +18,7 @@
 
 #include <GLRenderEngine.h>
 #include <GLHelpers.h>
+#include <GLModel.h>
 
 using namespace RZ;
 
@@ -50,6 +51,7 @@ GLHelperGrid::setColor(GLfloat r, GLfloat g, GLfloat b)
   m_xyCoarseGrid.setHighlightColor(1, 1, 0, 1);
   m_xyMediumGrid.setGridColor(r, g, b, .75);
   m_xyFineGrid.setGridColor(r, g, b, .5);
+  m_glGridText.setColor(r, g, b);
 }
 
 void
@@ -233,6 +235,36 @@ GLRenderEngine::setModel(GLModel *model)
   m_model = model;
 }
 
+void
+GLRenderEngine::drawGrids()
+{
+  auto zoom = m_view.zoomLevel;
+
+  for (auto &grid : m_grids) {
+    m_model->pushReferenceFrameMatrix(grid.frame);
+    grid.grid.display();
+    glScalef(1. / zoom, 1. / zoom, 1. / zoom);
+    m_glAxes.display();
+    glPopMatrix();
+  }
+}
+
+GLFrameGrid *
+GLRenderEngine::addGrid(std::string const &name, ReferenceFrame const *frame)
+{
+  GLFrameGrid newGrid;
+
+
+  newGrid.frame = frame;
+  
+  m_grids.push_back(newGrid);
+
+  auto &last = m_grids.back();
+  last.grid.setGridText(name);
+  last.grid.setColor(0, 0, 0);
+
+  return &last;
+}
 
 GLModel *
 GLRenderEngine::model() const
@@ -251,17 +283,6 @@ GLRenderEngine::setOrientationAndCenter(RZ::Matrix3 const &R, RZ::Vec3 const &O)
    };
 
   glMultMatrixd(viewMatrix);
-}
-
-void
-GLRenderEngine::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
-{
-  auto R     = frame->getOrientation();
-  auto O     = frame->getCenter();
-
-  glPushMatrix();
-  glLoadMatrixf(m_refMatrix);
-  setOrientationAndCenter(R, O);
 }
 
 void
@@ -290,31 +311,12 @@ GLRenderEngine::drawCornerAxes()
   glMatrixMode (GL_MODELVIEW);
 }
 
-void
-GLRenderEngine::drawReferenceFrames()
-{
-  auto zoom = m_view.zoomLevel;
-
-  for (auto &frame : m_grids) {
-    pushReferenceFrameMatrix(frame.frame);
-    frame.grid.display();
-    glScalef(1. / zoom, 1. / zoom, 1. / zoom);
-    m_glAxes.display();
-    glPopMatrix();
-  }
-}
-
 GLCurrentView *
 GLRenderEngine::view()
 {
   return &m_view;
 }
 
-GLfloat *
-GLRenderEngine::refMatrix()
-{
-  return m_refMatrix;
-}
 
 void
 GLRenderEngine::zoom(Real delta)

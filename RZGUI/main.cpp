@@ -45,5 +45,12 @@ main(int argc, char *argv[])
   loadFonts();
 
   w.show();
+
+  for (auto i = 1; i < argc; ++i)
+    if (argv[i][0] != '-')
+      w.pushDelayedOpenFile(argv[i]);
+
+  w.notifyReady();
+  
   return a.exec();
 }

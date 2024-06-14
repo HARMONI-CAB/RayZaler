@@ -30,7 +30,7 @@ using namespace RZ;
 ModelRenderer::ModelRenderer(
     unsigned int width,
     unsigned int height,
-    GLModel *own)
+    RZGLModel *own)
 {
 #if OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 305
    m_ctx = OSMesaCreateContextExt(OSMESA_RGBA, 16, 0, 0, nullptr);
@@ -83,7 +83,7 @@ ModelRenderer::render()
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  
+
   adjustViewPort();
 
   if (model() != nullptr) {
@@ -98,6 +98,8 @@ ModelRenderer::render()
     model()->display();
   }
 
+  drawGrids();
+  
   glFlush();
 }
 
@@ -183,11 +185,19 @@ done:
 }
 
 ModelRenderer *
-ModelRenderer::fromOMModel(OMModel *model, unsigned width, unsigned height)
+ModelRenderer::fromOMModel(
+  OMModel *model,
+  unsigned width,
+  unsigned height,
+  bool showElements,
+  bool showApertures)
 {
   RZGLModel *glModel = new RZGLModel;
 
   glModel->pushOptoMechanicalModel(model);
+  glModel->setShowElements(showElements);
+  glModel->setShowApertures(showApertures);
+  
 
   return new ModelRenderer(width, height, glModel);
 }

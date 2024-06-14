@@ -33,6 +33,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   SimulationSession *m_currSession = nullptr;
 
   std::list<SimulationSession *> m_sessions;
+  std::list<QString>             m_delayedFiles;
   QMap<SimulationSession *, SessionUI> m_sessionToUi;
 
   QString                     m_lastOpenDir;
@@ -54,7 +55,8 @@ class MainWindow : public QMainWindow, public RZ::Logger
 
   void initDOFWidget(SessionUI &sessUI, SimulationSession *sess);
   void finalizeDOFWidget(SessionUI &sessUI);
-  
+  void openDelayedFiles();
+
 public:
   virtual void logFunction(
           RZ::LogLevel level,
@@ -63,11 +65,18 @@ public:
           std::string const &message) override;
 
   MainWindow(QWidget *parent = nullptr);
+  bool openModelFile(QString file);
+  void pushDelayedOpenFile(QString file);
   ~MainWindow() override;
-
+  void notifyReady();
   void keyPressEvent(QKeyEvent *event) override;
 
+signals:
+  void ready();
+  
 public slots:
+  void onShow();
+
   void onOpen();
   void onReload();
   void onCloseTab(int);

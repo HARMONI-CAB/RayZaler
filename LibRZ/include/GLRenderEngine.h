@@ -7,6 +7,7 @@
 
 namespace RZ {
   class GLModel;
+  class Element;
 
   struct GLCurrentView {
     Real                  zoomLevel = 1;
@@ -56,7 +57,7 @@ namespace RZ {
   };
 
   struct GLFrameGrid {
-    ReferenceFrame *frame = nullptr; // Borrowed
+    const ReferenceFrame *frame = nullptr; // Borrowed
     GLHelperGrid grid;
   };
 
@@ -65,20 +66,18 @@ namespace RZ {
       GLCurrentView          m_view;
       GLReferenceFrame       m_glAxes;
       std::list<GLFrameGrid> m_grids;
-      GLfloat                m_refMatrix[16];
 
     protected:
-      void pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame);
       void setOrientationAndCenter(RZ::Matrix3 const &R, RZ::Vec3 const &O);
       void drawCornerAxes();
-      void drawReferenceFrames();
-
+      void drawGrids();
+      
     public:
       GLCurrentView *view();
-      GLfloat       *refMatrix();
-
-      void addGrid(std::string const &, ReferenceFrame const *frame);
+      GLFrameGrid *addGrid(std::string const &, ReferenceFrame const *frame);
+      
       void setModel(GLModel *);
+      
       GLModel *model() const;
 
       void zoom(Real delta);

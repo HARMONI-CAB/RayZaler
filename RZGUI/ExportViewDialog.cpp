@@ -120,7 +120,16 @@ ExportViewDialog::renderAndSave()
   renderer = RZ::ModelRenderer::fromOMModel(
         m_sessionTab->session()->topLevelModel(),
         SCAST(unsigned, ui->widthSpin->value()),
-        SCAST(unsigned, ui->heightSpin->value()));
+        SCAST(unsigned, ui->heightSpin->value()),
+        m_sessionTab->displayElements(),
+        m_sessionTab->displayApertures());
+
+  auto selectedFrame = m_sessionTab->selectedFrame();
+  if (selectedFrame != nullptr) {
+    auto grid = renderer->addGrid(selectedFrame->name(), selectedFrame);
+    grid->grid.setGridStep(m_glWidget->gridStep());
+    grid->grid.setGridDivs(m_glWidget->gridDivs());
+  }
 
   renderer->setView(m_glWidget->view());
 

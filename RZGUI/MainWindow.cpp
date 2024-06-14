@@ -300,6 +300,31 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         m_aboutDialog,
         SLOT(exec()));
+
+  connect(
+        this,
+        SIGNAL(ready()),
+        this,
+        SLOT(onShow()));
+}
+
+void
+MainWindow::pushDelayedOpenFile(QString file)
+{
+  m_delayedFiles.push_back(file);
+}
+
+void
+MainWindow::openDelayedFiles()
+{
+  for (auto &f : m_delayedFiles)
+    (void) openModelFile(f);
+}
+
+void
+MainWindow::notifyReady()
+{
+  emit ready();
 }
 
 void
@@ -444,6 +469,27 @@ MainWindow::registerSession(SimulationSession *session)
   refreshCurrentSession();
 }
 
+bool
+MainWindow::openModelFile(QString file)
+{
+  bool ok = false;
+
+  QFileInfo info(file);
+  m_lastOpenDir = info.dir().path();
+  
+  try {
+    registerSession(new SimulationSession(file, this));
+    ok = true;
+  } catch (std::runtime_error &e) {
+    QMessageBox::critical(
+          this,
+          "Load model file",
+          QString::fromStdString(e.what()));
+  }
+
+  return ok;
+}
+
 void
 MainWindow::doOpen()
 {
@@ -466,19 +512,9 @@ MainWindow::doOpen()
     if (openDialog.exec()) {
       auto files = openDialog.selectedFiles();
       if (files.size() > 0) {
-        auto firstFile = files[0];
-        QFileInfo info(firstFile);
-        m_lastOpenDir = info.dir().path();
-        try {
-          registerSession(new SimulationSession(firstFile, this));
-          done = true;
-        } catch (std::runtime_error &e) {
-          QMessageBox::critical(
-                this,
-                "Load model file",
-                QString::fromStdString(e.what()));
-          done = false;
-        }
+        done = false;
+        for (auto &e : files)
+          done = openModelFile(e) || done;
       } else {
         done = true;
       }
@@ -542,6 +578,12 @@ void
 MainWindow::onOpen()
 {
   doOpen();
+}
+
+void
+MainWindow::onShow()
+{
+  openDelayedFiles();
 }
 
 void

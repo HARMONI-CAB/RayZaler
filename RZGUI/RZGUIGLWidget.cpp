@@ -46,6 +46,7 @@ RZGUIGLWidget::pushReferenceFrameMatrix(const RZ::ReferenceFrame *frame)
 void
 RZGUIGLWidget::setGridDivs(unsigned num)
 {
+  m_gridDivs = num;
   m_grid.setGridDivs(num);
   update();
 }
@@ -53,9 +54,23 @@ RZGUIGLWidget::setGridDivs(unsigned num)
 void
 RZGUIGLWidget::setGridStep(qreal step)
 {
+  m_gridStep = step;
   m_grid.setGridStep(step);
   update();
 }
+
+qreal
+RZGUIGLWidget::gridStep() const
+{
+  return m_gridStep;
+}
+
+unsigned int
+RZGUIGLWidget::gridDivs() const
+{
+  return m_gridDivs;
+}
+
 
 void
 RZGUIGLWidget::pushElementMatrix(const RZ::Element *element)

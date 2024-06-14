@@ -47,6 +47,9 @@ class RZGUIGLWidget : public QOpenGLWidget
   GLfloat m_curAzEl[3] = {0, 0};
   GLfloat m_oldRot[2] = {0, 0};
 
+  qreal m_gridStep = 1e-3;
+  unsigned m_gridDivs = 100;
+
   void configureViewPort();
   void setOrientationAndCenter(RZ::Matrix3 const &, RZ::Vec3 const &);
   void pushReferenceFrameMatrix(const RZ::ReferenceFrame *);
@@ -126,6 +129,8 @@ public:
 
   void setGridDivs(unsigned);
   void setGridStep(qreal);
+  unsigned gridDivs() const;
+  qreal gridStep() const;
 
   void display();
   void configureLighting();

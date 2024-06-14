@@ -61,6 +61,8 @@ public:
   bool displayRefFrames() const;
   bool displayGrid() const;
   bool displayMeasurements() const;
+  qreal gridStep() const;
+  unsigned int gridDivs() const;
 
   const RZ::ReferenceFrame *selectedFrame() const;
 
