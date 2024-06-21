@@ -29,13 +29,15 @@ ParabolicMirror::recalcModel()
   m_cap.setRadius(m_radius);
   m_cap.setFocalLength(-m_flength);
   m_cap.setInvertNormals(true);
+  m_cap.setCenterOffset(m_x0, m_y0);
 
   m_rearCap.setRadius(m_radius);
   m_rearCap.setFocalLength(-m_flength);
   m_rearCap.setInvertNormals(false);
-
+  m_rearCap.setCenterOffset(m_x0, m_y0);
+  
   m_cylinder.setHeight(m_thickness);
-  m_cylinder.setRadius(m_radius);
+  m_cylinder.setCaps(&m_cap, &m_rearCap);
 
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(-m_flength);
@@ -61,6 +63,12 @@ ParabolicMirror::propertyChanged(
   } else if (name == "flength") {
     m_flength = value;
     recalcModel();
+  } else if (name == "x0") {
+    m_x0 = value;
+    recalcModel();
+  } else if (name == "y0") {
+    m_y0 = value;
+    recalcModel();
   } else {
     return false;
   }
@@ -79,7 +87,9 @@ ParabolicMirror::ParabolicMirror(
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
   registerProperty("flength",     5e-2);
-
+  registerProperty("x0",            0.);
+  registerProperty("y0",            0.);
+  
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
   m_reflectiveSurfacePort  = new TranslatedFrame("refPort", frame, Vec3::zero());
 
@@ -117,7 +127,6 @@ ParabolicMirror::renderOpenGL()
   material("mirror");
 
   glTranslatef(0, 0,  m_displacement);
-  m_cylinder.display();
 
   glRotatef(180, 1, 0, 0);
 
@@ -126,6 +135,7 @@ ParabolicMirror::renderOpenGL()
   m_rearCap.display();
   glTranslatef(0, 0, -m_thickness);
   m_cap.display();
+  m_cylinder.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

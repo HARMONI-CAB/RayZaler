@@ -69,12 +69,18 @@ public:
       virtual void display() override;
   };
 
-  class GLDisc : public GLPrimitive {
+  class GLAbstractCap : public GLPrimitive {
+    public:
+      virtual const std::vector<GLfloat> *edge() const = 0; 
+  };
+
+  class GLDisc : public GLAbstractCap {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
       std::vector<GLfloat> m_vertices;
       std::vector<GLfloat> m_normals;
       std::vector<GLfloat> m_texCoords;
+      std::vector<GLfloat> m_edge;
       std::vector<GLint>   m_indices;
 
       GLint    m_slices = 32;
@@ -103,6 +109,7 @@ public:
       void setHeight(GLdouble);
       void setSlices(GLint);
 
+      const std::vector<GLfloat> *edge() const override;
       virtual void display() override;
 
       GLDisc();
@@ -150,13 +157,18 @@ public:
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
 
-      GLDisc   m_topCap, m_bottomCap;
+      GLDisc   m_topDiscCap, m_bottomDiscCap;
+      GLAbstractCap *m_topCap = nullptr;
+      GLAbstractCap *m_bottomCap = nullptr;
 
+      std::vector<GLfloat> m_strip;
+      std::vector<GLfloat> m_normals;
+      
       bool     m_drawTop  = false;
       bool     m_drawBase = false;
-      GLdouble m_height = 1.;
-      GLdouble m_radius = .25;
-      GLint    m_slices = 32;
+      GLdouble m_height   = 1.;
+      GLdouble m_radius   = .25;
+      GLint    m_slices   = 64;
 
       void recalculateCaps();
 
@@ -173,6 +185,7 @@ public:
         return m_radius;
       }
 
+      void setCaps(GLAbstractCap *top, GLAbstractCap *bottom);
       void setHeight(GLdouble);
       void setRadius(GLdouble);
       void setSlices(GLint);
@@ -239,10 +252,12 @@ public:
       std::vector<GLfloat> m_texCoords;
       std::vector<GLint>   m_indices;
 
-      GLdouble m_height = .125;
-      GLdouble m_radius = .25;
+      GLdouble m_height  = .125;
+      GLdouble m_radius  = .25;
+      GLdouble m_x0      = 0;
+      GLdouble m_y0      = 0;
       GLint    m_sectors = 32;
-      GLint    m_stacks = 8;
+      GLint    m_stacks  = 8;
       bool     m_invertNormals = false;
 
       void recalculate();
@@ -260,6 +275,7 @@ public:
         return m_radius;
       }
       
+      void setCenterOffset(GLdouble, GLdouble);
       void setHeight(GLdouble);
       void setRadius(GLdouble);
       void setSectors(GLint);
@@ -272,17 +288,20 @@ public:
       ~GLSphericalCap();
   };
 
-  class GLParabolicCap : public GLPrimitive {
+  class GLParabolicCap : public GLAbstractCap {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
       std::vector<GLfloat> m_vertices;
       std::vector<GLfloat> m_normals;
       std::vector<GLfloat> m_texCoords;
       std::vector<GLint>   m_indices;
+      std::vector<GLfloat> m_edge;
 
-      GLdouble m_flength    = 2;
+      GLdouble m_flength = 2;
       GLdouble m_radius  = .25;
-      GLint    m_sectors = 32;
+      GLdouble m_x0      = 0;
+      GLdouble m_y0      = 0;
+      GLint    m_sectors = 64;
       GLint    m_stacks  = 8;
       bool     m_invertNormals = false;
 
@@ -301,14 +320,16 @@ public:
         return m_radius;
       }
       
+      void setCenterOffset(GLdouble, GLdouble);
       void setFocalLength(GLdouble);
       void setRadius(GLdouble);
       void setSectors(GLint);
       void setStacks(GLint);
       void setInvertNormals(bool);
 
+      virtual const std::vector<GLfloat> *edge() const;
       virtual void display() override;
-
+      
       GLParabolicCap();
       ~GLParabolicCap();
   };
