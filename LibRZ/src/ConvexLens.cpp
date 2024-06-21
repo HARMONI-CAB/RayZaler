@@ -24,9 +24,6 @@ using namespace RZ;
 void
 ConvexLens::recalcModel()
 {
-  m_cylinder.setHeight(m_thickness);
-  m_cylinder.setRadius(m_radius);
-
   // This is the thickness of the concave part
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - m_radius * m_radius);
 
@@ -42,8 +39,12 @@ ConvexLens::recalcModel()
   m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
   m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
 
-  m_cap.setRadius(m_rCurv);
-  m_cap.setHeight(m_depth);
+  m_cap.setRadius(m_radius);
+  m_cap.setCurvatureRadius(m_rCurv);
+  m_cap.requestRecalc();
+
+  m_cylinder.setHeight(m_thickness);
+  m_cylinder.setCaps(&m_cap, &m_cap);
 
   m_inputProcessor->setRadius(m_radius);
   m_inputProcessor->setCurvatureRadius(m_rCurv);

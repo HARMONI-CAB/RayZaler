@@ -245,15 +245,16 @@ public:
       ~GLTube();
   };
 
-  class GLSphericalCap : public GLPrimitive {
+  class GLSphericalCap : public GLAbstractCap {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;
       std::vector<GLfloat> m_vertices;
       std::vector<GLfloat> m_normals;
       std::vector<GLfloat> m_texCoords;
       std::vector<GLint>   m_indices;
+      std::vector<GLfloat> m_edge;
 
-      GLdouble m_height  = .125;
+      GLdouble m_rCurv   = 1;
       GLdouble m_radius  = .25;
       GLdouble m_x0      = 0;
       GLdouble m_y0      = 0;
@@ -265,9 +266,9 @@ public:
 
     public:
       GLdouble
-      height() const
+      curvatureRadius() const
       {
-        return m_height;
+        return m_rCurv;
       }
 
       GLdouble
@@ -277,13 +278,15 @@ public:
       }
       
       void setCenterOffset(GLdouble, GLdouble);
-      void setHeight(GLdouble);
+      void setCurvatureRadius(GLdouble);
       void setRadius(GLdouble);
       void setSectors(GLint);
       void setStacks(GLint);
       void setInvertNormals(bool);
 
       virtual void display() override;
+      virtual const std::vector<GLfloat> *edge() const override;
+      virtual void requestRecalc() override;
 
       GLSphericalCap();
       ~GLSphericalCap();
@@ -328,7 +331,7 @@ public:
       void setStacks(GLint);
       void setInvertNormals(bool);
 
-      virtual const std::vector<GLfloat> *edge() const;
+      virtual const std::vector<GLfloat> *edge() const override;
       virtual void requestRecalc() override;
       virtual void display() override;
       

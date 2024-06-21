@@ -556,48 +556,78 @@ GLSphericalCap::~GLSphericalCap()
 }
 
 //
-// Inspired in http://www.songho.ca/opengl/gl_sphere.html
+// This sphere has its vertex on 0, 0, 0. This is, the sphere is tangent to
+// the XY plane Z = 0. Since the radius of curvature R_c puts its center in
+// Z = R_c, then we can do the following trick. Evaluate the z' of the
+// sphere centered in 0, 0, 0:
 //
+// z' = sqrt(R_c^2 - x^2 - y^2)
+//
+// And calculate Z as:
+//
+// Z = R_c - z'
+//
+// R_c is essentially m_radius. T
+//
+//
+
 void
 GLSphericalCap::recalculate()
 {
-  GLint i, j, n = 0, total;
-  GLfloat absR     = fabs(m_radius);
-  GLfloat alpha    = acos((absR - m_height) / absR);
-  GLfloat zOff     = 0;
-  GLfloat rInv     = 1 / m_radius;
-  GLfloat lonDelta = 2 * M_PI / m_sectors;
-  GLfloat latDelta = alpha / m_stacks;
+  GLint i, j, n    = 0, total;
+  GLfloat angDelta = 2 * M_PI / m_sectors;
+  GLfloat rDelta   = m_radius / m_stacks;
   GLfloat secDelta = 1.f / m_sectors;
   GLfloat stDelta  = 1.f / m_stacks;
+  GLfloat Rc2      = m_rCurv * m_rCurv;
+  GLfloat sign     = m_rCurv < 1 ? -1 : 1;
   GLint k1, k2;
 
   total = (m_stacks + 1) * (m_sectors + 1);
   m_vertices.resize(3 * total);
   m_normals.resize(3 * total);
   m_texCoords.resize(2 * total);
+  m_edge.resize(3 * m_sectors);
 
+  GLfloat rInv = 1. / m_rCurv;
   if (m_invertNormals)
     rInv = -rInv;
 
+  // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
-    GLfloat lat = M_PI / 2 - j * latDelta;
-    GLfloat xy  = m_radius * cosf(lat);
-    GLfloat z   = m_radius * sinf(lat);
+    GLfloat r = rDelta * j;
 
+    // And this other one, the angles. In the case 
     for (i = 0; i <= m_sectors; ++i) {
-      GLfloat lon = i * lonDelta;
+      GLfloat ang = i * angDelta;
+      
+      GLfloat x = r * cosf(ang) + m_x0;
+      GLfloat y = r * sinf(ang) + m_y0;
+      GLfloat z = m_rCurv - sign * sqrt(Rc2 - x * x - y * y);
 
-      GLfloat x = xy * cosf(lon);
-      GLfloat y = xy * sinf(lon);
+      //
+      // The direction vector from the center is:
+      // 
+      // nx = (x - x_0) / R
+      // ny = (y - y_0) / R
+      // nz = (z - z_0) / R
+      //
+      // With z_0 = R_c
+      //
+
+      if (j == m_stacks && i < m_sectors) {
+        m_edge[3 * i + 0] = x;
+        m_edge[3 * i + 1] = y;
+        m_edge[3 * i + 2] = z;
+      }
 
       m_vertices[3 * n + 0] = x;
       m_vertices[3 * n + 1] = y;
       m_vertices[3 * n + 2] = z;
 
-      m_normals[3 * n + 0] = rInv * x;
-      m_normals[3 * n + 1] = rInv * y;
-      m_normals[3 * n + 2] = rInv * z;
+      m_normals[3 * n + 0] = (x - m_x0) * rInv;
+      m_normals[3 * n + 1] = (y - m_y0) * rInv;
+      m_normals[3 * n + 2] = (z - m_rCurv) * rInv;
 
       m_texCoords[2 * n + 0] = i * secDelta;
       m_texCoords[2 * n + 1] = j * stDelta;
@@ -612,8 +642,8 @@ GLSphericalCap::recalculate()
   m_indices.resize(6 * total);
   int d1, d2;
 
-  d1 = m_invertNormals ? 2 : 1;
-  d2 = m_invertNormals ? 1 : 2;
+  d2 = m_invertNormals ? 2 : 1;
+  d1 = m_invertNormals ? 1 : 2;
 
   for(i = 0; i < m_stacks; ++i) {
     k1 = i * (m_sectors + 1);     // beginning of current stack
@@ -650,10 +680,22 @@ GLSphericalCap::setCenterOffset(GLdouble x, GLdouble y)
   m_dirty = true;
 }
 
-void
-GLSphericalCap::setHeight(GLdouble height)
+const std::vector<GLfloat> *
+GLSphericalCap::edge() const
 {
-  m_height = height;
+  return &m_edge;
+}
+
+void
+GLSphericalCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
+GLSphericalCap::setCurvatureRadius(GLdouble R)
+{
+  m_rCurv  = R;
   m_dirty  = true;
 }
 

@@ -38,15 +38,22 @@ SphericalMirror::recalcModel()
   // z distance of the center w.r.t the edge.
   m_depth = rCurv - m_displacement;
 
-  m_cap.setRadius(rCurv);
-  m_cap.setHeight(fabs(m_depth));
+  m_topCap.setRadius(m_radius);
+  m_topCap.setCurvatureRadius(rCurv);
+  m_topCap.requestRecalc();
+  m_topCap.setCenterOffset(m_x0, m_y0);
+
+  m_bottomCap.setRadius(m_radius);
+  m_bottomCap.setCurvatureRadius(rCurv);
+  m_bottomCap.requestRecalc();
+  m_bottomCap.setCenterOffset(m_x0, m_y0);
   
   m_cylinder.setHeight(m_thickness);
-  m_cylinder.setRadius(m_radius);
-
+  m_cylinder.setCaps(&m_topCap, &m_bottomCap);
+  
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_flength);
-  
+
   m_reflectiveSurfaceFrame->setDistance(m_depth * Vec3::eZ());
   m_reflectiveSurfaceFrame->recalculate();
 }
@@ -56,6 +63,9 @@ SphericalMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
+  Real maxDist = 2 * fabs(m_flength) - m_radius;
+  Real maxR2   = maxDist * maxDist;
+
   if (name == "thickness") {
     m_thickness = value;
     recalcModel();
@@ -65,8 +75,20 @@ SphericalMirror::propertyChanged(
   } else if (name == "flength") {
     m_flength = value;
     recalcModel();
+  } else if (name == "x0") {
+    if ((Real) value * (Real) value + m_y0 * m_y0 > maxR2)
+      return false;
+    
+    m_x0 = value;
+    recalcModel();
+  } else if (name == "y0") {
+    if ((Real) value * (Real) value + m_x0 * m_x0 > maxR2)
+      return false;
+    
+    m_y0 = value;
+    recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;
@@ -84,14 +106,16 @@ SphericalMirror::SphericalMirror(
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
   registerProperty("flength",       1.);
+  registerProperty("x0",            0.);
+  registerProperty("y0",            0.);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
   addPort("refPort", m_reflectiveSurfaceFrame);
   
-  m_cylinder.setVisibleCaps(true, false);
-  m_cap.setInvertNormals(true);
+  m_cylinder.setVisibleCaps(false, false);
+  m_topCap.setInvertNormals(true);
   
   refreshProperties();
 }
@@ -117,17 +141,16 @@ SphericalMirror::nativeMaterialOpenGL(std::string const &)
 void
 SphericalMirror::renderOpenGL()
 {
+  material("input.mirror");
+
+  m_topCap.display();
+
   material("mirror");
 
-  glTranslatef(0, 0, m_depth - m_thickness);
+  glTranslatef(0, 0, -m_thickness);
   m_cylinder.display();
 
-  glRotatef(180, 1, 0, 0);
-
-  glTranslatef(0, 0, -m_thickness - m_displacement);
-
-  material("input.mirror");
-  m_cap.display();
+  m_bottomCap.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

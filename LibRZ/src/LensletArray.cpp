@@ -57,8 +57,11 @@ LensletArray::recalcModel()
   m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
   m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
 
-  m_cap.setRadius(m_rCurv);
-  m_cap.setHeight(m_depth);
+  m_cap.setRadius(radius);
+  m_cap.setCurvatureRadius(m_rCurv);
+  m_cap.requestRecalc();
+
+  m_cylinder.setCaps(&m_cap, &m_cap);
 }
 
 bool

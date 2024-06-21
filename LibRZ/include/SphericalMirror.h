@@ -10,7 +10,7 @@ namespace RZ {
 
   class SphericalMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
-      GLSphericalCap   m_cap;
+      GLSphericalCap   m_topCap, m_bottomCap;
       SphericalMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
       Real m_thickness = 1e-2;
@@ -18,7 +18,9 @@ namespace RZ {
       Real m_flength = 1;
       Real m_depth;
       Real m_displacement;
-
+      Real m_x0 = 0;
+      Real m_y0 = 0;
+      
       void recalcModel();
 
     protected:

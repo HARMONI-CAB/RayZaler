@@ -71,7 +71,7 @@ ParabolicMirror::propertyChanged(
     m_y0 = value;
     recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;
