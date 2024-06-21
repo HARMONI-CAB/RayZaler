@@ -13,12 +13,35 @@ void
 ParabolicAperture::recalcDistribution()
 {
   Real K;
+  Real x2, y2, invnorm;
 
   m_4f2   =  4 * m_flength * m_flength;
   m_8f3   = -2 * m_flength * m_4f2;
   K       = -6 * m_flength / (pow(m_4f2 + m_radius2, 1.5) - m_8f3);
   m_6f_K  = -6 * m_flength / K;
   m_depth = m_radius2 / (4 * m_flength);
+
+  x2 = m_x0 * m_x0;
+  y2 = m_y0 * m_y0;
+
+  if (isZero(x2 + y2)) {
+    m_ux = 1;
+    m_uy = 0;
+  } else {
+    invnorm = 1 / sqrt(x2 + y2);
+    m_ux = invnorm * m_x0;
+    m_uy = invnorm * m_y0;
+  }
+}
+
+void
+ParabolicAperture::setCenterOffset(Real x, Real y)
+{
+  m_x0 = x;
+  m_y0 = y;
+
+  recalcDistribution();
+  recalcGL();
 }
 
 void
@@ -43,19 +66,23 @@ ParabolicAperture::setFocalLength(Real fLength)
 void
 ParabolicAperture::recalcGL()
 {
-  GLfloat x, y, z, dh;
+  GLfloat x, y, z, r, dh;
   Real theta = 0;
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
 
   m_vertices.clear();
 
+  auto K = 1 / (4 * m_flength);
+
+  // Draw the aperture ellipse
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
-    x = m_radius * cos(theta);
-    y = m_radius * sin(theta);
-    
+    x = m_radius * cos(theta) + m_x0;
+    y = m_radius * sin(theta) + m_y0;
+    z  = -K * (x * x + y * y) + m_depth;
+
     m_vertices.push_back(x);
     m_vertices.push_back(y);
-    m_vertices.push_back(0);
+    m_vertices.push_back(z);
 
     theta += dTheta;
   }
@@ -64,29 +91,30 @@ ParabolicAperture::recalcGL()
 
   dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
 
-  x = -m_radius;
-  y = -m_radius;
-
-  auto K = 1 / (4 * m_flength);
-
+  r = -m_radius;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
-    z  = -K * x * x + m_depth;
+    x = m_ux * r + m_x0;
+    y = m_uy * r + m_y0;
+    z  = -K * (x * x + y * y) + m_depth;
 
     m_axes.push_back(x);
-    m_axes.push_back(0);
-    m_axes.push_back(z);
-
-    x += dh;
-  }
-
-  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
-    z  = -K * y * y + m_depth;
-
-    m_axes.push_back(0);
     m_axes.push_back(y);
     m_axes.push_back(z);
 
-    y += dh;
+    r += dh;
+  }
+
+  r = -m_radius;
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    x = -m_uy * r + m_x0;
+    y = m_ux * r + m_y0;
+    z  = -K * (x * x + y * y) + m_depth;
+
+    m_axes.push_back(x);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+
+    r += dh;
   }
 }
 
@@ -102,47 +130,52 @@ ParabolicAperture::intercept(
   if (Ot.z < 0)
     return false;
 
-  if (intercept.x * intercept.x + intercept.y * intercept.y < m_radius2) {
-    Real x = Ot.x;
-    Real y = Ot.y;
-    Real z = Ot.z;
+  Real x = Ot.x;
+  Real y = Ot.y;
+  Real z = Ot.z;
 
-    Real a = ut.x;
-    Real b = ut.y;
-    Real c = ut.z;
+  Real a = ut.x;
+  Real b = ut.y;
+  Real c = ut.z;
 
-    // Now, we solve a quadratic equation of the form:
-    //
-    // At^2 + Bt + C = 0
+  // Now, we solve a quadratic equation of the form:
+  //
+  // At^2 + Bt + C = 0
 
-    // Coefficient A: just the projection of the ray on the XY plane
-    Real A     = a * a + b * b;
+  // Coefficient A: just the projection of the ray on the XY plane
+  Real A     = a * a + b * b;
 
-    // Equation B: this is just the rect equation
-    Real B     = 2 * (a * x + b * y + 2 * m_flength * c);
-    Real C     = x * x + y * y - m_radius2 + 4 * m_flength * z;
-    Real Delta = B * B - 4 * A * C;
-    Real t;
+  // Equation B: this is just the rect equation
+  Real B     = 2 * (a * x + b * y + 2 * m_flength * c);
+  Real C     = x * x + y * y - m_radius2 + 4 * m_flength * z;
+  Real Delta = B * B - 4 * A * C;
+  Real t;
 
-    if (A <= std::numeric_limits<Real>::epsilon())
-      t = -C / B;
-    else if (Delta >= 0)
-      t = .5 * (-B + sqrt(Delta)) / A;
-    else
-      return false;
+  if (A <= std::numeric_limits<Real>::epsilon())
+    t = -C / B;
+  else if (Delta >= 0)
+    t = .5 * (-B + sqrt(Delta)) / A;
+  else
+    return false;
 
-    deltaT = t;
-    
-    intercept = Ot + t * ut;
-    normal = Vec3(
-      0.5 * intercept.x / m_flength,
-      0.5 * intercept.y / m_flength,
-      1.0).normalized();
+  deltaT = t;
+  
+  // Vignetting test is performed only after computing the intersection with
+  // the paraboloid.
 
-    return true;
-  }
+  intercept = Ot + t * ut;
+  x = intercept.x - m_x0;
+  y = intercept.y - m_y0;
 
-  return false;
+  if (x * x + y * y >= m_radius2)
+    return false;
+
+  normal = Vec3(
+    0.5 * intercept.x / m_flength,
+    0.5 * intercept.y / m_flength,
+    1.0).normalized();
+
+  return true;
 }
 
 void

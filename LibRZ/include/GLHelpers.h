@@ -71,6 +71,7 @@ public:
 
   class GLAbstractCap : public GLPrimitive {
     public:
+      virtual void requestRecalc();
       virtual const std::vector<GLfloat> *edge() const = 0; 
   };
 
@@ -328,6 +329,7 @@ public:
       void setInvertNormals(bool);
 
       virtual const std::vector<GLfloat> *edge() const;
+      virtual void requestRecalc() override;
       virtual void display() override;
       
       GLParabolicCap();

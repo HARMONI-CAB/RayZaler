@@ -250,6 +250,9 @@ GLCappedCylinder::~GLCappedCylinder()
 void
 GLCappedCylinder::recalculateCaps()
 {
+  m_topCap->requestRecalc();
+  m_bottomCap->requestRecalc();
+  
   auto &edgeTop    = *m_topCap->edge();
   auto &edgeBottom = *m_bottomCap->edge();
   size_t rects = edgeTop.size() / 3;
@@ -355,6 +358,8 @@ GLCappedCylinder::recalculateCaps()
     normalizef(&m_normals[3 * n]);
     ++n;
   }
+
+  m_dirty = false;
 }
 
 void
@@ -814,6 +819,12 @@ GLParabolicCap::edge() const
 }
 
 void
+GLParabolicCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
 GLParabolicCap::setCenterOffset(GLdouble x, GLdouble y)
 {
   m_x0 = x;
@@ -878,6 +889,13 @@ GLParabolicCap::display()
   glDisableClientState(GL_VERTEX_ARRAY);
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+///////////////////////////// GLAbstractCap ////////////////////////////////////
+void
+GLAbstractCap::requestRecalc()
+{
+
 }
 
 //////////////////////////////// GLDisc ////////////////////////////////////////
