@@ -14,7 +14,10 @@ namespace RZ {
     Real m_K = 1.; // Normalization constant for generatePoints
     Real m_rCurv2 = 1;
     Real m_KRcInv = 1.;
-
+    Real m_x0 = 0;
+    Real m_y0 = 0;
+    Real m_ux = 1;
+    Real m_uy = 0;
 
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_axes;
@@ -31,6 +34,7 @@ namespace RZ {
 
     SphericalAperture(Real radius, Real rCurv);
 
+    void setCenterOffset(Real, Real);
     void setConvex(bool);
     void setRadius(Real);
     void setCurvatureRadius(Real);

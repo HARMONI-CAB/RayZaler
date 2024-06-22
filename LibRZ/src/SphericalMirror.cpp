@@ -53,7 +53,8 @@ SphericalMirror::recalcModel()
   
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_flength);
-
+  m_processor->setCenterOffset(m_x0, m_y0);
+  
   m_reflectiveSurfaceFrame->setDistance(m_depth * Vec3::eZ());
   m_reflectiveSurfaceFrame->recalculate();
 }

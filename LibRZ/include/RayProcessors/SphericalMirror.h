@@ -16,6 +16,7 @@ namespace RZ {
       SphericalMirrorProcessor();
       void setRadius(Real);
       void setFocalLength(Real);
+      void setCenterOffset(Real, Real);
       
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;

@@ -10,21 +10,38 @@ SphericalAperture::SphericalAperture(Real R, Real rCurv)
 }
 
 void
+SphericalAperture::setCenterOffset(Real x, Real y)
+{
+  m_x0 = x;
+  m_y0 = y;
+
+  recalcDistribution();
+  recalcGL();
+}
+
+//
+// z  = m_center - sqrt(m_rCurv * m_rCurv - x * x);
+//
+
+void
 SphericalAperture::recalcGL()
 {
-  GLfloat x, y, z, dh;
+  GLfloat x, y, z, r, dh;
   Real theta = 0;
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
-
+  Real sign = m_rCurv > 0 ? 1 : -1;
+  
   m_vertices.clear();
 
+  // Draw the aperture ellipse
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
-    x = m_radius * cos(theta);
-    y = m_radius * sin(theta);
-    
+    x = m_radius * cos(theta) + m_x0;
+    y = m_radius * sin(theta) + m_y0;
+    z = m_center - sqrt(m_rCurv2 - x * x - y * y);
+
     m_vertices.push_back(x);
     m_vertices.push_back(y);
-    m_vertices.push_back(0);
+    m_vertices.push_back(sign * z);
 
     theta += dTheta;
   }
@@ -33,33 +50,30 @@ SphericalAperture::recalcGL()
 
   dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
 
-  x = -m_radius;
-  y = -m_radius;
-
+  r = -m_radius;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
-    z  = m_center - sqrt(m_rCurv * m_rCurv - x * x);
-
-    if (!m_convex)
-      z = -z;
+    x = m_ux * r + m_x0;
+    y = m_uy * r + m_y0;
+    z = m_center - sqrt(m_rCurv2 - x * x - y * y);
 
     m_axes.push_back(x);
-    m_axes.push_back(0);
-    m_axes.push_back(z);
+    m_axes.push_back(y);
+    m_axes.push_back(sign * z);
 
-    x += dh;
+    r += dh;
   }
 
+  r = -m_radius;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
-    z  = m_center - sqrt(m_rCurv * m_rCurv - y * y);
-    
-    if (!m_convex)
-      z = -z;
+    x = -m_uy * r + m_x0;
+    y = m_ux * r + m_y0;
+    z = m_center - sqrt(m_rCurv2 - x * x - y * y);
 
-    m_axes.push_back(0);
+    m_axes.push_back(x);
     m_axes.push_back(y);
-    m_axes.push_back(z);
+    m_axes.push_back(sign * z);
 
-    y += dh;
+    r += dh;
   }
 }
 
@@ -168,30 +182,34 @@ SphericalAperture::intercept(
   if (u.z < 0)
     sign = -sign;
   
-  if (coord.x * coord.x + coord.y * coord.y < m_radius2) {
-    // Real a = u * u = 1
-    Real b = xC * u;
-    Real c = xC * xC - m_rCurv * m_rCurv;
+  // Real a = u * u = 1
+  Real b = xC * u;
+  Real c = xC * xC - m_rCurv * m_rCurv;
 
-    // Discriminat. Does the ray hit the aperture?
-    Real D = b * b - c;
+  // Discriminat. Does the ray hit the aperture?
+  Real D = b * b - c;
 
-    if (D >= 0) {
-      Real sqrtD = sqrt(D);
+  if (D >= 0) {
+    Real sqrtD = sqrt(D);
 
-      // In the convex case, we return the + case. In the concave case,
-      // we return the - case
-      Real t = - b - sign * sqrtD;
-      
-      // Adjust hit point
-      coord = origin + t * u;
-      deltaT = t;
-      
-      // Calculate the interception normal
-      normal = sign * (coord - Cs).normalized();
-      
-      return true;
-    }
+    // In the convex case, we return the + case. In the concave case,
+    // we return the - case
+    Real t = - b - sign * sqrtD;
+    
+    // Adjust hit point
+    coord = origin + t * u;
+    deltaT = t;
+    
+    Real x = coord.x - m_x0;
+    Real y = coord.y - m_y0;
+
+    if (x * x + y * y >= m_radius2)
+      return false;
+
+    // Calculate the interception normal
+    normal = sign * (coord - Cs).normalized();
+    
+    return true;
   }
 
   return false;
