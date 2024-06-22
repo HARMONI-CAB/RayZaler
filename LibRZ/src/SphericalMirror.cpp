@@ -54,7 +54,7 @@ SphericalMirror::recalcModel()
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_flength);
   m_processor->setCenterOffset(m_x0, m_y0);
-  
+
   m_reflectiveSurfaceFrame->setDistance(m_depth * Vec3::eZ());
   m_reflectiveSurfaceFrame->recalculate();
 }
@@ -116,7 +116,7 @@ SphericalMirror::SphericalMirror(
   addPort("refPort", m_reflectiveSurfaceFrame);
   
   m_cylinder.setVisibleCaps(false, false);
-  m_topCap.setInvertNormals(true);
+  m_bottomCap.setInvertNormals(true);
   
   refreshProperties();
 }
@@ -142,15 +142,16 @@ SphericalMirror::nativeMaterialOpenGL(std::string const &)
 void
 SphericalMirror::renderOpenGL()
 {
+  material("mirror");
+
+  glTranslatef(0, 0, m_depth - m_thickness);
+
   material("input.mirror");
 
   m_topCap.display();
-
-  material("mirror");
-
-  glTranslatef(0, 0, -m_thickness);
   m_cylinder.display();
 
+  glTranslatef(0, 0, m_thickness);
   m_bottomCap.display();
 }
 

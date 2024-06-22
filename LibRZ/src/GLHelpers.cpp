@@ -580,7 +580,8 @@ GLSphericalCap::recalculate()
   GLfloat secDelta = 1.f / m_sectors;
   GLfloat stDelta  = 1.f / m_stacks;
   GLfloat Rc2      = m_rCurv * m_rCurv;
-  GLfloat sign     = m_rCurv < 1 ? -1 : 1;
+  GLfloat sign     = m_rCurv < 0 ? -1 : 1;
+  GLfloat depth    = sign * sqrt(Rc2 - m_radius * m_radius);
   GLint k1, k2;
 
   total = (m_stacks + 1) * (m_sectors + 1);
@@ -593,6 +594,7 @@ GLSphericalCap::recalculate()
   if (m_invertNormals)
     rInv = -rInv;
 
+  
   // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
     GLfloat r = rDelta * j;
@@ -603,7 +605,7 @@ GLSphericalCap::recalculate()
       
       GLfloat x = r * cosf(ang) + m_x0;
       GLfloat y = r * sinf(ang) + m_y0;
-      GLfloat z = m_rCurv - sign * sqrt(Rc2 - x * x - y * y);
+      GLfloat z = depth - sign * sqrt(Rc2 - x * x - y * y);
 
       //
       // The direction vector from the center is:
