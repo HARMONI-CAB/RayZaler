@@ -30,6 +30,12 @@ ParabolicMirrorProcessor::setFocalLength(Real f)
 }
 
 void
+ParabolicMirrorProcessor::setCenterOffset(Real x, Real y)
+{
+  aperture<ParabolicAperture>()->setCenterOffset(x, y);
+}
+
+void
 ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;

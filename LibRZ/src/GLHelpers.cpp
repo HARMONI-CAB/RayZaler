@@ -29,6 +29,17 @@
 
 using namespace RZ;
 
+static inline void
+normalizef(GLfloat *v)
+{
+  GLfloat norm = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+  GLfloat k    = 1 / norm;
+
+  v[0] *= k;
+  v[1] *= k;
+  v[2] *= k;
+}
+
 ///////////////////////////////// GLShader /////////////////////////////////////
 //
 // Refactorized from https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/shader_s.h
@@ -227,6 +238,7 @@ GLCone::display()
 GLCappedCylinder::GLCappedCylinder()
 {
   m_quadric = gluNewQuadric();
+  setCaps(&m_topDiscCap, &m_bottomDiscCap);
 }
 
 GLCappedCylinder::~GLCappedCylinder()
@@ -238,7 +250,115 @@ GLCappedCylinder::~GLCappedCylinder()
 void
 GLCappedCylinder::recalculateCaps()
 {
-  // NO-OP
+  m_topCap->requestRecalc();
+  m_bottomCap->requestRecalc();
+  
+  auto &edgeTop    = *m_topCap->edge();
+  auto &edgeBottom = *m_bottomCap->edge();
+  size_t rects = edgeTop.size() / 3;
+  unsigned int n   = 0;
+
+  if (edgeTop.size() != edgeBottom.size())
+    return;
+
+  if (edgeTop.size() < 3)
+    return;
+
+  std::vector<GLfloat> faceNormals;
+
+  m_strip.resize(2 * 3 * (rects + 1));
+  m_normals.resize(2 * 3 * (rects + 1));
+  
+  faceNormals.resize(3 * 2 * rects);
+
+  // Calculate vertices
+  for (auto i = 0; i < rects; ++i) {
+    m_strip[3 * n + 0] = edgeTop[3 * i + 0];
+    m_strip[3 * n + 1] = edgeTop[3 * i + 1];
+    m_strip[3 * n + 2] = edgeTop[3 * i + 2] + m_height;
+    ++n;
+    
+    m_strip[3 * n + 0] = edgeBottom[3 * i + 0];
+    m_strip[3 * n + 1] = edgeBottom[3 * i + 1];
+    m_strip[3 * n + 2] = edgeBottom[3 * i + 2];
+    ++n;
+  }
+
+  m_strip[3 * n + 0] = edgeTop[0];
+  m_strip[3 * n + 1] = edgeTop[1];
+  m_strip[3 * n + 2] = edgeTop[2] + m_height;
+  ++n;
+  
+  m_strip[3 * n + 0] = edgeBottom[0];
+  m_strip[3 * n + 1] = edgeBottom[1];
+  m_strip[3 * n + 2] = edgeBottom[2];
+  ++n;
+
+  // Calculate face normals
+  const GLfloat *v = m_strip.data();
+
+  n = 0;
+  for (auto i = 0; i < rects; ++i) {
+    const GLfloat *top1 = v + 3 * (2 * i + 0);
+    const GLfloat *top2 = v + 3 * (2 * i + 1);
+    const GLfloat *top3 = v + 3 * (2 * i + 2);
+
+    const GLfloat *bot1 = v + 3 * (2 * i + 1);
+    const GLfloat *bot3 = v + 3 * (2 * i + 2);
+    const GLfloat *bot2 = v + 3 * (2 * i + 3);
+
+    {
+      const GLfloat u[3] = {top2[0] - top1[0], top2[1] - top1[1], top2[2] - top1[2]};
+      const GLfloat v[3] = {top3[0] - top1[0], top3[1] - top1[1], top3[2] - top1[2]};
+      
+      faceNormals[3 * n + 0] = u[1] * v[2] - u[2] * v[1];
+      faceNormals[3 * n + 1] = u[2] * v[0] - u[0] * v[2];
+      faceNormals[3 * n + 2] = u[0] * v[1] - u[1] * v[0];
+      normalizef(&faceNormals[3 * n]);
+      ++n;
+    }
+
+    {
+      const GLfloat u[3] = {bot2[0] - bot1[0], bot2[1] - bot1[1], bot2[2] - bot1[2]};
+      const GLfloat v[3] = {bot3[0] - bot1[0], bot3[1] - bot1[1], bot3[2] - bot1[2]};
+
+      faceNormals[3 * n + 0] = u[1] * v[2] - u[2] * v[1];
+      faceNormals[3 * n + 1] = u[2] * v[0] - u[0] * v[2];
+      faceNormals[3 * n + 2] = u[0] * v[1] - u[1] * v[0];
+      normalizef(&faceNormals[3 * n]);
+      ++n;
+    }
+  }
+
+  // Interpolate normals
+  n = 0;
+  for (auto q = 0; q <= rects; ++q) {
+    unsigned int i = (q + rects - 1) % rects;
+    unsigned int j = (q) % rects;
+
+    // Normal of the top triangle
+    GLfloat anx = faceNormals[3 * 2 * i + 0];
+    GLfloat any = faceNormals[3 * 2 * i + 1];
+    GLfloat anz = faceNormals[3 * 2 * i + 2];
+    
+    // Normal of the bottom triangle
+    GLfloat bnx = faceNormals[3 * 2 * j + 0];
+    GLfloat bny = faceNormals[3 * 2 * j + 1];
+    GLfloat bnz = faceNormals[3 * 2 * j + 2];
+
+    m_normals[3 * n + 0] = .5 * (anx + bnx);
+    m_normals[3 * n + 1] = .5 * (any + bny);
+    m_normals[3 * n + 2] = .5 * (anz + bnz);
+    normalizef(&m_normals[3 * n]);
+    ++n;
+
+    m_normals[3 * n + 0] = .5 * (anx + bnx);
+    m_normals[3 * n + 1] = .5 * (any + bny);
+    m_normals[3 * n + 2] = .5 * (anz + bnz);
+    normalizef(&m_normals[3 * n]);
+    ++n;
+  }
+
   m_dirty = false;
 }
 
@@ -250,11 +370,27 @@ GLCappedCylinder::setHeight(GLdouble height)
 }
 
 void
+GLCappedCylinder::setCaps(
+  GLAbstractCap *top,
+  GLAbstractCap *bottom)
+{
+  if (top == nullptr)
+    top = &m_topDiscCap;
+
+  if (bottom == nullptr)
+    bottom = &m_bottomDiscCap;
+
+  m_topCap    = top;
+  m_bottomCap = bottom;
+  m_dirty     = true;
+}
+
+void
 GLCappedCylinder::setRadius(GLdouble radius)
 {
   m_radius = radius;
-  m_topCap.setRadius(radius);
-  m_bottomCap.setRadius(radius);
+  m_topDiscCap.setRadius(radius);
+  m_bottomDiscCap.setRadius(radius);
   m_dirty  = true;
 }
 
@@ -262,8 +398,8 @@ void
 GLCappedCylinder::setSlices(GLint slices)
 {
   m_slices = slices;
-  m_topCap.setSlices(slices);
-  m_bottomCap.setSlices(slices);
+  m_topDiscCap.setSlices(slices);
+  m_bottomDiscCap.setSlices(slices);
   m_dirty  = true;
 }
 
@@ -285,18 +421,24 @@ GLCappedCylinder::display()
   if (m_drawTop) {
     glPushMatrix();
     glTranslatef(0, 0, m_height);
-    m_topCap.display();
+    m_topCap->display();
     glPopMatrix();
   }
 
   if (m_drawBase) {
     glPushMatrix();
     glRotatef(180, 1, 0, 0);
-    m_bottomCap.display();
+    m_bottomCap->display();
     glPopMatrix();
   }
   
-  gluCylinder(m_quadric, m_radius, m_radius, m_height, m_slices, 2);
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_strip.data());
+  glNormalPointer(GL_FLOAT, 3 * sizeof(GLfloat), m_normals.data());
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, m_strip.size() / 3);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 ////////////////////////////////// GLTube //////////////////////////////////////
@@ -414,48 +556,80 @@ GLSphericalCap::~GLSphericalCap()
 }
 
 //
-// Inspired in http://www.songho.ca/opengl/gl_sphere.html
+// This sphere has its vertex on 0, 0, 0. This is, the sphere is tangent to
+// the XY plane Z = 0. Since the radius of curvature R_c puts its center in
+// Z = R_c, then we can do the following trick. Evaluate the z' of the
+// sphere centered in 0, 0, 0:
 //
+// z' = sqrt(R_c^2 - x^2 - y^2)
+//
+// And calculate Z as:
+//
+// Z = R_c - z'
+//
+// R_c is essentially m_radius. T
+//
+//
+
 void
 GLSphericalCap::recalculate()
 {
-  GLint i, j, n = 0, total;
-  GLfloat absR     = fabs(m_radius);
-  GLfloat alpha    = acos((absR - m_height) / absR);
-  GLfloat zOff     = 0;
-  GLfloat rInv     = 1 / m_radius;
-  GLfloat lonDelta = 2 * M_PI / m_sectors;
-  GLfloat latDelta = alpha / m_stacks;
+  GLint i, j, n    = 0, total;
+  GLfloat angDelta = 2 * M_PI / m_sectors;
+  GLfloat rDelta   = m_radius / m_stacks;
   GLfloat secDelta = 1.f / m_sectors;
   GLfloat stDelta  = 1.f / m_stacks;
+  GLfloat Rc2      = m_rCurv * m_rCurv;
+  GLfloat sign     = m_rCurv < 0 ? -1 : 1;
+  GLfloat depth    = sign * sqrt(Rc2 - m_radius * m_radius);
   GLint k1, k2;
 
   total = (m_stacks + 1) * (m_sectors + 1);
   m_vertices.resize(3 * total);
   m_normals.resize(3 * total);
   m_texCoords.resize(2 * total);
+  m_edge.resize(3 * m_sectors);
 
+  GLfloat rInv = 1. / m_rCurv;
   if (m_invertNormals)
     rInv = -rInv;
 
+  
+  // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
-    GLfloat lat = M_PI / 2 - j * latDelta;
-    GLfloat xy  = m_radius * cosf(lat);
-    GLfloat z   = m_radius * sinf(lat);
+    GLfloat r = rDelta * j;
 
+    // And this other one, the angles. In the case 
     for (i = 0; i <= m_sectors; ++i) {
-      GLfloat lon = i * lonDelta;
+      GLfloat ang = i * angDelta;
+      
+      GLfloat x = r * cosf(ang) + m_x0;
+      GLfloat y = r * sinf(ang) + m_y0;
+      GLfloat z = depth - sign * sqrt(Rc2 - x * x - y * y);
 
-      GLfloat x = xy * cosf(lon);
-      GLfloat y = xy * sinf(lon);
+      //
+      // The direction vector from the center is:
+      // 
+      // nx = (x - x_0) / R
+      // ny = (y - y_0) / R
+      // nz = (z - z_0) / R
+      //
+      // With z_0 = R_c
+      //
+
+      if (j == m_stacks && i < m_sectors) {
+        m_edge[3 * i + 0] = x;
+        m_edge[3 * i + 1] = y;
+        m_edge[3 * i + 2] = z;
+      }
 
       m_vertices[3 * n + 0] = x;
       m_vertices[3 * n + 1] = y;
       m_vertices[3 * n + 2] = z;
 
-      m_normals[3 * n + 0] = rInv * x;
-      m_normals[3 * n + 1] = rInv * y;
-      m_normals[3 * n + 2] = rInv * z;
+      m_normals[3 * n + 0] = (x - m_x0) * rInv;
+      m_normals[3 * n + 1] = (y - m_y0) * rInv;
+      m_normals[3 * n + 2] = (z - m_rCurv) * rInv;
 
       m_texCoords[2 * n + 0] = i * secDelta;
       m_texCoords[2 * n + 1] = j * stDelta;
@@ -470,8 +644,8 @@ GLSphericalCap::recalculate()
   m_indices.resize(6 * total);
   int d1, d2;
 
-  d1 = m_invertNormals ? 2 : 1;
-  d2 = m_invertNormals ? 1 : 2;
+  d2 = m_invertNormals ? 2 : 1;
+  d1 = m_invertNormals ? 1 : 2;
 
   for(i = 0; i < m_stacks; ++i) {
     k1 = i * (m_sectors + 1);     // beginning of current stack
@@ -499,10 +673,31 @@ GLSphericalCap::recalculate()
   m_dirty = false;
 }
 
+
 void
-GLSphericalCap::setHeight(GLdouble height)
+GLSphericalCap::setCenterOffset(GLdouble x, GLdouble y)
 {
-  m_height = height;
+  m_x0    = x;
+  m_y0    = y;
+  m_dirty = true;
+}
+
+const std::vector<GLfloat> *
+GLSphericalCap::edge() const
+{
+  return &m_edge;
+}
+
+void
+GLSphericalCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
+GLSphericalCap::setCurvatureRadius(GLdouble R)
+{
+  m_rCurv  = R;
   m_dirty  = true;
 }
 
@@ -588,6 +783,7 @@ GLParabolicCap::recalculate()
   m_vertices.resize(3 * total);
   m_normals.resize(3 * total);
   m_texCoords.resize(2 * total);
+  m_edge.resize(3 * m_sectors);
 
   // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
@@ -600,12 +796,19 @@ GLParabolicCap::recalculate()
     for (i = 0; i <= m_sectors; ++i) {
       GLfloat ang = i * angDelta;
       
-      GLfloat x = r * cosf(ang);
-      GLfloat y = r * sinf(ang);
-      
+      GLfloat x = r * cosf(ang) + m_x0;
+      GLfloat y = r * sinf(ang) + m_y0;
+      GLfloat z = k * (x * x + y * y - R2);
+
+      if (j == m_stacks && i < m_sectors) {
+        m_edge[3 * i + 0] = x;
+        m_edge[3 * i + 1] = y;
+        m_edge[3 * i + 2] = z;
+      }
+
       m_vertices[3 * n + 0] = x;
       m_vertices[3 * n + 1] = y;
-      m_vertices[3 * n + 2] = k * (x * x + y * y - R2);
+      m_vertices[3 * n + 2] = z;
 
       m_normals[3 * n + 0] = -2 * k * x * nInv;
       m_normals[3 * n + 1] = -2 * k * y * nInv;
@@ -651,6 +854,26 @@ GLParabolicCap::recalculate()
   }
 
   m_dirty = false;
+}
+
+const std::vector<GLfloat> *
+GLParabolicCap::edge() const
+{
+  return &m_edge;
+}
+
+void
+GLParabolicCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
+GLParabolicCap::setCenterOffset(GLdouble x, GLdouble y)
+{
+  m_x0 = x;
+  m_y0 = y;
+  m_dirty = true;
 }
 
 void
@@ -712,6 +935,13 @@ GLParabolicCap::display()
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
+///////////////////////////// GLAbstractCap ////////////////////////////////////
+void
+GLAbstractCap::requestRecalc()
+{
+
+}
+
 //////////////////////////////// GLDisc ////////////////////////////////////////
 GLDisc::GLDisc()
 {
@@ -739,14 +969,13 @@ GLDisc::recalculate()
   m_vertices.resize (3 * 3 * total);
   m_normals.resize  (3 * 3 * total);
   m_texCoords.resize(2 * 3 * total);
-
+  m_edge.resize(3 * m_slices);
   ang = 0;
 
   GLfloat x  = .5 * m_width  * cosf(ang);
   GLfloat y  = .5 * m_height * sinf(ang);
 
   for (i = 0; i < m_slices; ++i) {
-
     // Center
     m_vertices[3 * n + 0] = 0;
     m_vertices[3 * n + 1] = 0;
@@ -790,6 +1019,11 @@ GLDisc::recalculate()
     m_texCoords[2 * n + 0] = (i + 1) * sliceDelta;
     m_texCoords[2 * n + 1] = 1;
 
+    // Edge
+    m_edge[3 * i + 0] = x;
+    m_edge[3 * i + 1] = y;
+    m_edge[3 * i + 2] = 0;
+    
     ++n;
   }
 
@@ -809,6 +1043,12 @@ GLDisc::recalculate()
   }
 
   m_dirty = false;
+}
+
+const std::vector<GLfloat> *
+GLDisc::edge() const
+{
+  return &m_edge;
 }
 
 void

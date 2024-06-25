@@ -12,7 +12,12 @@ namespace RZ {
     Real m_4f2, m_8f3;
     Real m_6f_K;
     Real m_depth;
-
+    Real m_x0 = 0;
+    Real m_y0 = 0;
+    
+    Real m_ux = 1;
+    Real m_uy = 0;
+    
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_axes;
 
@@ -24,6 +29,7 @@ namespace RZ {
 
     void setRadius(Real);
     void setFocalLength(Real);
+    void setCenterOffset(Real, Real);
 
     virtual bool intercept(
       Vec3 &hit,

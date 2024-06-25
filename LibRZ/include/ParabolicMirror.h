@@ -18,7 +18,9 @@ namespace RZ {
       Real m_radius = 1e-2;
       Real m_flength = 1;
       Real m_displacement;
-
+      Real m_x0 = 0;
+      Real m_y0 = 0;
+      
       void recalcModel();
 
     protected:

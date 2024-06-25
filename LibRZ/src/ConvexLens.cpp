@@ -24,9 +24,6 @@ using namespace RZ;
 void
 ConvexLens::recalcModel()
 {
-  m_cylinder.setHeight(m_thickness);
-  m_cylinder.setRadius(m_radius);
-
   // This is the thickness of the concave part
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - m_radius * m_radius);
 
@@ -42,15 +39,23 @@ ConvexLens::recalcModel()
   m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
   m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
 
-  m_cap.setRadius(m_rCurv);
-  m_cap.setHeight(m_depth);
+  m_topCap.setRadius(m_radius);
+  m_topCap.setCurvatureRadius(m_rCurv);
+  m_topCap.requestRecalc();
+
+  m_bottomCap.setRadius(m_radius);
+  m_bottomCap.setCurvatureRadius(-m_rCurv);
+  m_bottomCap.requestRecalc();
+  
+  m_cylinder.setHeight(m_thickness);
+  m_cylinder.setCaps(&m_topCap, &m_bottomCap);
 
   m_inputProcessor->setRadius(m_radius);
   m_inputProcessor->setCurvatureRadius(m_rCurv);
   m_inputProcessor->setRefractiveIndex(1, m_mu);
 
   m_outputProcessor->setRadius(m_radius);
-  m_outputProcessor->setCurvatureRadius(m_rCurv);
+  m_outputProcessor->setCurvatureRadius(-m_rCurv);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
   
   // Intercept surfaces
@@ -121,8 +126,9 @@ ConvexLens::ConvexLens(
   addPort("objectPlane",      m_objectPlane);
   addPort("imagePlane",       m_imagePlane);
 
-  m_cylinder.setVisibleCaps(true, true);
-  
+  m_cylinder.setVisibleCaps(false, false);
+  m_bottomCap.setInvertNormals(true);
+
   refreshProperties();
 }
 
@@ -162,21 +168,17 @@ ConvexLens::nativeMaterialOpenGL(std::string const &role)
 void
 ConvexLens::renderOpenGL()
 {
-  glTranslatef(0, 0, -.5 * m_thickness);
+  material("mirror");
 
-  material("lens");
+  glTranslatef(0, 0,  -.5 * m_thickness);
+
+  material("input.mirror");
+
+  m_topCap.display();
   m_cylinder.display();
 
-  glTranslatef(0, 0, m_thickness - m_rCurv + m_depth);
-  
-  material("output.lens");
-  m_cap.display();
-  
-  glRotatef(180, 1, 0, 0);
-  glTranslatef(0, 0, m_thickness - 2 * (m_rCurv - m_depth));
-  
-  material("input.lens");
-  m_cap.display();
+  glTranslatef(0, 0, m_thickness);
+  m_bottomCap.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

@@ -23,6 +23,15 @@ SphericalMirrorProcessor::setRadius(Real R)
 }
 
 void
+SphericalMirrorProcessor::setCenterOffset(Real x, Real y)
+{
+  m_x0 = x;
+  m_y0 = y;
+
+  aperture<SphericalAperture>()->setCenterOffset(x, y);
+}
+
+void
 SphericalMirrorProcessor::setFocalLength(Real f)
 {
   bool convex = f > 0;
