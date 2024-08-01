@@ -104,6 +104,7 @@ public:
         return m_height;
       }
 
+      virtual void requestRecalc() override;
       void setInverted(bool);
       void setRadius(GLdouble);
       void setWidth(GLdouble);

@@ -408,6 +408,7 @@ GLCappedCylinder::setVisibleCaps(bool base, bool top)
 {
   m_drawBase = base;
   m_drawTop  = top;
+  m_dirty    = true;
 }
 
 void
@@ -1052,6 +1053,12 @@ GLDisc::edge() const
 }
 
 void
+GLDisc::requestRecalc()
+{
+  recalculate();
+}
+
+void
 GLDisc::setInverted(bool inv)
 {
   m_invertNormals = inv;
@@ -1472,11 +1479,11 @@ GLReferenceFrame::display()
 
 GLReferenceFrame::GLReferenceFrame()
 {
+  m_axisCylinder.setSlices(24);
   m_axisCylinder.setHeight(m_height);
   m_axisCylinder.setRadius(m_radius);
-  m_axisCylinder.setSlices(24);
   m_axisCylinder.setVisibleCaps(true, false);
-
+  
   m_axisArrow.setHeight(m_arrowHeight);
   m_axisArrow.setBase(m_arrowBase);
   m_axisArrow.setSlices(20);
