@@ -217,15 +217,15 @@ GLCurrentView::screenToWorld(Real &wX, Real &wY, Real sX, Real sY)
 {
   // IMPORTANT: Both horizontal and vertical zoom levels are given by the width
 
-  wX = +4 * (sX - center[0] - width  * .5) / (zoomLevel * width) - 2;
-  wY = -4 * (sY - center[1] - height * .5) / (zoomLevel * width) + 2;
+  wX = +4 * (sX - center[0] - width  * .5) / (zoomLevel * width);
+  wY = -4 * (sY - center[1] - height * .5) / (zoomLevel * width);
 }
 
 void
 GLCurrentView::worldToScreen(Real &sX, Real &sY, Real wX, Real wY)
 {
-  sX = +.25 * (wX + 2) * (zoomLevel * width) + center[0] + width  * .5;
-  sY = -.25 * (wY - 2) * (zoomLevel * width) + center[1] + height  * .5;
+  sX = +.25 * wX * (zoomLevel * width) + center[0] + width  * .5;
+  sY = -.25 * wY * (zoomLevel * width) + center[1] + height  * .5;
 }
 
 ///////////////////////////// GLRenderEngine ///////////////////////////////////

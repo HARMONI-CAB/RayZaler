@@ -549,7 +549,6 @@ RZGUIGLWidget::mouseMotion(int x, int y)
 
   m_view.screenToWorld(wX, wY, x, y);
 
-
   if (m_selectedRefFrame != nullptr && m_displayMeasurements) {
     RZ::Vec3 coords(wX, wY, 0);
     RZ::Vec3 screenNormal, screenCoords;
