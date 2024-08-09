@@ -28,15 +28,15 @@ LensletArray::recalcModel()
   m_inputProcessor->setWidth(m_width);
   m_inputProcessor->setHeight(m_height);
   m_inputProcessor->setCols(m_cols);
-  m_inputProcessor->setCols(m_rows);
+  m_inputProcessor->setRows(m_rows);
   m_inputProcessor->setCurvatureRadius(m_rCurv);
   m_inputProcessor->setRefractiveIndex(1, m_mu);
 
   m_outputProcessor->setWidth(m_width);
   m_outputProcessor->setHeight(m_height);
   m_outputProcessor->setCols(m_cols);
-  m_outputProcessor->setCols(m_rows);
-  m_outputProcessor->setCurvatureRadius(m_rCurv);
+  m_outputProcessor->setRows(m_rows);
+  m_outputProcessor->setCurvatureRadius(-m_rCurv);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
   
   // Get lenslet radius
@@ -58,9 +58,10 @@ LensletArray::recalcModel()
   m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_f)* Vec3::eZ());
 
   m_cap.setRadius(radius);
-  m_cap.setCurvatureRadius(m_rCurv);
+  m_cap.setCurvatureRadius(-m_rCurv);
   m_cap.requestRecalc();
-
+  
+  m_cap.setInvertNormals(true);
   m_cylinder.setCaps(&m_cap, &m_cap);
 }
 
@@ -197,16 +198,16 @@ LensletArray::renderOpenGL()
         material("lens");
         m_cylinder.display();
 
-        glTranslatef(0, 0, m_thickness - m_rCurv + m_depth);
+        glTranslatef(0, 0, .5 * m_thickness + m_depth);
         
         material("output.lens");
-        m_cap.display();
+        //m_cap.display();
         
         glRotatef(180, 1, 0, 0);
-        glTranslatef(0, 0, m_thickness - 2 * (m_rCurv - m_depth));
+        glTranslatef(0, 0, .5 * m_thickness + 2 * m_depth);
         
         material("input.lens");
-        m_cap.display();
+        //m_cap.display();
       glPopMatrix();
     }
   }
