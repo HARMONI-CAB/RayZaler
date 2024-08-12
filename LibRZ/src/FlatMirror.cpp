@@ -18,6 +18,8 @@
 
 #include <FlatMirror.h>
 #include <TranslatedFrame.h>
+#include <Apertures/Circular.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -28,7 +30,11 @@ FlatMirror::recalcModel()
   m_cylinder.setRadius(m_radius);
 
   m_processor->setRadius(m_radius);
+  m_processor->setEccentricity(m_ecc);
   m_reflectiveSurfaceFrame->setDistance(m_thickness * Vec3::eZ());
+
+  m_a = .5 * m_width  / m_radius;
+  m_b = .5 * m_height / m_radius;
 }
 
 bool
@@ -41,6 +47,17 @@ FlatMirror::propertyChanged(
     recalcModel();
   } else if (name == "radius") {
     m_radius = value;
+    m_width  = 2 * m_radius;
+    m_height = 2 * m_radius;
+    m_ecc    = 0;
+    recalcModel();
+  } else if (name == "width") {
+    m_width  = value;
+    CircularAperture::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
+    recalcModel();
+  } else if (name == "height") {
+    m_height = value;
+    CircularAperture::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
     recalcModel();
   } else {
     return false;
@@ -60,6 +77,8 @@ FlatMirror::FlatMirror(
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
+  registerProperty("width",       5e-2);
+  registerProperty("height",      5e-2);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
@@ -92,7 +111,13 @@ void
 FlatMirror::renderOpenGL()
 {
   material("");
+  
+  glPushMatrix();
+
+  glScalef(m_a, m_b, 1);
   m_cylinder.display();
+
+  glPopMatrix();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

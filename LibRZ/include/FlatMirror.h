@@ -14,6 +14,13 @@ namespace RZ {
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
       Real m_thickness = 1e-2;
       Real m_radius = 1e-2;
+      Real m_width  = 2e-2;
+      Real m_height = 2e-2;
+      Real m_a      = 1;
+      Real m_b      = 1;
+      
+      // Calculated members
+      Real m_ecc    = 0;
 
       void recalcModel();
 

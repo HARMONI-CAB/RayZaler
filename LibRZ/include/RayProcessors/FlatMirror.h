@@ -8,10 +8,12 @@ namespace RZ {
 
   class FlatMirrorProcessor : public RayTransferProcessor {
       Real m_radius = .5;
+      Real m_ecc    = 0;
 
     public:
       FlatMirrorProcessor();
       void setRadius(Real);
+      void setEccentricity(Real ecc);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };

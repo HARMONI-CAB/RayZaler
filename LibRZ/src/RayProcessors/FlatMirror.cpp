@@ -24,6 +24,14 @@ FlatMirrorProcessor::setRadius(Real R)
 }
 
 void
+FlatMirrorProcessor::setEccentricity(Real ecc)
+{
+  aperture<CircularAperture>()->setEccentricity(ecc);
+
+  m_ecc = ecc;
+}
+
+void
 FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
