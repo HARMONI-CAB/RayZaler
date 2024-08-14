@@ -236,7 +236,7 @@ RZGUIGLWidget::displayLoop(
   RZ::RayBeamElement *beam = static_cast<RZ::RayBeamElement *>(model->beam());
 
   for (auto p : model->elementList()) {
-    if (p == beam)
+    if (p == beam || !p->visible())
       continue;
     
     pushElementMatrix(p);

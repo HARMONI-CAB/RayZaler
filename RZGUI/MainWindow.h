@@ -103,6 +103,7 @@ public slots:
   void onTreeItemSelectionChanged();
   void onChangeView();
   void onChangeDisplay();
+  void onToggleCurrent();
   void onUpdateModel();
   void onModelSource();
   void onCenterToSelected();

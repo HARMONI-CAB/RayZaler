@@ -296,6 +296,12 @@ MainWindow::connectAll()
         SLOT(onModelSource()));
 
   connect(
+        ui->actionToggleCurrent,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onToggleCurrent()));
+  
+  connect(
         ui->action_About_RZGUI,
         SIGNAL(triggered(bool)),
         m_aboutDialog,
@@ -838,6 +844,13 @@ MainWindow::onChangeDisplay()
     widget->setDisplayGrid(ui->actionToggleGrid->isChecked());
     widget->setDisplayMeasurements(ui->actionToggleMeasurements->isChecked());
   }
+}
+
+void
+MainWindow::onToggleCurrent()
+{
+  if (m_currSession != nullptr)
+    m_currSession->toggleCurrent();
 }
 
 void

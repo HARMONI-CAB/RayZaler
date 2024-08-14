@@ -1544,6 +1544,15 @@ SimulationSession::selectElement(RZ::Element *element)
   }
 }
 
+void
+SimulationSession::toggleCurrent()
+{
+  if (m_selectedElement != nullptr) {
+    m_selectedElement->setVisible(!m_selectedElement->visible());
+    emit modelChanged();
+  }
+}
+
 RZ::Element *
 SimulationSession::getSelectedElement() const
 {

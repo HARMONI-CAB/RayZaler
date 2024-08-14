@@ -92,6 +92,7 @@ namespace RZ {
 
       // Representation state
       bool m_selected  = false;
+      bool m_visible   = true;
 
       // Default appearence
       Real m_shiny     = 64;
@@ -188,6 +189,12 @@ namespace RZ {
         return m_parentFrame;
       }
 
+      inline bool
+      visible() const
+      {
+        return m_visible;
+      }
+
       // Enumerate ports
       std::set<std::string> ports() const;
 
@@ -232,6 +239,7 @@ namespace RZ {
 
       // Representation methods
       void setSelected(bool);
+      void setVisible(bool);
 
       // Representation interface
       virtual void enterOpenGL();

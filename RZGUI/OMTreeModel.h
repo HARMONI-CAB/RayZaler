@@ -30,6 +30,8 @@ struct OMTreeItem {
   QString displayText;
   OMTreeItem *parent = nullptr;
   QPixmap *icon = nullptr;
+  QPixmap disabledIcon;
+  
   std::vector<OMTreeItem *> children;
   int relRow = -1;
 
@@ -41,6 +43,14 @@ struct OMTreeItem {
     const RZ::OpticalPath *path;
   };
 
+  bool
+  isElement() const
+  {
+    return type == OM_TREE_ITEM_TYPE_ELEMENT
+    || type == OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT
+    || type == OM_TREE_ITEM_TYPE_DETECTOR;
+  }
+  
   OMTreeItem *
   child(int ndx)
   {

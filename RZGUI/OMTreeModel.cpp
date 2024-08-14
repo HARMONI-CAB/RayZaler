@@ -1,4 +1,5 @@
 #include "OMTreeModel.h"
+#include "GUIHelpers.h"
 #include <OMModel.h>
 
 QString
@@ -97,7 +98,7 @@ OMTreeModel::assignItemIcon(OMTreeItem *item)
       else
         item->icon = &getIcon("elements");
       break;
-
+      
     case OM_TREE_ITEM_TYPE_FRAME:
       switch (item->frame->typeId()) {
         case RZ_REF_FRAME_WORLD_ID:
@@ -143,6 +144,10 @@ OMTreeModel::assignItemIcon(OMTreeItem *item)
         item->icon = &getIcon("composite-element");
       else
         item->icon = &getIcon("elements");
+
+      if (item->icon != nullptr)
+        grayOutPixmap(item->disabledIcon, *item->icon);
+      
       break;
 
     default:
@@ -357,8 +362,12 @@ QVariant OMTreeModel::data(const QModelIndex &index, int role) const
 
     case Qt::DecorationRole:
       if (index.column() == 0)
-        if (item->icon != nullptr)
+        if (item->icon != nullptr) {
+          if (item->isElement() && !item->element->visible())
+            return item->disabledIcon;
+          
           return *item->icon;
+        }
   }
 
   return QVariant();

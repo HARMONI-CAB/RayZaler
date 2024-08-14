@@ -265,6 +265,12 @@ Element::setSelected(bool selected)
 }
 
 void
+Element::setVisible(bool visible)
+{
+  m_visible = visible;
+}
+
+void
 Element::enterOpenGL()
 {
   

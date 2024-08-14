@@ -290,6 +290,7 @@ public:
 
   // Session actions
   void                 selectElement(RZ::Element *);
+  void                 toggleCurrent();
   RZ::Element         *getSelectedElement() const;
   QString              path() const;
   QString              searchPath() const;

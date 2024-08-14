@@ -3,6 +3,8 @@
 #include <sys/time.h>
 #include <QLabel>
 #include <QFontMetrics>
+#include <QPixmap>
+#include <QImage>
 
 qreal
 randUniform()
@@ -177,5 +179,27 @@ timeDeltaToString(struct timeval const &tv)
 
     return result;
   }
+}
+
+void
+grayOutPixmap(QPixmap &dest, QPixmap const &pixmap)
+{
+  QImage image = pixmap.toImage();
+
+  for (int x = 0; x < image.width(); ++x) {
+    for (int y=0; y<image.height(); ++y) {
+      QColor colour(image.pixel(x,y));
+
+      int m = colour.red() + colour.green() + colour.blue();
+      int alpha = colour.alpha() / 2;
+
+      m /= 3;
+      
+      colour.setRgb(m, m, m, alpha);
+      image.setPixel(x, y, colour.rgba());
+    } 
+  }
+
+  dest = QPixmap::fromImage(image);
 }
 

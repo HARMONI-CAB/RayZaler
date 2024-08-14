@@ -4,6 +4,7 @@
 #include <QString>
 
 class QLabel;
+class QPixmap;
 
 #define SCAST(type, value) static_cast<type>(value)
 #define TOINT(value) SCAST(int, value)
@@ -34,6 +35,7 @@ QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);
 QString appendExtToPath(QString const &path, QString const &ext);
+void grayOutPixmap(QPixmap &dest, QPixmap const &orig);
 void fixLabelSizeToContents(QLabel *label, QString text);
 
 #endif // GUIHELPERS_H
