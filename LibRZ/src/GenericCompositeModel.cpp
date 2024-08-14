@@ -839,16 +839,16 @@ GenericCompositeModel::createLocalExpressions(
   
   /////////////////////////// CREATE LOCAL VARIABLES ///////////////////////////
   // This are created to abbreviate certain expressions used along the model
-  for (auto p : localFrame->variables) {
-    auto name         = p.first;
+  for (auto name : localFrame->varNames) {
+    auto p            = localFrame->variables.find(name);
     auto genP         = allocateParam();
 
     genP->value       = 0;
 
     local[name]       = genP;
-    auto expr         = makeExpression(p.second->expression, &local);
+    auto expr         = makeExpression(p->second->expression, &local);
     expr->type        = GENERIC_MODEL_PARAM_TYPE_VARIABLE;
-    expr->description = p.second;
+    expr->description = p->second;
     expr->storage     = genP;
   }
 

@@ -80,6 +80,7 @@ namespace RZ {
     std::list<RecipeContext *>     contexts;
     std::list<RecipeElementStep *> elements;
     
+    std::list<std::string>                         varNames;
     std::map<std::string, ParamAssignExpression *> variables;
     std::map<std::string, ParamAssignExpression *> params;
 
@@ -225,7 +226,7 @@ namespace RZ {
       bool addScript(std::string const &scriptPath);
       void pushSearchPath(std::string const &path);
       void pushVariable(std::string const &name, std::string const &value);
-      
+
       void pushRotation(
         std::string const &angle,
         std::string const &eX,

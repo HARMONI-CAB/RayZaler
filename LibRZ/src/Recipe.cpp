@@ -433,6 +433,7 @@ Recipe::makeVariable(
 
   m_variables[index]   = curr;
   ctx->variables[name] = curr;
+  ctx->varNames.push_back(name);
   
   return curr;
 }
