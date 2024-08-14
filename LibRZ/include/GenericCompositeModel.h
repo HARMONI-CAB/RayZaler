@@ -31,6 +31,7 @@ namespace RZ {
     GENERIC_MODEL_PARAM_TYPE_ELEMENT,
     GENERIC_MODEL_PARAM_TYPE_ROTATED_FRAME,
     GENERIC_MODEL_PARAM_TYPE_TRANSLATED_FRAME,
+    GENERIC_MODEL_PARAM_TYPE_VARIABLE
   };
 
   class GenericModelParam;
@@ -66,12 +67,14 @@ namespace RZ {
 
   // This describes how a parameter of an element or a frame is calculated
   struct GenericComponentParamEvaluator {
-    GenericModelParamType type; // What type of object we need to update
+    GenericModelParamType type;                   // What type of object we need to update
     ParamAssignExpression *description = nullptr; // Already contains an index
-    GenericEvaluator      *evaluator = nullptr; // Owned
+    GenericModelParam     *storage = nullptr;     // Where to store this result
+    GenericEvaluator      *evaluator = nullptr;   // Owned
     std::string            assignString;
     int                    position = -1;
 
+    // What to do with this result
     union {
       Element         *element = nullptr;
       RotatedFrame    *rotation;

@@ -134,6 +134,7 @@ namespace RZ {
       std::string m_lastToken;
       std::set<std::string>  m_includeOnce;
       std::list<std::string> m_searchPaths;
+
       int m_recursion = 0;
       int m_line = 0;
       int m_char = 0;
@@ -176,6 +177,7 @@ namespace RZ {
       void script(std::string const &);
       void registerParameter(ParserDOFDecl const &);
       void registerDOF(ParserDOFDecl const &);
+      void registerVariable(ParserAssignExpr const &);
       void registerPath(std::string const &name, std::list<std::string> const &);
       void pushFrame(RecipeContextType, std::string const &name, ParserAssignList const & );
       void pushOnPort(std::string const &name, std::string const &port);

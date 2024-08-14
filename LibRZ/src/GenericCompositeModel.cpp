@@ -165,6 +165,22 @@ GenericComponentParamEvaluator::assign()
         translation->recalculate();
         break;
     }
+
+    // This has some storage (it is exposed as a variable somehow), update
+    // contents accordingly
+    if (storage != nullptr) {
+      if (!storage->test(value)) {
+        RZWarning(
+          "Cannot assign `%s': evaluated expression is out of bounds\n",
+          param.c_str());
+      } else {
+        storage->value = value;
+        // Storage changed, assign recursively
+
+        for (auto p : storage->dependencies)
+          p->assign();
+      }
+    }
   } else {
     switch (type) {
       case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
@@ -756,7 +772,9 @@ GenericCompositeModel::makeExpression(
     
     m_expressions.push_back(paramEvaluator);
 
-    // Update dependencies
+    // Update dependencies. For each parameter or variable this depends on,
+    // we push the new expression as a dependency. Each time any of these
+    // parameters is changed, the expression must be re-evaluated.
     auto deps = evaluator->dependencies();
 
     for (auto dep : deps) {
@@ -771,69 +789,32 @@ GenericCompositeModel::makeExpression(
 
 void
 GenericCompositeModel::createLocalExpressions(
-    GenericEvaluatorSymbolDict &global,
+    GenericEvaluatorSymbolDict &prev,
     RecipeContext *localFrame)
 {
-  GenericEvaluatorSymbolDict local = global;
+  GenericEvaluatorSymbolDict local = prev;
 
   // For each local frame, we need to do:
-  //  1. Create parameters for element and frame parameters
-  //  2. Populate the local symtab
-  //  3. Make expressions
+  //  1. Make expressions for the parameters of this context
+  //  2. Add these parameters to the local symtab
+  //  3. Create expressions for local variables and add them to local symtab
+  //  4. Make expressions for the element parameters inside this context
 
   std::string globalPrefix = m_prefix + localFrame->currNS();
 
-  ///////////////////////////// SYMTAB CREATION //////////////////////////////
-  // Expose frame parameters
+  ///////////////////////// CREATE FRAME EXPRESSIONS ///////////////////////////
+  // Make them and expose their storage.
   for (auto p : localFrame->params) {
-    auto name        = p.second->parameter;
-    auto fullName    = globalPrefix + "." + name;
-    
-    auto genP        = allocateParam();
-    genP->value      = 0;
-    
-    global[fullName] = genP;
-    local[name]      = genP;
-  }
+    auto name     = p.first;
+    auto genP     = allocateParam();
+    genP->value   = 0;
 
-  // Expose element parameters
-  for (auto elem : localFrame->elements) {
-    for (auto p : elem->params) {
-      auto name     = elem->name + "." + p.second->parameter;
-      auto fullName = globalPrefix + "." + name;
-      
-      auto genP     = allocateParam();
-      genP->value   = 0;
+    local[name]   = genP;
 
-      global[fullName] = genP;
-      local[name]      = genP;
-    }
-  }
-
-  /////////////////////////// EXPRESSION CREATION ////////////////////////////
-  // Make expressions.
-  for (auto elem : localFrame->elements) {
-    unsigned int count = 0;
-
-    for (auto p : elem->positionalParams) {
-      auto expr         = makeExpression(p->expression, &local);
-      expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;
-      expr->description = p;
-      expr->position    = count++;
-      expr->element     = m_elements[expr->description->s_target];
-    }
-
-    for (auto p : elem->params) {
-      auto expr         = makeExpression(p.second->expression, &local);
-      expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;
-      expr->description = p.second;
-      expr->element     = m_elements[expr->description->s_target];
-    }
-  }
-
-  for (auto p : localFrame->params) {
     auto expr = makeExpression(p.second->expression, &local);
+
     expr->description = p.second;
+    expr->storage     = genP;
 
     switch (localFrame->type) {
       case RECIPE_CONTEXT_TYPE_ROOT:
@@ -855,6 +836,45 @@ GenericCompositeModel::createLocalExpressions(
         break;
     }
   }
+  
+  /////////////////////////// CREATE LOCAL VARIABLES ///////////////////////////
+  // This are created to abbreviate certain expressions used along the model
+  for (auto p : localFrame->variables) {
+    auto name         = p.first;
+    auto genP         = allocateParam();
+
+    genP->value       = 0;
+
+    local[name]       = genP;
+    auto expr         = makeExpression(p.second->expression, &local);
+    expr->type        = GENERIC_MODEL_PARAM_TYPE_VARIABLE;
+    expr->description = p.second;
+    expr->storage     = genP;
+  }
+
+  /////////////////////////// CREATE PARAM EXPRESSIONS /////////////////////////
+  // Parameters are set but not stored anywhere.
+  for (auto elem : localFrame->elements) {
+    unsigned int count = 0;
+
+    for (auto p : elem->positionalParams) {
+      auto expr         = makeExpression(p->expression, &local);
+      expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;
+      expr->description = p;
+      expr->position    = count++;
+      expr->element     = m_elements[expr->description->s_target];
+    }
+
+    for (auto p : elem->params) {
+      auto expr         = makeExpression(p.second->expression, &local);
+      expr->type        = GENERIC_MODEL_PARAM_TYPE_ELEMENT;
+      expr->description = p.second;
+      expr->element     = m_elements[expr->description->s_target];
+    }
+  }
+
+  for (auto ctx : localFrame->contexts)
+    createLocalExpressions(local, ctx);
 }
 
 GenericEvaluatorSymbolDict const &
@@ -893,17 +913,13 @@ GenericCompositeModel::initGlobalScope()
 
     m_global[name] = mPar;
   }
-
 }
 
 void
 GenericCompositeModel::createExpressions()
 {
-  auto ctx = m_recipe->contexts();
-
-  // Context by context, create expressions
-  for (auto p : ctx)
-    createLocalExpressions(m_global, p);
+  // Create local expressions recursively
+  createLocalExpressions(m_global, m_recipe->rootContext());
 }
 
 bool

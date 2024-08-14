@@ -11,7 +11,7 @@
 %token  NUM         "number"
 %token  IDENTIFIER  "identifier"
 %token  STRING      "string"
-%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD SCRIPT_KEYWORD
+%token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD SCRIPT_KEYWORD VAR_KEYWORD
 %nterm  expr
 
 %precedence '='
@@ -37,6 +37,7 @@ statement:
   | port_stmt
   | import_stmt
   | script_stmt
+  | var_stmt
   | compound_stmt       
   | element_def_stmt
   | error               { YYERROR; }
@@ -113,6 +114,10 @@ path_stmt:                                        // ACTION: register path
 path_list:                                        // Type: string list
     IDENTIFIER                        { $$ = ctx->pathList($1); }
   | path_list TO_KEYWORD IDENTIFIER   { $1.strList().push_back($3); $$ = $1; }
+  ;
+
+var_stmt: 
+            VAR_KEYWORD assign_expr    { ctx->registerVariable($2); }
   ;
 
 dof_stmt:                                         // ACTION: register dof or parameter

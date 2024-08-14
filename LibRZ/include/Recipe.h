@@ -80,6 +80,7 @@ namespace RZ {
     std::list<RecipeContext *>     contexts;
     std::list<RecipeElementStep *> elements;
     
+    std::map<std::string, ParamAssignExpression *> variables;
     std::map<std::string, ParamAssignExpression *> params;
 
     int s_index = -1;
@@ -135,7 +136,8 @@ namespace RZ {
 
       std::vector<ParamAssignExpression *> m_elemParameters;  // Tracks how to configure elements
       std::vector<ParamAssignExpression *> m_frameParameters; // Tracks how to configure frames
-      
+      std::vector<ParamAssignExpression *> m_variables;       // Tracks how to update variables
+
       std::map<std::string, RecipeContext *>     m_frames;
       std::map<std::string, RecipeElementStep *> m_elements;
       std::map<std::string, Recipe *>            m_customElements; // Tracks composite elements
@@ -172,6 +174,11 @@ namespace RZ {
         std::string const &name,
         std::string const &expression);
       
+      ParamAssignExpression *makeVariable(
+        RecipeContext *ctx,
+        std::string const &name,
+        std::string const &expression);
+
       void push(RecipeContext *ctx);
 
     public:
@@ -191,7 +198,15 @@ namespace RZ {
         return m_searchPaths;
       }
       
+      inline RecipeContext *
+      currentContext() const
+      {
+        return m_currContext;
+      }
+
       Recipe *parent() const;
+
+      RecipeContext *rootContext() const;
       std::vector<RecipeContext *> const &contexts() const;
       std::vector<RecipeElementStep *> const &elements() const;
       std::vector<RecipeOpticalPath *> const &paths() const;
@@ -209,7 +224,8 @@ namespace RZ {
       
       bool addScript(std::string const &scriptPath);
       void pushSearchPath(std::string const &path);
-
+      void pushVariable(std::string const &name, std::string const &value);
+      
       void pushRotation(
         std::string const &angle,
         std::string const &eX,

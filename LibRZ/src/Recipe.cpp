@@ -157,6 +157,9 @@ Recipe::~Recipe()
   for (auto p : m_frameParameters)
     delete p;
 
+  for (auto p : m_variables)
+    delete p;
+  
   for (auto p: m_subRecipes)
     delete p;
 }
@@ -306,15 +309,19 @@ Recipe::makeContext(RecipeContext *parent)
 
   m_contexts.resize(index + 1);
 
-  m_contexts[index] = new RecipeContext();
-  m_contexts[index]->s_index = index;
-  m_contexts[index]->parent = parent;
-
-  // Keep track of the current namespace
-  if (parent != nullptr)
-    m_contexts[index]->parentNS = parent->currNS();
+  auto newCtx = new RecipeContext();
+  m_contexts[index] = newCtx;
   
-  return m_contexts[index];
+  newCtx->s_index = index;
+  newCtx->parent = parent;
+
+  // Keep track of the current namespace and the context hierarchy
+  if (parent != nullptr) {
+    newCtx->parentNS = parent->currNS();
+    parent->contexts.push_back(newCtx);
+  }
+
+  return newCtx;
 }
 
 RecipeElementStep *
@@ -395,7 +402,7 @@ Recipe::makeReferenceFrameParameter(
   int index = static_cast<int>(m_frameParameters.size());
   m_frameParameters.resize(index + 1);
 
-  auto curr = new ParamAssignExpression();
+  auto curr        = new ParamAssignExpression();
   curr->parameter  = name;
   curr->expression = expression;
   curr->parent     = m_currContext;
@@ -403,7 +410,29 @@ Recipe::makeReferenceFrameParameter(
   curr->s_target   = ctx->s_index;
 
   m_frameParameters[index] = curr;
-  ctx->params[name] = curr;
+  ctx->params[name]        = curr;
+  
+  return curr;
+}
+
+ParamAssignExpression *
+Recipe::makeVariable(
+        RecipeContext *ctx,
+        std::string const &name,
+        std::string const &expression)
+{
+  int index = static_cast<int>(m_variables.size());
+  m_variables.resize(index + 1);
+
+  auto curr = new ParamAssignExpression();
+  curr->parameter  = name;
+  curr->expression = expression;
+  curr->parent     = m_currContext;
+  curr->s_index    = index;
+  curr->s_target   = ctx->s_index;
+
+  m_variables[index]   = curr;
+  ctx->variables[name] = curr;
   
   return curr;
 }
@@ -423,6 +452,12 @@ Recipe::push(RecipeContext *ctx)
   }
 
   m_currContext = ctx;
+}
+
+RecipeContext *
+Recipe::rootContext() const
+{
+  return m_rootContext;
 }
 
 std::vector<RecipeContext *> const &
@@ -463,6 +498,16 @@ Recipe::pushRotation(
   makeReferenceFrameParameter(context, "eZ",    eZ);
 
   push(context);
+}
+
+void
+Recipe::pushVariable(std::string const &name, std::string const &value)
+{
+  if (m_currContext->variables.find(name) != m_currContext->variables.end())
+    throw std::runtime_error(
+      "Variable `" + name + "' redefined in this context\n");
+
+  makeVariable(m_currContext, name, value);
 }
 
 void

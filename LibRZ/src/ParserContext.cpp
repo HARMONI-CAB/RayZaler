@@ -164,6 +164,12 @@ ParserContext::getChar()
   return m_last;
 }
 
+void
+ParserContext::registerVariable(ParserAssignExpr const &expr)
+{
+  m_recipe->pushVariable(expr.first, expr.second);
+}
+
 bool
 ParserContext::returnChar()
 {
@@ -355,6 +361,8 @@ ParserContext::tokenType() const
       return IMPORT_KEYWORD;
     else if (m_lastToken == "script")
       return SCRIPT_KEYWORD;
+    else if (m_lastToken == "var")
+      return VAR_KEYWORD;
     else
       return IDENTIFIER;
   } else if (isOperatorChar(m_lastToken[0])) {
