@@ -825,6 +825,8 @@ MainWindow::onTreeItemSelectionChanged()
     m_currSession->selectElement(selectedElement);
     widget->setSelectedReferenceFrame(selectedFrame, name);
     widget->setSelectedOpticalPath(selectedPath);
+
+    m_currentIndex = index;
   }
 
   refreshCurrentElement();
@@ -849,8 +851,11 @@ MainWindow::onChangeDisplay()
 void
 MainWindow::onToggleCurrent()
 {
-  if (m_currSession != nullptr)
+  if (m_currSession != nullptr) {
+    if (m_currSession->getSelectedElement() != nullptr)
+      m_omModel->notifyIndexChanged(m_currentIndex);
     m_currSession->toggleCurrent();
+  }
 }
 
 void

@@ -5,6 +5,7 @@
 #include <list>
 #include <QMap>
 #include <Logger.h>
+#include <QModelIndex>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   PropertyAndDofTableModel   *m_propModel           = nullptr;
   ElementPropertyModel       *m_compPropModel       = nullptr;
   OMTreeModel                *m_omModel             = nullptr;
+  QModelIndex                 m_currentIndex;
   AboutDialog                *m_aboutDialog         = nullptr;
   ExportViewDialog           *m_exportViewDialog    = nullptr;
 

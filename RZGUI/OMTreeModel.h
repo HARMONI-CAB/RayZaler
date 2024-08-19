@@ -50,7 +50,7 @@ struct OMTreeItem {
     || type == OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT
     || type == OM_TREE_ITEM_TYPE_DETECTOR;
   }
-  
+
   OMTreeItem *
   child(int ndx)
   {
@@ -91,7 +91,9 @@ class OMTreeModel : public QAbstractItemModel
 {
   Q_OBJECT
     QMap<QString, QPixmap>  m_icons;
+    QMap<const RZ::Element *, std::list<QModelIndex>> m_elements;
     std::list<OMTreeItem *> m_itemAlloc;
+    
     OMTreeItem *m_root     = nullptr;
     RZ::OMModel *m_model   = nullptr;
 
@@ -118,6 +120,8 @@ class OMTreeModel : public QAbstractItemModel
     QModelIndex parent(const QModelIndex &index) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    
+    void notifyIndexChanged(const QModelIndex &);
 };
 
 #endif // OMTREEMODEL_H

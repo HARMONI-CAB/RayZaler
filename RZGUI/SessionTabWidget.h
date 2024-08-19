@@ -22,9 +22,9 @@ class SessionTabWidget : public QWidget
 {
   Q_OBJECT
 
-  SimulationSession        *m_session;  // Borrowed
-  RZGUIGLWidget            *m_glWidget; // Borrowed
-  DetectorWindow           *m_detWindow = nullptr; // Owned
+  SimulationSession        *m_session;                  // Borrowed
+  RZGUIGLWidget            *m_glWidget;                 // Borrowed
+  DetectorWindow           *m_detWindow = nullptr;      // Owned
   SimulationProgressDialog *m_progressDialog = nullptr; // Owned
   SourceEditorWindow       *m_sourceEditorWindow  = nullptr;
   const RZ::ReferenceFrame *m_selectedFrame       = nullptr;
@@ -75,7 +75,7 @@ public:
 
   void setSelectedReferenceFrame(RZ::ReferenceFrame *, const char * = nullptr);
   void setSelectedOpticalPath(const RZ::OpticalPath *);
-
+  
   void setGridStep(qreal);
   void setGridDivs(unsigned);
 

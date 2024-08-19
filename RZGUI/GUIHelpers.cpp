@@ -185,18 +185,17 @@ void
 grayOutPixmap(QPixmap &dest, QPixmap const &pixmap)
 {
   QImage image = pixmap.toImage();
-
+  
   for (int x = 0; x < image.width(); ++x) {
-    for (int y=0; y<image.height(); ++y) {
-      QColor colour(image.pixel(x,y));
+    for (int y = 0; y < image.height(); ++y) {
+      QColor color = QColor::fromRgba(image.pixel(x, y));
 
-      int m = colour.red() + colour.green() + colour.blue();
-      int alpha = colour.alpha() / 2;
+      int m = color.red() + color.green() + color.blue();
 
       m /= 3;
-      
-      colour.setRgb(m, m, m, alpha);
-      image.setPixel(x, y, colour.rgba());
+
+      color.setRgba(qRgba(m, m, m, color.alpha() / 2));
+      image.setPixelColor(x, y, color);
     } 
   }
 

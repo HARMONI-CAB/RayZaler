@@ -298,7 +298,8 @@ OMTreeModel::index(int row, int column, const QModelIndex &parent) const
     return QModelIndex();
 }
 
-QModelIndex OMTreeModel::parent(const QModelIndex &index) const
+QModelIndex
+OMTreeModel::parent(const QModelIndex &index) const
 {
     if (m_root == nullptr || !index.isValid())
         return QModelIndex();
@@ -312,7 +313,8 @@ QModelIndex OMTreeModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->row(), 0, parentItem);
 }
 
-int OMTreeModel::rowCount(const QModelIndex &parent) const
+int
+OMTreeModel::rowCount(const QModelIndex &parent) const
 {
     OMTreeItem *parentItem;
     if (m_root == nullptr || parent.column() > 0)
@@ -326,7 +328,8 @@ int OMTreeModel::rowCount(const QModelIndex &parent) const
     return parentItem->childCount();
 }
 
-int OMTreeModel::columnCount(const QModelIndex &parent) const
+int
+OMTreeModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid())
         return static_cast<OMTreeItem*>(parent.internalPointer())->columnCount();
@@ -334,6 +337,12 @@ int OMTreeModel::columnCount(const QModelIndex &parent) const
       return m_root->columnCount();
 
     return 0;
+}
+
+void
+OMTreeModel::notifyIndexChanged(const QModelIndex &curr)
+{
+  emit dataChanged(index(curr.row(), 0), index(curr.row(), columnCount(curr)));
 }
 
 OMTreeItem *
@@ -347,7 +356,8 @@ OMTreeModel::itemFromIndex(const QModelIndex &index) const
   return item;
 }
 
-QVariant OMTreeModel::data(const QModelIndex &index, int role) const
+QVariant
+OMTreeModel::data(const QModelIndex &index, int role) const
 {
   if (m_root == nullptr)
     return QVariant();
