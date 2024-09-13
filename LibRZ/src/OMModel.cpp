@@ -850,48 +850,6 @@ OMModel::setBeamColoring(RayColoring const *coloring)
   m_beam->setRayColoring(coloring);
 }
 
-struct UniformCircleSampler {
-  Real radius, R2;
-  Real dh;
-  Real x0, y0, y;
-  unsigned int j;
-
-  inline void setSampling(Real R, unsigned N);
-  inline bool sample(Vec3 &dest, Matrix3 const &sys, Vec3 const &center);
-};
-
-void
-UniformCircleSampler::setSampling(Real R, unsigned N)
-{
-  R2      = R * R;
-  radius  = R;
-  Real dA = (M_PI * R2) / N;
-  dh      = sqrt(dA);
-  x0      = -dh * floor(2 * radius / dh) / 2;
-  y0      = -dh * (floor(sqrt((R2 - x0 * x0)) / dh * 2) / 2);
-  j = 0;
-}
-
-bool
-UniformCircleSampler::sample(Vec3 &dest, Matrix3 const &sys, Vec3 const &center)
-{
-  y = y0 + j++ * dh;
-
-  if (y > fabs(y0)) {
-    x0 += dh;
-    if (x0 > radius)
-      return false;
-    
-    y0  = -dh * (floor(sqrt((R2 - x0 * x0)) / dh - .5) + .5);
-    y   = y0;
-    j   = 0;
-  }
-
-  dest = x0 * sys.row.vx + y * sys.row.vy + center;
-
-  return true;
-}
-
 void
 OMModel::addSkyBeam(
   std::list<Ray> &dest,
@@ -903,34 +861,21 @@ OMModel::addSkyBeam(
   uint32_t id,
   bool random)
 {
-  Matrix3 starSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
-  Vec3 sourceCenter = distance * starSys.row.vz;
-  Vec3 direction    = -starSys.row.vz;
-  Ray  ray;
-  UniformCircleSampler uSamp;
-  Vec3 source;
+  BeamProperties prop;
 
-  if (!random)
-    uSamp.setSampling(radius, number);
-  
-  for (auto i = 0; i < number || !random; ++i) {
-    if (random) {
-      Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-      Real angle    = RZ_URANDSIGN * M_PI;
-      source        = sep * (cos(angle) * starSys.row.vx + sin(angle) * starSys.row.vy) + sourceCenter;
-    } else {
-      if (!uSamp.sample(source, starSys, sourceCenter))
-        break;
-    }
+  prop.numRays   = number;
+  prop.diameter  = 2 * radius;
+  prop.direction = -Matrix3::azel(deg2rad(azimuth), deg2rad(elevation)).vz();
 
-    ray.origin    = source;
-    ray.direction = direction;
-    ray.length    = distance;
-    ray.id        = id;
-    
-    dest.push_back(ray);
-  }
+  prop.length    = distance;
+  prop.id        = id;
+  prop.random    = random;
+
+  prop.collimate();
+
+  addBeam(dest, prop);
 }
+
 void
 OMModel::addElementRelativeBeam(
   std::list<Ray> &dest,
@@ -945,59 +890,45 @@ OMModel::addElementRelativeBeam(
   uint32_t id,
   bool random)
 {
-  const ReferenceFrame *frame;
+  BeamProperties prop;
 
-  if (element->hasProperty("optical")) {
-    OpticalElement *optEl = static_cast<OpticalElement *>(element);
-    frame = optEl->opticalPath().m_sequence.begin()->frame;
-  } else {
-     frame = element->parentFrame();
-  }
-  Matrix3 elOrient  = frame->getOrientation().t();
-  Vec3    elCenter  = frame->getCenter();
-  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
-  Matrix3 orient    = beamSys.t();
-  UniformCircleSampler uSamp;
-  Vec3 source;
+  prop.setElementRelative(element);
+  prop.numRays   = number;
+  prop.diameter  = 2 * radius;
+  prop.direction = -Matrix3::azel(deg2rad(azimuth), deg2rad(elevation)).vz();
+  prop.offset    = Vec3(offX, offY, 0);
+  prop.length    = distance;
+  prop.id        = id;
+  prop.random    = random;
 
-  if (!random)
-    uSamp.setSampling(radius, number);
-
-  Vec3 sourceCenter = 
-      distance * beamSys.row.vz
-    + offX * elOrient.row.vx
-    + offY * elOrient.row.vy
-    + elCenter;
-
-  Vec3 direction  = -beamSys.row.vz;
-  Ray  ray;
-
-  for (auto i = 0; i < number || !random; ++i) {
-    if (random) {
-      Real sep      = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-      Real angle    = RZ_URANDSIGN * M_PI;
-      source        = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy) + sourceCenter;
-    } else {
-      if (!uSamp.sample(source, beamSys, sourceCenter))
-        break;
-    }
-
-    ray.origin    = source;
-    ray.direction = direction;
-    ray.length    = distance;
-    ray.id        = id;
-    dest.push_back(ray);
-  }
+  prop.collimate();
+  
+  addBeam(dest, prop);
 }
 
+//
+// When I coded this, I didn't realize how awful this definition would be. I keep
+// this only for compatibility purposes, but I will remove it before I write
+// the documentation for this file. The rough idea was as follows:
+//
+// 1. Here, radius refers to "how wide" is the radius of the beam at the
+//    arrival point.
+// 2. fNum is only used to calculate a focal length w.r.t certain reference
+//    aperture.
+// 3. From this focal length, I calculate the focal point.
+// 4. I sample the destination plane (???)
+// 5. I deduce the ray origins from the focus and the sampling of the destination plane.
+//
+// Nope, not keeping this behavior. Sorry.
+//
 void
 OMModel::addElementRelativeFocusBeam(
     std::list<Ray> &dest,
     Element *element,
     unsigned int number,
-    Real radius,
+    Real radius, // Ignored
     Real fNum,
-    Real refAperture,
+    Real refAperture, // Ignored. Oh my God.
     Real azimuth,
     Real elevation,
     Real offX,
@@ -1006,57 +937,22 @@ OMModel::addElementRelativeFocusBeam(
     uint32_t id,
     bool random)
 {
-  const ReferenceFrame *frame;
-  Real focalLength = refAperture * fNum;
+  BeamProperties prop;
 
-  if (element->hasProperty("optical")) {
-    OpticalElement *optEl = static_cast<OpticalElement *>(element);
-    frame = optEl->opticalPath().m_sequence.begin()->frame;
-  } else {
-    frame = element->parentFrame();
-  }
+  prop.setElementRelative(element);
+  prop.converging = fNum > 0;
+  prop.numRays    = number;
 
-  Matrix3 elOrient  = frame->getOrientation().t();
-  Vec3    elCenter  = frame->getCenter();
-  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
-  Matrix3 orient    = beamSys.t();
+  prop.direction  = -Matrix3::azel(deg2rad(azimuth), deg2rad(elevation)).vz();
+  prop.offset     = Vec3(offX, offY, 0);
+  prop.length     = distance;
+  prop.id         = id;
+  prop.random     = random;
 
-  Vec3 sourceCenter = 
-    + offX * elOrient.row.vx
-    + offY * elOrient.row.vy
-    + elCenter;
+  // Adjust beam diameter to attain this fNum
+  prop.setFNum(fabs(fNum), RZ::BeamDiameter);
 
-  Vec3 focus      = elCenter + -focalLength * beamSys.row.vz;
-  Ray  ray;
-  UniformCircleSampler uSamp;
-
-  if (!random)
-    uSamp.setSampling(radius, number);
-
-  for (auto i = 0; i < number || !random; ++i) {
-    Vec3 arrival;
-    if (random) {
-      Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-      Real angle     = RZ_URANDSIGN * M_PI;
-      arrival   = elCenter + sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
-    } else {
-      if (!uSamp.sample(arrival, beamSys, elCenter))
-        break;
-    }
-
-    Vec3 direction = (focus - arrival).normalized();
-
-    if (fNum < 0)
-      direction = -direction;
-
-    Vec3 source   = -direction * distance + arrival;
-    
-    ray.origin    = source;
-    ray.direction = direction;
-    ray.length    = distance;
-    ray.id        = id;
-    dest.push_back(ray);
-  }
+  addBeam(dest, prop);
 }
 
 void
@@ -1074,51 +970,22 @@ OMModel::addFocalPlaneFocusedBeam(
     bool random,
     Real offZ)
 {
-  Matrix3 elOrient  = frame->getOrientation().t();
-  Vec3    elCenter  = frame->getCenter();
-  Matrix3 beamSys   = Matrix3::azel(deg2rad(azimuth), deg2rad(elevation));
-  Matrix3 orient    = beamSys.t();
-  Real    radius    = .5 * distance / fabs(fNum);
-  UniformCircleSampler uSamp;
-  Vec3 displ;
+  BeamProperties prop;
 
-  if (!random)
-    uSamp.setSampling(radius, number);
-    
-  Vec3 focusLocation = 
-    + offX * elOrient.row.vx
-    + offY * elOrient.row.vy
-    + offZ * elOrient.row.vz
-    + elCenter;
+  prop.setPlaneRelative(frame);
+  prop.converging = fNum > 0;
+  prop.numRays    = number;
 
-  Ray  ray;
+  prop.direction  = -Matrix3::azel(deg2rad(azimuth), deg2rad(elevation)).vz();
+  prop.offset     = Vec3(offX, offY, offZ);
+  prop.length     = distance;
+  prop.id         = id;
+  prop.random     = random;
 
-  for (auto i = 0; i < number || !random; ++i) {
-    if (random) {
-      Real sep       = radius * sqrt(.5 * (1 + RZ_URANDSIGN));
-      Real angle     = RZ_URANDSIGN * M_PI;
-      displ     = sep * (cos(angle) * beamSys.row.vx + sin(angle) * beamSys.row.vy);
-    } else {
-      if (!uSamp.sample(displ, beamSys, Vec3::zero()))
-        break;
-    }
+  // Adjust beam diameter to attain this fNum
+  prop.setFNum(fabs(fNum), RZ::BeamDiameter);
 
-    Vec3 origin;
-
-    if (fNum > 0)
-      origin    = focusLocation + displ + distance * beamSys.row.vz;
-    else
-      // Negative fNum: converging ray from below
-      origin    = focusLocation + displ - distance * beamSys.row.vz;  
-
-    Vec3 direction = (focusLocation - origin).normalized();
-
-    ray.origin     = origin;
-    ray.direction  = direction;
-    ray.length     = distance;
-    ray.id        = id;
-    dest.push_back(ray);
-  }
+  addBeam(dest, prop);
 }
 
 void
@@ -1154,6 +1021,7 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   const ReferenceFrame *frame = nullptr;
   Sampler *raySampler = nullptr;
   WorldFrame worldFrame("sky");
+  const OpticalElement *optEl;
 
   switch (properties.reference) {
     case SkyRelative:
@@ -1163,7 +1031,13 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
     case ElementRelative:
       if (properties.element == nullptr)
         throw std::runtime_error("No element defined in property structure");
-      frame = properties.element->parentFrame();
+
+      if (properties.element->hasProperty("optical")) {
+        optEl = static_cast<const OpticalElement *>(properties.element);
+        frame = optEl->opticalPath().m_sequence.begin()->frame;
+      } else {
+        frame = properties.element->parentFrame();
+      }
       break;
 
     case PlaneRelative:

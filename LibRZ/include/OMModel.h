@@ -119,14 +119,14 @@ namespace RZ {
     }
 
     inline void
-    setElementRelative(Element *element)
+    setElementRelative(const Element *element)
     {
       reference     = ElementRelative;
       this->element = element;
     }
 
     inline void
-    setPlaneRelative(ReferenceFrame *frame)
+    setPlaneRelative(const ReferenceFrame *frame)
     {
       reference     = PlaneRelative;
       this->frame   = frame;
