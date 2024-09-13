@@ -101,6 +101,7 @@ namespace RZ {
   class ElementFactory;
 
   class GenericCompositeModel {
+      std::string                   m_givenName = "(no name)";
       OMModel                      *m_model = nullptr;           // Borrowed
       Recipe                       *m_recipe = nullptr;          // Borrowed
       Element                      *m_parent = nullptr;          // Borrowed
@@ -167,6 +168,7 @@ namespace RZ {
     protected:
       GenericModelParam *allocateParam();
       GenericEvaluatorSymbolDict const &symbolDict() const;
+      void setName(std::string const &);
 
       // Interface methods
       virtual void registerDof(

@@ -88,7 +88,10 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Apertures/Parabolic.cpp
   ${LIBRZ_SRCDIR}/Apertures/Rectangular.cpp
   ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
-  )
+
+  ${LIBRZ_SRCDIR}/Samplers/Circular.cpp
+  ${LIBRZ_SRCDIR}/Samplers/Ring.cpp
+  ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp)
 
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ApertureStop.h
@@ -162,7 +165,11 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Apertures/Circular.h
   ${LIBRZ_INCLUDEDIR}/Apertures/Parabolic.h
   ${LIBRZ_INCLUDEDIR}/Apertures/Rectangular.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h)
+  ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h
+  
+  ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h
+  ${LIBRZ_INCLUDEDIR}/Samplers/Ring.h
+  ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES

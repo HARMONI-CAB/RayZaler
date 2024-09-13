@@ -25,6 +25,8 @@
 #include <Logger.h>
 #include <sys/time.h>
 #include <GenericAperture.h>
+#include <Samplers/Circular.h>
+#include <Samplers/Ring.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
@@ -1069,7 +1071,8 @@ OMModel::addFocalPlaneFocusedBeam(
     Real offY,
     Real distance,
     uint32_t id,
-  bool random)
+    bool random,
+    Real offZ)
 {
   Matrix3 elOrient  = frame->getOrientation().t();
   Vec3    elCenter  = frame->getCenter();
@@ -1085,6 +1088,7 @@ OMModel::addFocalPlaneFocusedBeam(
   Vec3 focusLocation = 
     + offX * elOrient.row.vx
     + offY * elOrient.row.vy
+    + offZ * elOrient.row.vz
     + elCenter;
 
   Ray  ray;
@@ -1142,4 +1146,125 @@ OMModel::~OMModel()
 
   for (auto element : m_elements)
     delete element;
+}
+
+void
+OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
+{
+  const ReferenceFrame *frame = nullptr;
+  Sampler *raySampler = nullptr;
+  WorldFrame worldFrame("sky");
+
+  switch (properties.reference) {
+    case SkyRelative:
+      frame = &worldFrame;
+      break;
+
+    case ElementRelative:
+      if (properties.element == nullptr)
+        throw std::runtime_error("No element defined in property structure");
+      frame = properties.element->parentFrame();
+      break;
+
+    case PlaneRelative:
+      if (properties.frame == nullptr)
+        throw std::runtime_error("No frame defined in property structure");
+      frame = properties.frame;
+      break;
+
+    default:
+      throw std::runtime_error("Invalid beam reference");
+  }
+
+  // Direction at which rays arrive
+  Vec3 direction = frame->fromRelativeVec(properties.direction);
+
+  // Point towards which rays are casted
+  Vec3 center    = frame->fromRelative(properties.offset);
+
+  // Point from which the rays are casted
+  Vec3 origin    = center - direction * properties.length;
+
+  // In order to sample points across the section of the beam, we need to
+  // compose a 2D system that is perpendicular to the direction of the rays
+  // and that is centered in the origin.
+  //
+  // We can achieve this by the following strategy:
+  //   - Choose eV from (eX, eY) so that its projection with the direction vector is the smallest
+  //   - Calculate eX' = direction x eV
+  //   - Calculate eY' = eX' x direction
+  //
+  Vec3 eV = fabs(direction * frame->eX()) < fabs(direction * frame->eY())
+            ? frame->eX()
+            : frame->eY();
+  Vec3 eXp = direction.cross(eV);
+  Vec3 eYp = eXp.cross(direction);
+  Matrix3 system = Matrix3(eXp, eYp, direction).t();
+
+  switch (properties.shape) {
+    case Circular:
+      raySampler = new CircularSampler();
+      break;
+
+    case Ring:
+      raySampler = new RingSampler();
+      break;
+
+    default:
+      throw std::runtime_error("Invalid beam shape");
+  }
+
+  raySampler->setRadius(.5 * properties.diameter);
+  raySampler->setRandom(properties.random);
+
+  if (!raySampler->sample(properties.numRays)) {
+    delete raySampler;
+    throw std::runtime_error("Failed to acquire points: beam sampler failed");
+  }
+
+  Ray ray;
+  Vec3 coord;
+  ray.id = properties.id;
+  
+  if (std::isinf(properties.focusZ)) {
+    // Collimated beams are easy to calculate. Just throw some rays parallel
+    // to the chief ray.
+    while (raySampler->get(coord)) {
+      ray.origin    = system * coord + origin;
+      ray.direction = direction;
+      dest.push_back(ray);
+    }
+  } else {
+    // Focused beams are a bit trickier, as they have this focus term
+    // that determines the vertex at which free rays (i.e. with no obstacles)
+    // would converge. There are two cases here:
+
+    // - Converging beams depart from origin to center, and the focus is in
+    //   [length] meters from origin, in positive chief ray direction
+
+    // - Diverging beams depart from origin to center, and the focus is in
+    //   [length] meters from origin, in negative chief ray direction
+
+    if (properties.converging) {
+      Vec3 focus     = origin + direction * (properties.length + properties.focusZ);
+
+      while (raySampler->get(coord)) {
+        ray.origin    = system * coord + origin;
+        ray.direction = (focus - ray.origin).normalized();
+        dest.push_back(ray);
+      }
+    } else {
+      Vec3 focus     = origin - direction * (properties.length + properties.focusZ);
+
+      while (raySampler->get(coord)) {
+        ray.origin    = system * coord + origin;
+        ray.direction = (ray.origin - focus).normalized();
+        dest.push_back(ray);
+      }
+    }
+  }
+  
+done:
+  if (raySampler != nullptr)
+    delete raySampler;
 }

@@ -167,8 +167,8 @@ TopLevelModel::fromFile(
 {
   std::string exceptionString;
   TopLevelModel *tlModel = nullptr;
-
   Recipe *recipe = new Recipe();
+
   recipe->addDof("t", 0, 0, 1e6);
 
   FileParserContext *ctx = new FileParserContext(recipe);
@@ -198,6 +198,7 @@ TopLevelModel::fromFile(
 
   try {
     tlModel = new TopLevelModel(recipe);
+    tlModel->setName(path);
   } catch (std::runtime_error const &e) {
     exceptionString = e.what();
   }

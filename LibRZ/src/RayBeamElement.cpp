@@ -53,7 +53,11 @@ void
 PaletteBasedColoring::setColor(uint32_t id, Real r, Real g, Real b)
 {
   CrappyCplusplusColorWrapper wrapper;
-  GLfloat rgb[3] = {r, g, b};
+  GLfloat rgb[3] = {
+    static_cast<GLfloat>(r),
+    static_cast<GLfloat>(g),
+    static_cast<GLfloat>(b)
+  };
 
   memcpy(wrapper.rgb, rgb, sizeof(rgb));
 

@@ -66,6 +66,73 @@ namespace RZ {
     }
   };
 
+  enum BeamReference {
+    SkyRelative,
+    ElementRelative,
+    PlaneRelative
+  };
+
+  enum BeamShape {
+    Circular,
+    Ring
+  };
+
+  enum FNumReference {
+    BeamDiameter,
+    BeamLength,
+  };
+
+  struct BeamProperties {
+    uint32_t id              = 0;
+    BeamReference reference  = SkyRelative;
+    BeamShape     shape      = Circular;
+    bool          converging = true;
+
+    union {
+      const ReferenceFrame *frame = nullptr;
+      const Element *element;
+    };
+
+    Real length              = 10;           // [m]
+    Real diameter            = .5;           // [m]
+    unsigned int numRays     = 1000;
+    bool random              = false;
+    Vec3 direction           = -Vec3::eZ();  // [1]
+    Vec3 offset              = Vec3::zero(); // [m]
+    Real focusZ              = 0;            // [m]
+    // 
+    // fNum = length / D
+    //
+    inline void
+    setFNum(Real fNum, FNumReference adjust = BeamDiameter)
+    {
+      if (adjust == BeamDiameter)
+        diameter = length / fNum; 
+      else
+        length   = diameter * fNum;
+    }
+
+    inline void
+    collimate()
+    {
+      focusZ = -std::numeric_limits<Real>::infinity();
+    }
+
+    inline void
+    setElementRelative(Element *element)
+    {
+      reference     = ElementRelative;
+      this->element = element;
+    }
+
+    inline void
+    setPlaneRelative(ReferenceFrame *frame)
+    {
+      reference     = PlaneRelative;
+      this->frame   = frame;
+    }
+  };
+
   class OMModel {
       std::list<ReferenceFrame *> m_frames;                  // Frame allocation
       std::map<std::string, ReferenceFrame *> m_nameToFrame; // Frame indexation
@@ -311,7 +378,10 @@ namespace RZ {
         Real offY = 0,
         Real distance = 10,
         uint32_t id = 0,
-        bool random = true);
+        bool random = true,
+        Real offZ = 0);
+
+      static void addBeam(std::list<Ray> &dest, BeamProperties const &);
   };
 }
 

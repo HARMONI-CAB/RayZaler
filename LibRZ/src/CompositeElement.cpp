@@ -136,6 +136,8 @@ CompositeElement::CompositeElement(
   m_model = model();
   m_model->linkWorld(pFrame);
   
+  setName(name);
+  
   setRandomState(parentCompositeModel->randState());
 
   build(pFrame);

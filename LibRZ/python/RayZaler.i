@@ -44,6 +44,7 @@ namespace std {
 #include <Detector.h>
 #include <ExprTkEvaluator.h>
 #include <FlatMirror.h>
+#include <GLRenderEngine.h>
 #include <LensletArray.h>
 #include <ModelRenderer.h>
 #include <Obstruction.h>
@@ -95,6 +96,7 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "Detector.h"
 %include "ExprTkEvaluator.h"
 %include "FlatMirror.h"
+%include "GLRenderEngine.h"
 %include "LensletArray.h"
 %include "ModelRenderer.h"
 %include "Obstruction.h"
@@ -223,6 +225,24 @@ PyMODINIT_FUNC PyInit_RZ();
 
     return *self;
   }
+
+  Real
+  x()
+  {
+    return self->x;
+  }
+
+  Real
+  y()
+  {
+    return self->y;
+  }
+
+  Real
+  z()
+  {
+    return self->z;
+  }
 }
 
 %extend RZ::ModelRenderer {
@@ -289,7 +309,9 @@ PyMODINIT_FUNC PyInit_RZ();
     unsigned int i, j;
         
     npy_intp dims[]    = {rows, cols};
-    npy_intp strides[] = {cols * sizeof(Real), sizeof(Real)};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(cols * sizeof(Real)),
+      static_cast<npy_intp>(sizeof(Real))};
     PyObject *outArray = PyArray_New(
       &PyArray_Type,
       2,
@@ -397,7 +419,8 @@ PyMODINIT_FUNC PyInit_RZ();
     Real offY = 0,
     Real distance = 10,
     uint32_t id = 0,
-    bool random = true)
+    bool random = true,
+    Real offZ = 0)
   {
     OMModel::addFocalPlaneFocusedBeam(
       *self,
@@ -410,6 +433,13 @@ PyMODINIT_FUNC PyInit_RZ();
       offY,
       distance,
       id,
-      random);
+      random,
+      offZ);
+  }
+
+  void
+  addBeam(BeamProperties const &properties)
+  {
+    OMModel::addBeam(*self, properties);
   }
 }

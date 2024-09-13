@@ -362,14 +362,16 @@ GenericCompositeModel::setParam(std::string const &name, Real value)
 
   if (std::isnan(value)) {
     RZError(
-      "Parameter `%s': attempting to set with a value that is not a number\n",
+      "%s: parameter `%s': attempting to set with a value that is not a number\n",
+      m_givenName.c_str(),
       name.c_str());
     return false;
   }
 
   if (!param->test(value)) {
     RZWarning(
-      "Parameter `%s': value %g out of range (%g, %g)\n",
+      "%s: parameter `%s': value %g out of range (%g, %g)\n",
+      m_givenName.c_str(),
       name.c_str(),
       value,
       param->description->min,
@@ -395,14 +397,16 @@ GenericCompositeModel::setDof(std::string const &name, Real value)
 
   if (std::isnan(value)) {
     RZError(
-      "DOF `%s': attempting to set with a value that is not a number\n",
+      "%s: DOF `%s': attempting to set with a value that is not a number\n",
+      m_givenName.c_str(),
       name.c_str());
     return false;
   }
 
   if (!dof->test(value)) {
     RZWarning(
-      "DOF `%s': value %g out of range (%g, %g)\n",
+      "%s: DOF `%s': value %g out of range (%g, %g)\n",
+      m_givenName.c_str(),
       name.c_str(),
       value,
       dof->description->min,
@@ -881,6 +885,12 @@ GenericEvaluatorSymbolDict const &
 GenericCompositeModel::symbolDict() const
 {
   return m_global;
+}
+
+void
+GenericCompositeModel::setName(std::string const &name)
+{
+  m_givenName = name;
 }
 
 ExprRandomState *
