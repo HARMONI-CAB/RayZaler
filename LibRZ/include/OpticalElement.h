@@ -23,31 +23,43 @@
 #include <list>
 #include <map>
 #include <string>
+#include <RayTracingEngine.h>
 
 namespace RZ {
   class RayTransferProcessor;
-
   class OpticalElement;
   
+
   struct OpticalSurface {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
     const RayTransferProcessor *processor = nullptr;
     OpticalElement             *parent;
+    mutable std::vector<Ray>    hits;
+
+    // Haha C++
+    mutable std::vector<Real>   locationArray;
+    mutable std::vector<Real>   directionArray;
+
+    std::vector<Real> &locations() const;
+    std::vector<Real> &directions() const;
+
+    void clearCache() const;
   };
 
   struct OpticalPath {
-    std::list<OpticalSurface>   m_sequence;
+    std::list<const OpticalSurface *> m_sequence;
 
     OpticalPath &plug(OpticalElement *, std::string const &name = "");
   };
 
   class OpticalElement : public Element {
       using Element::Element;
-      std::list<ReferenceFrame *> m_surfaceFrames; // Owned
-      std::list<OpticalSurface>   m_internalPath;
-      std::list<const OpticalSurface *> m_surfaceList;
+      std::list<ReferenceFrame *>             m_surfaceFrames; // Owned
+      std::list<OpticalSurface>               m_internalPath;
+      std::list<const OpticalSurface *>       m_surfaceList;
       std::map<std::string, OpticalSurface *> m_nameToSurface;
+      bool                                    m_recordHits = false;
 
     protected:
       void pushOpticalSurface(
@@ -61,11 +73,23 @@ namespace RZ {
         Element *parent = nullptr);
       
     public:
+      inline bool
+      recordHits() const
+      {
+        return m_recordHits;
+      }
+      
       virtual OpticalPath opticalPath(std::string const &name = "") const;
       OpticalPath plug(OpticalElement *, std::string const &name = "") const;
       const std::list<const OpticalSurface *> &opticalSurfaces() const;
+
+      const std::vector<Real> &hits(std::string const &name = "") const;
+      const std::vector<Real> &directions(std::string const &name = "") const;
+
+      void setRecordHits(bool);
+      void clearHits();
+
       virtual ~OpticalElement();
-      
   };
 }
 

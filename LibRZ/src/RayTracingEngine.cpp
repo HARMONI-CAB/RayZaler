@@ -24,6 +24,7 @@
 #include <Logger.h>
 #include <exception>
 #include <sys/param.h>
+#include <OpticalElement.h>
 
 using namespace RZ;
 
@@ -64,6 +65,16 @@ RayBeam::clearMask()
 {
   memset(mask, 0, ((count + 63) >> 6) << 3);
   memset(prevMask, 0, ((count + 63) >> 6) << 3);
+}
+
+void
+RayBeam::interceptDone(uint64_t index)
+{
+  if (hitSaveSurface != nullptr) {
+    Ray ray;
+    if (extractPartialRay(ray, index, false))
+      hitSaveSurface->hits.push_back(ray);
+  }
 }
 
 void
@@ -264,8 +275,33 @@ RayTracingEngine::toRays(bool keepPruned)
   m_raysDirty = false;
 }
 
+// Set the current surface. This also notifies the state.
 void
-RayTracingEngine::trace(const ReferenceFrame *surface)
+RayTracingEngine::setCurrentSurface(
+  const OpticalSurface *surf,
+  unsigned int i,
+  unsigned int total)
+{
+  m_currentSurface = surf;
+  m_currentFrame   = surf == nullptr ? nullptr : surf->frame;
+
+  m_currStage      = i;
+  m_numStages      = total;
+
+  m_beam->hitSaveSurface = 
+    (surf->parent != nullptr && surf->parent->recordHits())
+    ? surf
+    : nullptr;
+
+  if (surf != nullptr) {
+    surf->clearCache();
+    if (total > 0)
+      stageProgress(PROGRESS_TYPE_TRACE, surf->name, i, total);
+  }
+}
+
+void
+RayTracingEngine::trace()
 {
   if (m_beam == nullptr)
     m_beam = new RayBeam(m_rays.size());
@@ -273,92 +309,10 @@ RayTracingEngine::trace(const ReferenceFrame *surface)
   if (m_beamDirty)
     toBeam();
 
-  m_current = surface;
-  cast(surface->getCenter(), surface->eZ());
+  cast(m_currentFrame->getCenter(), m_currentFrame->eZ());
 
   m_raysDirty = true;
   m_notificationPendig = false;
-}
-
-//
-// TODO: Compute random destinations, calculate t and update opticalLengths
-// 
-
-void
-RayTracingEngine::updateDirections()
-{
-  unsigned int i;
-
-  if (m_beam == nullptr)
-    return;
-
-  auto count = m_beam->count;
-
-  for (unsigned int i = 0; i < count; ++i) {
-    if (m_beam->hasRay(i)) {
-      Vec3 destination(m_beam->destinations + 3 * i);
-      Vec3 origin(m_beam->origins + 3 * i);
-      Vec3 diff = destination - origin;
-      Real dt = diff.norm();
-
-      (diff * (1/dt)).copyToArray(m_beam->directions + 3 * i);
-
-      m_beam->lengths[i] = dt;
-      m_beam->cumOptLengths[i] += dt; // TODO: Multiply by refractive index
-    }
-  }
-}
-
-//
-// This is the core of our diffraction calculations. This assumes the following:
-//
-// - Wave vector of the rays that hitted the depart surface are encoded in
-//   m_beam->directions
-// - Wave vector of the rays hitting the arrival surface are encoded in
-//   the difference between destination and origin
-// - Surface normals of the depart surface are known, and saved in the beam.
-//   After kirchoff, currNormals should be transferred back to the beam.
-//
-
-//
-// D = 1.2, flen = 0.6
-// dTheta = 1.22 * lambda / D
-// dX     = f * dTheta = 1.22 * lambda * f/#
-// pxWidth = 2e-3
-// dx = 5 * pxWidth
-// 5 * pxWidth = 1.22 * lambda * f/#
-// lambda = 5 * pxWidth / (1.22 * f/#)
-//
-
-void
-RayTracingEngine::integrateKirchhoff()
-{
-  auto count = m_beam->count;
-  Real K = m_K;
-
-  for (auto i = 0; i < count; ++i) {
-    Vec3 normal      = Vec3(m_beam->normals + 3 * i);
-    Vec3 kivec       = K * Vec3(m_beam->directions + 3 * i);
-    Vec3 destination = Vec3(m_beam->destinations + 3 * i);
-    Vec3 origin      = Vec3(m_beam->origins + 3 * i);
-    Vec3 rvec        = destination - origin;
-    Real r           = rvec.norm();
-    Vec3 d           = rvec / r;
-    Vec3 kvec        = K * d;
-
-    if (normal * kvec < 0)
-      normal = -normal;
-    
-    Real QAmpl       = (kvec - kivec) * normal;
-    Real IAmpl       = (-d / r) * normal;
-    Real phi         = fmod(K * r, 2 * M_PI);
-
-    Complex factor = Complex(IAmpl, QAmpl) * std::exp(Complex(0, phi)) / r;
-
-    m_beam->amplitude[i] *= factor * m_dA;
-
-    rayProgress(i, count);
-  }
 }
 
 void
@@ -387,98 +341,21 @@ RayTracingEngine::updateOrigins()
 }
 
 void
-RayTracingEngine::traceFromInfinity(
-  const ReferenceFrame *surface,
-  const RayTransferProcessor *processor)
+RayTracingEngine::transfer()
 {
-  auto aperture = processor->aperture();
-
-  if (m_beam == nullptr)
-    m_beam = new RayBeam(m_rays.size());
-
-  if (m_beamDirty)
-    toBeam();
+  if (m_currentSurface == nullptr)
+    throw std::runtime_error("Cannot transfer: optical surface not defined");
   
-  // Stage 1: Trace rays
-  m_current = surface;
-  cast(surface->getCenter(), surface->eZ());
-
-  // Stage 2: Intercept
-  auto count = m_beam->count;
-  m_currNormals.resize(3 * count);
-  m_currdA = aperture->area() / count;
-
-  for (auto i = 0; i < count; ++i) {
-    if (!m_beam->hasRay(i))
-      continue;
-
-    Vec3 coord  = surface->toRelative(Vec3(m_beam->destinations + 3 * i));
-    Vec3 origin = surface->toRelative(Vec3(m_beam->origins + 3 * i));
-    Vec3 normal;
-    Real dt;
-
-    if (aperture->intercept(coord, normal, dt, origin)) {
-      m_beam->lengths[i]       += dt;
-      m_beam->cumOptLengths[i] += m_beam->n * dt;
-
-      // Stage 3: Update beam
-      surface->fromRelative(coord).copyToArray(m_beam->destinations + 3 * i);
-      surface->fromRelativeVec(normal).copyToArray(m_currNormals.data() + 3 * i);
-    } else {
-      m_beam->prune(i);
-    }
-
-    rayProgress(i, count);
-  }
-
-  m_raysDirty = true;
-  m_notificationPendig = false;
-}
-
-void
-RayTracingEngine::traceRandom(
-  const ReferenceFrame *surface,
-  const RayTransferProcessor *processor)
-{
-  auto *aperture = processor->aperture();
-
-  if (m_beam == nullptr)
-    m_beam = new RayBeam(m_rays.size());
-
-  auto count = m_beam->count;
+  stageProgress(
+    PROGRESS_TYPE_TRANSFER,
+    m_currentSurface->name,
+    m_currStage,
+    m_numStages);
   
-  m_currNormals.resize(3 * count);
-  m_currdA = aperture->area() / count;
-
-  if (m_beamDirty)
-    toBeam();
-
-  m_current = surface;
-  if (aperture == nullptr) {
-    RZError(
-      "Processor %s with undefined aperture found\n",
-      processor->name().c_str());
-    return;
-  }
-
-  aperture->generatePoints(
-    m_current,
-    m_beam->destinations,
-    m_currNormals.data(),
-    count);
-
-  m_raysDirty = true;
-  m_notificationPendig = false;
-}
-    
-
-void
-RayTracingEngine::transfer(const RayTransferProcessor *processor)
-{
-  auto aperture = processor->aperture();
+  auto aperture = m_currentSurface->processor->aperture();
   auto count = m_beam->count;
 
-  processor->process(*m_beam, m_current);
+  m_currentSurface->processor->process(*m_beam, m_currentFrame);
 
   propagatePhase();
 

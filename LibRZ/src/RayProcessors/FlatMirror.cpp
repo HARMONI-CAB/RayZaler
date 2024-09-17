@@ -46,6 +46,7 @@ FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
     if (aperture()->intercept(coord)) {
+      beam.interceptDone(i);
       reflection(
         Vec3(beam.directions + 3 * i), 
         normal).copyToArray(beam.directions + 3 * i);

@@ -6,6 +6,7 @@
 #include <RotatedFrame.h>
 #include <cstdlib>
 #include <iostream>
+#include <OpticalElement.h>
 
 #define BEAM_SIZE 100
 
@@ -29,6 +30,10 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
 {
   RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThru");
   WorldFrame world("world");
+  OpticalSurface surf;
+
+  surf.frame = &world;
+  surf.processor = processor;
 
   for (auto i = 0; i < 100; ++i) {
     CPURayTracingEngine engine;
@@ -49,10 +54,11 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
       engine.pushRay(source, direction);
     }
 
-    engine.trace(&world);
+    engine.setCurrentSurface(&surf);
+    engine.trace();
     REQUIRE(engine.beam()->count == BEAM_SIZE);
     
-    engine.transfer(processor);
+    engine.transfer();
 
     auto outputRays = engine.getRays();
     REQUIRE(outputRays.size() == BEAM_SIZE);
@@ -72,6 +78,10 @@ TEST_CASE("Ensuring that all rays are intercepted in the destination plane", "[l
   RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThru");
   WorldFrame world("world");
   RotatedFrame frame("detector", &world, Vec3::eZ(), 0);
+  OpticalSurface surf;
+
+  surf.frame = &frame;
+  surf.processor = processor;
 
   for (auto i = 0; i < 100; ++i) {
     CPURayTracingEngine engine;
@@ -94,10 +104,11 @@ TEST_CASE("Ensuring that all rays are intercepted in the destination plane", "[l
       engine.pushRay(source, direction.normalized());
     }
 
-    engine.trace(&frame);
+    engine.setCurrentSurface(&surf);
+    engine.trace();
     REQUIRE(engine.beam()->count == BEAM_SIZE);
     
-    engine.transfer(processor);
+    engine.transfer();
 
     auto outputRays = engine.getRays();
     REQUIRE(outputRays.size() == BEAM_SIZE);

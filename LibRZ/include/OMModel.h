@@ -74,7 +74,8 @@ namespace RZ {
 
   enum BeamShape {
     Circular,
-    Ring
+    Ring,
+    Point
   };
 
   enum FNumReference {
@@ -131,6 +132,8 @@ namespace RZ {
       reference     = PlaneRelative;
       this->frame   = frame;
     }
+
+    void debug() const;
   };
 
   class OMModel {
@@ -162,7 +165,7 @@ namespace RZ {
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
       bool registerDetector(Detector *);
-      
+
       friend struct ReferenceFrameContext;
 
     protected:

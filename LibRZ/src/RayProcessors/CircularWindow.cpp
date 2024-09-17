@@ -46,6 +46,8 @@ CircularWindowProcessor::process(RayBeam &beam, const ReferenceFrame *plane) con
 
     if (aperture()->intercept(coord)) {
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      beam.interceptDone(i);
+      
       snell(
         Vec3(beam.directions + 3 * i), 
         plane->fromRelativeVec(normal),

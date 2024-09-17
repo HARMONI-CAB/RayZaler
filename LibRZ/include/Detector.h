@@ -9,22 +9,6 @@ namespace RZ {
   class ReferenceFrame;
   class RayTransferProcessor;
 
-  struct DetectorHit {
-    union {
-      struct {
-        Real x;
-        Real y;
-      };
-
-      Real coords[2];
-    };
-
-    DetectorHit(Real x, Real y) {
-      this->x = x;
-      this->y = y;
-    }
-  };
-
   class DetectorStorage {
       std::vector<uint32_t> m_photons;
       std::vector<Complex>  m_amplitude;
@@ -36,9 +20,6 @@ namespace RZ {
 
       uint32_t     m_maxCounts = 0;
       Real         m_maxEnergy = 0;
-
-      bool m_recordHits = false;
-      std::vector<DetectorHit> m_hits;
 
       unsigned int m_cols;
       unsigned int m_rows;
@@ -72,9 +53,6 @@ namespace RZ {
         if (E > m_maxEnergy)
           m_maxEnergy = E;
         
-        if (m_recordHits)
-          m_hits.push_back(DetectorHit(x, y));
-
         return true;
       }
 
@@ -105,10 +83,6 @@ namespace RZ {
       unsigned int    stride() const;
       const uint32_t *data() const;
       const Complex  *amplitude() const;
-      
-      const std::vector<DetectorHit> &hits() const;
-      void setRecordHits(bool);
-      void clearHits();
   };
 
   class DetectorProcessor : public PassThroughProcessor {
@@ -167,10 +141,6 @@ namespace RZ {
       
       uint32_t        maxCounts() const;
       Real            maxEnergy() const;
-
-      const std::vector<DetectorHit> &hits() const;
-      void setRecordHits(bool);
-      void clearHits();
   };
 
   class DetectorFactory : public ElementFactory {

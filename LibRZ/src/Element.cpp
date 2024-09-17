@@ -306,3 +306,30 @@ Element::nestedCompositeModel() const
   return nullptr; // No nested composite models
 }
 
+Element *
+Element::lookupElement(std::string const &name) const
+{
+  auto model = nestedModel();
+  return model != nullptr ? model->lookupElement(name) : nullptr;
+}
+
+OpticalElement *
+Element::lookupOpticalElement(std::string const &name) const
+{
+  auto model = nestedModel();
+  return model != nullptr ? model->lookupOpticalElement(name) : nullptr;
+}
+
+Detector *
+Element::lookupDetector(std::string const &name) const
+{
+  auto model = nestedModel();
+  return model != nullptr ? model->lookupDetector(name) : nullptr;
+}
+
+const OpticalPath *
+Element::lookupOpticalPath(std::string const &name) const
+{
+  auto model = nestedModel();
+  return model != nullptr ? model->lookupOpticalPath(name) : nullptr;
+}

@@ -697,7 +697,7 @@ SimulationState::allocateRays(uint32_t color)
         return false;
       }
 
-      element = path->m_sequence.begin()->parent;
+      element = path->m_sequence.front()->parent;
 
       switch (m_properties.beam) {
         case BEAM_TYPE_COLLIMATED:
@@ -909,8 +909,8 @@ SimulationState::findDetectorForPath(std::string const &name)
     }
 
     for (auto p : path->m_sequence)
-      if (p.parent->factory()->name() == "Detector")
-        detector = static_cast<RZ::Detector *>(p.parent);
+      if (p->parent->factory()->name() == "Detector")
+        detector = static_cast<RZ::Detector *>(p->parent);
 
     if (detector == nullptr) {
       if (pathName.empty())

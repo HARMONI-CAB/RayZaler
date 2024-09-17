@@ -20,6 +20,43 @@
 
 using namespace RZ;
 
+std::vector<Real> &
+OpticalSurface::locations() const
+{
+  size_t expectedSize = 3 * hits.size();
+
+  if (locationArray.size() != expectedSize) {
+    locationArray.resize(expectedSize);
+
+    for (size_t i = 0; i < hits.size(); ++i)
+      frame->toRelative(hits[i].origin).copyToArray(locationArray.data() + 3 * i);
+  }
+
+  return locationArray;
+}
+
+std::vector<Real> &
+OpticalSurface::directions() const
+{
+  size_t expectedSize = 3 * hits.size();
+
+  if (directionArray.size() != expectedSize) {
+    directionArray.resize(expectedSize);
+
+    for (size_t i = 0; i < hits.size(); ++i)
+      frame->toRelativeVec(hits[i].direction).copyToArray(directionArray.data() + 3 * i);
+  }
+
+  return directionArray;
+}
+
+void
+OpticalSurface::clearCache() const
+{
+  locationArray.clear();
+  directionArray.clear();
+}
+
 OpticalPath &
 OpticalPath::plug(OpticalElement *element, std::string const &name)
 {
@@ -39,8 +76,8 @@ OpticalElement::opticalPath(std::string const &name) const
   OpticalPath path;
 
   if (name.size() == 0)
-    for (auto p : m_internalPath)
-      path.m_sequence.push_back(p);
+    for (auto &p : m_internalPath)
+      path.m_sequence.push_back(&p);
   else
     throw std::runtime_error("Unknown optical path `" + name + "'");
   
@@ -79,6 +116,54 @@ OpticalElement::pushOpticalSurface(
   auto last = &m_internalPath.back();
 
   m_surfaceList.push_back(last);
+}
+
+const std::vector<Real> &
+OpticalElement::hits(std::string const &name) const
+{
+  // You just have to love C++
+  const OpticalSurface *surface = m_surfaceList.front();
+  
+  if (!name.empty()) {
+    auto it = m_nameToSurface.find(name);
+    if (it == m_nameToSurface.cend())
+      throw std::runtime_error("No such optical surface `" + name + "'");
+    
+    surface = it->second;
+  }
+
+  return surface->locations();
+}
+
+const std::vector<Real> &
+OpticalElement::directions(std::string const &name) const
+{
+  // You just have to love C++
+  const OpticalSurface *surface = m_surfaceList.front();
+  
+  if (!name.empty()) {
+    auto it = m_nameToSurface.find(name);
+    if (it == m_nameToSurface.cend())
+      throw std::runtime_error("No such optical surface `" + name + "'");
+    
+    surface = it->second;
+  }
+
+  return surface->directions();
+}
+
+
+void
+OpticalElement::setRecordHits(bool record)
+{
+  m_recordHits = record;
+}
+
+void
+OpticalElement::clearHits()
+{
+  for (auto &p : m_internalPath)
+    p.hits.clear();
 }
 
 OpticalElement::OpticalElement(

@@ -168,6 +168,62 @@ PyMODINIT_FUNC PyInit_RZ();
   }
 }
 
+%extend RZ::OpticalElement {
+  PyObject *
+  hitArray(std::string const &name = "") const
+  {
+    unsigned int cols = 3;
+    unsigned int rows = self->hits(name).size() / 3;
+    const Real *data  = self->hits(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows, cols};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(cols * sizeof(Real)),
+      static_cast<npy_intp>(sizeof(Real))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      const_cast<Real *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
+  PyObject *
+  dirArray(std::string const &name = "") const
+  {
+    unsigned int cols = 3;
+    unsigned int rows = self->directions(name).size() / 3;
+    const Real *data  = self->directions(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows, cols};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(cols * sizeof(Real)),
+      static_cast<npy_intp>(sizeof(Real))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      const_cast<Real *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+}
+
 %extend RZ::Matrix3 {
   PyObject *
   array() {
@@ -298,34 +354,6 @@ PyMODINIT_FUNC PyInit_RZ();
 
     return outArray;
   }
-
-  PyObject *
-  hitArray()
-  {
-    unsigned int cols = 2;
-    unsigned int rows = self->hits().size();
-    const Real *data = reinterpret_cast<const Real *>(self->hits().data());
-
-    unsigned int i, j;
-        
-    npy_intp dims[]    = {rows, cols};
-    npy_intp strides[] = {
-      static_cast<npy_intp>(cols * sizeof(Real)),
-      static_cast<npy_intp>(sizeof(Real))};
-    PyObject *outArray = PyArray_New(
-      &PyArray_Type,
-      2,
-      dims,
-      NPY_DOUBLE,
-      strides,
-      const_cast<Real *>(data),
-      0,
-      NPY_ARRAY_CARRAY,
-      nullptr);
-
-    return outArray;
-  }
-
 }
 
 %extend RZ::RayList {

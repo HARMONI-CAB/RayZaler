@@ -198,24 +198,6 @@ done:
   return ok;
 }
 
-const std::vector<DetectorHit> &
-DetectorStorage::hits() const
-{
-  return m_hits;
-}
-
-void
-DetectorStorage::setRecordHits(bool doRecord)
-{
-  m_recordHits = doRecord;
-}
-
-void
-DetectorStorage::clearHits()
-{
-  m_hits.clear();
-}
-
 /////////////////////////////// Detector storage ///////////////////////////////
 std::string
 DetectorProcessor::name() const
@@ -238,6 +220,8 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
       if (!m_storage->hit(coord.x, coord.y, beam.amplitude[i]))
         beam.prune(i);
+      else
+        beam.interceptDone(i);
     }
   }
 }
@@ -413,25 +397,6 @@ Real
 Detector::maxEnergy() const
 {
   return m_storage->maxEnergy();
-}
-
-
-const std::vector<DetectorHit> &
-Detector::hits() const
-{
-  return m_storage->hits();
-}
-
-void
-Detector::setRecordHits(bool doRecord)
-{
-  m_storage->setRecordHits(doRecord);
-}
-
-void
-Detector::clearHits()
-{
-  m_storage->clearHits();
 }
 
 void

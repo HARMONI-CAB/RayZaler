@@ -32,5 +32,7 @@ ObstructionProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 
     if (coordX * coordX + coordY * coordY <= Rsq)
       beam.prune(i);
+    else
+      beam.interceptDone(i);
   }
 }

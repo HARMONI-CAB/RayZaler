@@ -19,6 +19,9 @@
 namespace RZ {
   class OMModel;
   class GenericCompositeModel;
+  class OpticalElement;
+  class Detector;
+  class OpticalPath;
   struct UndefinedProperty {};
 
   enum PropertyValueType {
@@ -247,6 +250,12 @@ namespace RZ {
       virtual void renderOpenGL();
       virtual OMModel *nestedModel() const;
       virtual GenericCompositeModel *nestedCompositeModel() const;
+
+      // Other helper methods
+      Element *lookupElement(std::string const &name) const;
+      OpticalElement *lookupOpticalElement(std::string const &name) const;
+      Detector *lookupDetector(std::string const &name) const;
+      const OpticalPath *lookupOpticalPath(std::string const &name) const;
   };
 
   class ElementFactory {

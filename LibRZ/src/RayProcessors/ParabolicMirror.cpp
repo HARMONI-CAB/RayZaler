@@ -52,8 +52,9 @@ ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
     if (aperture()->intercept(coord, normal, dt, origin)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
-      
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      beam.interceptDone(i);
+
       reflection(
         Vec3(beam.directions + 3 * i), 
         plane->fromRelativeVec(normal)).copyToArray(beam.directions + 3 * i);

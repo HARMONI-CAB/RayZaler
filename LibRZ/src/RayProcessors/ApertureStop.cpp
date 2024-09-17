@@ -35,5 +35,7 @@ ApertureStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 
     if (!aperture()->intercept(coord))
       beam.prune(i);
+    else
+      beam.interceptDone(i);
   }
 }

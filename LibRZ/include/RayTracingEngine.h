@@ -11,7 +11,8 @@
 
 namespace RZ {
   class ReferenceFrame;
-  
+  class OpticalSurface;
+
   struct Ray {
     // Defined by input
     Vec3 origin;
@@ -43,6 +44,8 @@ namespace RZ {
     uint64_t *mask      = nullptr;
     uint64_t *prevMask  = nullptr;
 
+    const OpticalSurface *hitSaveSurface = nullptr;
+    
     inline void
     setRefractiveIndex(Real newN)
     {
@@ -97,6 +100,23 @@ namespace RZ {
       return true;
     }
 
+    inline bool
+    extractPartialRay(Ray &dest, uint64_t index, bool keepPruned = false) const
+    {
+      bool haveIt = keepPruned ? hadRay(index) : hasRay(index);
+      
+      if (!haveIt)
+        return false;
+
+      dest.id = ids[index];
+      dest.origin.setFromArray(destinations + 3 * index);
+      dest.direction.setFromArray(directions + 3 * index);
+      dest.cumOptLength = cumOptLengths[index];
+
+      return true;
+    }
+
+    virtual void interceptDone(uint64_t index);
     virtual void allocate(uint64_t);
     virtual void deallocate();
     
@@ -196,7 +216,10 @@ namespace RZ {
       RayBeam *m_beam = nullptr;
       bool m_beamDirty = true;
       bool m_notificationPendig = false;
-      const ReferenceFrame *m_current = nullptr;
+      const ReferenceFrame *m_currentFrame = nullptr;
+      const OpticalSurface *m_currentSurface = nullptr;
+      unsigned int m_numStages = 0;
+      unsigned int m_currStage = 0;
 
       void toBeam();  // From m_rays to beam->origins and beam->directions
       void toRays(bool keepPruned = false);  // From beam->destinations and beam->directions to rays
@@ -247,10 +270,16 @@ namespace RZ {
         uint32_t id = 0);
       void pushRays(std::list<Ray> const &);
       
+      // Set the current surface. This also notifies the state.
+      void setCurrentSurface(
+        const OpticalSurface *surf,
+        unsigned i = 0,
+        unsigned total = 0);
+
       // Intersect with this surface. It needs to check if the beam is up to
       // date, and recreated it with toBeam() if necessary.
       // Then, it will call to cast() and compute beam->destinations and lengths
-      void trace(const ReferenceFrame *surface);
+      void trace();
 
       // Update normals of the current beams
       void updateNormals();
@@ -258,36 +287,11 @@ namespace RZ {
       // Refresh ray origins
       void updateOrigins();
 
-      // Adjust the current beam so that the rays coming to this surface look
-      // like coming from infinity. This implies that:
-      //
-      // - We need to cast rays to the intercept surface
-      // - We compute the intercept points by means of intercept()
-      // - We update the beam the following way:
-      //   1. We adjust the destination point
-      //   2. We keep the direction here (encodes the arrival direction)
-      //   3. We set the m_currentNormal to the intercept normal
-
-      void traceFromInfinity(
-        const ReferenceFrame *surface,
-        const RayTransferProcessor *processor);
-
-      // Deliver to an existing point of the next surface
-      void traceRandom(
-        const ReferenceFrame *surface,
-        const RayTransferProcessor *next);
-
-      // Compute Kirchhoff integral for all rays.
-      void integrateKirchhoff();
-
       // Integrate phase for regular Snell
       void propagatePhase();
 
-      // Update directions
-      void updateDirections();
-
       // Clear m_ray, process the beam and extract unpruned rays
-      void transfer(const RayTransferProcessor *);
+      void transfer();
 
       // Clear m_ray, process the beam, set random targets 
       // Return the output rays, after transfer

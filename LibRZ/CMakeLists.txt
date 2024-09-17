@@ -90,6 +90,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
 
   ${LIBRZ_SRCDIR}/Samplers/Circular.cpp
+  ${LIBRZ_SRCDIR}/Samplers/Point.cpp
   ${LIBRZ_SRCDIR}/Samplers/Ring.cpp
   ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp)
 
@@ -168,6 +169,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h
   
   ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h
+  ${LIBRZ_INCLUDEDIR}/Samplers/Point.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Ring.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h)
 

@@ -336,7 +336,7 @@ RZGUIGLWidget::displayCurrentPath()
       if (q == path->m_sequence.end())
         break;
 
-      pushReferenceFrameMatrix(p->frame);
+      pushReferenceFrameMatrix((*p)->frame);
       m_pathArrows[i++].display();
       glPopMatrix();
     }
@@ -418,9 +418,9 @@ RZGUIGLWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
           break;
 
         RZ::GLArrow arrow;
-        RZ::Vec3 direction = q->frame->getCenter() - p->frame->getCenter();
+        RZ::Vec3 direction = (*q)->frame->getCenter() - (*p)->frame->getCenter();
 
-        direction = p->frame->toRelativeVec(direction);
+        direction = (*p)->frame->toRelativeVec(direction);
         
         arrow.setDirection(direction);
         arrow.setThickness(4);
