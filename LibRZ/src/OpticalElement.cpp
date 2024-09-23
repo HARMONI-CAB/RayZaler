@@ -57,73 +57,29 @@ OpticalSurface::clearCache() const
   directionArray.clear();
 }
 
+///////////////////////////// Optical Path API /////////////////////////////////
 OpticalPath &
 OpticalPath::plug(OpticalElement *element, std::string const &name)
 {
-  OpticalPath copy = element->opticalPath(name);
-
-  m_sequence.insert(
-    m_sequence.end(),
-    copy.m_sequence.begin(),
-    copy.m_sequence.end());
+  for (auto &p : element->opticalPath(name).m_sequence)
+    push(p);
 
   return *this;
 }
 
-OpticalPath
-OpticalElement::opticalPath(std::string const &name) const
-{
-  OpticalPath path;
-
-  if (name.size() == 0)
-    for (auto &p : m_internalPath)
-      path.m_sequence.push_back(&p);
-  else
-    throw std::runtime_error("Unknown optical path `" + name + "'");
-  
-  return path;
-}
-
-OpticalPath
-OpticalElement::plug(OpticalElement *newElement, std::string const &name) const
-{
-  return opticalPath().plug(newElement, name);
-}
-
-const std::list<const OpticalSurface *> &
-OpticalElement::opticalSurfaces() const
-{
-  return m_surfaceList;
-}
-
 void
-OpticalElement::pushOpticalSurface(
-  std::string name,
-  ReferenceFrame *frame,
-  const RayTransferProcessor *proc)
+OpticalPath::push(const OpticalSurface *surface)
 {
-  OpticalSurface surface;
-
-  m_surfaceFrames.push_back(frame);
-
-  surface.name      = name;
-  surface.frame     = frame;
-  surface.processor = proc;
-  surface.parent    = this;
-
-  m_internalPath.push_back(surface);
-
-  auto last = &m_internalPath.back();
-
-  m_surfaceList.push_back(last);
+  m_sequence.push_back(surface);
+  m_nameToSurface[surface->name] = surface;
 }
 
 const std::vector<Real> &
-OpticalElement::hits(std::string const &name) const
+OpticalPath::hits(std::string const &name) const
 {
   // You just have to love C++
-  const OpticalSurface *surface = m_surfaceList.front();
-  
+  const OpticalSurface *surface = m_sequence.front();
+
   if (!name.empty()) {
     auto it = m_nameToSurface.find(name);
     if (it == m_nameToSurface.cend())
@@ -136,10 +92,10 @@ OpticalElement::hits(std::string const &name) const
 }
 
 const std::vector<Real> &
-OpticalElement::directions(std::string const &name) const
+OpticalPath::directions(std::string const &name) const
 {
   // You just have to love C++
-  const OpticalSurface *surface = m_surfaceList.front();
+  const OpticalSurface *surface = m_sequence.front();
   
   if (!name.empty()) {
     auto it = m_nameToSurface.find(name);
@@ -152,6 +108,62 @@ OpticalElement::directions(std::string const &name) const
   return surface->directions();
 }
 
+////////////////////////// Optical Element ////////////////////////////////////
+OpticalPath
+OpticalElement::opticalPath(std::string const &name) const
+{
+  if (name.empty())
+    return m_internalPath;
+  else
+    throw std::runtime_error("Unknown optical path `" + name + "'");
+}
+
+OpticalPath
+OpticalElement::plug(OpticalElement *newElement, std::string const &name) const
+{
+  return opticalPath().plug(newElement, name);
+}
+
+const std::list<const OpticalSurface *> &
+OpticalElement::opticalSurfaces() const
+{
+  return m_internalPath.m_sequence;
+}
+
+void
+OpticalElement::pushOpticalSurface(
+  std::string name,
+  ReferenceFrame *frame,
+  const RayTransferProcessor *proc)
+{
+  OpticalSurface surface;
+
+  // Creation of the optical surface
+  m_surfaceFrames.push_back(frame);
+
+  surface.name      = name;
+  surface.frame     = frame;
+  surface.processor = proc;
+  surface.parent    = this;
+
+  m_surfaces.push_back(surface);
+
+  // Insertion at the end of this element's path
+  auto last = &m_surfaces.back();
+  m_internalPath.push(last);
+}
+
+const std::vector<Real> &
+OpticalElement::hits(std::string const &name) const
+{
+  return opticalPath().hits(name);
+}
+
+const std::vector<Real> &
+OpticalElement::directions(std::string const &name) const
+{
+  return opticalPath().directions(name);
+}
 
 void
 OpticalElement::setRecordHits(bool record)
@@ -162,7 +174,7 @@ OpticalElement::setRecordHits(bool record)
 void
 OpticalElement::clearHits()
 {
-  for (auto &p : m_internalPath)
+  for (auto &p : m_surfaces)
     p.hits.clear();
 }
 

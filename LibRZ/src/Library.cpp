@@ -25,6 +25,7 @@
 #include <ConvexLens.h>
 #include <Detector.h>
 #include <FlatMirror.h>
+#include <IdealLens.h>
 #include <LensletArray.h>
 #include <Obstruction.h>
 #include <ParabolicMirror.h>
@@ -63,6 +64,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new CircularWindowFactory);
   Singleton::instance()->registerElementFactory(new ConvexLensFactory);
   Singleton::instance()->registerElementFactory(new DetectorFactory);
+  Singleton::instance()->registerElementFactory(new IdealLensFactory);
   Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
   Singleton::instance()->registerElementFactory(new LensletArrayFactory);
   Singleton::instance()->registerElementFactory(new ObstructionFactory);

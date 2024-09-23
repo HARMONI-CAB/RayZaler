@@ -85,6 +85,8 @@ SphericalLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) cons
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
+      beam.interceptDone(i);
+
       snell(
         Vec3(beam.directions + 3 * i), 
         plane->fromRelativeVec(normal),

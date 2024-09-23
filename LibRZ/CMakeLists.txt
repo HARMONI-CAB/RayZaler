@@ -37,6 +37,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/GLRenderEngine.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
+  ${LIBRZ_SRCDIR}/IdealLens.cpp
   ${LIBRZ_SRCDIR}/IncrementalRotation.cpp
   ${LIBRZ_SRCDIR}/LensletArray.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
@@ -72,6 +73,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/FlatMirror.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/IdealLens.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/InfiniteMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/LensletArray.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/Obstruction.cpp
@@ -115,6 +117,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GLModel.h
   ${LIBRZ_INCLUDEDIR}/GLRenderEngine.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
+  ${LIBRZ_INCLUDEDIR}/IdealLens.h
   ${LIBRZ_INCLUDEDIR}/IncrementalRotation.h
   ${LIBRZ_INCLUDEDIR}/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h
@@ -151,6 +154,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/FlatMirror.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/IdealLens.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/InfiniteMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/Obstruction.h

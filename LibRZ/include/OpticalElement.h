@@ -49,16 +49,42 @@ namespace RZ {
 
   struct OpticalPath {
     std::list<const OpticalSurface *> m_sequence;
+    std::map<std::string, const OpticalSurface *> m_nameToSurface;
 
     OpticalPath &plug(OpticalElement *, std::string const &name = "");
+    void push(const OpticalSurface *);
+
+    const std::vector<Real> &hits(std::string const &name) const;
+    const std::vector<Real> &directions(std::string const &name) const;
+
+    inline const OpticalSurface *
+    getSurface(std::string const &name) const
+    {
+      auto it = m_nameToSurface.find(name);
+
+      if (it == m_nameToSurface.cend())
+        return nullptr;
+
+      return it->second;
+    }
+
+    inline std::list<std::string>
+    surfaces() const
+    {
+      std::list<std::string> list;
+
+      for (auto &p : m_nameToSurface)
+        list.push_back(p.first);
+
+      return list;
+    }
   };
 
   class OpticalElement : public Element {
       using Element::Element;
+      std::list<OpticalSurface>               m_surfaces; // Owned
       std::list<ReferenceFrame *>             m_surfaceFrames; // Owned
-      std::list<OpticalSurface>               m_internalPath;
-      std::list<const OpticalSurface *>       m_surfaceList;
-      std::map<std::string, OpticalSurface *> m_nameToSurface;
+      OpticalPath                             m_internalPath;
       bool                                    m_recordHits = false;
 
     protected:
@@ -86,8 +112,8 @@ namespace RZ {
       const std::vector<Real> &hits(std::string const &name = "") const;
       const std::vector<Real> &directions(std::string const &name = "") const;
 
-      void setRecordHits(bool);
-      void clearHits();
+      virtual void setRecordHits(bool);
+      virtual void clearHits();
 
       virtual ~OpticalElement();
   };

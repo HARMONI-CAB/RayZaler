@@ -137,7 +137,7 @@ CompositeElement::CompositeElement(
   m_model->linkWorld(pFrame);
   
   setName(name);
-  
+
   setRandomState(parentCompositeModel->randState());
 
   build(pFrame);
@@ -155,6 +155,24 @@ CompositeElement::opticalPath(std::string const &pathName) const
       throw std::runtime_error("Element `" + name() + "' does not have an optical path named `" + pathName + "'");
   
   return *path;
+}
+
+void
+CompositeElement::setRecordHits(bool record)
+{
+  for (auto p : m_model->opticalElements()) {
+    auto element = m_model->lookupOpticalElement(p);
+    element->setRecordHits(record);
+  }   
+}
+
+void
+CompositeElement::clearHits()
+{
+  for (auto p : m_model->opticalElements()) {
+    auto element = m_model->lookupOpticalElement(p);
+    element->clearHits();
+  }
 }
 
 void

@@ -792,10 +792,34 @@ GenericCompositeModel::makeExpression(
 }       
 
 void
-GenericCompositeModel::createLocalExpressions(
+GenericCompositeModel::createScopedVariables(GenericEvaluatorSymbolDict &global, RecipeContext *frame)
+{
+  GenericEvaluatorSymbolDict copy = global;
+
+  // This are created to abbreviate certain expressions used along the model
+  for (auto name : frame->varNames) {
+    auto p            = frame->variables.find(name);
+    auto genP         = allocateParam();
+
+    genP->value       = 0;
+
+    global[name]      = genP;
+    auto expr         = makeExpression(p->second->expression, &global);
+    expr->type        = GENERIC_MODEL_PARAM_TYPE_VARIABLE;
+    expr->description = p->second;
+    expr->storage     = genP;
+  }
+
+  for (auto ctx : frame->contexts)
+    createScopedVariables(copy, ctx);
+}
+
+void
+GenericCompositeModel::createScopedExpressions(
     GenericEvaluatorSymbolDict &prev,
     RecipeContext *localFrame)
 {
+  // Make local copy of this scope. This is private.
   GenericEvaluatorSymbolDict local = prev;
 
   // For each local frame, we need to do:
@@ -840,21 +864,6 @@ GenericCompositeModel::createLocalExpressions(
         break;
     }
   }
-  
-  /////////////////////////// CREATE LOCAL VARIABLES ///////////////////////////
-  // This are created to abbreviate certain expressions used along the model
-  for (auto name : localFrame->varNames) {
-    auto p            = localFrame->variables.find(name);
-    auto genP         = allocateParam();
-
-    genP->value       = 0;
-
-    local[name]       = genP;
-    auto expr         = makeExpression(p->second->expression, &local);
-    expr->type        = GENERIC_MODEL_PARAM_TYPE_VARIABLE;
-    expr->description = p->second;
-    expr->storage     = genP;
-  }
 
   /////////////////////////// CREATE PARAM EXPRESSIONS /////////////////////////
   // Parameters are set but not stored anywhere.
@@ -878,7 +887,7 @@ GenericCompositeModel::createLocalExpressions(
   }
 
   for (auto ctx : localFrame->contexts)
-    createLocalExpressions(local, ctx);
+    createScopedExpressions(local, ctx);
 }
 
 GenericEvaluatorSymbolDict const &
@@ -900,15 +909,26 @@ GenericCompositeModel::randState() const
 }
 
 void
-GenericCompositeModel::initGlobalScope()
+GenericCompositeModel::registerGlobalsRecursive(GenericCompositeModel *model)
 {
-  // Start creation of global symbol table
-  if (m_parentModel != nullptr) {
+  auto parent = model->m_parentModel;
+  if (parent != nullptr) {
     auto parentScope = m_parentModel->symbolDict();
+
+    // We do it like this. We want the innermost scopes to override the
+    // outermost ones.
+    registerGlobalsRecursive(parent);
+
     for (auto p : parentScope)
       m_global[p.first] = p.second;
   }
+}
 
+void
+GenericCompositeModel::initGlobalScope()
+{
+  // Start creation of global symbol table
+  registerGlobalsRecursive(this);
   // Elements of the symbol table related to the DOFs and parameters
   for (auto p : m_params) {
     auto name = m_prefix + p.first;
@@ -923,13 +943,15 @@ GenericCompositeModel::initGlobalScope()
 
     m_global[name] = mPar;
   }
+
+  createScopedVariables(m_global, m_recipe->rootContext());
 }
 
 void
 GenericCompositeModel::createExpressions()
 {
   // Create local expressions recursively
-  createLocalExpressions(m_global, m_recipe->rootContext());
+  createScopedExpressions(m_global, m_recipe->rootContext());
 }
 
 bool

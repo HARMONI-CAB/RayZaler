@@ -71,6 +71,9 @@ namespace RZ {
       virtual void notifyDetector(
         std::string const &preferredName,
         Detector *det) override;
+
+      virtual void setRecordHits(bool) override;
+      virtual void clearHits() override;
   };
 
   class CompositeElementFactory : public ElementFactory {

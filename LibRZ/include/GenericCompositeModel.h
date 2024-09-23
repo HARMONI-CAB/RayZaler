@@ -138,6 +138,7 @@ namespace RZ {
       bool registerCustomFactory(CompositeElementFactory *);
       ElementFactory *lookupElementFactory(const std::string &, bool &) const;
 
+      void registerGlobalsRecursive(GenericCompositeModel *);
       void initGlobalScope();
       void registerCustomElements();
       void createFrames(ReferenceFrame *);
@@ -147,7 +148,10 @@ namespace RZ {
       void createElementInside(RecipeElementStep *step, ReferenceFrame *pFrame);
       void createElements(ReferenceFrame *);
       void createParams();
-      void createLocalExpressions(
+      void createScopedExpressions(
+        GenericEvaluatorSymbolDict &,
+        RecipeContext *);
+      void createScopedVariables(
         GenericEvaluatorSymbolDict &,
         RecipeContext *);
 

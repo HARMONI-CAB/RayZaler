@@ -44,8 +44,7 @@ PointSampler::sampleUniform(std::vector<Vec3> &dest)
 }
 
 void
-PointSampler::setRadius(Real R)
+PointSampler::setRadius(Real)
 {
-  if (R > 0)
-    RZWarning("Ignoring radius for point sampler");
+  // Do nothing
 }
