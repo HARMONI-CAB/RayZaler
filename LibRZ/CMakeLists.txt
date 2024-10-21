@@ -61,6 +61,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/RZGLModel.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
+  ${LIBRZ_SRCDIR}/SkySampler.cpp
   ${LIBRZ_SRCDIR}/StlMesh.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
   ${LIBRZ_SRCDIR}/Tripod.cpp
@@ -92,6 +93,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
 
   ${LIBRZ_SRCDIR}/Samplers/Circular.cpp
+  ${LIBRZ_SRCDIR}/Samplers/Map.cpp
   ${LIBRZ_SRCDIR}/Samplers/Point.cpp
   ${LIBRZ_SRCDIR}/Samplers/Ring.cpp
   ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp)
@@ -141,6 +143,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/RZGLModel.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
+  ${LIBRZ_INCLUDEDIR}/SkySampler.h
   ${LIBRZ_INCLUDEDIR}/StlMesh.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
   ${LIBRZ_INCLUDEDIR}/Tripod.h
@@ -173,6 +176,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h
   
   ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h
+  ${LIBRZ_INCLUDEDIR}/Samplers/Map.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Point.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Ring.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h)

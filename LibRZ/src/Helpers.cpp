@@ -17,8 +17,12 @@
 //
 
 #include <Helpers.h>
+#include <Vector.h>
 
-std::string string_vprintf(const char* fmt, va_list ap)
+template<> RZ::Real sumPrecise(const RZ::Real *, size_t);
+
+std::string
+string_vprintf(const char* fmt, va_list ap)
 {
     va_list copy;
     va_copy(copy, ap);

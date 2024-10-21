@@ -28,7 +28,8 @@ namespace RZ {
       Real m_mu        = 1.5;
       Real m_depth     = 0;
       Real m_f         = 0;
-
+      bool m_fromFlen  = false;
+      
       void recalcModel();
 
     protected:

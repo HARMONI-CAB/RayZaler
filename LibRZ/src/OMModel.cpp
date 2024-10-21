@@ -28,6 +28,7 @@
 #include <Samplers/Circular.h>
 #include <Samplers/Ring.h>
 #include <Samplers/Point.h>
+#include <Samplers/Map.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
@@ -817,6 +818,7 @@ OMModel::addElementRelativeBeam(
 {
   BeamProperties prop;
 
+
   prop.setElementRelative(element);
   prop.numRays   = number;
   prop.diameter  = 2 * radius;
@@ -976,13 +978,15 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   }
 
   // Direction at which rays arrive
-  Vec3 direction = frame->fromRelativeVec(properties.direction);
+  Vec3 mainDirection = frame->fromRelativeVec(properties.direction);
+  Vec3 direction;
+  SkySampler dirSampler(mainDirection);
 
   // Point towards which rays are casted
   Vec3 center    = frame->fromRelative(properties.offset);
 
   // Point from which the rays are casted
-  Vec3 origin    = center - direction * properties.length;
+  Vec3 origin    = center - mainDirection * properties.length;
 
   // In order to sample points across the section of the beam, we need to
   // compose a 2D system that is perpendicular to the direction of the rays
@@ -993,12 +997,12 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   //   - Calculate eX' = direction x eV
   //   - Calculate eY' = eX' x direction
   //
-  Vec3 eV = fabs(direction * frame->eX()) < fabs(direction * frame->eY())
+  Vec3 eV = fabs(mainDirection * frame->eX()) < fabs(mainDirection * frame->eY())
             ? frame->eX()
             : frame->eY();
-  Vec3 eXp = direction.cross(eV);
-  Vec3 eYp = eXp.cross(direction);
-  Matrix3 system = Matrix3(eXp, eYp, direction).t();
+  Vec3 eXp = mainDirection.cross(eV);
+  Vec3 eYp = eXp.cross(mainDirection);
+  Matrix3 system = Matrix3(eXp, eYp, mainDirection).t();
 
   switch (properties.shape) {
     case Circular:
@@ -1011,6 +1015,10 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
 
     case Point:
       raySampler = new PointSampler();
+      break;
+
+    case Custom:
+      raySampler = new MapSampler(properties.path);
       break;
 
     default:
@@ -1032,7 +1040,15 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   if (std::isinf(properties.focusZ)) {
     // Collimated beams are easy to calculate. Just throw some rays parallel
     // to the chief ray.
-    while (raySampler->get(coord)) {
+
+    dirSampler.setNumRays(properties.numRays);
+    dirSampler.setPath(properties.objectPath);
+    dirSampler.setShape(properties.objectShape);
+    dirSampler.setDiameter(properties.angularDiameter);
+
+    while (raySampler->get(coord) && dirSampler.get(direction)) {
+      if (properties.objectShape != PointLike)
+        origin = center - direction * properties.length;
       ray.origin    = system * coord + origin;
       ray.direction = direction;
       dest.push_back(ray);
@@ -1047,6 +1063,9 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
 
     // - Diverging beams depart from origin to center, and the focus is in
     //   [length] meters from origin, in negative chief ray direction
+
+    if (properties.objectShape != PointLike)
+      throw std::runtime_error("Cannot sample focused rays from the sky");
 
     if (properties.converging) {
       Vec3 focus     = origin + direction * (properties.length + properties.focusZ);

@@ -28,7 +28,10 @@ ConvexLens::recalcModel()
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - m_radius * m_radius);
 
   // Focal length
-  m_f     = .5 * m_rCurv /  (m_mu - 1);
+  if (m_fromFlen)
+    m_rCurv = 2 * m_f * (m_mu - 1);
+  else
+    m_f     = .5 * m_rCurv /  (m_mu - 1);
 
   // Input focal plane: located at -f minus half the thickness
   m_inputFocalPlane->setDistance(-(.5 * m_thickness + m_f)* Vec3::eZ());
@@ -76,9 +79,11 @@ ConvexLens::propertyChanged(
     recalcModel();
   } else if (name == "curvature") {
     m_rCurv = value;
+    m_fromFlen = false;
     recalcModel();
   } else if (name == "fLen") {
-    m_rCurv = 2 * (Real) value * (m_mu - 1);
+    m_f = value;
+    m_fromFlen = true;
     recalcModel();
   } else if (name == "n") {
     m_mu = value;
@@ -178,6 +183,7 @@ ConvexLens::renderOpenGL()
   m_cylinder.display();
 
   glTranslatef(0, 0, m_thickness);
+  material("output.mirror");
   m_bottomCap.display();
 }
 

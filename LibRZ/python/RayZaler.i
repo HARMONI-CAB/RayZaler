@@ -57,6 +57,7 @@ namespace std {
 #include <RodElement.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>
+#include <SkySampler.h>
 #include <SphericalMirror.h>
 #include <TranslatedFrame.h>
 #include <Tripod.h>
@@ -110,6 +111,7 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "RodElement.h"
 %include "RotatedFrame.h"
 %include "Singleton.h"
+%include "SkySampler.h"
 %include "SphericalMirror.h"
 %include "TranslatedFrame.h"
 %include "Tripod.h"

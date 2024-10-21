@@ -9,6 +9,7 @@
 #include <OpticalElement.h>
 #include <Detector.h>
 #include <Random.h>
+#include <SkySampler.h>
 #include <list>
 #include <map>
 
@@ -75,7 +76,8 @@ namespace RZ {
   enum BeamShape {
     Circular,
     Ring,
-    Point
+    Point,
+    Custom
   };
 
   enum FNumReference {
@@ -94,6 +96,7 @@ namespace RZ {
       const Element *element;
     };
 
+    std::string path;
     Real length              = 10;           // [m]
     Real diameter            = .5;           // [m]
     unsigned int numRays     = 1000;
@@ -101,6 +104,13 @@ namespace RZ {
     Vec3 direction           = -Vec3::eZ();  // [1]
     Vec3 offset              = Vec3::zero(); // [m]
     Real focusZ              = 0;            // [m]
+
+
+    // Object structure
+    SkyObjectShape objectShape = PointLike;
+    Real angularDiameter     = M_PI / 6; // [1]
+    std::string objectPath;
+
     // 
     // fNum = length / D
     //
@@ -131,6 +141,19 @@ namespace RZ {
     {
       reference     = PlaneRelative;
       this->frame   = frame;
+    }
+
+    inline void
+    setObjectShape(std::string const &shape)
+    {
+      if (shape == "point")
+        this->objectShape = PointLike;
+      else if (shape == "circular")
+        this->objectShape = CircleLike;
+      else if (shape == "extended")
+        this->objectShape = Extended;
+      else
+        std::runtime_error("Unrecognized angular shape `" + shape + "'");
     }
 
     void debug() const;
@@ -385,6 +408,7 @@ namespace RZ {
         Real offZ = 0);
 
       static void addBeam(std::list<Ray> &dest, BeamProperties const &);
+      
   };
 }
 
