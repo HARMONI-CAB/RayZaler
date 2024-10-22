@@ -45,7 +45,7 @@ enum ColoringMode {
 Q_DECLARE_METATYPE(ColoringMode);
 
 struct RepresentationProperties {
-  bool accumulate      = false;
+  bool accumulate           = false;
   ColoringMode coloringMode = COLORING_FIXED;
   QColor fixedBeamColor     = QColor(1, 1, 0);
 

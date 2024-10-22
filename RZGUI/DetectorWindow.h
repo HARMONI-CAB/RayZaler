@@ -70,6 +70,7 @@ public slots:
   void onHoverPixel(QPointF loc);
   void onChangeDetectorRep();
   void onToggleShowPhase();
+  void onToggleGrid();
   void onExport();
 
 private:

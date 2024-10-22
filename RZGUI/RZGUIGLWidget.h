@@ -38,6 +38,13 @@ class RZGUIGLWidget : public QOpenGLWidget
   int     m_height;
   int     m_hWnd = -1;
   bool    m_dragging = false;
+
+  GLfloat m_bgAbove[3] = {1.f / 255.f, 1.f / 255.f, 1.f / 255.f};
+  GLfloat m_bgBelow[3] = {0x75f / 255.f, 0x75f / 255.f, 0xe9f / 255.f};
+
+  GLfloat m_pathColor[3] = {1., 0, 1.};
+  GLfloat m_gridColor[3] = {1., 1., 1.};
+
   GLfloat m_dragStart[2] = {0, 0};
   GLfloat m_oldCenterCenter[2] = {0, 0};
 
@@ -122,7 +129,9 @@ public:
   void setDisplayRefFrames(bool);
   void setDisplayMeasurements(bool);
   void setDisplayGrid(bool);
-  
+  void setBackgroundGradient(const GLfloat *, const GLfloat *);
+  void setPathColor(const GLfloat *);
+  void setGridColor(const GLfloat *);
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel, const char *name = nullptr);
   void rotateToCurrentFrame();

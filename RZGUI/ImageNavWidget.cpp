@@ -300,6 +300,14 @@ ImageNavWidget::setShowPhase(bool show)
   }
 }
 
+void
+ImageNavWidget::setShowGrid(bool show)
+{
+  if (show != m_showGrid) {
+    m_showGrid = show;
+    update();
+  }
+}
 
 qreal
 ImageNavWidget::imgMin() const
@@ -417,6 +425,7 @@ void
 ImageNavWidget::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
+
   if (!m_image.isNull()) {
     auto target_width  = static_cast<int>(ceil(m_image.width()  * m_zoom));
     auto target_height = static_cast<int>(ceil(m_image.height() * m_zoom));
@@ -440,7 +449,7 @@ ImageNavWidget::paintEvent(QPaintEvent *)
       painter.drawRect(QRectF(px_sel_start, px_sel_end));
     }
 
-    if (m_zoom > 2)
+    if (m_zoom > 2 && m_showGrid)
       paintGrid(painter);
   } else {
     QBrush brush;

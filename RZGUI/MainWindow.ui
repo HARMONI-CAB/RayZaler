@@ -100,6 +100,8 @@
     <addaction name="actionToggleGrid"/>
     <addaction name="separator"/>
     <addaction name="actionModelSource"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -731,7 +733,7 @@
      <normaloff>:/toolbar/icons/text-x-script.svg</normaloff>:/toolbar/icons/text-x-script.svg</iconset>
    </property>
    <property name="text">
-    <string>Model source...</string>
+    <string>Model source ...</string>
    </property>
    <property name="shortcut">
     <string>F12</string>
@@ -796,6 +798,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Space</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/preferences-general.svg</normaloff>:/toolbar/icons/preferences-general.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Preferences ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
    </property>
   </action>
  </widget>

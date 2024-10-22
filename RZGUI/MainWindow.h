@@ -21,6 +21,9 @@ class QFileDialog;
 class DOFWidget;
 class AboutDialog;
 class ExportViewDialog;
+class SettingsDialog;
+
+class ColorSettings;
 
 struct SessionUI {
   SessionTabWidget *tab       = nullptr;
@@ -45,14 +48,17 @@ class MainWindow : public QMainWindow, public RZ::Logger
   QModelIndex                 m_currentIndex;
   AboutDialog                *m_aboutDialog         = nullptr;
   ExportViewDialog           *m_exportViewDialog    = nullptr;
+  SettingsDialog             *m_settingsDialog      = nullptr;
 
   void refreshCurrentSession();
   void refreshCurrentElement();
   void registerSession(SimulationSession *);
   void doOpen();
   void doReload();
-
   void reconnectModels();
+
+  void applyColorSettings(ColorSettings const &);
+
   void connectAll();
 
   void initDOFWidget(SessionUI &sessUI, SimulationSession *sess);
@@ -110,6 +116,7 @@ public slots:
   void onModelSource();
   void onCenterToSelected();
   void onExportImage();
+  void onOpenPreferences();
 
 private:
   Ui::MainWindow *ui;

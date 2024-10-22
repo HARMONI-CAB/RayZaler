@@ -45,6 +45,7 @@ class ImageNavWidget : public QWidget
   bool          m_logScale = false;
   bool          m_showPhotons = true;
   bool          m_showPhase = false;
+  bool          m_showGrid = false;
 
   QPoint px2img(QPoint) const;
   QPoint img2px(QPoint) const;
@@ -93,6 +94,7 @@ public:
   
   void    setShowPhotons(bool);
   void    setShowPhase(bool);
+  void    setShowGrid(bool);
 
   qreal   imgMin() const;
   qreal   imgMax() const;

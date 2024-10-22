@@ -17,6 +17,7 @@ class RZGUIGLWidget;
 class SimulationProgressDialog;
 class DetectorWindow;
 class SourceEditorWindow;
+class ColorSettings;
 
 class SessionTabWidget : public QWidget
 {
@@ -45,6 +46,8 @@ public:
 
   SimulationSession *session() const;
   RZGUIGLWidget *glWidget() const;
+  void applyColorSettings(ColorSettings const &);
+
   void clearBeam();
   void showDetectorWindow();
   void updateDetectorWindow();

@@ -149,6 +149,7 @@
    </attribute>
    <addaction name="actionExportAs"/>
    <addaction name="actionClear"/>
+   <addaction name="actionToggleGrid"/>
    <addaction name="actionShow_photons"/>
    <addaction name="actionElectricField"/>
    <addaction name="actionTogglePhase"/>
@@ -156,7 +157,7 @@
   </widget>
   <action name="actionExportAs">
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/document-export.svg</normaloff>:/toolbar/icons/document-export.svg</iconset>
    </property>
    <property name="text">
@@ -168,7 +169,7 @@
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/draw-eraser.svg</normaloff>:/toolbar/icons/draw-eraser.svg</iconset>
    </property>
    <property name="text">
@@ -188,7 +189,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/logscale.svg</normaloff>:/toolbar/icons/logscale.svg</iconset>
    </property>
    <property name="text">
@@ -200,7 +201,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/photons.svg</normaloff>:/toolbar/icons/photons.svg</iconset>
    </property>
    <property name="text">
@@ -212,7 +213,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/Efield.svg</normaloff>:/toolbar/icons/Efield.svg</iconset>
    </property>
    <property name="text">
@@ -224,7 +225,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="icons.qrc">
      <normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</normaloff>:/toolbar/icons/RGB_color_wheel_36.svg</iconset>
    </property>
    <property name="text">
@@ -234,7 +235,24 @@
     <string>Show/hide wave phase</string>
    </property>
   </action>
+  <action name="actionToggleGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/toolbar/icons/Draft_Grid.svg</normaloff>:/toolbar/icons/Draft_Grid.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle grid</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

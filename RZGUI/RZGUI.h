@@ -6,7 +6,7 @@
 #define RZ_APPLICATION_NAME    "RayZaler"
 
 #include <QSettings>
-
+#include "ColorSettings.h"
 
 class RZGUISingleton {
   QSettings *m_settings = nullptr;
@@ -46,6 +46,16 @@ public:
   }
 
   QSettings *settings() const;
+
+  static inline bool
+  loadColorSettings(ColorSettings &settings) {
+    return loadSetting(settings, "Colors");
+  }
+
+  static inline void
+  saveColorSettings(ColorSettings const &settings) {
+    saveSetting(settings, "Colors");
+  }
 };
 
 #endif // RZGUI_H

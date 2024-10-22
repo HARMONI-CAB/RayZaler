@@ -277,6 +277,12 @@ DetectorWindow::connectAll()
         SLOT(onToggleShowPhase()));
 
   connect(
+        ui->actionToggleGrid,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onToggleGrid()));
+
+  connect(
         ui->actionExportAs,
         SIGNAL(triggered(bool)),
         this,
@@ -456,6 +462,13 @@ void
 DetectorWindow::onToggleShowPhase()
 {
   m_navWidget->setShowPhase(ui->actionTogglePhase->isChecked());
+  refreshUi();
+}
+
+void
+DetectorWindow::onToggleGrid()
+{
+  m_navWidget->setShowGrid(ui->actionToggleGrid->isChecked());
   refreshUi();
 }
 

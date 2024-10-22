@@ -28,6 +28,8 @@ set(PROJECT_SOURCES
         ColorChooserButton.cpp
         ColorChooserButton.h
         ColorChooserButton.ui
+        ColorSettings.h
+        ColorSettings.cpp
         CustomTextEditDelegate.h
         CustomTextEditDelegate.cpp
         DetectorWindow.h

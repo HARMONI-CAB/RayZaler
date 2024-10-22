@@ -327,7 +327,7 @@ RZGUIGLWidget::displayCurrentPath()
   auto path = m_selectedPath;
 
   if (path != nullptr) {
-    glColor3f(1, 0, 1);
+    glColor3fv(m_pathColor);
     unsigned int i = 0;
     for (auto p = path->m_sequence.begin();
           p != path->m_sequence.end();
@@ -368,6 +368,29 @@ RZGUIGLWidget::setDisplayGrid(bool state)
     m_displayGrids = state;
     update();
   }
+}
+
+void
+RZGUIGLWidget::setBackgroundGradient(const GLfloat *above, const GLfloat *below)
+{
+  memcpy(m_bgAbove, above, 3 * sizeof(GLfloat));
+  memcpy(m_bgBelow, below, 3 * sizeof(GLfloat));
+  update();
+}
+
+void
+RZGUIGLWidget::setGridColor(const GLfloat *color)
+{
+  memcpy(m_gridColor, color, 3 * sizeof(GLfloat));
+  m_grid.setColor(m_gridColor);
+  update();
+}
+
+void
+RZGUIGLWidget::setPathColor(const GLfloat *color)
+{
+  memcpy(m_pathColor, color, 3 * sizeof(GLfloat));
+  update();
 }
 
 void
@@ -748,14 +771,6 @@ RZGUIGLWidget::resizeGL(int w, int h)
   configureViewPort();
 }
 
-#define ABOVE_RED   1
-#define ABOVE_GREEN 1
-#define ABOVE_BLUE  1
-
-#define BELOW_RED   0x75
-#define BELOW_GREEN 0x75
-#define BELOW_BLUE  0xe9
-
 void
 RZGUIGLWidget::drawAxes()
 {
@@ -777,11 +792,11 @@ RZGUIGLWidget::drawAxes()
       glDisable(GL_DEPTH_TEST);
       glBegin(GL_QUADS);
 
-      glColor3f(BELOW_RED / 255., BELOW_GREEN / 255., BELOW_BLUE / 255.);
+      glColor3fv(m_bgBelow);
       glVertex3f(-2, -2. / aspect, 10);
       glVertex3f(+2, -2. / aspect, 10);
 
-      glColor3f(ABOVE_RED / 255., ABOVE_GREEN / 255., ABOVE_BLUE / 255.);
+      glColor3fv(m_bgAbove);
       glVertex3f(+2., 2. / aspect, 10);
       glVertex3f(-2., 2. / aspect, 10);
       glEnd();

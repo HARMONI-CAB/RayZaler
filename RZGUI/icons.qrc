@@ -38,6 +38,7 @@
         <file>icons/Draft_Grid.svg</file>
         <file>icons/zoom-selection.svg</file>
         <file>icons/view-measurement.svg</file>
+        <file>icons/preferences-general.svg</file>
     </qresource>
     <qresource prefix="/ommodel">
         <file>icons/paths.svg</file>

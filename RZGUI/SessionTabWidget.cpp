@@ -9,6 +9,8 @@
 #include "DetectorWindow.h"
 #include <RayBeamElement.h>
 #include "SourceEditorWindow.h"
+#include "ColorSettings.h"
+#include "RZGUI.h"
 
 SessionTabWidget::SessionTabWidget(
     SimulationSession *session,
@@ -16,6 +18,8 @@ SessionTabWidget::SessionTabWidget(
   QWidget(parent),
   ui(new Ui::SessionTabWidget)
 {
+  ColorSettings colorSettings;
+
   m_session = session;
 
   ui->setupUi(this);
@@ -42,14 +46,14 @@ SessionTabWidget::SessionTabWidget(
     fclose(fp);
   }
 
-  addGridStep("1 µm", 1e-6);
-  addGridStep("10 µm", 1e-5);
+  addGridStep("1 µm",    1e-6);
+  addGridStep("10 µm",   1e-5);
   addGridStep("15 µm", 1.5e-5);
-  addGridStep("100 µm", 1e-4);
-  addGridStep("1 mm", 1e-3);
-  addGridStep("1 cm", 1e-2);
-  addGridStep("10 cm", 1e-1);
-  addGridStep("1 m", 1);
+  addGridStep("100 µm",  1e-4);
+  addGridStep("1 mm",    1e-3);
+  addGridStep("1 cm",    1e-2);
+  addGridStep("10 cm",   1e-1);
+  addGridStep("1 m",     1);
 
   setGridStep(1e-2);
 
@@ -65,7 +69,35 @@ SessionTabWidget::SessionTabWidget(
 
   setGridDivs(100);
 
+  RZGUISingleton::loadColorSettings(colorSettings);
+  applyColorSettings(colorSettings);
+
   connectAll();
+}
+
+static inline const GLfloat *
+QColorToGLfloat(QColor const &color, GLfloat *storage)
+{
+  storage[0] = color.redF();
+  storage[1] = color.greenF();
+  storage[2] = color.blueF();
+
+  return storage;
+}
+
+void
+SessionTabWidget::applyColorSettings(ColorSettings const &settings)
+{
+  GLfloat bgAbove[3];
+  GLfloat bgBelow[3];
+  GLfloat storage[3];
+
+  m_glWidget->setBackgroundGradient(
+        QColorToGLfloat(settings.bgAbove, bgAbove),
+        QColorToGLfloat(settings.bgBelow, bgBelow));
+
+  m_glWidget->setPathColor(QColorToGLfloat(settings.path, storage));
+  m_glWidget->setGridColor(QColorToGLfloat(settings.grid, storage));
 }
 
 void

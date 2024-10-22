@@ -10,6 +10,7 @@
 #include "DOFWidget.h"
 #include "AboutDialog.h"
 #include "ExportViewDialog.h"
+#include "SettingsDialog.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -27,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
   m_simPropertiesDialog = new SimulationPropertiesDialog(this);
   m_exportViewDialog    = new ExportViewDialog(this);
   m_aboutDialog         = new AboutDialog(this);
+  m_settingsDialog      = new SettingsDialog(this);
 
   ui->propTableView->setModel(m_propModel);
   ui->propTableView->setItemDelegateForColumn(
@@ -101,6 +103,12 @@ MainWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onOpen()));
+
+  connect(
+        ui->actionPreferences,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onOpenPreferences()));
 
   connect(
         ui->actionReloadModel,
@@ -331,6 +339,13 @@ void
 MainWindow::notifyReady()
 {
   emit ready();
+}
+
+void
+MainWindow::applyColorSettings(ColorSettings const &settings)
+{
+  for (auto &p : m_sessionToUi)
+    p.tab->applyColorSettings(settings);
 }
 
 void
@@ -897,5 +912,13 @@ MainWindow::onExportImage()
     m_exportViewDialog->setSessionTabWidget(widget);
     m_exportViewDialog->setModal(true);
     m_exportViewDialog->show();
+  }
+}
+
+void
+MainWindow::onOpenPreferences()
+{
+  if (m_settingsDialog->exec()) {
+    applyColorSettings(m_settingsDialog->colorSettings());
   }
 }

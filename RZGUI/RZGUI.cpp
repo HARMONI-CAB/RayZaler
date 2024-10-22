@@ -42,3 +42,4 @@ RZGUISingleton::settings() const
 {
   return m_settings;
 }
+
