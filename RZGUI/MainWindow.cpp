@@ -408,8 +408,7 @@ MainWindow::refreshCurrentSession()
     ui->dofStack->setCurrentIndex(1);
     ui->actionExportView->setEnabled(true);
 
-    SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-          ui->sessionTabWidget->currentWidget());
+    SessionTabWidget *widget = currentSessionWidget();
     if (widget != nullptr)
       ui->actionCenterSelection->setEnabled(widget->selectedFrame() != nullptr);
 
@@ -566,8 +565,7 @@ MainWindow::finalizeDOFWidget(SessionUI &sessUI)
 void
 MainWindow::doReload()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr) {
     // We need to remove the DOF widget from the current session UI, 
@@ -616,29 +614,29 @@ MainWindow::onReload()
 void
 MainWindow::onCloseTab(int index)
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->widget(index));
+  SessionTabWidget *widget = currentSessionWidget();
 
-  SimulationSession *session = widget->session();
+  if (widget != nullptr) {
+    SimulationSession *session = widget->session();
 
-  auto sessUI = m_sessionToUi[session];
+    auto sessUI = m_sessionToUi[session];
 
-  ui->sessionTabWidget->removeTab(index);
+    ui->sessionTabWidget->removeTab(index);
 
-  m_sessions.remove(session);
-  m_sessionToUi.remove(session);
+    m_sessions.remove(session);
+    m_sessionToUi.remove(session);
 
-  sessUI.tab->deleteLater();
-  finalizeDOFWidget(sessUI);
+    sessUI.tab->deleteLater();
+    finalizeDOFWidget(sessUI);
 
-  session->deleteLater();
+    session->deleteLater();
+  }
 }
 
 void
 MainWindow::onTabChanged()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr) {
     m_currSession = widget->session();
@@ -738,18 +736,23 @@ MainWindow::onSimulationRun()
 void
 MainWindow::onClearBeam()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr)
     widget->clearBeam();
 }
 
+SessionTabWidget *
+MainWindow::currentSessionWidget() const
+{
+  return qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->currentWidget());
+}
+
 void
 MainWindow::onSimulationShowResult()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr)
     widget->showDetectorWindow();
@@ -774,8 +777,7 @@ MainWindow::onDofChanged(
     const QModelIndex &,
     const QList<int> &)
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr)
     widget->updateModel();
@@ -784,8 +786,7 @@ MainWindow::onDofChanged(
 void
 MainWindow::onChangeView()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr) {
     QAction *sender = qobject_cast<QAction *>(QObject::sender());
@@ -811,8 +812,7 @@ void
 MainWindow::onTreeItemSelectionChanged()
 {
   if (m_currSession != nullptr) {
-    SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+    SessionTabWidget *widget = currentSessionWidget();
     QModelIndex index = ui->omTreeView->currentIndex();
     RZ::Element *selectedElement = nullptr;
     std::string displayText;
@@ -850,8 +850,7 @@ MainWindow::onTreeItemSelectionChanged()
 void
 MainWindow::onChangeDisplay()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr) {
     widget->setDisplayNames(ui->actionToggleDisplayNames->isChecked());
@@ -885,8 +884,7 @@ MainWindow::onUpdateModel()
 void
 MainWindow::onModelSource()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr)
     widget->showSourceWindow();
@@ -895,8 +893,7 @@ MainWindow::onModelSource()
 void
 MainWindow::onCenterToSelected()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr)
     widget->centerSelectedFrame();
@@ -905,8 +902,7 @@ MainWindow::onCenterToSelected()
 void
 MainWindow::onExportImage()
 {
-  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
-        ui->sessionTabWidget->currentWidget());
+  SessionTabWidget *widget = currentSessionWidget();
 
   if (widget != nullptr) {
     m_exportViewDialog->setSessionTabWidget(widget);

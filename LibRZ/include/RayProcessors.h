@@ -2,6 +2,7 @@
 #define _RAYPROCESSORS_H
 
 #include "RayProcessors/ApertureStop.h"
+#include "RayProcessors/ConicMirror.h"
 #include "RayProcessors/FlatMirror.h"
 #include "RayProcessors/InfiniteMirror.h"
 #include "RayProcessors/LensletArray.h"

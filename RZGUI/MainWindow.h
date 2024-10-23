@@ -65,6 +65,8 @@ class MainWindow : public QMainWindow, public RZ::Logger
   void finalizeDOFWidget(SessionUI &sessUI);
   void openDelayedFiles();
 
+  SessionTabWidget *currentSessionWidget() const;
+
 public:
   virtual void logFunction(
           RZ::LogLevel level,

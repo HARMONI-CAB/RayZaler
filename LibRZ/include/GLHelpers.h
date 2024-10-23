@@ -340,6 +340,58 @@ public:
       ~GLParabolicCap();
   };
 
+  class GLConicCap : public GLAbstractCap {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+      std::vector<GLfloat> m_edge;
+
+      GLdouble m_rCurv   = 1;
+      GLdouble m_K       = 0;
+      bool     m_convex  = false;
+      GLdouble m_radius  = .25;
+      GLdouble m_x0      = 0;
+      GLdouble m_y0      = 0;
+      GLint    m_sectors = 64;
+      GLint    m_stacks  = 8;
+      bool     m_invertNormals = false;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      fnum() const
+      {
+        return m_rCurv / 2;
+      }
+
+      GLdouble
+      radius() const
+      {
+        return m_radius;
+      }
+      
+      void setCenterOffset(GLdouble, GLdouble);
+      void setConicConstant(GLdouble);
+      void setCurvatureRadius(GLdouble);
+      void setConvex(bool);
+
+      void setRadius(GLdouble);
+      void setSectors(GLint);
+      void setStacks(GLint);
+      void setInvertNormals(bool);
+
+      virtual const std::vector<GLfloat> *edge() const override;
+      virtual void requestRecalc() override;
+      virtual void display() override;
+      
+      GLConicCap();
+      ~GLConicCap();
+  };
+
   class GLPinHole : public GLPrimitive {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;

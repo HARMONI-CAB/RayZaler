@@ -22,6 +22,7 @@
 #include <BenchElement.h>
 #include <BlockElement.h>
 #include <CircularWindow.h>
+#include <ConicMirror.h>
 #include <ConvexLens.h>
 #include <Detector.h>
 #include <FlatMirror.h>
@@ -62,6 +63,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new BenchElementFactory);
   Singleton::instance()->registerElementFactory(new BlockElementFactory);
   Singleton::instance()->registerElementFactory(new CircularWindowFactory);
+  Singleton::instance()->registerElementFactory(new ConicMirrorFactory);
   Singleton::instance()->registerElementFactory(new ConvexLensFactory);
   Singleton::instance()->registerElementFactory(new DetectorFactory);
   Singleton::instance()->registerElementFactory(new IdealLensFactory);
