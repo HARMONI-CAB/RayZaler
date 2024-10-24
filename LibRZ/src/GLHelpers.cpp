@@ -1013,9 +1013,9 @@ GLConicCap::recalculate()
       m_vertices[3 * n + 1] = y;
       m_vertices[3 * n + 2] = z;
 
-      m_normals[3 * n + 0] = sigma * x;
-      m_normals[3 * n + 1] = sigma * y;
-      m_normals[3 * n + 2] = sigma * dFdz;
+      m_normals[3 * n + 0] = sigma * x * nInv;
+      m_normals[3 * n + 1] = sigma * y * nInv;
+      m_normals[3 * n + 2] = sigma * dFdz * nInv;
 
       m_texCoords[2 * n + 0] = i * secDelta;
       m_texCoords[2 * n + 1] = j * stDelta;
