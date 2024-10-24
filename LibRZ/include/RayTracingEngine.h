@@ -81,7 +81,7 @@ namespace RZ {
     {
       bool haveIt = keepPruned ? hadRay(index) : hasRay(index);
       
-      if (!haveIt)
+      if (!haveIt || lengths[index] < 0)
         return false;
 
       dest.origin.setFromArray(origins + 3 * index);

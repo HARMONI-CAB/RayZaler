@@ -48,6 +48,7 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
     if (++p == 3) {
       p = 0;
       t = numDot / demDot;
+
       numDot = demDot = 0;
       
       beam->destinations[i - 2] = beam->origins[i - 2] + t * beam->directions[i - 2];
@@ -56,6 +57,9 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
       beam->lengths[r]          = t;
       beam->cumOptLengths[r]   += beam->n * t;
 
+      if (t < 0)
+        beam->prune(r);
+      
       ++r;
     }
 

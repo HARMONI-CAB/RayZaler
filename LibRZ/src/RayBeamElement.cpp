@@ -76,6 +76,7 @@ void
 RayBeamElement::raysToVertices()
 {
   size_t size = m_rays.size();
+  size_t actualCount = 0;
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
   size_t i = 0, j = 0;
 
@@ -86,19 +87,26 @@ RayBeamElement::raysToVertices()
   m_colors.resize(8 * size);
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
-    Vec3 destination = p->origin + p->length * p->direction;
-    m_vertices[i++]  = p->origin.x;
-    m_vertices[i++]  = p->origin.y;
-    m_vertices[i++]  = p->origin.z;
+    if (p->length > 0) {
+      Vec3 destination = p->origin + p->length * p->direction;
+      m_vertices[i++]  = p->origin.x;
+      m_vertices[i++]  = p->origin.y;
+      m_vertices[i++]  = p->origin.z;
 
-    m_vertices[i++]  = destination.x;
-    m_vertices[i++]  = destination.y;
-    m_vertices[i++]  = destination.z;
-    
-    m_rayColoring->id2color(p->id, transp, &m_colors[j]);
-    memcpy(&m_colors[j + 4], &m_colors[j], 4 * sizeof(GLfloat));
-    j += 8;
+      m_vertices[i++]  = destination.x;
+      m_vertices[i++]  = destination.y;
+      m_vertices[i++]  = destination.z;
+      
+      m_rayColoring->id2color(p->id, transp, &m_colors[j]);
+      memcpy(&m_colors[j + 4], &m_colors[j], 4 * sizeof(GLfloat));
+      j += 8;
+
+      ++actualCount;
+    }
   }
+
+  m_vertices.resize(6 * actualCount);
+  m_colors.resize(8 * actualCount);
 }
 
 RayBeamElement::RayBeamElement(
