@@ -55,9 +55,6 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal, bool revers
 
       numDot = demDot = 0;
       
-      if (t < 0)
-        t = -t;
-
       beam->destinations[i - 2] = beam->origins[i - 2] + t * beam->directions[i - 2];
       beam->destinations[i - 1] = beam->origins[i - 1] + t * beam->directions[i - 1];
       beam->destinations[i - 0] = beam->origins[i - 0] + t * beam->directions[i - 0];
