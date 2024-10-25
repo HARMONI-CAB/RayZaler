@@ -309,7 +309,10 @@ RayTracingEngine::trace()
   if (m_beamDirty)
     toBeam();
 
-  cast(m_currentFrame->getCenter(), m_currentFrame->eZ());
+  cast(
+    m_currentFrame->getCenter(),
+    m_currentFrame->eZ(),
+    m_currentSurface->processor->reversible());
 
   m_raysDirty = true;
   m_notificationPendig = false;

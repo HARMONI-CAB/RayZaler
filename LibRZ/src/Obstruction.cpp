@@ -82,13 +82,13 @@ Obstruction::nativeMaterialOpenGL(std::string const &)
 void
 Obstruction::renderOpenGL()
 {
-  material("output.obs");
+  material("input.obs");
 
   m_disc.display();
   glRotatef(180, 1, 0, 0);
   glTranslatef(0, 0, 1e-3 * m_radius);
 
-  material("input.obs");
+  material("output.obs");
   m_disc.display();
 }
 

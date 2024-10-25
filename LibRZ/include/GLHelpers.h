@@ -168,6 +168,7 @@ public:
       
       bool     m_drawTop  = false;
       bool     m_drawBase = false;
+      bool     m_invertNormals = false;
       GLdouble m_height   = 1.;
       GLdouble m_radius   = .25;
       GLint    m_slices   = 64;
@@ -192,7 +193,7 @@ public:
       void setRadius(GLdouble);
       void setSlices(GLint);
       void setVisibleCaps(bool, bool);
-
+      void setInvertNormals(bool);
       virtual void display() override;
 
       GLCappedCylinder();
@@ -355,6 +356,7 @@ public:
       GLdouble m_radius  = .25;
       GLdouble m_x0      = 0;
       GLdouble m_y0      = 0;
+      GLdouble m_rHole   = 0;
       GLint    m_sectors = 64;
       GLint    m_stacks  = 8;
       bool     m_invertNormals = false;
@@ -380,6 +382,7 @@ public:
       void setConvex(bool);
 
       void setRadius(GLdouble);
+      void setHoleRadius(GLdouble);
       void setSectors(GLint);
       void setStacks(GLint);
       void setInvertNormals(bool);

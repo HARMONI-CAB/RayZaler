@@ -7,6 +7,7 @@ using namespace RZ;
 
 ApertureStopProcessor::ApertureStopProcessor()
 {
+  setReversible(true);
   defineAperture(new CircularAperture(m_radius));
 }
 

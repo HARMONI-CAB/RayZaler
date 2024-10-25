@@ -129,15 +129,30 @@ namespace RZ {
 
   class RayTransferProcessor {
     GenericAperture *m_aperture = nullptr;
+    bool             m_reversible = false;
 
   protected:
-    inline void defineAperture(GenericAperture *ap)
+    inline void
+    defineAperture(GenericAperture *ap)
     {
       m_aperture = ap;
     }
 
+    inline void
+    setReversible(bool rev)
+    {
+      m_reversible = rev;
+    }
+
   public:
-    inline GenericAperture *aperture() const
+    inline bool
+    reversible() const
+    {
+      return m_reversible;
+    }
+    
+    inline GenericAperture *
+    aperture() const
     {
       return m_aperture;
     }
@@ -230,7 +245,7 @@ namespace RZ {
 
     protected:
       virtual RayBeam *makeBeam();
-      virtual void cast(Point3 const &center,  Vec3 const &normal) = 0;
+      virtual void cast(Point3 const &center,  Vec3 const &normal, bool reversible) = 0;
       void rayProgress(uint64_t num, uint64_t total);
 
     public:

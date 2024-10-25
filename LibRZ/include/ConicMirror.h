@@ -28,6 +28,7 @@ namespace RZ {
 
   class ConicMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
+      GLCappedCylinder m_hole;
       GLConicCap   m_cap, m_rearCap;
       ConicMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
@@ -40,6 +41,8 @@ namespace RZ {
       Real m_displacement;
       Real m_x0 = 0;
       Real m_y0 = 0;
+      Real m_rHole = .5;
+      Real m_rHoleHeight;
       
       void recalcModel();
 

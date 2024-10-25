@@ -28,7 +28,7 @@ namespace RZ {
     Real m_radius2 = 1;
     Real m_rCurv   = 2;
     Real m_rCurv2  = 2;
-
+    Real m_rHole   = 0;
     Real m_K = 0;
     
     Real m_x0 = 0;
@@ -42,6 +42,7 @@ namespace RZ {
     bool m_convex   = false;
 
     std::vector<GLfloat> m_vertices;
+    std::vector<GLfloat> m_holeVertices;
     std::vector<GLfloat> m_axes;
 
     void recalcGLConic();
@@ -56,8 +57,9 @@ namespace RZ {
     void setConicConstant(Real);
     void setCurvatureRadius(Real);
     void setCenterOffset(Real, Real);
+    void setHoleRadius(Real);
     void setConvex(bool);
-
+    
     virtual bool intercept(
       Vec3 &hit,
       Vec3 &normal,

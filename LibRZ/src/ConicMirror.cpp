@@ -32,8 +32,10 @@ ConicMirror::recalcModel()
 
   if (isZero(m_K + 1)) {
     m_displacement = .5 * R2 / m_rCurv;
+    m_rHoleHeight  = .5 * m_rHole * m_rHole / m_rCurv;
   } else {
     m_displacement = (Rc - sqrt(Rc2 - (m_K + 1) * R2)) / (m_K + 1);
+    m_rHoleHeight  = (Rc - sqrt(Rc2 - (m_K + 1) * m_rHoleHeight * m_rHoleHeight)) / (m_K + 1);
   }
 
   m_cap.setRadius(m_radius);
@@ -64,6 +66,15 @@ ConicMirror::recalcModel()
 
   m_reflectiveSurfaceFrame->recalculate();
   m_reflectiveSurfacePort->recalculate();
+
+  m_cap.setHoleRadius(m_rHole);
+  m_rearCap.setHoleRadius(m_rHole);
+
+  m_hole.setRadius(m_rHole);
+  m_hole.setInvertNormals(true);
+  m_hole.setHeight(m_thickness);
+  m_hole.setVisibleCaps(false, false);
+  m_processor->setHoleRadius(m_rHole);
 }
 
 bool
@@ -79,6 +90,9 @@ ConicMirror::propertyChanged(
     recalcModel();
   } else if (name == "curvature") {
     m_rCurv = value;
+    recalcModel();
+  } else if (name == "hole") {
+    m_rHole = value;
     recalcModel();
   } else if (name == "conic") {
     m_K = value;
@@ -108,6 +122,7 @@ ConicMirror::ConicMirror(
   registerProperty("radius",    2.5e-2);
   registerProperty("curvature",  10e-2);
   registerProperty("conic",          0);
+  registerProperty("hole",           0);
   registerProperty("x0",            0.);
   registerProperty("y0",            0.);
   
@@ -120,7 +135,7 @@ ConicMirror::ConicMirror(
   m_cylinder.setVisibleCaps(false, false);
   m_cap.setInvertNormals(true);
   m_rearCap.setInvertNormals(false);
-  
+
   refreshProperties();
 }
 
@@ -148,8 +163,8 @@ ConicMirror::renderOpenGL()
   bool convex = m_rCurv < 0;
   Real sigma = convex ? 1 : -1;
 
+  glPushMatrix();
   material("mirror");
-
   glTranslatef(0, 0, -sigma * m_displacement);
 
   m_rearCap.display();
@@ -159,6 +174,10 @@ ConicMirror::renderOpenGL()
 
   glTranslatef(0, 0, m_thickness);
   m_cap.display();
+  glPopMatrix();
+
+  glTranslatef(0, 0, -sigma * m_rHoleHeight);
+  m_hole.display();
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

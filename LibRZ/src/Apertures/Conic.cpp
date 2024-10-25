@@ -95,6 +95,15 @@ ConicAperture::setConicConstant(Real K)
 }
 
 void
+ConicAperture::setHoleRadius(Real Rc)
+{
+  m_rHole = Rc;
+
+  recalcDistribution();
+  recalcGL();
+}
+
+void
 ConicAperture::setConvex(bool convex)
 {
   m_convex = convex;
@@ -113,6 +122,7 @@ ConicAperture::recalcGLConic()
   Real sigma = m_convex ? 1 : -1;
 
   m_vertices.clear();
+  m_holeVertices.clear();
 
   auto K1 = m_K + 1;
   auto invK1 = 1 / K1;
@@ -127,6 +137,18 @@ ConicAperture::recalcGLConic()
     m_vertices.push_back(x);
     m_vertices.push_back(y);
     m_vertices.push_back(z);
+    
+    if (m_rHole > 0) {
+      x = m_rHole * cos(theta) + m_x0;
+      y = m_rHole * sin(theta) + m_y0;
+      
+      rho2 = x * x + y * y;
+      z = -sigma * (invK1 * (m_rCurv - sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+      m_holeVertices.push_back(x);
+      m_holeVertices.push_back(y);
+      m_holeVertices.push_back(z);
+    }
 
     theta += dTheta;
   }
@@ -136,9 +158,9 @@ ConicAperture::recalcGLConic()
  
   m_axes.clear();
 
-  dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
+  dh = (m_radius - m_rHole) / GENERIC_APERTURE_NUM_SEGMENTS;
 
-  r = -m_radius;
+  r = m_rHole;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
     x = m_ux * r + m_x0;
     y = m_uy * r + m_y0;
@@ -152,7 +174,21 @@ ConicAperture::recalcGLConic()
     r += dh;
   }
 
-  r = -m_radius;
+  r = -m_rHole;
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    x = m_ux * r + m_x0;
+    y = m_uy * r + m_y0;
+    rho2 = x * x + y * y;
+    z = -sigma * (invK1 * (m_rCurv - sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+    m_axes.push_back(x);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+
+    r -= dh;
+  }
+
+  r = m_rHole;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
     x = -m_uy * r + m_x0;
     y = m_ux * r + m_y0;
@@ -162,8 +198,22 @@ ConicAperture::recalcGLConic()
     m_axes.push_back(x);
     m_axes.push_back(y);
     m_axes.push_back(z);
-
+  
     r += dh;
+  }
+
+  r = -m_rHole;
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    x = -m_uy * r + m_x0;
+    y = m_ux * r + m_y0;
+    rho2 = x * x + y * y;
+    z = -sigma * (invK1 * (m_rCurv - sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+    m_axes.push_back(x);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+  
+    r -= dh;
   }
 }
 
@@ -177,6 +227,7 @@ ConicAperture::recalcGLParabolic()
   Real sigma = m_convex ? 1 : -1;
 
   m_vertices.clear();
+  m_holeVertices.clear();
 
   auto inv2R = .5 / m_rCurv;
 
@@ -191,17 +242,28 @@ ConicAperture::recalcGLParabolic()
     m_vertices.push_back(y);
     m_vertices.push_back(z);
 
+    if (m_rHole > 0) {
+      x = m_rHole * cos(theta) + m_x0;
+      y = m_rHole * sin(theta) + m_y0;
+      
+      rho2 = x * x + y * y;
+      z = -sigma * (inv2R * rho2 - m_depth);
+
+      m_holeVertices.push_back(x);
+      m_holeVertices.push_back(y);
+      m_holeVertices.push_back(z);
+    }
+
     theta += dTheta;
   }
 
-  // Draw the aperture ellipse
- 
+  
 
   m_axes.clear();
 
-  dh = 2 * m_radius / GENERIC_APERTURE_NUM_SEGMENTS;
+  dh = (m_radius - m_rHole) / GENERIC_APERTURE_NUM_SEGMENTS;
 
-  r = -m_radius;
+  r = m_rHole;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
     x = m_ux * r + m_x0;
     y = m_uy * r + m_y0;
@@ -215,7 +277,21 @@ ConicAperture::recalcGLParabolic()
     r += dh;
   }
 
-  r = -m_radius;
+  r = -m_rHole;
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    x = m_ux * r + m_x0;
+    y = m_uy * r + m_y0;
+    rho2 = x * x + y * y;
+    z = -sigma * (inv2R * rho2 - m_depth);
+
+    m_axes.push_back(x);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+
+    r -= dh;
+  }
+
+  r = m_rHole;
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
     x = -m_uy * r + m_x0;
     y = m_ux * r + m_y0;
@@ -225,8 +301,22 @@ ConicAperture::recalcGLParabolic()
     m_axes.push_back(x);
     m_axes.push_back(y);
     m_axes.push_back(z);
-
+  
     r += dh;
+  }
+
+  r = -m_rHole;
+  for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS + 1; ++i) {
+    x = -m_uy * r + m_x0;
+    y = m_ux * r + m_y0;
+    rho2 = x * x + y * y;
+    z = -sigma * (inv2R * rho2 - m_depth);
+
+    m_axes.push_back(x);
+    m_axes.push_back(y);
+    m_axes.push_back(z);
+  
+    r -= dh;
   }
 }
 
@@ -321,16 +411,28 @@ ConicAperture::area() const
 void
 ConicAperture::renderOpenGL()
 {
-  auto N = m_axes.size() / (2 * 3);
+  auto N = m_axes.size() / (4 * 3);
 
   glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
     glDrawArrays(GL_LINE_LOOP, 0, m_vertices.size() / 3);
+
+    if (!m_holeVertices.empty()) {
+      glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_holeVertices.data());
+      glDrawArrays(GL_LINE_LOOP, 0, m_holeVertices.size() / 3);
+    }
   
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data());
     glDrawArrays(GL_LINE_STRIP, 0, N);
 
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data() + 3 * N);
     glDrawArrays(GL_LINE_STRIP, 0, N);
+
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data() + 6 * N);
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+    
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_axes.data() + 9 * N);
+    glDrawArrays(GL_LINE_STRIP, 0, N);
+
   glDisableClientState(GL_VERTEX_ARRAY);
 }

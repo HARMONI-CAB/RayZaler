@@ -385,8 +385,8 @@ ParserContext::parseDOFDecl(ParserDOFDecl const &decl, Real &min, Real &max, Rea
   else if (sscanf(decl.max_expr.c_str(), "%lg", &max) < 1)
     throw std::runtime_error("Invalid real literal `" + decl.max_expr + "'");
   
-  if (decl.min_expr > decl.max_expr)
-    throw std::runtime_error("Lower bound of parameter/DOF is greater than its upper bound");
+  if (min > max)
+    throw std::runtime_error("Lower bound of parameter/DOF (" + std::to_string(min) + ") is greater than its upper bound (" + std::to_string(max) + ")");
   
   if (decl.assign_expr.size() == 0)
     defVal = 0;

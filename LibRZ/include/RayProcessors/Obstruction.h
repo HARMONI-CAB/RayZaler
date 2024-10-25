@@ -10,6 +10,7 @@ namespace RZ {
       Real m_radius = .5;
 
     public:
+      ObstructionProcessor();
       void setRadius(Real);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;

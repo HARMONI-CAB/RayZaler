@@ -26,7 +26,7 @@ CPURayTracingEngine::CPURayTracingEngine() : RayTracingEngine()
 }
 
 void
-CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
+CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal, bool reversible)
 {
   RayBeam *beam = this->beam();
   Real numDot, demDot, t;
@@ -49,16 +49,24 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal)
       p = 0;
       t = numDot / demDot;
 
+      if (!reversible && t < 0) {
+        beam->prune(r);
+      }
+
       numDot = demDot = 0;
       
+      if (t < 0) {
+        t = -t;
+        /*beam->directions[i - 2] = -beam->directions[i - 2];
+        beam->directions[i - 1] = -beam->directions[i - 1];
+        beam->directions[i - 0] = -beam->directions[i - 0];*/
+      }
+
       beam->destinations[i - 2] = beam->origins[i - 2] + t * beam->directions[i - 2];
       beam->destinations[i - 1] = beam->origins[i - 1] + t * beam->directions[i - 1];
       beam->destinations[i - 0] = beam->origins[i - 0] + t * beam->directions[i - 0];
       beam->lengths[r]          = t;
       beam->cumOptLengths[r]   += beam->n * t;
-
-      if (t < 0)
-        beam->prune(r);
       
       ++r;
     }

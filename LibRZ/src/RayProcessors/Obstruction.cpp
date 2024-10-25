@@ -3,6 +3,11 @@
 
 using namespace RZ;
 
+ObstructionProcessor::ObstructionProcessor()
+{
+  setReversible(true);
+}
+
 std::string
 ObstructionProcessor::name() const
 {

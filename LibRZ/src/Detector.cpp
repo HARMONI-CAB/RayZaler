@@ -406,7 +406,7 @@ Detector::nativeMaterialOpenGL(std::string const &name)
   GLfloat shiny = 128;
 
   glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
-  if (name == "detector")
+  if (name == "input.detector")
     glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, .5));
   else
     glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.5, .5, .5));
@@ -423,7 +423,7 @@ Detector::renderOpenGL()
   glTranslatef(0, 0, -thickness / 2);
   
   glPushMatrix();
-  material("detector");
+  material("input.detector");
   glScalef(m_width, m_height, thickness);
   GLCube(1);
   glPopMatrix();

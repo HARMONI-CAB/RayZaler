@@ -48,6 +48,15 @@ ConicMirrorProcessor::setCurvatureRadius(Real Rc)
 }
 
 void
+ConicMirrorProcessor::setHoleRadius(Real Rh)
+{
+  m_rHole  = Rh;
+  m_rHole2 = Rh * Rh;
+  aperture<ConicAperture>()->setHoleRadius(Rh);
+}
+
+
+void
 ConicMirrorProcessor::setConicConstant(Real K)
 {
   m_K = K;
@@ -57,6 +66,9 @@ ConicMirrorProcessor::setConicConstant(Real K)
 void
 ConicMirrorProcessor::setCenterOffset(Real x, Real y)
 {
+  m_x0 = x;
+  m_y0 = y;
+
   aperture<ConicAperture>()->setCenterOffset(x, y);
 }
 
@@ -74,6 +86,8 @@ ConicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
 
+  bool haveHole = !isZero(m_rHole2);
+  bool hit = true;
   for (auto i = 0; i < count; ++i) {
     if (!beam.hasRay(i))
       continue;
@@ -82,17 +96,27 @@ ConicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     Vec3 origin = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 normal;
     Real dt;
-
+ 
     if (aperture()->intercept(coord, normal, dt, origin)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
+
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
       beam.interceptDone(i);
 
-      auto vec = reflection(
+      if (haveHole) {
+        Real x    = coord.x - m_x0;
+        Real y    = coord.y - m_y0;
+        Real rho2 = x * x + y * y;
+        hit = rho2 > m_rHole2;
+      }
+
+      if (hit) {
+        auto vec = reflection(
         Vec3(beam.directions + 3 * i), 
         plane->fromRelativeVec(normal));
-      vec.copyToArray(beam.directions + 3 * i);
+        vec.copyToArray(beam.directions + 3 * i);
+      }
     } else {
       // Outside mirror
       beam.prune(i);

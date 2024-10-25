@@ -255,8 +255,13 @@ GLCappedCylinder::recalculateCaps()
   
   auto &edgeTop    = *m_topCap->edge();
   auto &edgeBottom = *m_bottomCap->edge();
+  auto &edge1 = m_invertNormals ? edgeBottom : edgeTop;
+  auto &edge2 = m_invertNormals ? edgeTop    : edgeBottom;
+  GLfloat edge1height = m_invertNormals ? 0 : m_height;
+  GLfloat edge2height = m_invertNormals ? m_height : 0;
   size_t rects = edgeTop.size() / 3;
   unsigned int n   = 0;
+  GLfloat sign = m_invertNormals ? -1 : 1;
 
   if (edgeTop.size() != edgeBottom.size())
     return;
@@ -271,27 +276,28 @@ GLCappedCylinder::recalculateCaps()
   
   faceNormals.resize(3 * 2 * rects);
 
+
   // Calculate vertices
   for (auto i = 0; i < rects; ++i) {
-    m_strip[3 * n + 0] = edgeTop[3 * i + 0];
-    m_strip[3 * n + 1] = edgeTop[3 * i + 1];
-    m_strip[3 * n + 2] = edgeTop[3 * i + 2] + m_height;
+    m_strip[3 * n + 0] = edge1[3 * i + 0];
+    m_strip[3 * n + 1] = edge1[3 * i + 1];
+    m_strip[3 * n + 2] = edge1[3 * i + 2] + edge1height;
     ++n;
     
-    m_strip[3 * n + 0] = edgeBottom[3 * i + 0];
-    m_strip[3 * n + 1] = edgeBottom[3 * i + 1];
-    m_strip[3 * n + 2] = edgeBottom[3 * i + 2];
+    m_strip[3 * n + 0] = edge2[3 * i + 0];
+    m_strip[3 * n + 1] = edge2[3 * i + 1];
+    m_strip[3 * n + 2] = edge2[3 * i + 2] + edge2height;
     ++n;
   }
 
-  m_strip[3 * n + 0] = edgeTop[0];
-  m_strip[3 * n + 1] = edgeTop[1];
-  m_strip[3 * n + 2] = edgeTop[2] + m_height;
+  m_strip[3 * n + 0] = edge1[0];
+  m_strip[3 * n + 1] = edge1[1];
+  m_strip[3 * n + 2] = edge1[2] + edge1height;
   ++n;
   
-  m_strip[3 * n + 0] = edgeBottom[0];
-  m_strip[3 * n + 1] = edgeBottom[1];
-  m_strip[3 * n + 2] = edgeBottom[2];
+  m_strip[3 * n + 0] = edge2[0];
+  m_strip[3 * n + 1] = edge2[1];
+  m_strip[3 * n + 2] = edge2[2] + edge2height;
   ++n;
 
   // Calculate face normals
@@ -311,9 +317,9 @@ GLCappedCylinder::recalculateCaps()
       const GLfloat u[3] = {top2[0] - top1[0], top2[1] - top1[1], top2[2] - top1[2]};
       const GLfloat v[3] = {top3[0] - top1[0], top3[1] - top1[1], top3[2] - top1[2]};
       
-      faceNormals[3 * n + 0] = u[1] * v[2] - u[2] * v[1];
-      faceNormals[3 * n + 1] = u[2] * v[0] - u[0] * v[2];
-      faceNormals[3 * n + 2] = u[0] * v[1] - u[1] * v[0];
+      faceNormals[3 * n + 0] = (u[1] * v[2] - u[2] * v[1]);
+      faceNormals[3 * n + 1] = (u[2] * v[0] - u[0] * v[2]);
+      faceNormals[3 * n + 2] = (u[0] * v[1] - u[1] * v[0]);
       normalizef(&faceNormals[3 * n]);
       ++n;
     }
@@ -322,9 +328,9 @@ GLCappedCylinder::recalculateCaps()
       const GLfloat u[3] = {bot2[0] - bot1[0], bot2[1] - bot1[1], bot2[2] - bot1[2]};
       const GLfloat v[3] = {bot3[0] - bot1[0], bot3[1] - bot1[1], bot3[2] - bot1[2]};
 
-      faceNormals[3 * n + 0] = u[1] * v[2] - u[2] * v[1];
-      faceNormals[3 * n + 1] = u[2] * v[0] - u[0] * v[2];
-      faceNormals[3 * n + 2] = u[0] * v[1] - u[1] * v[0];
+      faceNormals[3 * n + 0] = (u[1] * v[2] - u[2] * v[1]);
+      faceNormals[3 * n + 1] = (u[2] * v[0] - u[0] * v[2]);
+      faceNormals[3 * n + 2] = (u[0] * v[1] - u[1] * v[0]);
       normalizef(&faceNormals[3 * n]);
       ++n;
     }
@@ -409,6 +415,13 @@ GLCappedCylinder::setVisibleCaps(bool base, bool top)
   m_drawBase = base;
   m_drawTop  = top;
   m_dirty    = true;
+}
+
+void
+GLCappedCylinder::setInvertNormals(bool invert)
+{
+  m_invertNormals = invert;
+  m_dirty = true;
 }
 
 void
@@ -955,19 +968,22 @@ GLConicCap::recalculate()
 {
   GLint i, j, n    = 0, total;
   GLfloat angDelta = 2 * M_PI / m_sectors;
-  GLfloat rDelta   = m_radius / m_stacks;
+  GLfloat r0       = m_rHole;
+  GLfloat rDelta   = (m_radius - r0) / m_stacks;
   GLfloat secDelta = 1.f / m_sectors;
   GLfloat stDelta  = 1.f / m_stacks;
   GLfloat R2       = m_radius * m_radius;
   GLint k1, k2;
   GLfloat sigma    = m_convex ? 1 : -1;
   GLfloat D;
+  
 
   auto K1 = m_K + 1;
   auto invK1 = 1 / K1;
   auto inv2R = .5 / m_rCurv;
   bool parabola = isZero(K1);
   auto Rc2 = m_rCurv * m_rCurv;
+  bool hasHole = m_rHole > 0;
 
   if (parabola) {
     D = .5 * R2 / m_rCurv;
@@ -985,7 +1001,7 @@ GLConicCap::recalculate()
 
   // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
-    GLfloat r = rDelta * j;
+    GLfloat r = rDelta * j + r0;
     GLfloat r2 = r * r;
     GLfloat z = parabola 
         ? -sigma * (inv2R * r2 - D)
@@ -1025,7 +1041,7 @@ GLConicCap::recalculate()
   }
 
   // Calculate indices
-  total = 2 * m_sectors * m_stacks - m_sectors;
+  total = 2 * m_sectors * m_stacks - (hasHole ? 0 : m_sectors);
   n     = 0;
   m_indices.resize(6 * total);
   int d1, d2;
@@ -1040,7 +1056,7 @@ GLConicCap::recalculate()
     for(j = 0; j < m_sectors; ++j, ++k1, ++k2) {
       // 2 triangles per sector excluding first and last stacks
       // k1 => k2 => k1+1
-      if (i != 0) {
+      if (hasHole || i != 0) {
         m_indices[3 * n +  0] = k1;
         
         m_indices[3 * n + d1] = k2;
@@ -1105,6 +1121,13 @@ GLConicCap::setRadius(GLdouble radius)
 {
   m_radius = radius;
   m_dirty  = true;
+}
+
+void
+GLConicCap::setHoleRadius(GLdouble radius)
+{
+  m_rHole = radius;
+  m_dirty = true;
 }
 
 void
