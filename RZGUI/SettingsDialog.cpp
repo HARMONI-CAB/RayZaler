@@ -21,6 +21,33 @@
 #include "ui_SettingsDialog.h"
 #include "RZGUI.h"
 #include "GUIHelpers.h"
+#include <QProxyStyle>
+#include <QTabBar>
+#include <QStyleOptionTab>
+
+class CustomTabStyle : public QProxyStyle {
+public:
+  QSize sizeFromContents(ContentsType type, const QStyleOption* option,
+                         const QSize& size, const QWidget* widget) const {
+    QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
+    if (type == QStyle::CT_TabBarTab) {
+      s.transpose();
+    }
+    return s;
+  }
+
+  void drawControl(ControlElement element, const QStyleOption* option, QPainter* painter, const QWidget* widget) const {
+    if (element == CE_TabBarTabLabel) {
+      if (const QStyleOptionTab* tab = qstyleoption_cast<const QStyleOptionTab*>(option)) {
+        QStyleOptionTab opt(*tab);
+        opt.shape = QTabBar::RoundedNorth;
+        QProxyStyle::drawControl(element, &opt, painter, widget);
+        return;
+      }
+    }
+    QProxyStyle::drawControl(element, option, painter, widget);
+  }
+};
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
   QDialog(parent),
@@ -40,6 +67,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
   m_pathColor    = new ColorChooserButton(ui->tab);
   ui->gridLayout_2->addWidget(m_pathColor, 1, 3, 1, 1);
 
+  ui->tabWidget->tabBar()->setStyle(new CustomTabStyle);
   loadColorSettings();
 }
 

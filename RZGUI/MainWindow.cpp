@@ -331,6 +331,10 @@ MainWindow::pushDelayedOpenFile(QString file)
 void
 MainWindow::openDelayedFiles()
 {
+  if (!m_delayedFiles.empty())
+    while (ui->sessionTabWidget->count() > 0)
+      ui->sessionTabWidget->removeTab(0);
+
   for (auto &f : m_delayedFiles)
     (void) openModelFile(f);
 }
@@ -464,7 +468,13 @@ MainWindow::refreshCurrentSession()
     BLOCKSIG(ui->actionToggleMeasurements,    setChecked(false));
 
     ui->propTableView->setModel(nullptr);
-    setWindowTitle("RayZaler - No model file");
+
+    int currentIndex = ui->sessionTabWidget->currentIndex();
+    if (currentIndex >= 0) {
+      setWindowTitle("RayZaler - " + ui->sessionTabWidget->tabText(currentIndex));
+    } else {
+      setWindowTitle("RayZaler - No model file");
+    }
   }
 
   refreshCurrentElement();
@@ -616,12 +626,12 @@ MainWindow::onCloseTab(int index)
 {
   SessionTabWidget *widget = currentSessionWidget();
 
+  ui->sessionTabWidget->removeTab(index);
+
   if (widget != nullptr) {
     SimulationSession *session = widget->session();
 
     auto sessUI = m_sessionToUi[session];
-
-    ui->sessionTabWidget->removeTab(index);
 
     m_sessions.remove(session);
     m_sessionToUi.remove(session);
