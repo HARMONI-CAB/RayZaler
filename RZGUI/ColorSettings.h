@@ -20,6 +20,7 @@
 #define COLORSETTINGS_H
 
 #include <QColor>
+#include <QObject>
 
 struct ColorSettings {
   QColor bgAbove = QColor(1, 1, 1);
@@ -31,5 +32,7 @@ struct ColorSettings {
   friend QDataStream &operator<< (QDataStream &out, const ColorSettings &rhs);
   friend QDataStream &operator>> (QDataStream &out, ColorSettings &rhs);
 };
+
+Q_DECLARE_METATYPE(ColorSettings);
 
 #endif // COLORSETTINGS_H

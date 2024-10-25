@@ -26,6 +26,7 @@ RZGUISingleton::RZGUISingleton()
 
   RZ_REGISTER_DATATYPE(ColoringMode);
   RZ_REGISTER_DATATYPE(RepresentationProperties);
+  RZ_REGISTER_DATATYPE(ColorSettings);
 }
 
 RZGUISingleton *

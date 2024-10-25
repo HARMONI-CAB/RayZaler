@@ -11,6 +11,7 @@
 #include "AboutDialog.h"
 #include "ExportViewDialog.h"
 #include "SettingsDialog.h"
+#include "RZGUI.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -926,5 +927,7 @@ MainWindow::onOpenPreferences()
 {
   if (m_settingsDialog->exec()) {
     applyColorSettings(m_settingsDialog->colorSettings());
+
+    RZGUISingleton::sync();
   }
 }
