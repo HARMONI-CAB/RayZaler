@@ -13,6 +13,7 @@
 #include <QJsonDocument>
 #include <sys/stat.h>
 #include <Logger.h>
+#include <cmath>
 
 class RGBRayColoring : public RZ::RayColoring {
   virtual void id2color(uint32_t id, GLfloat *rgb) const override;
@@ -75,6 +76,24 @@ SimulationProperties::serialize() const
 
     case BEAM_TYPE_DIVERGING:
       object["beam"] = "DIVERGING";
+      break;
+  }
+
+  switch (shape) {
+    case RZ::Circular:
+      object["shape"] = "CIRCULAR";
+      break;
+
+    case RZ::Ring:
+      object["shape"] = "RING";
+      break;
+
+    case RZ::Point:
+      object["shape"] = "POINT";
+      break;
+
+    case RZ::Custom:
+      object["shape"] = "CUSTOM";
       break;
   }
 
@@ -236,6 +255,37 @@ bool
 SimulationProperties::deserialize(
     QJsonObject const &obj,
     QString const &key,
+    RZ::BeamShape &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      m_lastError = "Invalid value for property `" + key + "' (not a string)";
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "CIRCULAR")
+      value = RZ::Circular;
+    else if (asString == "RING")
+      value = RZ::Ring;
+    else if (asString == "POINT")
+      value = RZ::Point;
+    else if (asString == "CUSTOM")
+      value = RZ::Custom;
+    else {
+      m_lastError = "Unknown beam type `" + asString + "'";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
     BeamReference &value)
 {
   if (obj.contains(key)) {
@@ -365,6 +415,7 @@ SimulationProperties::deserialize(QByteArray const &json)
   DESERIALIZE(ttype);
   DESERIALIZE(type);
   DESERIALIZE(beam);
+  DESERIALIZE(shape);
   DESERIALIZE(ref);
   DESERIALIZE(diameter);
   DESERIALIZE(refAperture);
@@ -667,6 +718,7 @@ SimulationState::allocateRays(uint32_t color)
   const RZ::OpticalPath *path = nullptr;
   RZ::OpticalElement *element = nullptr;
   RZ::ReferenceFrame *fp = nullptr;
+  RZ::BeamProperties prop;
   bool random = m_properties.random;
 
   // TODO: prevent continuous reallocation of beams
@@ -701,52 +753,58 @@ SimulationState::allocateRays(uint32_t color)
 
       switch (m_properties.beam) {
         case BEAM_TYPE_COLLIMATED:
-          RZ::OMModel::addElementRelativeBeam(
-                *m_currBeam,
-                element,
-                static_cast<unsigned>(m_properties.rays),
-                setVariable("D", .5 * m_diamExpr->evaluate()),
-                setVariable("az", m_azimuthExpr->evaluate()),
-                setVariable("el", m_elevationExpr->evaluate()),
-                setVariable("x0", m_offsetXExpr->evaluate()),
-                setVariable("y0", m_offsetYExpr->evaluate()),
-                1,
-                color,
-                random);
+          prop.setElementRelative(element);
+          prop.shape     = m_properties.shape;
+          prop.numRays   = static_cast<unsigned>(m_properties.rays);
+          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
+          prop.direction = -RZ::Matrix3::azel(
+                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
+                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
+          prop.offset    = RZ::Vec3(
+                setVariable("x0",   m_offsetXExpr->evaluate()),
+                setVariable("y0",   m_offsetYExpr->evaluate()),
+                0);
+          prop.length    = 1;
+          prop.id        = color;
+          prop.random    = random;
+          prop.collimate();
+
           break;
 
         case BEAM_TYPE_CONVERGING:
-          RZ::OMModel::addElementRelativeFocusBeam(
-                *m_currBeam,
-                element,
-                static_cast<unsigned>(m_properties.rays),
-                setVariable("D", .5 * m_diamExpr->evaluate()),
-                setVariable("fNum", m_fNumExpr->evaluate()),
-                setVariable("A",    m_refApExpr->evaluate()),
-                setVariable("az",   m_azimuthExpr->evaluate()),
-                setVariable("el",   m_elevationExpr->evaluate()),
+          prop.setElementRelative(element);
+          prop.shape     = m_properties.shape;
+          prop.numRays   = static_cast<unsigned>(m_properties.rays);
+          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
+          prop.direction = -RZ::Matrix3::azel(
+                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
+                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
+          prop.offset    = RZ::Vec3(
                 setVariable("x0",   m_offsetXExpr->evaluate()),
                 setVariable("y0",   m_offsetYExpr->evaluate()),
-                1,
-                color,
-                random);
+                0);
+          prop.length    = 1;
+          prop.id        = color;
+          prop.random    = random;
+          prop.setFNum(fabs(setVariable("fNum", m_fNumExpr->evaluate())), RZ::BeamDiameter);
           break;
 
         case BEAM_TYPE_DIVERGING:
-          RZ::OMModel::addElementRelativeFocusBeam(
-                *m_currBeam,
-                element,
-                static_cast<unsigned>(m_properties.rays),
-                setVariable("D", .5 * m_diamExpr->evaluate()),
-                setVariable("fNum", -m_fNumExpr->evaluate()),
-                setVariable("A",     m_refApExpr->evaluate()),
-                setVariable("az",    m_azimuthExpr->evaluate()),
-                setVariable("el",    m_elevationExpr->evaluate()),
-                setVariable("x0",    m_offsetXExpr->evaluate()),
-                setVariable("y0",    m_offsetYExpr->evaluate()),
-                1,
-                color,
-                random);
+          prop.setElementRelative(element);
+          prop.shape     = m_properties.shape;
+          prop.numRays   = static_cast<unsigned>(m_properties.rays);
+          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
+          prop.direction = -RZ::Matrix3::azel(
+                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
+                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
+          prop.offset    = RZ::Vec3(
+                setVariable("x0",   m_offsetXExpr->evaluate()),
+                setVariable("y0",   m_offsetYExpr->evaluate()),
+                0);
+          prop.length    = 1;
+          prop.id        = color;
+          prop.random    = random;
+          prop.setFNum(-fabs(setVariable("fNum", m_fNumExpr->evaluate())), RZ::BeamDiameter);
           break;
       }
       break;
@@ -816,6 +874,8 @@ SimulationState::allocateRays(uint32_t color)
       }
       break;
   }
+
+  RZ::OMModel::addBeam(*m_currBeam, prop);
 
   return true;
 }

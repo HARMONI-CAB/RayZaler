@@ -304,6 +304,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->simTypeCombo,    setCurrentIndex(m_properties.type));
   BLOCKSIG(ui->beamTypeCombo,   setCurrentIndex(m_properties.beam));
   BLOCKSIG(ui->originCombo,     setCurrentIndex(m_properties.ref));
+  BLOCKSIG(ui->originCombo,     setCurrentIndex(m_properties.shape));
 
   BLOCKSIG(ui->diamEdit,        setText(m_properties.diameter));
   BLOCKSIG(ui->fNumEdit,        setText(m_properties.fNum));
@@ -460,6 +461,16 @@ SimulationPropertiesDialog::parseProperties()
 
     case 2:
       m_properties.ref = BEAM_REFERENCE_FOCAL_PLANE;
+      break;
+  }
+
+  switch (ui->beamShapeCombo->currentIndex()) {
+    case 0:
+      m_properties.shape = RZ::Circular;
+      break;
+
+    case 1:
+      m_properties.shape = RZ::Ring;
       break;
   }
 

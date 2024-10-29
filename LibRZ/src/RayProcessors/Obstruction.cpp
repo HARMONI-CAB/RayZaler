@@ -1,11 +1,14 @@
 #include <RayProcessors/Obstruction.h>
 #include <ReferenceFrame.h>
+#include <Apertures/Circular.h>
 
 using namespace RZ;
 
 ObstructionProcessor::ObstructionProcessor()
 {
   setReversible(true);
+  defineAperture(new CircularAperture(m_radius));
+  aperture<CircularAperture>()->setObstruction(true);
 }
 
 std::string
@@ -17,6 +20,7 @@ ObstructionProcessor::name() const
 void
 ObstructionProcessor::setRadius(Real R)
 {
+  aperture<CircularAperture>()->setRadius(R);
   m_radius = R;
 }
 

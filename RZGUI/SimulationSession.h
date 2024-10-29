@@ -104,6 +104,7 @@ struct SimulationProperties {
   SimulationType type  = SIM_TYPE_ONE_SHOT;
   BeamType       beam  = BEAM_TYPE_COLLIMATED;
   BeamReference  ref   = BEAM_REFERENCE_INPUT_ELEMENT;
+  RZ::BeamShape  shape = RZ::BeamShape::Circular;
 
   QString diameter     = "40e-3";       // m
   QString refAperture  = "200e-3";      // m
@@ -148,6 +149,7 @@ private:
   bool deserialize(QJsonObject const &, QString const &, SimulationType &);
   bool deserialize(QJsonObject const &, QString const &, BeamType &);
   bool deserialize(QJsonObject const &, QString const &, BeamReference &);
+  bool deserialize(QJsonObject const &, QString const &, RZ::BeamShape &);
 
   bool deserialize(QJsonObject const &, QString const &, QString &);
   bool deserialize(QJsonObject const &, QString const &, int &);

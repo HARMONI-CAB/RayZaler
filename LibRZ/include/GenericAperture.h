@@ -6,6 +6,7 @@
 #include <Random.h>
 
 #define GENERIC_APERTURE_NUM_SEGMENTS     36
+#define GENERIC_APERTURE_NUM_GRIDLINES    13
 
 namespace RZ {
   class GenericAperture {

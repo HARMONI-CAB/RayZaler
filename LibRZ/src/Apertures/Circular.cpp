@@ -11,10 +11,13 @@ CircularAperture::CircularAperture(Real radius)
 void
 CircularAperture::recalculate()
 {
-  Real theta = 0;
+  Real theta  = 0;
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
-
+  unsigned int N = (GENERIC_APERTURE_NUM_GRIDLINES - 1) / 2;
+  Real dR        = 2 * m_radius / (GENERIC_APERTURE_NUM_GRIDLINES - 1);
+  Real R2;
   m_vertices.clear();
+  m_grid.clear();
 
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
     GLfloat x = m_radius * m_a * cos(theta);
@@ -25,6 +28,59 @@ CircularAperture::recalculate()
     m_vertices.push_back(0);
 
     theta += dTheta;
+  }
+
+  if (m_obstruction) {
+    GLfloat tmp;
+    //
+    // x^2 = sqrt(R^2 - y^2)
+    //
+
+    R2  = m_radius;
+    R2 *= R2;
+
+    for (unsigned i = 0; i < N; ++i) {
+      GLfloat y = i * dR;
+      GLfloat x = sqrt(R2 - y * y);
+
+      // Horizontal sense: multiply x coordinates by m_a, y coordinates by m_b
+      m_grid.push_back(+x * m_a);
+      m_grid.push_back(+y * m_b);
+      m_grid.push_back(0);
+      
+      m_grid.push_back(-x * m_a);
+      m_grid.push_back(+y * m_b);
+      m_grid.push_back(0);
+
+      m_grid.push_back(+x * m_a);
+      m_grid.push_back(-y * m_b);
+      m_grid.push_back(0);
+      
+      m_grid.push_back(-x * m_a);
+      m_grid.push_back(-y * m_b);
+      m_grid.push_back(0);
+
+      // Vertical sense. Same idea but exchanging x and y
+      tmp = x;
+      x = y;
+      y = tmp;
+      
+      m_grid.push_back(+x * m_a);
+      m_grid.push_back(-y * m_b);
+      m_grid.push_back(0);
+      
+      m_grid.push_back(+x * m_a);
+      m_grid.push_back(+y * m_b);
+      m_grid.push_back(0);
+
+      m_grid.push_back(-x * m_a);
+      m_grid.push_back(-y * m_b);
+      m_grid.push_back(0);
+      
+      m_grid.push_back(-x * m_a);
+      m_grid.push_back(+y * m_b);
+      m_grid.push_back(0);
+    }
   }
 }
 
@@ -141,6 +197,34 @@ CircularAperture::area() const
 }
 
 void
+CircularAperture::setObstruction(bool obs)
+{
+  m_obstruction = obs;
+
+  recalculate();
+}
+
+void
+CircularAperture::renderOpenGLAperture()
+{
+  glBegin(GL_LINES);
+    glVertex3f(-m_radius * m_a, 0, 0);
+    glVertex3f(+m_radius * m_a, 0, 0);
+    glVertex3f(0, -m_radius * m_b, 0);
+    glVertex3f(0, +m_radius * m_b, 0);
+  glEnd();
+}
+
+void
+CircularAperture::renderOpenGLObstruction()
+{
+  glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_grid.data());
+    glDrawArrays(GL_LINES, 0, m_grid.size() / 3);
+  glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void
 CircularAperture::renderOpenGL()
 {
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -148,10 +232,8 @@ CircularAperture::renderOpenGL()
     glDrawArrays(GL_LINE_LOOP, 0, m_vertices.size() / 3);
   glDisableClientState(GL_VERTEX_ARRAY);
 
-  glBegin(GL_LINES);
-    glVertex3f(-m_radius * m_a, 0, 0);
-    glVertex3f(+m_radius * m_a, 0, 0);
-    glVertex3f(0, -m_radius * m_b, 0);
-    glVertex3f(0, +m_radius * m_b, 0);
-  glEnd();
+  if (m_obstruction)
+    renderOpenGLObstruction();
+  else
+    renderOpenGLAperture();
 }

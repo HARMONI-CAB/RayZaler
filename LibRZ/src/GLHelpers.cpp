@@ -1681,12 +1681,12 @@ GLReferenceFrame::display()
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
-    glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.0, 0.0, 0.0));
+    glMaterialfv(GL_FRONT, GL_AMBIENT,  vec.get(0.1, 0.1, 0.1));
 
     // Z-axis
     glPushMatrix();
-      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 0, 1.));
-      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, .1));
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.208, .388, .788));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
       m_axisCylinder.display();
       glTranslatef(0, 0, m_height);
       m_axisArrow.display();
@@ -1695,8 +1695,8 @@ GLReferenceFrame::display()
     // Y-axis
     glPushMatrix();
       glRotatef(-90, 1, 0, 0);
-      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0, 1, 0));
-      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, .1, 0));
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(0.627, .984, .298));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
       m_axisCylinder.display();
       glTranslatef(0, 0, m_height);
       m_axisArrow.display();
@@ -1706,8 +1706,8 @@ GLReferenceFrame::display()
     glPushMatrix();
       glRotatef(+90, 0, 1, 0);
 
-      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(1, 0, 0));
-      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(.1, 0, 0));
+      glMaterialfv(GL_FRONT, GL_DIFFUSE,  vec.get(.902, .282, .106));
+      glMaterialfv(GL_FRONT, GL_SPECULAR, vec.get(0, 0, 0));
       m_axisCylinder.display();
       glTranslatef(0, 0, m_height);
       m_axisArrow.display();

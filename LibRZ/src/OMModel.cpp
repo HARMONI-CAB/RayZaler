@@ -818,7 +818,6 @@ OMModel::addElementRelativeBeam(
 {
   BeamProperties prop;
 
-
   prop.setElementRelative(element);
   prop.numRays   = number;
   prop.diameter  = 2 * radius;

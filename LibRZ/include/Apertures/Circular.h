@@ -12,11 +12,15 @@ namespace RZ {
     Real m_b  = 1;
     Real m_a2 = 1;
     Real m_b2 = 1;
+    bool m_obstruction = true;
 
     std::vector<GLfloat> m_vertices;
+    std::vector<GLfloat> m_grid;
 
     void recalculate();
-
+    void renderOpenGLAperture();
+    void renderOpenGLObstruction();
+    
   public:
     CircularAperture(Real radius);
     void setRadius(Real);
@@ -77,6 +81,8 @@ namespace RZ {
       return m_b2;
     }
 
+    void setObstruction(bool);
+    
     virtual bool intercept(
       Vec3 &coord,
       Vec3 &n,
