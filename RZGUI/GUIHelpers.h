@@ -29,6 +29,7 @@ struct timeval;
 qreal   randUniform();
 qreal   randNormal();
 
+void sensibleUnits(qreal &, qreal &, QString &);
 void sensibleUnits(qreal &, QString &);
 QString toSensibleUnits(qreal val);
 QString asScientific(qreal);

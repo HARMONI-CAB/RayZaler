@@ -65,6 +65,14 @@ set(PROJECT_SOURCES
         RZGUIGLWidget.cpp
         RZMHighLighter.h
         RZMHighLighter.cpp
+        ScatterAsyncRenderer.cpp
+        ScatterAsyncRenderer.h
+        ScatterPainter.cpp
+        ScatterPainter.h
+        ScatterTree.cpp
+        ScatterTree.h
+        ScatterWidget.h
+        ScatterWidget.cpp
         SessionTabWidget.h
         SessionTabWidget.cpp
         SessionTabWidget.ui
@@ -81,7 +89,10 @@ set(PROJECT_SOURCES
         SimulationSession.cpp
         SourceEditorWindow.h
         SourceEditorWindow.cpp
-        SourceEditorWindow.ui)
+        SourceEditorWindow.ui
+        SpotDiagramWindow.h
+        SpotDiagramWindow.cpp
+        SpotDiagramWindow.ui)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(RZGUI

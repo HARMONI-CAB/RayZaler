@@ -12,6 +12,7 @@
 #include "ExportViewDialog.h"
 #include "SettingsDialog.h"
 #include "RZGUI.h"
+#include "SpotDiagramWindow.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -614,6 +615,9 @@ void
 MainWindow::onShow()
 {
   openDelayedFiles();
+
+  auto window = new SpotDiagramWindow();
+  window->show();
 }
 
 void

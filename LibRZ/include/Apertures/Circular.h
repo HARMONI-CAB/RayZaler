@@ -12,7 +12,7 @@ namespace RZ {
     Real m_b  = 1;
     Real m_a2 = 1;
     Real m_b2 = 1;
-    bool m_obstruction = true;
+    bool m_obstruction = false;
 
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_grid;

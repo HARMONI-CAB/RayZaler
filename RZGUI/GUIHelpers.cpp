@@ -79,16 +79,18 @@ toSuperIndex(QString const &string)
         .replace(QString("+"), QString("⁺"))
         .replace(QString("-"), QString("⁻"));
 }
+
 void
-sensibleUnits(qreal &value, QString &units)
+sensibleUnits(qreal &value, qreal &factor, QString &units)
 {
   qreal absValue  = fabs(value);
   QString names[] = {"fm", "pm", "nm", "µm", "mm", "cm", "m", "km"};
   qreal factors[] = {1e-15, 1e-12, 1e-9, 1e-6, 1e-3, 1e-2, 1, 1e3};
 
   if (iszero(absValue)) {
-    value = 0;
-    units = "m";
+    value  = 0;
+    factor = 1;
+    units  = "m";
   } else {
     unsigned int N   = sizeof(factors) / sizeof(factors[0]);
     unsigned int i = 0;
@@ -97,9 +99,18 @@ sensibleUnits(qreal &value, QString &units)
       if (absValue < factors[i])
         break;
     
-    value /= factors[i - 1];
+    factor = factors[i - 1];
+    value /= factor;
     units  = names[i - 1];
   }
+}
+
+void
+sensibleUnits(qreal &value, QString &units)
+{
+  qreal factor;
+
+  sensibleUnits(value, factor, units);
 }
 
 QString

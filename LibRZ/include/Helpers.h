@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <string>
+#include <list>
 #include <cstdarg>
 #include <stdexcept>
 #include <type_traits>
@@ -15,12 +16,29 @@ std::string string_printf(const char* fmt, ...);
 #  pragma GCC optimize ("O1")
 #endif 
 
+namespace RZ {
+  template<typename T>
+  struct is_real {
+    static constexpr bool value = false;
+  };
+
+  template<>
+  struct is_real<float> {
+    static constexpr bool value = true;
+  };
+
+  template<>
+  struct is_real<double> {
+    static constexpr bool value = true;
+  };
+};
+
 template<typename T> T
 sumPrecise (const T *data, size_t N)
 {
   T sum = 0;
 
-  if constexpr (std::is_floating_point<T>()) {
+  if constexpr (RZ::is_real<T>::value) {
     T c = 0;
     T y, t;
 
@@ -37,6 +55,31 @@ sumPrecise (const T *data, size_t N)
 
   return sum;
 }
+
+template<typename T> T
+sumPrecise (std::list<T> const &data)
+{
+  T sum = 0;
+  auto it = data.begin();
+
+  if constexpr (RZ::is_real<T>::value) {
+    T c = 0;
+    T y, t;
+
+    while (it != data.end()) {
+      y = *it++ - c;
+      t = sum + y;
+      c = (t - sum) - y;
+      sum = t;
+    }
+  } else {
+    while (it != data.end())
+      sum += *it++;
+  }
+
+  return sum;
+}
+
 
 #if defined(__GNUC__)
 #  pragma GCC pop_options
