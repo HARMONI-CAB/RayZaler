@@ -20,6 +20,7 @@ class AsyncDataProductRenderer : public QObject
   QMutex              m_mutex;
   qint64              m_lastReqId = 0;
 
+
   QMutex              m_poolMutex;
   std::set<QImage *>  m_allImages;
   std::list<QImage *> m_pool;

@@ -1,6 +1,7 @@
 #include "SpotDiagramWindow.h"
 #include "ui_SpotDiagramWindow.h"
 #include "ScatterWidget.h"
+#include "GUIHelpers.h"
 #include <OpticalElement.h>
 
 SpotDiagramWindow::SpotDiagramWindow(QWidget *parent) :
@@ -46,10 +47,32 @@ SpotDiagramWindow::SpotDiagramWindow(QWidget *parent) :
 
   m_widget  = new ScatterWidget(m_product);
 
-  setCentralWidget(m_widget);
+  ui->centerGrid->addWidget(m_widget, 0, 0, 2, 1);
+
+  legend();
 }
 
 SpotDiagramWindow::~SpotDiagramWindow()
 {
   delete ui;
+}
+
+void
+SpotDiagramWindow::legend()
+{
+  QString html;
+  auto &sets = m_product->dataSets();
+  bool first = true;
+
+  for (auto &set : sets) {
+    if (first)
+      first = false;
+    else
+      html += "<br />\n";
+
+    html += "<b style=\"color: " + argbToCss(set->id()) + "\"> ▬ </b>";
+    html += QString::fromStdString(set->label());
+  }
+
+  ui->legendLabel->setText(html);
 }

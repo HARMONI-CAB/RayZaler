@@ -122,28 +122,7 @@ OMTreeModel::assignItemIcon(OMTreeItem *item)
     case OM_TREE_ITEM_TYPE_ELEMENT:
     case OM_TREE_ITEM_TYPE_OPTICAL_ELEMENT:
     case OM_TREE_ITEM_TYPE_DETECTOR:
-      factory = item->element->factory()->name();
-
-      if (factory == "ApertureStop")
-        item->icon = &getIcon("aperture-stop");
-      else if (factory == "ApertureStop")
-        item->icon = &getIcon("aperture-stop");
-      else if (factory == "Detector")
-        item->icon = &getIcon("detector");
-      else if (factory == "BlockElement")
-        item->icon = &getIcon("block-element");
-      else if (factory == "TubeElement")
-        item->icon = &getIcon("tube-element");
-      else if (factory == "RodElement")
-        item->icon = &getIcon("rod-element");
-      else if (factory == "StlMesh")
-        item->icon = &getIcon("stl-mesh");
-      else if (factory == "LensletArray")
-        item->icon = &getIcon("mla");
-      else if (item->element->nestedModel() != nullptr)
-        item->icon = &getIcon("composite-element");
-      else
-        item->icon = &getIcon("elements");
+      item->icon = elementIcon(item->element);
 
       if (item->icon != nullptr)
         grayOutPixmap(item->disabledIcon, *item->icon);

@@ -122,6 +122,8 @@ struct SimulationProperties {
   int  Nj              = 10;
   bool random          = false; // Random sampling
 
+  std::list<std::string> footprints;
+
   QString detector;
   QString path;
 
@@ -150,6 +152,7 @@ private:
   bool deserialize(QJsonObject const &, QString const &, BeamType &);
   bool deserialize(QJsonObject const &, QString const &, BeamReference &);
   bool deserialize(QJsonObject const &, QString const &, RZ::BeamShape &);
+  bool deserialize(QJsonObject const &, QString const &, std::list<std::string> &);
 
   bool deserialize(QJsonObject const &, QString const &, QString &);
   bool deserialize(QJsonObject const &, QString const &, int &);

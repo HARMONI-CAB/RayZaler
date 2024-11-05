@@ -7,9 +7,13 @@
 #include <cstdarg>
 #include <stdexcept>
 #include <type_traits>
+#include <vector>
 
 std::string string_vprintf(const char* fmt, va_list ap);
 std::string string_printf(const char* fmt, ...);
+
+std::vector<std::string> operator / (std::string const &, std::string const &);
+std::vector<std::string> operator / (std::string const &, char sep);
 
 #if defined(__GNUC__)
 #  pragma GCC push_options

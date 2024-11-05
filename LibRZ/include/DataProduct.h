@@ -32,12 +32,12 @@ namespace RZ {
 
   public:
     virtual ~DataProduct();
+    virtual std::string productType() const = 0;
+    virtual bool saveToFile(std::string const &path) const = 0;
+
     void setProductName(std::string const &);
     std::string productName() const;
     void prepareView();
-
-    virtual std::string productType() const = 0;
-    virtual bool saveToFile(std::string const &path) const = 0;
   };
 }
 

@@ -29,6 +29,10 @@ struct timeval;
 qreal   randUniform();
 qreal   randNormal();
 
+namespace RZ {
+  class Element;
+}
+
 void sensibleUnits(qreal &, qreal &, QString &);
 void sensibleUnits(qreal &, QString &);
 QString toSensibleUnits(qreal val);
@@ -36,6 +40,8 @@ QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);
 QString appendExtToPath(QString const &path, QString const &ext);
+QString argbToCss(uint32_t);
+QPixmap *elementIcon(RZ::Element *element);
 void grayOutPixmap(QPixmap &dest, QPixmap const &orig);
 void fixLabelSizeToContents(QLabel *label, QString text);
 

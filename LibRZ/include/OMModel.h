@@ -317,13 +317,17 @@ namespace RZ {
       std::list<std::string> opticalElements() const;
       std::list<std::string> detectors() const;
       std::list<std::string> opticalPaths() const;
+      std::list<std::string> elementHierarchy(std::string const &pfx = "") const;
+      std::list<std::string> opticalElementHierarchy(std::string const &pfx = "") const;
 
       // Convenience methods (fast enumeration)
       std::list<Element *> const &elementList() const;
 
       // Lookup methods
       ReferenceFrame *lookupReferenceFrame(std::string const &) const;
+      Element *resolveElement(std::string const &) const;
       Element *lookupElement(std::string const &) const;
+      OpticalElement *resolveOpticalElement(std::string const &) const;
       OpticalElement *lookupOpticalElement(std::string const &) const;
       Detector *lookupDetector(std::string const &) const;
       const OpticalPath *lookupOpticalPath(std::string const & = "") const;

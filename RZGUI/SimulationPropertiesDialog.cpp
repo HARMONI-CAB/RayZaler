@@ -1,3 +1,21 @@
+//
+//  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as
+//  published by the Free Software Foundation, either version 3 of the
+//  License, or (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful, but
+//  WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this program.  If not, see
+//  <http://www.gnu.org/licenses/>
+//
+
 #include "SimulationPropertiesDialog.h"
 #include "ui_SimulationPropertiesDialog.h"
 #include <QMessageBox>
@@ -203,6 +221,24 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(toggled(bool)),
         this,
         SLOT(onRepChanged()));
+
+  connect(
+        ui->addFootprintButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onAddFootprint()));
+
+  connect(
+        ui->removeFootprintButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onRemoveFootprint()));
+
+  connect(
+        ui->removeAllFootprintsButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onRemoveAllFootprints()));
 }
 
 void
@@ -210,9 +246,12 @@ SimulationPropertiesDialog::setSession(SimulationSession *session)
 {
   m_session    = session;
 
+  ui->opticalElementCombo->clear();
+
   if (session != nullptr) {
+    auto topLevel = session->topLevelModel();
     m_properties = session->state()->properties();
-    m_propModel->setModel(session->topLevelModel());
+    m_propModel->setModel(topLevel);
     ui->modelNameLabel->setText(session->fileName());
     setWindowTitle("Simulation Properties - " + session->fileName());
   } else {
@@ -400,6 +439,23 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
 
     for (auto p : m_properties.dofs)
       m_propModel->setDof(p.first, p.second, setEdited);
+
+    // Add optical elements to combo
+    for (auto &p : model->opticalElementHierarchy()) {
+      auto element = model->resolveElement(p);
+      if (element != nullptr) {
+        auto optEl = static_cast<RZ::OpticalElement *>(element);
+        if (!optEl->opticalSurfaces().empty())
+          ui->opticalElementCombo->addItem(
+                QIcon(*elementIcon(element)),
+                QString::fromStdString(p),
+                QVariant::fromValue<RZ::OpticalElement *>(optEl));
+      }
+    }
+
+    ui->footprintTable->setRowCount(0);
+    for (auto &p : m_properties.footprints)
+      insertFootprintElement(p);
   }
 
   refreshUi();
@@ -632,6 +688,53 @@ SimulationPropertiesDialog::sanitizeSaveDirectory()
   m_properties.saveDir = dirName + "/" + fileName;
 }
 
+void
+SimulationPropertiesDialog::insertFootprintElement(std::string const &strPath)
+{
+  if (m_session == nullptr)
+    return;
+
+  auto model = m_session->topLevelModel();
+  if (model == nullptr)
+    return;
+
+  RZ::OpticalElement *element = model->resolveOpticalElement(strPath);
+  if (element == nullptr)
+    return;
+
+  QPixmap *iconPx = elementIcon(element);
+
+  int row = ui->footprintTable->rowCount();
+  ui->footprintTable->insertRow(row);
+  ui->footprintTable->setItem(
+        row,
+        1,
+        new QTableWidgetItem(QString::fromStdString(strPath)));
+
+  ui->footprintTable->setItem(
+        row,
+        2,
+        new QTableWidgetItem(QString::fromStdString(element->factory()->name())));
+
+  ui->footprintTable->setItem(
+        row,
+        3,
+        new QTableWidgetItem(QString::number(element->opticalSurfaces().size())));
+
+  ui->footprintTable->item(row, 3)->setTextAlignment(Qt::AlignRight);
+
+  if (iconPx != nullptr) {
+    QIcon icon(*iconPx);
+    QTableWidgetItem *iconItem = new QTableWidgetItem;
+    iconItem->setIcon(icon);
+    ui->footprintTable->setItem(row, 0, iconItem);
+  }
+
+  ui->footprintTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
+  ui->footprintTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+  ui->footprintTable->horizontalHeader()->resizeSection(0, 24);
+}
+
 bool
 SimulationPropertiesDialog::doLoadFromFile()
 {
@@ -759,4 +862,49 @@ void
 SimulationPropertiesDialog::onRepChanged()
 {
   refreshUi();
+}
+
+void
+SimulationPropertiesDialog::onAddFootprint()
+{
+  if (ui->opticalElementCombo->currentIndex() != -1) {
+    QString path = ui->opticalElementCombo->currentText();
+    std::string strPath = path.toStdString();
+
+    if (std::find(
+          m_properties.footprints.begin(),
+          m_properties.footprints.end(),
+          strPath) != m_properties.footprints.end())
+      return;
+
+    insertFootprintElement(strPath);
+    m_properties.footprints.push_back(strPath);
+  }
+}
+
+void
+SimulationPropertiesDialog::onRemoveFootprint()
+{
+  int row = ui->footprintTable->currentRow();
+  if (row != -1) {
+    std::string strPath = ui->footprintTable->item(
+          row,
+          1)->text().toStdString();
+    auto where = std::find(
+          m_properties.footprints.begin(),
+          m_properties.footprints.end(),
+          strPath);
+
+    if (where != m_properties.footprints.end()) {
+      m_properties.footprints.erase(where);
+      ui->footprintTable->removeRow(row);
+    }
+  }
+}
+
+void
+SimulationPropertiesDialog::onRemoveAllFootprints()
+{
+  ui->footprintTable->setRowCount(0);
+  m_properties.footprints.clear();
 }

@@ -5,6 +5,12 @@
 #include <QFontMetrics>
 #include <QPixmap>
 #include <QImage>
+#include <QMutex>
+#include <QMap>
+#include <Element.h>
+
+static QMap<QString, QPixmap> g_iconCache;
+static QMutex                 g_iconCacheMutex;
 
 qreal
 randUniform()
@@ -58,6 +64,61 @@ fixLabelSizeToContents(QLabel *label, QString text)
   label->setMinimumSize(size);
   label->setMaximumSize(size);
 
+}
+
+QString
+argbToCss(uint32_t argb)
+{
+  uint8_t a = static_cast<uint8_t>(argb >> 24);
+  uint8_t r = static_cast<uint8_t>(argb >> 16);
+  uint8_t g = static_cast<uint8_t>(argb >> 8);
+  uint8_t b = static_cast<uint8_t>(argb);
+
+  return QString::asprintf(
+        "rgba(%d, %d, %d, %d%%)",
+        r,
+        g,
+        b,
+        static_cast<int>(a / 255. * 1e2));
+}
+
+
+QPixmap &
+getIcon(QString const &name)
+{
+  QMutexLocker<QMutex> locker(&g_iconCacheMutex);
+
+  if (!g_iconCache.contains(name))
+    g_iconCache[name] = QPixmap(":/ommodel/icons/" + name + ".svg").scaled(QSize(16, 16), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+  return g_iconCache[name];
+}
+
+QPixmap *
+elementIcon(RZ::Element *element)
+{
+  auto factory = element->factory()->name();
+
+  if (factory == "ApertureStop")
+    return &getIcon("aperture-stop");
+  else if (factory == "ApertureStop")
+    return &getIcon("aperture-stop");
+  else if (factory == "Detector")
+    return &getIcon("detector");
+  else if (factory == "BlockElement")
+    return &getIcon("block-element");
+  else if (factory == "TubeElement")
+    return &getIcon("tube-element");
+  else if (factory == "RodElement")
+    return &getIcon("rod-element");
+  else if (factory == "StlMesh")
+    return &getIcon("stl-mesh");
+  else if (factory == "LensletArray")
+    return &getIcon("mla");
+  else if (element->nestedModel() != nullptr)
+    return &getIcon("composite-element");
+  else
+    return &getIcon("elements");
 }
 
 QString

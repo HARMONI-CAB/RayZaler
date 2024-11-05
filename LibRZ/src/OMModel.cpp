@@ -271,6 +271,46 @@ OMModel::lookupElement(std::string const &name) const
   return p->second;
 }
 
+Element *
+OMModel::resolveElement(std::string const &path) const
+{
+  const OMModel *model = this;
+  Element *currElement;
+
+  for (auto &part : path / "/") {
+    if (part.empty())
+      continue;
+    
+    currElement = nullptr;
+    
+    // Lookup can only be performed if we are inside a model
+    if (model == nullptr)
+      break;
+
+    currElement = model->lookupElement(part);
+    if (currElement == nullptr)
+      break;
+    
+    model = currElement->nestedModel();
+  }
+
+  return currElement;
+}
+
+OpticalElement *
+OMModel::resolveOpticalElement(std::string const &path) const
+{
+  Element *element = resolveElement(path);
+
+  if (element == nullptr)
+    return nullptr;
+
+  if (!element->hasProperty("optical"))
+    return nullptr;
+
+  return static_cast<OpticalElement *>(element);
+}
+
 OpticalElement *
 OMModel::lookupOpticalElement(std::string const &name) const
 {
@@ -570,6 +610,42 @@ OMModel::opticalElements() const
   for (auto p : m_nameToOpticalElement)
     keys.push_back(p.first);
 
+  return keys;
+}
+
+std::list<std::string>
+OMModel::elementHierarchy(std::string const &pfx) const
+{
+  std::list<std::string> keys;
+
+  for (auto p : m_nameToElement) {
+    std::string name = pfx + p.first;
+    keys.push_back(name);
+    if (p.second->nestedModel() != nullptr)
+      keys.splice(
+        keys.end(),
+        p.second->nestedModel()->elementHierarchy(name + "/"));
+  }
+
+  return keys;
+}
+
+std::list<std::string>
+OMModel::opticalElementHierarchy(std::string const &pfx) const
+{
+std::list<std::string> keys;
+
+  for (auto p : m_nameToElement) {
+    std::string name = pfx + p.first;
+    if (p.second->hasProperty("optical"))
+      keys.push_back(name);
+    
+    if (p.second->nestedModel() != nullptr)
+      keys.splice(
+        keys.end(),
+        p.second->nestedModel()->opticalElementHierarchy(name + "/"));
+  }
+  
   return keys;
 }
 

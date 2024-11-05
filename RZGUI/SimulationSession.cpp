@@ -10,6 +10,7 @@
 #include <QDir>
 #include "AsyncRayTracer.h"
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <sys/stat.h>
 #include <Logger.h>
@@ -134,6 +135,12 @@ SimulationProperties::serialize() const
   SERIALIZE(saveDetector);
 #undef SERIALIZE
 
+  QJsonArray footprintArray;
+  for (auto &p : footprints)
+    footprintArray.push_back(QString::fromStdString(p));
+
+  object["footprints"] = footprintArray;
+
   for (auto p : dofs)
     dofObj[QString::fromStdString(p.first)] = QString::fromStdString(p.second);
 
@@ -146,6 +153,26 @@ QString
 SimulationProperties::lastError() const
 {
   return m_lastError;
+}
+
+bool
+SimulationProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
+    std::list<std::string> &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isArray()) {
+      m_lastError = "Invalid value for property `" + key + "' (not an array)";
+      return false;
+    }
+
+    value.clear();
+    for (auto el : obj[key].toArray())
+      value.push_back(el.toString().toStdString());
+  }
+
+  return true;
 }
 
 bool
@@ -165,6 +192,7 @@ SimulationProperties::deserialize(
 
   return true;
 }
+
 
 bool
 SimulationProperties::deserialize(
@@ -434,6 +462,7 @@ SimulationProperties::deserialize(QByteArray const &json)
   DESERIALIZE(detector);
   DESERIALIZE(path);
   DESERIALIZE(dofs);
+  DESERIALIZE(footprints);
 
   DESERIALIZE(saveArtifacts);
   DESERIALIZE(clearDetector);

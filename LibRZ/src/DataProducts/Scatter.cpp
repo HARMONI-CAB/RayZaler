@@ -62,6 +62,18 @@ ScatterSet::render(ScatterTreeRenderer *renderer) const
   m_tree->render(renderer);
 }
 
+std::string const &
+ScatterSet::label() const
+{
+  return m_label;
+}
+
+uint32_t
+ScatterSet::id() const
+{
+  return m_id;
+}
+
 size_t
 ScatterSet::size() const
 {
@@ -139,4 +151,10 @@ bool
 ScatterDataProduct::saveToFile(std::string const &path) const
 {
   return false;
+}
+
+std::list<ScatterSet *> const &
+ScatterDataProduct::dataSets() const
+{
+  return m_setList;
 }

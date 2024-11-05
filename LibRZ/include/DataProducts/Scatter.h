@@ -39,7 +39,10 @@ namespace RZ {
 
     void rebuild();
     void render(ScatterTreeRenderer *) const;
+    std::string const &label() const;
+
     size_t size() const;
+    uint32_t id() const;
   };
 
   class ScatterDataProduct : public DataProduct {
@@ -61,6 +64,8 @@ namespace RZ {
       size_t size() const;
       void addSurface(OpticalSurface const *, std::string const &label = "");
       void addSurface(uint32_t id, OpticalSurface const *, std::string const &label = "");
+
+      std::list<ScatterSet *> const &dataSets() const;
   };
 };
 

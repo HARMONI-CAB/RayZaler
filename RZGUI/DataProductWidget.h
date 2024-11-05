@@ -95,6 +95,7 @@ class DataProductWidget : public QWidget
 
   void         paintLastRender(QPainter &painter);
   void         paintBusyMessage(QPainter &painter);
+  void         paintLabels(QPainter &painter);
 
   AsyncDataProductRenderer *asyncRenderer();
 

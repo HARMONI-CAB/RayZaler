@@ -22,6 +22,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 
+const QRect g_infinityBox(-(INT_MAX / 2), -(INT_MAX / 2), INT_MAX, INT_MAX);
+
 DataProductWidget::DataProductWidget(
     RZ::DataProduct *product,
     QWidget *parent)
@@ -129,7 +131,6 @@ DataProductWidget::paintTicks(QPainter &p) const
   QPointF topLeft       = px2loc(m_gridTopLeft);
   QPointF bottomRight   = px2loc(m_gridBottomRight);
 
-  auto infinityBox = QRect(-(INT_MAX / 2), -(INT_MAX / 2), INT_MAX, INT_MAX);
   qreal x0;
   qreal y0;
 
@@ -158,7 +159,7 @@ DataProductWidget::paintTicks(QPainter &p) const
       t.translate(p1.x(), p1.y() + advance / 2);
       t.rotate(90);
       p.setTransform(t);
-      p.drawText(infinityBox, Qt::AlignCenter, text);
+      p.drawText(g_infinityBox, Qt::AlignCenter, text);
     }
 
     x0 += m_bestCoarseStep;
@@ -180,7 +181,7 @@ DataProductWidget::paintTicks(QPainter &p) const
       QTransform t;
       t.translate(p1.x() - advance / 2, p1.y());
       p.setTransform(t);
-      p.drawText(infinityBox, Qt::AlignCenter, text);
+      p.drawText(g_infinityBox, Qt::AlignCenter, text);
     }
 
     y0 += m_bestCoarseStep;
@@ -358,7 +359,6 @@ DataProductWidget::paintLastRender(QPainter &painter)
 void
 DataProductWidget::paintBusyMessage(QPainter &painter)
 {
-  auto infinityBox = QRect(-(INT_MAX / 2), -(INT_MAX / 2), INT_MAX, INT_MAX);
   QPointF p1 = m_gridTopLeft + QPointF(m_viewRect.width() / 2, m_viewRect.height() / 2);
   QString text = "Building view...";
   QTransform t;
@@ -368,13 +368,31 @@ DataProductWidget::paintBusyMessage(QPainter &painter)
   painter.save();
   t.translate(p1.x(), p1.y());
   painter.setTransform(t);
-  painter.drawText(infinityBox, Qt::AlignCenter, text);
+  painter.drawText(g_infinityBox, Qt::AlignCenter, text);
   painter.restore();
 
   QPen pen(QColor(0, 0, 0));
   pen.setWidth(1);
   painter.setPen(pen);
   painter.drawRect(m_viewRect);
+}
+
+void
+DataProductWidget::paintLabels(QPainter &painter)
+{
+  QPointF titlePos =
+      m_gridTopLeft
+      + QPointF(m_viewRect.width() / 2, -m_topMargin / 2);
+  QTransform t;
+
+  painter.save();
+  t.translate(titlePos.x(), titlePos.y());
+  painter.setTransform(t);
+  painter.drawText(
+        g_infinityBox,
+        Qt::AlignCenter,
+        QString::fromStdString(m_product->productName()));
+  painter.restore();
 }
 
 void
@@ -408,6 +426,8 @@ DataProductWidget::paintEvent(QPaintEvent *)
     paintLastRender(painter);
   else
     paintBusyMessage(painter);
+
+  paintLabels(painter);
 
   painter.end();
 }
