@@ -1,7 +1,7 @@
 #ifndef _SCATTER_PAINTER_H
 #define _SCATTER_PAINTER_H
 
-#include "ScatterTree.h"
+#include <DataProducts/ScatterTree.h>
 #include <QPainter>
 #include <QImage>
 
@@ -10,10 +10,11 @@
 // are treated as N times the width of the device.
 //
 
-class ScatterPainter : public ScatterTreeRenderer {
+class ScatterPainter : public RZ::ScatterTreeRenderer {
   QPainter  m_painter;
   QImage   *m_image = nullptr;
   uint32_t *m_imgData;
+  uint32_t  m_id = 0xff0000ff;
 
   int       m_width;
   int       m_height;
@@ -37,9 +38,10 @@ class ScatterPainter : public ScatterTreeRenderer {
 public:
   ScatterPainter(QImage &, double zoom = 1, double x0 = 0, double y0 = 0);
 
-  virtual ScatterVec resolution() const override;
-  virtual ScatterVec topLeft() const override;
-  virtual ScatterVec bottomRight() const override;
+  virtual void setId(uint32_t id) override;
+  virtual RZ::ScatterVec resolution() const override;
+  virtual RZ::ScatterVec topLeft() const override;
+  virtual RZ::ScatterVec bottomRight() const override;
   virtual void render(int x, int y, unsigned int count) override;
 };
 

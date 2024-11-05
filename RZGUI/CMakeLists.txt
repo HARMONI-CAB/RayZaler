@@ -23,6 +23,8 @@ set(PROJECT_SOURCES
         AboutDialog.h
         AboutDialog.cpp
         AboutDialog.ui
+        AsyncDataProductRenderer.h
+        AsyncDataProductRenderer.cpp
         AsyncRayTracer.h
         AsyncRayTracer.cpp
         ColorChooserButton.cpp
@@ -32,6 +34,8 @@ set(PROJECT_SOURCES
         ColorSettings.cpp
         CustomTextEditDelegate.h
         CustomTextEditDelegate.cpp
+        DataProductWidget.h
+        DataProductWidget.cpp
         DetectorWindow.h
         DetectorWindow.cpp
         DetectorWindow.ui
@@ -69,8 +73,6 @@ set(PROJECT_SOURCES
         ScatterAsyncRenderer.h
         ScatterPainter.cpp
         ScatterPainter.h
-        ScatterTree.cpp
-        ScatterTree.h
         ScatterWidget.h
         ScatterWidget.cpp
         SessionTabWidget.h

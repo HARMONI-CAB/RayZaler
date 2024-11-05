@@ -47,22 +47,28 @@ ScatterPainter::px2y(int j) const
   return (j - m_height / 2) * m_dx + m_y0;
 }
 
-ScatterVec
+void
+ScatterPainter::setId(uint32_t id)
+{
+  m_id = id;
+}
+
+RZ::ScatterVec
 ScatterPainter::resolution() const
 {
-  return ScatterVec(m_dx);
+  return RZ::ScatterVec(m_dx);
 }
 
-ScatterVec
+RZ::ScatterVec
 ScatterPainter::topLeft() const
 {
-  return ScatterVec(px2x(0), px2y(0));
+  return RZ::ScatterVec(px2x(0), px2y(0));
 }
 
-ScatterVec
+RZ::ScatterVec
 ScatterPainter::bottomRight() const
 {
-  return ScatterVec(px2x(m_width - 1), px2y(m_height - 1));
+  return RZ::ScatterVec(px2x(m_width - 1), px2y(m_height - 1));
 }
 
 void
@@ -71,7 +77,7 @@ ScatterPainter::render(int x, int y, unsigned int count)
   y = m_height - y - 1;
 
   if (x >= 0 && y >= 0 && x < m_width && y < m_height) {
-    uint32_t color = 0xff0000ff;
+    uint32_t color = m_id;
     int i;
     pset(x, y, color);
 

@@ -29,6 +29,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ConvexLens.cpp
   ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
+  ${LIBRZ_SRCDIR}/DataProduct.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
   ${LIBRZ_SRCDIR}/FT2Facade.cpp
@@ -99,7 +100,10 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Samplers/Map.cpp
   ${LIBRZ_SRCDIR}/Samplers/Point.cpp
   ${LIBRZ_SRCDIR}/Samplers/Ring.cpp
-  ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp)
+  ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp
+  
+  ${LIBRZ_SRCDIR}/DataProducts/Scatter.cpp
+  ${LIBRZ_SRCDIR}/DataProducts/ScatterTree.cpp)
 
 set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ApertureStop.h
@@ -185,7 +189,10 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Samplers/Map.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Point.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Ring.h
-  ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h)
+  ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h
+  
+  ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
+  ${LIBRZ_INCLUDEDIR}/DataProducts/ScatterTree.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES

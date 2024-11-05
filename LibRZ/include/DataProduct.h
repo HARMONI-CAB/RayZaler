@@ -16,26 +16,29 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef SCATTERASYNCRENDERER_H
-#define SCATTERASYNCRENDERER_H
+#ifndef _DATA_PRODUCT_H
+#define _DATA_PRODUCT_H
 
-#include "AsyncDataProductRenderer.h"
-#include <DataProducts/Scatter.h>
+#include <string>
 
-#define SCATTER_ASYNC_RENDERER_THRESHOLD 50000
+namespace RZ {
+  class DataProduct {
+    std::string m_name = "product";
+    bool        m_haveView = false;
 
-class ScatterAsyncRenderer : public AsyncDataProductRenderer
-{
-  Q_OBJECT
+  protected:
+    virtual void build();
+    virtual void clear();
 
-  RZ::ScatterDataProduct *m_asScatterDP = nullptr;
+  public:
+    virtual ~DataProduct();
+    void setProductName(std::string const &);
+    std::string productName() const;
+    void prepareView();
 
-public:
-  ScatterAsyncRenderer(RZ::ScatterDataProduct *, QObject *parent);
-  virtual ~ScatterAsyncRenderer() override;
+    virtual std::string productType() const = 0;
+    virtual bool saveToFile(std::string const &path) const = 0;
+  };
+}
 
-  virtual void renderToImage(QImage &, qreal, qreal, qreal) override;
-  virtual bool isBig() const override;
-};
-
-#endif // SCATTERASYNCRENDERER_H
+#endif // _DATA_PRODUCT_H
