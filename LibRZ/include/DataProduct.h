@@ -37,6 +37,8 @@ namespace RZ {
 
     void setProductName(std::string const &);
     std::string productName() const;
+
+    void discardView();
     void prepareView();
   };
 }

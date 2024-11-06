@@ -91,7 +91,6 @@ class DataProductWidget : public QWidget
   qreal        ds() const;
   void         requestRender();
   void         setCurrentRenderAsReference();
-  void         triggerNewView();
 
   void         paintLastRender(QPainter &painter);
   void         paintBusyMessage(QPainter &painter);
@@ -115,6 +114,7 @@ public:
   void    wheelEvent(QWheelEvent *) override;
 
   void    resetZoom();
+  void    updateView();
 
 public slots:
   void    onComplete(qint64, QImage *);

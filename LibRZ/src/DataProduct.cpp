@@ -38,6 +38,12 @@ DataProduct::productName() const
 }
 
 void
+DataProduct::discardView()
+{
+  m_haveView = false;
+}
+
+void
 DataProduct::prepareView()
 {
   if (!m_haveView) {

@@ -51,8 +51,11 @@ ScatterSet::~ScatterSet()
 void
 ScatterSet::rebuild()
 {
-  m_tree->rebuild();
-  m_tree->setFinestScale(5);
+  if (!m_built) {
+    m_tree->rebuild();
+    m_tree->setFinestScale(5);
+    m_built = true;
+  }
 }
 
 void
@@ -84,25 +87,36 @@ ScatterSet::size() const
 ScatterDataProduct::ScatterDataProduct(std::string const &name)
 {
   setProductName(name);
+  if (pthread_mutex_init(&m_lock, nullptr) != 0)
+    throw std::runtime_error("Failed to create lock");
+
+  m_haveLock = true;
 }
 
 ScatterDataProduct::~ScatterDataProduct()
 {
   clear();
+
+  if (m_haveLock)
+    pthread_mutex_destroy(&m_lock);
 }
 
 void
 ScatterDataProduct::build()
 {
+  pthread_mutex_lock(&m_lock);
   for (auto &p: m_setList)
     p->rebuild();
+  pthread_mutex_unlock(&m_lock);
 }
 
 void
 ScatterDataProduct::render(ScatterTreeRenderer *renderer) const
 {
+  pthread_mutex_lock(&m_lock);
   for (auto &p: m_setList)
     p->render(renderer);
+  pthread_mutex_unlock(&m_lock);
 }
 
 void
@@ -126,10 +140,14 @@ ScatterDataProduct::addSurface(
   OpticalSurface const *surface,
   std::string const &label)
 {
+  pthread_mutex_lock(&m_lock);
   auto set = new ScatterSet(id, surface, label);
 
   m_setList.push_back(set);
   m_points += set->size();
+  pthread_mutex_unlock(&m_lock);
+
+  discardView();
 }
 
 

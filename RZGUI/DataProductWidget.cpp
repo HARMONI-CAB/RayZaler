@@ -90,7 +90,7 @@ DataProductWidget::asyncRenderer()
 }
 
 void
-DataProductWidget::triggerNewView()
+DataProductWidget::updateView()
 {
   asyncRenderer()->discardCurrentView();
   requestRender();
@@ -504,7 +504,7 @@ DataProductWidget::resizeEvent(QResizeEvent *)
   if (m_firstResize) {
     oldWidth = m_viewRect.width();
     m_firstResize = false;
-    triggerNewView();
+    updateView();
   }
 
   m_zoom            *= oldWidth / currWidth;

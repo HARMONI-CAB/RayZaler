@@ -2,6 +2,7 @@
 #include "SimulationSession.h"
 #include "ui_SessionTabWidget.h"
 #include <QMessageBox>
+#include <QAction>
 
 #include "GUIHelpers.h"
 #include "RZGUIGLWidget.h"
@@ -10,6 +11,8 @@
 #include <RayBeamElement.h>
 #include "SourceEditorWindow.h"
 #include "ColorSettings.h"
+#include "SpotDiagramWindow.h"
+#include "AsyncRayTracer.h"
 #include "RZGUI.h"
 
 SessionTabWidget::SessionTabWidget(
@@ -260,11 +263,19 @@ SessionTabWidget::keyPressEvent(QKeyEvent *event)
 void
 SessionTabWidget::connectAll()
 {
+  reconnectTracer();
+
   connect(
         m_session,
         SIGNAL(modelChanged()),
         this,
         SLOT(onModelChanged()));
+
+  connect(
+        m_session,
+        SIGNAL(footprintDiagramChange(QString)),
+        this,
+        SLOT(onNewFootprintData(QString)));
 
   connect(
         m_session,
@@ -373,8 +384,20 @@ SessionTabWidget::updateDetectorWindow()
 }
 
 void
+SessionTabWidget::resetFootprintWindows()
+{
+  for (auto &p : m_footprintWindows) {
+    p.second->close();
+    p.second->deleteLater();
+  }
+
+  m_footprintWindows.clear();
+}
+
+void
 SessionTabWidget::reloadModel()
 {
+  resetFootprintWindows();
   m_detWindow->setSession(nullptr);
   m_glWidget->setModel(nullptr);
   m_progressDialog->setTracer(nullptr);
@@ -391,13 +414,35 @@ SessionTabWidget::reloadModel()
   m_glWidget->setModel(m_session->topLevelModel());
   m_detWindow->setSession(m_session);
   m_progressDialog->setTracer(m_session->tracer());
+  reconnectTracer();
+}
 
-  
+void
+SessionTabWidget::reconnectTracer()
+{
+  connect(
+        m_session->tracer(),
+        SIGNAL(aborted()),
+        this,
+        SIGNAL(simulationResults()));
+
+  connect(
+        m_session->tracer(),
+        SIGNAL(error(QString)),
+        this,
+        SIGNAL(simulationResults()));
+
+  connect(
+        m_session->tracer(),
+        SIGNAL(finished(bool)),
+        this,
+        SIGNAL(simulationResults()));
 }
 
 void
 SessionTabWidget::reloadModelFromEditor()
 {
+  resetFootprintWindows();
   m_detWindow->setSession(nullptr);
   m_glWidget->setModel(nullptr);
   m_progressDialog->setTracer(nullptr);
@@ -428,6 +473,7 @@ SessionTabWidget::reloadModelFromEditor()
   m_glWidget->setModel(m_session->topLevelModel());
   m_detWindow->setSession(m_session);
   m_progressDialog->setTracer(m_session->tracer());
+  reconnectTracer();
 }
 
 
@@ -483,4 +529,39 @@ SessionTabWidget::onNewCoords(qreal x, qreal y)
   ui->xyLabel->setText(
    toSensibleUnits(x) + ", " + toSensibleUnits(y) + " (" + toSensibleUnits(length) + ", " + asScientific(theta) + "º)"
   );
+}
+
+void
+SessionTabWidget::onNewFootprintData(QString path)
+{
+  auto strPath = path.toStdString();
+
+  if (m_footprintWindows.find(strPath) != m_footprintWindows.end()) {
+    m_footprintWindows[strPath]->updateView();
+  }
+}
+
+void
+SessionTabWidget::onOpenFootprintWindow()
+{
+  auto sender = qobject_cast<QAction *>(QObject::sender());
+
+  if (sender != nullptr) {
+    std::string path = sender->data().toString().toStdString();
+    if (m_footprintWindows.find(path) == m_footprintWindows.end()) {
+      auto product = m_session->state()->getFootprint(path);
+      if (product != nullptr) {
+        m_footprintWindows[path] = new SpotDiagramWindow(product, this);
+        m_footprintWindows[path]->show();
+      }
+    } else {
+      m_footprintWindows[path]->show();
+    }
+  }
+}
+
+void
+SessionTabWidget::onCloseFootprintWindow()
+{
+
 }

@@ -35,6 +35,8 @@ namespace RZ {
   class RayBeamElement;
   class RayColoring;
   class ParserContext;
+  class DataProduct;
+  class ScatterDataProduct;
 };
 
 enum ColoringMode {
@@ -199,6 +201,10 @@ class SimulationState {
   unsigned int  m_pfxCount = 0;
   QString       m_currentSavePrefix;
 
+  // Data products
+  std::list<RZ::DataProduct *>                    m_dataProducts;
+  std::map<std::string, RZ::ScatterDataProduct *> m_footprintDiagrams;
+
   // Simulation progress
   bool m_running = false;
   int64_t m_simCount = 0;
@@ -226,6 +232,8 @@ class SimulationState {
 
   RZ::Detector *findDetectorForPath(std::string const &);
 
+  void applyRecordHits();
+
   bool openCSV();
   void saveCSV();
   void closeCSV();
@@ -245,9 +253,15 @@ public:
   int currStep() const;
   int simCount() const;
 
+  void clearDataProducts();
+  std::list<std::string> footprints() const;
+  RZ::ScatterDataProduct *getFootprint(std::string const &) const;
+
   void saveArtifacts();
   bool allocateRays(uint32_t color = RZGUI_MODEL_DEFAULT_RAY_COLOR);
   void releaseRays();
+
+  std::list<std::string> takeFootprintData();
 
   bool setProperties(SimulationProperties const &);
   void setRepresentationProperties(RepresentationProperties const &repProp);
@@ -318,6 +332,7 @@ signals:
   void triggerSimulation(QString, int, int);
   void simulationError(QString);
   void sweepFinished();
+  void footprintDiagramChange(QString);
 
 public slots:
   void onTimerTick();

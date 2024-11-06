@@ -20,6 +20,7 @@
 #define _DATA_PRODUCTS_SCATTER_H
 
 #include <DataProduct.h>
+#include <pthread.h>
 #include <list>
 
 namespace RZ {
@@ -32,6 +33,7 @@ namespace RZ {
     ScatterTree *m_tree = nullptr; // Owned
     uint32_t     m_id = 0;
     size_t       m_size;
+    bool         m_built = false;
 
   public:
     ScatterSet(uint32_t id, OpticalSurface const *, std::string const &label = "");
@@ -49,6 +51,8 @@ namespace RZ {
       std::list<ScatterSet *> m_setList;
       unsigned int            m_idCount = 0;
       size_t                  m_points = 0;
+      mutable pthread_mutex_t m_lock;
+      bool                    m_haveLock = false;
 
     public:
       ScatterDataProduct(std::string const &);

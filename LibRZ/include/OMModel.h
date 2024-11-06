@@ -322,6 +322,8 @@ namespace RZ {
 
       // Convenience methods (fast enumeration)
       std::list<Element *> const &elementList() const;
+      std::list<Element *> allElements() const;
+      std::list<OpticalElement *> allOpticalElements() const;
 
       // Lookup methods
       ReferenceFrame *lookupReferenceFrame(std::string const &) const;

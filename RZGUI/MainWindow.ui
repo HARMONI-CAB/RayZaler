@@ -147,11 +147,18 @@ color: white;
     <property name="title">
      <string>&amp;Simulation</string>
     </property>
+    <widget class="QMenu" name="footprintMenu">
+     <property name="title">
+      <string>&amp;Footprints...</string>
+     </property>
+     <addaction name="actionNoSurfaces"/>
+    </widget>
     <addaction name="actionSimProp"/>
     <addaction name="actionRunSim"/>
     <addaction name="actionClearBeam"/>
     <addaction name="separator"/>
     <addaction name="actionSimResult"/>
+    <addaction name="footprintMenu"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -883,6 +890,14 @@ color: white;
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="actionNoSurfaces">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>(No surfaces)</string>
    </property>
   </action>
  </widget>

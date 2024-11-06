@@ -64,6 +64,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   void initDOFWidget(SessionUI &sessUI, SimulationSession *sess);
   void finalizeDOFWidget(SessionUI &sessUI);
   void openDelayedFiles();
+  void updateFootprintMenu(SimulationSession *session);
 
   SessionTabWidget *currentSessionWidget() const;
 
@@ -119,6 +120,8 @@ public slots:
   void onCenterToSelected();
   void onExportImage();
   void onOpenPreferences();
+
+  void onSimulationResults();
 
 private:
   Ui::MainWindow *ui;

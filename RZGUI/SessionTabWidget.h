@@ -18,15 +18,16 @@ class SimulationProgressDialog;
 class DetectorWindow;
 class SourceEditorWindow;
 class ColorSettings;
+class SpotDiagramWindow;
 
 class SessionTabWidget : public QWidget
 {
   Q_OBJECT
 
-  SimulationSession        *m_session;                  // Borrowed
-  RZGUIGLWidget            *m_glWidget;                 // Borrowed
-  DetectorWindow           *m_detWindow = nullptr;      // Owned
-  SimulationProgressDialog *m_progressDialog = nullptr; // Owned
+  SimulationSession        *m_session;                        // Borrowed
+  RZGUIGLWidget            *m_glWidget;                       // Borrowed
+  DetectorWindow           *m_detWindow           = nullptr;  // Owned
+  SimulationProgressDialog *m_progressDialog      = nullptr;  // Owned
   SourceEditorWindow       *m_sourceEditorWindow  = nullptr;
   const RZ::ReferenceFrame *m_selectedFrame       = nullptr;
   bool                      m_displayNames        = false;
@@ -36,9 +37,13 @@ class SessionTabWidget : public QWidget
   bool                      m_displayGrid         = true;
   bool                      m_displayMeasurements = false;
 
+  std::map<std::string, SpotDiagramWindow *> m_footprintWindows;
+
   void connectAll();
   void addGridStep(QString const &, qreal);
   void addGridDiv(unsigned);
+  void resetFootprintWindows();
+  void reconnectTracer();
 
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
@@ -58,6 +63,7 @@ public:
   void showSourceWindow();
   void centerSelectedFrame();
 
+  bool openSpotDiagramWindow(std::string const &);
   bool displayNames() const;
   bool displayApertures() const;
   bool displayElements() const;
@@ -84,6 +90,10 @@ public:
 
   void keyPressEvent(QKeyEvent *event) override;
 
+
+signals:
+  void simulationResults();
+
 private:
   Ui::SessionTabWidget *ui;
 
@@ -95,6 +105,11 @@ public slots:
   void onGridStepChanged(int);
   void onGridDivChanged(int);
   void onNewCoords(qreal, qreal);
+
+  void onNewFootprintData(QString);
+  void onOpenFootprintWindow();
+  void onCloseFootprintWindow();
+
 };
 
 #endif // SESSIONTABWIDGET_H

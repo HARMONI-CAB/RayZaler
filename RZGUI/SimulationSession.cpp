@@ -9,6 +9,7 @@
 #include <QThread>
 #include <QDir>
 #include "AsyncRayTracer.h"
+#include <DataProducts/Scatter.h>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -1209,6 +1210,78 @@ SimulationState::beamColorCycle() const
   return QColor2uint32_t(m_repProp.fixedBeamColor);
 }
 
+void
+SimulationState::applyRecordHits()
+{
+  auto allOpticalElements = m_topLevelModel->allOpticalElements();
+
+  for (auto element : allOpticalElements)
+    element->setRecordHits(false);
+
+  for (auto &path : m_properties.footprints) {
+    auto element = m_topLevelModel->resolveOpticalElement(path);
+    if (element != nullptr)
+      element->setRecordHits(true);
+  }
+}
+
+std::list<std::string>
+SimulationState::footprints() const
+{
+  std::list<std::string> fullNames;
+
+  for (auto &p : m_footprintDiagrams)
+    fullNames.push_back(p.first);
+
+  return fullNames;
+}
+
+RZ::ScatterDataProduct *
+SimulationState::getFootprint(std::string const &fullName) const
+{
+  auto it = m_footprintDiagrams.find(fullName);
+
+  if (it == m_footprintDiagrams.end())
+    return nullptr;
+
+  return it->second;
+}
+
+std::list<std::string>
+SimulationState::takeFootprintData()
+{
+  auto allOpticalElementNames = m_topLevelModel->opticalElementHierarchy("");
+  std::list<std::string> changes;
+
+  // TODO: Perhaps we can speed this up by adding another hash between
+  // optical elements with recordHits enabled and their paths
+  for (auto path : allOpticalElementNames) {
+    auto element = m_topLevelModel->resolveOpticalElement(path);
+    if (element != nullptr && element->recordHits()) {
+      for (auto &surf : element->opticalSurfaces()) {
+        auto fullName = path + "." + surf->name;
+
+        if (m_footprintDiagrams.find(fullName) == m_footprintDiagrams.end())
+          m_footprintDiagrams[fullName] = new RZ::ScatterDataProduct(
+                surf->name + " of " + element->name());
+
+        if (!surf->hits.empty()) {
+          m_footprintDiagrams[fullName]->addSurface(
+                0xff000000 | surf->hits[0].id,
+                surf,
+                "Simulation");
+
+          changes.push_back(fullName);
+          surf->hits.clear();
+          surf->clearCache();
+        }
+      }
+    }
+  }
+
+  return changes;
+}
+
 bool
 SimulationState::initSimulation()
 {
@@ -1231,6 +1304,8 @@ SimulationState::initSimulation()
 
   setVariable("simN", randNormal());
   setVariable("simU", randUniform());
+
+  applyRecordHits();
 
   m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
@@ -1806,6 +1881,10 @@ SimulationSession::onSimulationDone(bool haveBeam)
     emit modelChanged();
     QCoreApplication::processEvents();
   }
+
+  auto changes = m_simState->takeFootprintData();
+  for (auto &p : changes)
+    emit footprintDiagramChange(QString::fromStdString(p));
 
   if (m_simPending == 0)
     m_simState->releaseRays();

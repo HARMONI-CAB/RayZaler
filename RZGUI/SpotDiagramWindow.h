@@ -22,8 +22,9 @@ class SpotDiagramWindow : public QMainWindow
   void legend();
 
 public:
-  explicit SpotDiagramWindow(QWidget *parent = nullptr);
+  explicit SpotDiagramWindow(RZ::ScatterDataProduct *, QWidget *parent = nullptr);
   virtual ~SpotDiagramWindow() override;
+  void updateView();
 
 private:
   Ui::SpotDiagramWindow *ui;

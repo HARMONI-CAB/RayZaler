@@ -676,6 +676,39 @@ OMModel::elementList() const
   return m_elements;
 }
 
+std::list<Element *>
+OMModel::allElements() const
+{
+  std::list<Element *> elements;
+
+  for (auto elem : m_elements) {
+    elements.push_back(elem);
+    if (elem->nestedModel() != nullptr)
+      elements.splice(
+        elements.end(),
+        elem->nestedModel()->allElements());
+  }
+
+  return elements;
+}
+
+std::list<OpticalElement *>
+OMModel::allOpticalElements() const
+{
+  std::list<OpticalElement *> elements;
+
+  for (auto elem : m_elements) {
+    if (elem->hasProperty("optical"))
+      elements.push_back(static_cast<OpticalElement *>(elem));
+    if (elem->nestedModel() != nullptr)
+      elements.splice(
+        elements.end(),
+        elem->nestedModel()->allOpticalElements());
+  }
+
+  return elements;
+}
+
 RayBeamElement *
 OMModel::beam() const
 {

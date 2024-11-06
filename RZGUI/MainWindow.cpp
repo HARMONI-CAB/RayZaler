@@ -392,6 +392,46 @@ MainWindow::refreshCurrentElement()
 }
 
 void
+MainWindow::updateFootprintMenu(SimulationSession *session)
+{
+  SessionTabWidget *widget = currentSessionWidget();
+
+  ui->footprintMenu->clear();
+
+  if (session == nullptr || widget == nullptr) {
+    QAction *action = ui->footprintMenu->addAction("(no surfaces)");
+    action->setEnabled(false);
+  } else {
+    std::map<std::string, QMenu *> elementToMenu;
+
+    if (session->state()->footprints().empty()) {
+      QAction *action = ui->footprintMenu->addAction("(no surfaces)");
+      action->setEnabled(false);
+    } else {
+      for (auto &prod : session->state()->footprints()) {
+        auto parts = prod / ".";
+        if (parts.size() == 2) {
+          auto element = parts[0];
+          auto surface = parts[1];
+          if (elementToMenu.find(element) == elementToMenu.end()) {
+            elementToMenu[element] = ui->footprintMenu->addMenu(QString::fromStdString(element));
+          }
+
+          QAction *surfAction = elementToMenu[element]->addAction(QString::fromStdString(surface));
+          surfAction->setData(QString::fromStdString(prod));
+
+          connect(
+                surfAction,
+                SIGNAL(triggered(bool)),
+                widget,
+                SLOT(onOpenFootprintWindow()));
+        }
+      }
+    }
+  }
+}
+
+void
 MainWindow::refreshCurrentSession()
 {
   if (ui->dofStack->count() > 1)
@@ -479,6 +519,7 @@ MainWindow::refreshCurrentSession()
     }
   }
 
+  updateFootprintMenu(m_currSession);
   refreshCurrentElement();
 }
 
@@ -489,6 +530,12 @@ MainWindow::registerSession(SimulationSession *session)
 
   sessUi.tab = new SessionTabWidget(session);
   
+  connect(
+        sessUi.tab,
+        SIGNAL(simulationResults()),
+        this,
+        SLOT(onSimulationResults()));
+
   initDOFWidget(sessUi, session);
 
   m_sessions.push_back(session);
@@ -615,9 +662,6 @@ void
 MainWindow::onShow()
 {
   openDelayedFiles();
-
-  auto window = new SpotDiagramWindow();
-  window->show();
 }
 
 void
@@ -934,4 +978,13 @@ MainWindow::onOpenPreferences()
 
     RZGUISingleton::sync();
   }
+}
+
+void
+MainWindow::onSimulationResults()
+{
+  auto sender = qobject_cast<SessionTabWidget *>(QObject::sender());
+
+  if (sender != nullptr && sender == currentSessionWidget())
+    updateFootprintMenu(sender->session());
 }
