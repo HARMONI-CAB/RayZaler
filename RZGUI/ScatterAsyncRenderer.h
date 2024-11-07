@@ -36,6 +36,8 @@ public:
 
   virtual void renderToImage(QImage &, qreal, qreal, qreal) override;
   virtual bool isBig() const override;
+
+  void addSet(RZ::ScatterSet *);
 };
 
 #endif // SCATTERASYNCRENDERER_H

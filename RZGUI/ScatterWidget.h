@@ -8,7 +8,6 @@
 #include "DataProductWidget.h"
 #include <DataProducts/Scatter.h>
 
-class ScatterTree;
 class ScatterAsyncRenderer;
 
 #define SCATTER_WIDGET_ASYNC_THRESHOLD 50000
@@ -23,6 +22,8 @@ protected:
 public:
   ScatterWidget(RZ::ScatterDataProduct *prod, QWidget *parent = nullptr);
   virtual ~ScatterWidget() override;
+
+  void addSet(RZ::ScatterSet *);
 };
 
 #endif // SCATTERWIDGET_H

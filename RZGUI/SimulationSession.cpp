@@ -1225,33 +1225,16 @@ SimulationState::applyRecordHits()
   }
 }
 
-std::list<std::string>
-SimulationState::footprints() const
+std::list<SurfaceFootprint> &
+SimulationState::footprints()
 {
-  std::list<std::string> fullNames;
-
-  for (auto &p : m_footprintDiagrams)
-    fullNames.push_back(p.first);
-
-  return fullNames;
+  return m_footprints;
 }
 
-RZ::ScatterDataProduct *
-SimulationState::getFootprint(std::string const &fullName) const
-{
-  auto it = m_footprintDiagrams.find(fullName);
-
-  if (it == m_footprintDiagrams.end())
-    return nullptr;
-
-  return it->second;
-}
-
-std::list<std::string>
-SimulationState::takeFootprintData()
+void
+SimulationState::extractFootprints()
 {
   auto allOpticalElementNames = m_topLevelModel->opticalElementHierarchy("");
-  std::list<std::string> changes;
 
   // TODO: Perhaps we can speed this up by adding another hash between
   // optical elements with recordHits enabled and their paths
@@ -1259,27 +1242,21 @@ SimulationState::takeFootprintData()
     auto element = m_topLevelModel->resolveOpticalElement(path);
     if (element != nullptr && element->recordHits()) {
       for (auto &surf : element->opticalSurfaces()) {
-        auto fullName = path + "." + surf->name;
-
-        if (m_footprintDiagrams.find(fullName) == m_footprintDiagrams.end())
-          m_footprintDiagrams[fullName] = new RZ::ScatterDataProduct(
-                surf->name + " of " + element->name());
-
         if (!surf->hits.empty()) {
-          m_footprintDiagrams[fullName]->addSurface(
-                0xff000000 | surf->hits[0].id,
-                surf,
-                "Simulation");
+          SurfaceFootprint fp;
+          fp.fullName  = path + "." + surf->name;
+          fp.label     = "Simulation";
+          fp.locations = std::move(surf->locations());
+          fp.color     = 0xff000000 | surf->hits[0].id;
 
-          changes.push_back(fullName);
+          m_footprints.push_back(std::move(fp));
+
           surf->hits.clear();
           surf->clearCache();
         }
       }
     }
   }
-
-  return changes;
 }
 
 bool
@@ -1882,9 +1859,7 @@ SimulationSession::onSimulationDone(bool haveBeam)
     QCoreApplication::processEvents();
   }
 
-  auto changes = m_simState->takeFootprintData();
-  for (auto &p : changes)
-    emit footprintDiagramChange(QString::fromStdString(p));
+  m_simState->extractFootprints();
 
   if (m_simPending == 0)
     m_simState->releaseRays();

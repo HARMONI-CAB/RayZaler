@@ -38,3 +38,12 @@ ScatterWidget::makeRenderer(RZ::DataProduct *product)
         static_cast<RZ::ScatterDataProduct *>(product),
         nullptr);
 }
+
+void
+ScatterWidget::addSet(RZ::ScatterSet *set)
+{
+  auto aRndr = static_cast<ScatterAsyncRenderer *>(asyncRenderer());
+
+  aRndr->addSet(set);
+}
+

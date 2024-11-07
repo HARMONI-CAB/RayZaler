@@ -2,6 +2,7 @@
 #define SESSIONTABWIDGET_H
 
 #include <QWidget>
+#include "SimulationSession.h"
 
 namespace Ui {
   class SessionTabWidget;
@@ -37,13 +38,15 @@ class SessionTabWidget : public QWidget
   bool                      m_displayGrid         = true;
   bool                      m_displayMeasurements = false;
 
-  std::map<std::string, SpotDiagramWindow *> m_footprintWindows;
+  std::map<std::string, std::list<SurfaceFootprint>> m_footprintQueues;
+  std::map<std::string, SpotDiagramWindow *>         m_footprintWindows;
 
   void connectAll();
   void addGridStep(QString const &, qreal);
   void addGridDiv(unsigned);
   void resetFootprintWindows();
   void reconnectTracer();
+  SpotDiagramWindow *openNewFootprintWindow(std::string const &);
 
 public:
   explicit SessionTabWidget(SimulationSession *, QWidget *parent = nullptr);
@@ -52,6 +55,8 @@ public:
   SimulationSession *session() const;
   RZGUIGLWidget *glWidget() const;
   void applyColorSettings(ColorSettings const &);
+
+  std::list<std::string> footprints() const;
 
   void clearBeam();
   void showDetectorWindow();
@@ -106,7 +111,6 @@ public slots:
   void onGridDivChanged(int);
   void onNewCoords(qreal, qreal);
 
-  void onNewFootprintData(QString);
   void onOpenFootprintWindow();
   void onCloseFootprintWindow();
 

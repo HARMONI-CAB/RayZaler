@@ -14,6 +14,7 @@
 #include "SpotDiagramWindow.h"
 #include "AsyncRayTracer.h"
 #include "RZGUI.h"
+#include <Helpers.h>
 
 SessionTabWidget::SessionTabWidget(
     SimulationSession *session,
@@ -273,12 +274,6 @@ SessionTabWidget::connectAll()
 
   connect(
         m_session,
-        SIGNAL(footprintDiagramChange(QString)),
-        this,
-        SLOT(onNewFootprintData(QString)));
-
-  connect(
-        m_session,
         SIGNAL(triggerSimulation(QString, int, int)),
         this,
         SLOT(onSimulationTriggered(QString, int, int)));
@@ -359,6 +354,20 @@ SessionTabWidget::clearBeam()
   m_glWidget->update();
 }
 
+std::list<std::string>
+SessionTabWidget::footprints() const
+{
+  std::list<std::string> footprints;
+
+  for (auto &p : m_footprintQueues)
+    footprints.push_back(p.first);
+
+  for (auto &p : m_footprintWindows)
+    footprints.push_back(p.first);
+
+  return footprints;
+}
+
 void
 SessionTabWidget::showDetectorWindow()
 {
@@ -392,6 +401,44 @@ SessionTabWidget::resetFootprintWindows()
   }
 
   m_footprintWindows.clear();
+}
+
+SpotDiagramWindow *
+SessionTabWidget::openNewFootprintWindow(std::string const &fullName)
+{
+  SpotDiagramWindow *window = nullptr;
+  auto parts = fullName / ".";
+
+  if (parts.size() != 2)
+    return nullptr;
+
+  // Get these pointers to inform the spot diagram window about the geometry
+  RZ::OpticalElement *optEl = m_session->topLevelModel()->resolveOpticalElement(parts[0]);
+  if (optEl == nullptr)
+    return nullptr;
+
+  const RZ::OpticalSurface *surf = optEl->opticalPath().getSurface(parts[1]);
+  if (surf == nullptr)
+    return nullptr;
+
+  window = new SpotDiagramWindow(QString::fromStdString(parts[0]) + " on " + QString::fromStdString(parts[1]));
+
+  auto it = m_footprintQueues.find(fullName);
+  if (it != m_footprintQueues.end()) {
+    auto &queue = m_footprintQueues[fullName];
+    while (!queue.empty()) {
+      window->transferFootprint(queue.front());
+      queue.pop_front();
+    }
+
+    // Trigger recalc of the new footprints
+    window->updateView();
+    m_footprintQueues.erase(it);
+  }
+
+  m_footprintWindows[fullName] = window;
+
+  return window;
 }
 
 void
@@ -497,7 +544,35 @@ SessionTabWidget::onSimulationTriggered(QString path, int step, int total)
 void
 SessionTabWidget::onSweepFinished()
 {
+  bool haveResults = false;
+
   m_progressDialog->simFinished();
+
+  auto &footprints = m_session->state()->footprints();
+
+  auto it = footprints.begin();
+  while (it != footprints.end()) {
+    auto curr = it++;
+
+    // Non-opened window. Queue this result.
+    if (m_footprintWindows.find(curr->fullName) == m_footprintWindows.end()) {
+      auto &queue = m_footprintQueues[curr->fullName];
+      queue.splice(queue.end(), footprints, curr);
+    } else {
+      // Opened window. Deliver it.
+      auto window = m_footprintWindows[curr->fullName];
+      window->transferFootprint(*curr);
+      window->updateView();
+    }
+
+    haveResults = true;
+
+  }
+
+  footprints.clear();
+
+  if (haveResults)
+    emit simulationResults();
 }
 
 void
@@ -532,32 +607,21 @@ SessionTabWidget::onNewCoords(qreal x, qreal y)
 }
 
 void
-SessionTabWidget::onNewFootprintData(QString path)
-{
-  auto strPath = path.toStdString();
-
-  if (m_footprintWindows.find(strPath) != m_footprintWindows.end()) {
-    m_footprintWindows[strPath]->updateView();
-  }
-}
-
-void
 SessionTabWidget::onOpenFootprintWindow()
 {
   auto sender = qobject_cast<QAction *>(QObject::sender());
+  SpotDiagramWindow *window = nullptr;
 
   if (sender != nullptr) {
-    std::string path = sender->data().toString().toStdString();
-    if (m_footprintWindows.find(path) == m_footprintWindows.end()) {
-      auto product = m_session->state()->getFootprint(path);
-      if (product != nullptr) {
-        m_footprintWindows[path] = new SpotDiagramWindow(product, this);
-        m_footprintWindows[path]->show();
-      }
-    } else {
-      m_footprintWindows[path]->show();
-    }
+    std::string fullName = sender->data().toString().toStdString();
+    if (m_footprintWindows.find(fullName) == m_footprintWindows.end())
+      window = openNewFootprintWindow(fullName);
+    else
+      window = m_footprintWindows[fullName];
   }
+
+  if (window != nullptr)
+    window->show();
 }
 
 void

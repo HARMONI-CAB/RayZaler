@@ -44,3 +44,10 @@ ScatterAsyncRenderer::isBig() const
   return m_asScatterDP->size() > SCATTER_ASYNC_RENDERER_THRESHOLD;
 }
 
+void
+ScatterAsyncRenderer::addSet(RZ::ScatterSet *set)
+{
+  // Already protected by the ScatterDP mutex
+  m_asScatterDP->addSet(set);
+}
+

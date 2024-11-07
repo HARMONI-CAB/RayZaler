@@ -13,7 +13,6 @@
 #include "SettingsDialog.h"
 #include "RZGUI.h"
 #include "SpotDiagramWindow.h"
-
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSurfaceFormat>
@@ -403,13 +402,14 @@ MainWindow::updateFootprintMenu(SimulationSession *session)
     action->setEnabled(false);
   } else {
     std::map<std::string, QMenu *> elementToMenu;
+    auto footprints = widget->footprints();
 
-    if (session->state()->footprints().empty()) {
+    if (footprints.empty()) {
       QAction *action = ui->footprintMenu->addAction("(no surfaces)");
       action->setEnabled(false);
     } else {
-      for (auto &prod : session->state()->footprints()) {
-        auto parts = prod / ".";
+      for (auto &fp : footprints) {
+        auto parts = fp / ".";
         if (parts.size() == 2) {
           auto element = parts[0];
           auto surface = parts[1];
@@ -418,7 +418,7 @@ MainWindow::updateFootprintMenu(SimulationSession *session)
           }
 
           QAction *surfAction = elementToMenu[element]->addAction(QString::fromStdString(surface));
-          surfAction->setData(QString::fromStdString(prod));
+          surfAction->setData(QString::fromStdString(fp));
 
           connect(
                 surfAction,

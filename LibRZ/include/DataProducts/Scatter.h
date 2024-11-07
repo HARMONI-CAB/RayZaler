@@ -22,6 +22,8 @@
 #include <DataProduct.h>
 #include <pthread.h>
 #include <list>
+#include <Vector.h>
+#include <vector>
 
 namespace RZ {
   class  ScatterTree;
@@ -37,6 +39,9 @@ namespace RZ {
 
   public:
     ScatterSet(uint32_t id, OpticalSurface const *, std::string const &label = "");
+    ScatterSet(uint32_t id, std::vector<Real> const &, std::string const &label = "", unsigned stride = 2);
+    ScatterSet(uint32_t id, std::vector<Real> &, std::string const &label = "", unsigned stride = 2, bool transfer = false);
+    
     ~ScatterSet();
 
     void rebuild();
@@ -68,6 +73,7 @@ namespace RZ {
       size_t size() const;
       void addSurface(OpticalSurface const *, std::string const &label = "");
       void addSurface(uint32_t id, OpticalSurface const *, std::string const &label = "");
+      void addSet(ScatterSet *);
 
       std::list<ScatterSet *> const &dataSets() const;
   };

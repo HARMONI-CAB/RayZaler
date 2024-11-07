@@ -25,11 +25,35 @@ using namespace RZ;
 /////////////////////////////// ScatterSet ////////////////////////////////////
 ScatterSet::ScatterSet(
   uint32_t id,
-  OpticalSurface const *surface,
-  std::string const &label)
+  std::vector<Real> &locations,
+  std::string const &label,
+  unsigned stride,
+  bool transfer)
 {
   size_t i = 0;
-  auto locations = surface->locations();
+
+  m_tree  = new ScatterTree();
+  m_label = label;
+  m_id    = id;
+
+  if (transfer) {
+    m_tree->setStride(stride);
+    m_tree->transfer(locations);
+  } else while (i < locations.size()) {
+    m_tree->push(locations[i + 0], locations[i + 1]);
+    i += stride;
+  }
+
+  m_size = i / stride;
+}
+
+ScatterSet::ScatterSet(
+  uint32_t id,
+  std::vector<Real> const &locations,
+  std::string const &label,
+  unsigned stride)
+{
+  size_t i = 0;
 
   m_tree  = new ScatterTree();
   m_label = label;
@@ -37,10 +61,22 @@ ScatterSet::ScatterSet(
 
   while (i < locations.size()) {
     m_tree->push(locations[i + 0], locations[i + 1]);
-    i += 3;
+    i += stride;
   }
 
-  m_size = i / 3;
+  m_size = i / stride;
+}
+
+
+ScatterSet::ScatterSet(
+  uint32_t id,
+  OpticalSurface const *surface,
+  std::string const &label) : ScatterSet(
+    id,                       // Id
+    surface->locations(),     // 3D vector of locations 
+    label,                    // Label
+    3)                        // Stride
+{
 }
 
 ScatterSet::~ScatterSet()
@@ -135,14 +171,9 @@ ScatterDataProduct::size() const
 }
 
 void
-ScatterDataProduct::addSurface(
-  uint32_t id,
-  OpticalSurface const *surface,
-  std::string const &label)
+ScatterDataProduct::addSet(ScatterSet *set)
 {
   pthread_mutex_lock(&m_lock);
-  auto set = new ScatterSet(id, surface, label);
-
   m_setList.push_back(set);
   m_points += set->size();
   pthread_mutex_unlock(&m_lock);
@@ -150,6 +181,14 @@ ScatterDataProduct::addSurface(
   discardView();
 }
 
+void
+ScatterDataProduct::addSurface(
+  uint32_t id,
+  OpticalSurface const *surface,
+  std::string const &label)
+{
+  addSet(new ScatterSet(id, surface, label));
+}
 
 void
 ScatterDataProduct::addSurface(

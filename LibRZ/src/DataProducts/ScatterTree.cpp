@@ -107,7 +107,12 @@ ScatterTree::makeNode()
 void
 ScatterTree::push(double x, double y)
 {
-  m_points.push_back(ScatterVec(x, y));
+  size_t last = m_points.size() / m_stride;
+
+  m_points.resize((last + 1) * m_stride);
+
+  m_points[m_stride * last + 0] = x;
+  m_points[m_stride * last + 1] = y;
 }
 
 
@@ -138,7 +143,7 @@ ScatterTree::buildNode(ScatterTreeNode *node)
 
   auto it = node->unplaced.begin();
 
-  while(it != node->unplaced.end()) {
+  while (it != node->unplaced.end()) {
     auto current = it++;
     auto &p = *current;
 
@@ -259,6 +264,9 @@ ScatterTree::render(
 void
 ScatterTree::rebuild()
 {
+  size_t pointCount = m_points.size() / m_stride;
+  size_t i;
+
   m_alloc.clear();
   m_root = nullptr;
 
@@ -266,7 +274,12 @@ ScatterTree::rebuild()
     return;
 
   m_root = makeNode();
-  m_root->unplaced = std::move(m_points);
+
+  m_root->unplaced.resize(pointCount);
+
+  for (i = 0; i < pointCount; ++i)
+    m_root->unplaced[i] = 
+      std::move(*reinterpret_cast<ScatterVec *>(m_points.data() + i * m_stride));
 
   buildNode(m_root);
 }
@@ -277,3 +290,17 @@ ScatterTree::setFinestScale(double scale)
   m_finestScale = scale;
 }
 
+void
+ScatterTree::setStride(unsigned int stride)
+{
+  if (m_stride != stride) {
+    m_stride = stride;
+    m_points.clear();
+  }
+}
+
+void
+ScatterTree::transfer(std::vector<double> &data)
+{
+  std::swap(data, m_points);
+}

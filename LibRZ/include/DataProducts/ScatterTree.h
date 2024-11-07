@@ -84,9 +84,10 @@ namespace RZ {
   };
 
   class ScatterTree {
+    unsigned int               m_stride = 2;
     ScatterTreeNode           *m_root = nullptr;
     std::list<ScatterTreeNode> m_alloc;
-    std::vector<ScatterVec>    m_points;
+    std::vector<double>        m_points;
     double                     m_finestScale = 1;
     unsigned int               m_splitThreshold = 100;
 
@@ -104,6 +105,8 @@ namespace RZ {
     ScatterTree();
 
     void push(double x, double y);
+    void setStride(unsigned int stride);
+    void transfer(std::vector<double> &data);
     void rebuild();
     void render(ScatterTreeRenderer *);
     void render(
