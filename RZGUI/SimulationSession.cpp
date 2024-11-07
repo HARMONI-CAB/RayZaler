@@ -1245,7 +1245,7 @@ SimulationState::extractFootprints()
         if (!surf->hits.empty()) {
           SurfaceFootprint fp;
           fp.fullName  = path + "." + surf->name;
-          fp.label     = "Simulation";
+          fp.label     = m_simName.toStdString();
           fp.locations = std::move(surf->locations());
           fp.color     = 0xff000000 | surf->hits[0].id;
 
@@ -1257,6 +1257,55 @@ SimulationState::extractFootprints()
       }
     }
   }
+}
+
+void
+SimulationState::chooseSimulationName()
+{
+  QString name;
+  qreal wavelength = m_wavelengthExpr->evaluate() * 1e-9;
+  QString units;
+
+  sensibleUnits(wavelength, units);
+
+  bool singular = true;
+
+  switch (m_properties.type) {
+    case SIM_TYPE_ONE_SHOT:
+      name += "Single ";
+      break;
+
+    case SIM_TYPE_1D_SWEEP:
+      name    += QString::number(m_properties.Ni) + " ";
+      singular = m_properties.Ni == 1;
+      break;
+
+    case SIM_TYPE_2D_SWEEP:
+      name    += QString::number(m_properties.Ni) + "×" + QString::number(m_properties.Nj) + " ";
+      singular = m_properties.Ni * m_properties.Nj == 1;
+      break;
+  }
+
+  switch (m_properties.beam) {
+    case BEAM_TYPE_COLLIMATED:
+      name += "collimated beam";
+      break;
+
+    case BEAM_TYPE_DIVERGING:
+      name += "-f/" + m_properties.fNum + " beam";
+      break;
+
+    case BEAM_TYPE_CONVERGING:
+      name += "f/" + m_properties.fNum + " beam";
+      break;
+  }
+
+  if (!singular)
+    name += "s";
+
+  name += QString::asprintf(" (λ=%.3g ", wavelength) + units + ")";
+
+  m_simName = name;
 }
 
 bool
@@ -1283,6 +1332,8 @@ SimulationState::initSimulation()
   setVariable("simU", randUniform());
 
   applyRecordHits();
+
+  chooseSimulationName();
 
   m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
@@ -1859,8 +1910,6 @@ SimulationSession::onSimulationDone(bool haveBeam)
     QCoreApplication::processEvents();
   }
 
-  m_simState->extractFootprints();
-
   if (m_simPending == 0)
     m_simState->releaseRays();
 
@@ -1874,6 +1923,7 @@ SimulationSession::onSimulationDone(bool haveBeam)
 
     timersub(&now, &m_simulationStart, &diff);
 
+    m_simState->extractFootprints();
 
     emit sweepFinished();
     RZInfo(

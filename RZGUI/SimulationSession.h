@@ -165,6 +165,7 @@ private:
 };
 
 class SimulationState {
+  QString                  m_simName;
   SimulationProperties     m_properties;
   RepresentationProperties m_repProp;
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
@@ -237,6 +238,7 @@ class SimulationState {
   bool openCSV();
   void saveCSV();
   void closeCSV();
+  void chooseSimulationName();
 
 public:
   SimulationState(RZ::TopLevelModel *);

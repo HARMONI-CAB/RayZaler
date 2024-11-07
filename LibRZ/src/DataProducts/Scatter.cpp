@@ -89,7 +89,7 @@ ScatterSet::rebuild()
 {
   if (!m_built) {
     m_tree->rebuild();
-    m_tree->setFinestScale(5);
+    m_tree->setFinestScale(2);
     m_built = true;
   }
 }
