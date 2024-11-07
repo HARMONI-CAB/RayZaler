@@ -25,3 +25,10 @@ GenericAperture::renderOpenGL()
 {
   // Implement me!
 }
+
+std::vector<std::vector<Real>> const &
+GenericAperture::edges() const
+{
+  // Implement me!
+  return m_emptyEdges;
+}

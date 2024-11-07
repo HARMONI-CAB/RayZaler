@@ -54,6 +54,12 @@ SpotDiagramWindow::updateView()
 }
 
 void
+SpotDiagramWindow::resetZoom()
+{
+  m_widget->resetZoom();
+}
+
+void
 SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
 {
   RZ::ScatterSet *set = new RZ::ScatterSet(
@@ -64,4 +70,46 @@ SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
         true);                    // Do transfer
 
   m_widget->addSet(set);
+}
+
+void
+SpotDiagramWindow::setEdges(std::vector<std::vector<RZ::Real>> const &edges)
+{
+  qreal x0 = 0;
+  qreal y0 = 0;
+  qreal maxAbsX0 = 1e-9;
+  size_t N = 0;
+
+  m_widget->clearCurves();
+
+  for (auto &edge: edges) {
+    DataProductCurve curve;
+    auto points = edge.size() / 3;
+
+    curve.width = 2;
+    curve.color = QColor::fromRgb(0, 0, 0);
+    curve.closed = true;
+
+    for (size_t i = 0; i < points; ++i) {
+      auto x = edge[3 * i + 0];
+      auto y = edge[3 * i + 1];
+
+      x0 += x;
+      y0 += y;
+
+      if (fabs(x) > maxAbsX0)
+        maxAbsX0 = x;
+
+      curve.xydata.push_back(QPointF(x, y));
+    }
+
+    N += points;
+
+    m_widget->addCurve(curve);
+  }
+
+  x0 /= static_cast<qreal>(N);
+  y0 /= static_cast<qreal>(N);
+
+  m_widget->setResetZoom(1. / (3 * maxAbsX0), x0, y0);
 }

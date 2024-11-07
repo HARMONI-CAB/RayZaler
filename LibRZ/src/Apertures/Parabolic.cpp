@@ -4,6 +4,8 @@ using namespace RZ;
 
 ParabolicAperture::ParabolicAperture(Real R, Real fLength)
 {
+  m_edges.resize(1);
+
   setRadius(R);
   setFocalLength(fLength);
   recalcGL();
@@ -63,6 +65,12 @@ ParabolicAperture::setFocalLength(Real fLength)
   recalcGL();
 }
 
+std::vector<std::vector<Real>> const &
+ParabolicAperture::edges() const
+{
+  return m_edges;
+}
+
 void
 ParabolicAperture::recalcGL()
 {
@@ -71,6 +79,7 @@ ParabolicAperture::recalcGL()
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
 
   m_vertices.clear();
+  m_edges[0].clear();
 
   auto K = 1 / (4 * m_flength);
 
@@ -83,6 +92,10 @@ ParabolicAperture::recalcGL()
     m_vertices.push_back(x);
     m_vertices.push_back(y);
     m_vertices.push_back(z);
+
+    m_edges[0].push_back(x);
+    m_edges[0].push_back(y);
+    m_edges[0].push_back(z);
 
     theta += dTheta;
   }

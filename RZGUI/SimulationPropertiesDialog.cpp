@@ -441,6 +441,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
       m_propModel->setDof(p.first, p.second, setEdited);
 
     // Add optical elements to combo
+    ui->opticalElementCombo->clear();
     for (auto &p : model->opticalElementHierarchy()) {
       auto element = model->resolveElement(p);
       if (element != nullptr) {

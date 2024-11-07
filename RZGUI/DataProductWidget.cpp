@@ -97,6 +97,20 @@ DataProductWidget::updateView()
   emit makeView();
 }
 
+void
+DataProductWidget::addCurve(DataProductCurve &curve)
+{
+  m_curves.push_back(curve);
+  update();
+}
+
+void
+DataProductWidget::clearCurves()
+{
+  m_curves.clear();
+  update();
+}
+
 qreal
 DataProductWidget::ds() const
 {
@@ -300,6 +314,7 @@ DataProductWidget::paintLastRender(QPainter &painter)
 
   paintTicks(painter);
   paintGrid(painter);
+  paintCurves(painter);
 
   painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
@@ -396,6 +411,36 @@ DataProductWidget::paintLabels(QPainter &painter)
 }
 
 void
+DataProductWidget::paintCurves(QPainter &painter)
+{
+  QPen pen;
+
+  painter.save();
+
+  painter.setClipRect(m_viewRect);
+
+  for (auto &curve : m_curves) {
+    std::vector<QPointF> points;
+    points.resize(curve.xydata.size());
+
+    pen.setColor(curve.color);
+    pen.setWidth(curve.width);
+
+    painter.setPen(pen);
+
+    for (size_t i = 0; i < curve.xydata.size(); ++i)
+      points[i] = loc2px(curve.xydata[i]);
+
+    if (curve.closed && !points.empty())
+      points.push_back(points[0]);
+
+    painter.drawPolyline(points.data(), points.size());
+  }
+
+  painter.restore();
+}
+
+void
 DataProductWidget::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
@@ -445,12 +490,21 @@ DataProductWidget::mousePressEvent(QMouseEvent *event)
 void
 DataProductWidget::resetZoom()
 {
-  m_zoom = 1.;
+  m_zoom = m_resetZoom;
   m_currPos = QPointF();
-  m_x0 = m_y0 = 0;
+  m_x0 = m_resetX0;
+  m_y0 = m_resetY0;
   emit viewChanged();
   requestRender();
   update();
+}
+
+void
+DataProductWidget::setResetZoom(qreal zoom, qreal x0, qreal y0)
+{
+  m_resetZoom = zoom;
+  m_resetX0   = x0;
+  m_resetY0   = y0;
 }
 
 void

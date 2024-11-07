@@ -5,7 +5,14 @@ using namespace RZ;
 
 CircularAperture::CircularAperture(Real radius)
 {
+  m_edges.resize(1);
   setRadius(radius);
+}
+
+std::vector<std::vector<Real>> const &
+CircularAperture::edges() const
+{
+  return m_edges;
 }
 
 void
@@ -19,6 +26,8 @@ CircularAperture::recalculate()
   m_vertices.clear();
   m_grid.clear();
 
+  m_edges[0].clear();
+
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
     GLfloat x = m_radius * m_a * cos(theta);
     GLfloat y = m_radius * m_b * sin(theta);
@@ -26,6 +35,10 @@ CircularAperture::recalculate()
     m_vertices.push_back(x);
     m_vertices.push_back(y);
     m_vertices.push_back(0);
+
+    m_edges[0].push_back(x);
+    m_edges[0].push_back(y);
+    m_edges[0].push_back(0);
 
     theta += dTheta;
   }

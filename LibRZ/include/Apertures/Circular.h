@@ -16,6 +16,7 @@ namespace RZ {
 
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_grid;
+    std::vector<std::vector<Real>> m_edges;
 
     void recalculate();
     void renderOpenGLAperture();
@@ -23,6 +24,8 @@ namespace RZ {
     
   public:
     CircularAperture(Real radius);
+
+    virtual std::vector<std::vector<Real>> const &edges() const override;
     void setRadius(Real);
     void setEccentricity(Real);
 

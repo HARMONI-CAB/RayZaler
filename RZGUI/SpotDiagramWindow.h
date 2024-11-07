@@ -2,6 +2,7 @@
 #define SPOTDIAGRAMWINDOW_H
 
 #include <QMainWindow>
+#include <Vector.h>
 
 namespace RZ {
   class ScatterDataProduct;
@@ -34,6 +35,8 @@ public:
   virtual ~SpotDiagramWindow() override;
   void updateView();
   void transferFootprint(SurfaceFootprint &);
+  void setEdges(std::vector<std::vector<RZ::Real>> const &);
+  void resetZoom();
 
 private:
   Ui::SpotDiagramWindow *ui;

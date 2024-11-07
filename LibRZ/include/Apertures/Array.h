@@ -12,6 +12,8 @@ namespace RZ {
     unsigned int m_cols      = 10;
     Real m_subApertureWidth  = 10e-3;
     Real m_subApertureHeight = 10e-3;
+    std::vector<std::vector<Real>> m_edges;
+    
     void recalculateDimensions();
 
   public:
@@ -56,6 +58,8 @@ namespace RZ {
       return m_height;
     }
     
+    virtual std::vector<std::vector<Real>> const &edges() const override;
+
     ApertureArray(GenericAperture *);
     virtual ~ApertureArray();
 

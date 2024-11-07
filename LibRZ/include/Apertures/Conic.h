@@ -44,7 +44,9 @@ namespace RZ {
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_holeVertices;
     std::vector<GLfloat> m_axes;
-
+    
+    std::vector<std::vector<Real>> m_edges;
+    
     void recalcGLConic();
     void recalcGLParabolic();
     void recalcGL();
@@ -74,6 +76,7 @@ namespace RZ {
         Real *normals,
         unsigned int N) override;
 
+    virtual std::vector<std::vector<Real>> const &edges() const override;
     virtual void renderOpenGL() override;
   };
 }

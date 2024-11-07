@@ -5,6 +5,10 @@ using namespace RZ;
 
 RectangularAperture::RectangularAperture()
 {
+  m_edges.resize(1);
+  m_edges[0].resize(3 * 4);
+
+  updateEdges();
 }
 
 RectangularAperture::~RectangularAperture()
@@ -12,15 +16,37 @@ RectangularAperture::~RectangularAperture()
 }
 
 void
+RectangularAperture::updateEdges()
+{
+  unsigned int p;
+  Real x[] = {m_width / 2, -m_width / 2, -m_width / 2, m_width / 2};
+  Real y[] = {m_height / 2, m_height / 2, -m_height / 2, -m_height / 2};
+
+  for (auto i = 0; i < 4; ++i) {
+    m_edges[0][3 * i + 0] = x[i];
+    m_edges[0][3 * i + 1] = y[i];
+    m_edges[0][3 * i + 2] = 0;
+  }
+}
+
+std::vector<std::vector<Real>> const &
+RectangularAperture::edges() const
+{
+  return m_edges;
+}
+
+void
 RectangularAperture::setWidth(Real width)
 {
   m_width = width;
+  updateEdges();
 }
 
 void
 RectangularAperture::setHeight(Real height)
 {
   m_height = height;
+  updateEdges();
 }
 
 bool

@@ -4,6 +4,8 @@ using namespace RZ;
 
 SphericalAperture::SphericalAperture(Real R, Real rCurv)
 {
+  m_edges.resize(1);
+
   setRadius(R);
   setCurvatureRadius(rCurv);
   recalcGL();
@@ -32,6 +34,7 @@ SphericalAperture::recalcGL()
   Real sign = m_rCurv > 0 ? 1 : -1;
   
   m_vertices.clear();
+  m_edges[0].clear();
 
   // Draw the aperture ellipse
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
@@ -42,6 +45,10 @@ SphericalAperture::recalcGL()
     m_vertices.push_back(x);
     m_vertices.push_back(y);
     m_vertices.push_back(sign * z);
+
+    m_edges[0].push_back(x);
+    m_edges[0].push_back(y);
+    m_edges[0].push_back(sign * z);
 
     theta += dTheta;
   }

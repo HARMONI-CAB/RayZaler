@@ -3,6 +3,7 @@
 #include "ui_SessionTabWidget.h"
 #include <QMessageBox>
 #include <QAction>
+#include <GenericAperture.h>
 
 #include "GUIHelpers.h"
 #include "RZGUIGLWidget.h"
@@ -331,6 +332,7 @@ SessionTabWidget::glWidget() const
 void
 SessionTabWidget::updateModel()
 {
+  updateFootprintWindows();
   m_glWidget->update();
 }
 
@@ -387,6 +389,28 @@ SessionTabWidget::centerSelectedFrame()
 }
 
 void
+SessionTabWidget::updateFootprintWindows()
+{
+  for (auto &fp : m_footprintWindows) {
+    auto parts = fp.first / ".";
+
+    if (parts.size() != 2)
+      continue;
+
+    // Get these pointers to inform the spot diagram window about the geometry
+    RZ::OpticalElement *optEl = m_session->topLevelModel()->resolveOpticalElement(parts[0]);
+    if (optEl == nullptr)
+      continue;
+
+    const RZ::OpticalSurface *surf = optEl->opticalPath().getSurface(parts[1]);
+    if (surf == nullptr)
+      continue;
+
+    fp.second->setEdges(surf->processor->aperture()->edges());
+  }
+}
+
+void
 SessionTabWidget::updateDetectorWindow()
 {
   m_detWindow->refreshImage();
@@ -430,6 +454,8 @@ SessionTabWidget::openNewFootprintWindow(std::string const &fullName)
       window->transferFootprint(queue.front());
       queue.pop_front();
     }
+
+    window->setEdges(surf->processor->aperture()->edges());
 
     // Trigger recalc of the new footprints
     window->updateView();
@@ -620,8 +646,10 @@ SessionTabWidget::onOpenFootprintWindow()
       window = m_footprintWindows[fullName];
   }
 
-  if (window != nullptr)
+  if (window != nullptr) {
+    window->resetZoom();
     window->show();
+  }
 }
 
 void

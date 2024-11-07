@@ -19,8 +19,9 @@ namespace RZ {
     Real m_ux = 1;
     Real m_uy = 0;
 
-    std::vector<GLfloat> m_vertices;
-    std::vector<GLfloat> m_axes;
+    std::vector<GLfloat>           m_vertices;
+    std::vector<GLfloat>           m_axes;
+    std::vector<std::vector<Real>> m_edges;
 
     void recalcGL();
     void recalcDistribution();

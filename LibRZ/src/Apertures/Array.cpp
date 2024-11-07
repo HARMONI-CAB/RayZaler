@@ -8,12 +8,44 @@ ApertureArray::recalculateDimensions()
 {
   m_subApertureWidth  = m_width / m_cols;
   m_subApertureHeight = m_height / m_rows;
+
+  m_edges.clear();
+
+  unsigned int i, j;
+  Real halfW  = .5 * m_width;
+  Real halfH  = .5 * m_height;
+
+  for (j = 0; j < m_rows; ++j) {
+    for (i = 0; i < m_cols; ++i) {
+      Real lensOX = - halfW + (i + .5) * m_subApertureWidth;
+      Real lensOY = - halfH + (j + .5) * m_subApertureHeight;
+
+      for (auto &edge : m_subAperture->edges()) {
+        std::vector<Real> locations;
+        unsigned p = 0;
+
+        for (auto k = 0; k < edge.size(); k += 3) {
+          locations.push_back(edge[k + 0] + lensOX);
+          locations.push_back(edge[k + 1] + lensOY);
+          locations.push_back(edge[k + 2]);
+        }
+        
+        m_edges.push_back(locations);
+      }
+    }
+  }
 }
 
 ApertureArray::ApertureArray(GenericAperture *ap)
 {
   m_subAperture = ap;
   recalculateDimensions();
+}
+
+std::vector<std::vector<Real>> const &
+ApertureArray::edges() const
+{
+  return m_edges;
 }
 
 ApertureArray::~ApertureArray()

@@ -46,6 +46,7 @@ class SessionTabWidget : public QWidget
   void addGridDiv(unsigned);
   void resetFootprintWindows();
   void reconnectTracer();
+
   SpotDiagramWindow *openNewFootprintWindow(std::string const &);
 
 public:
@@ -62,6 +63,8 @@ public:
   void showDetectorWindow();
   void updateDetectorWindow();
   void updateModel();
+  void updateFootprintWindows();
+
   void reloadModel();
   void reloadModelFromEditor();
   void setRotation(qreal, qreal, qreal);

@@ -7,6 +7,8 @@ namespace RZ {
   class RectangularAperture : public GenericAperture {
     Real m_width             = 100e-3;
     Real m_height            = 100e-3;
+    void updateEdges();
+    std::vector<std::vector<Real>> m_edges;
     
   public:
     inline Real
@@ -26,6 +28,7 @@ namespace RZ {
 
     void setWidth(Real);
     void setHeight(Real);
+    virtual std::vector<std::vector<Real>> const &edges() const override;
 
     virtual bool intercept(
       Vec3 &coord,

@@ -20,12 +20,14 @@ namespace RZ {
     
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_axes;
-
+    std::vector<std::vector<Real>> m_edges;
+    
     void recalcGL();
     void recalcDistribution();
 
   public:
     ParabolicAperture(Real radius, Real fLength);
+    virtual std::vector<std::vector<Real>> const &edges() const override;
 
     void setRadius(Real);
     void setFocalLength(Real);

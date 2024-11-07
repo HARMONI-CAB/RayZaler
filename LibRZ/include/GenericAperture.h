@@ -4,13 +4,15 @@
 #include "Vector.h"
 #include "ReferenceFrame.h"
 #include <Random.h>
+#include <vector>
 
 #define GENERIC_APERTURE_NUM_SEGMENTS     36
 #define GENERIC_APERTURE_NUM_GRIDLINES    13
 
 namespace RZ {
   class GenericAperture {
-      ExprRandomState m_state;
+      ExprRandomState                m_state;
+      std::vector<std::vector<Real>> m_emptyEdges;
 
     public:
       inline ExprRandomState &randState()
@@ -27,7 +29,7 @@ namespace RZ {
       }
 
       virtual Real area() const = 0;
-      
+
       virtual bool intercept(
         Vec3 &hit,
         Vec3 &normal,
@@ -40,6 +42,7 @@ namespace RZ {
         Real *normals,
         unsigned int N) = 0;
 
+      virtual std::vector<std::vector<Real>> const &edges() const;
       virtual void renderOpenGL();
   };
 }

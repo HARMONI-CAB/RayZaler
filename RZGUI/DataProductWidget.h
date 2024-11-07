@@ -32,6 +32,14 @@ struct RenderInfo {
   qreal   ds   = 1.;
 };
 
+struct DataProductCurve {
+  QString              label;
+  std::vector<QPointF> xydata;
+  QColor               color;
+  int                  width = 1;
+  bool                 closed = false;
+};
+
 class DataProductWidget : public QWidget
 {
   Q_OBJECT
@@ -40,10 +48,16 @@ class DataProductWidget : public QWidget
 
   // Render contents
   QImage       m_image;
+  qreal        m_resetZoom = 1;
+  qreal        m_resetX0   = 0;
+  qreal        m_resetY0   = 0;
+
   qreal        m_x0   = 0;
   qreal        m_y0   = 0;
   qreal        m_zoom = 1;
   bool         m_firstResize = true;
+
+  std::list<DataProductCurve> m_curves;
 
   // View location
   int          m_topMargin = 0;
@@ -95,6 +109,7 @@ class DataProductWidget : public QWidget
   void         paintLastRender(QPainter &painter);
   void         paintBusyMessage(QPainter &painter);
   void         paintLabels(QPainter &painter);
+  void         paintCurves(QPainter &painter);
 
 protected:
   AsyncDataProductRenderer *asyncRenderer();
@@ -114,6 +129,11 @@ public:
 
   void    resetZoom();
   void    updateView();
+
+  void    setResetZoom(qreal zoom = 1, qreal x0 = 0, qreal y0 = 0);
+
+  void    addCurve(DataProductCurve &);
+  void    clearCurves();
 
 public slots:
   void    onComplete(qint64, QImage *);

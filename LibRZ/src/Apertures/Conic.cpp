@@ -23,6 +23,8 @@ using namespace RZ;
 
 ConicAperture::ConicAperture(Real R, Real RCurv, Real K)
 {
+  m_edges.resize(2);
+
   setRadius(R);
   setCurvatureRadius(RCurv);
   setConicConstant(K);
@@ -110,6 +112,12 @@ ConicAperture::setConvex(bool convex)
 
   recalcDistribution();
   recalcGL();
+}
+
+std::vector<std::vector<Real>> const &
+ConicAperture::edges() const
+{
+  return m_edges;
 }
 
 void
@@ -225,12 +233,16 @@ ConicAperture::recalcGLParabolic()
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
   Real rho2;
   Real sigma = m_convex ? 1 : -1;
+  bool haveHole = m_rHole > 0;
 
   m_vertices.clear();
   m_holeVertices.clear();
 
   auto inv2R = .5 / m_rCurv;
 
+  m_edges[0].clear();
+  m_edges[1].clear();
+  
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
     x = m_radius * cos(theta) + m_x0;
     y = m_radius * sin(theta) + m_y0;
@@ -242,7 +254,11 @@ ConicAperture::recalcGLParabolic()
     m_vertices.push_back(y);
     m_vertices.push_back(z);
 
-    if (m_rHole > 0) {
+    m_edges[0].push_back(x);
+    m_edges[0].push_back(y);
+    m_edges[0].push_back(z);
+
+    if (haveHole > 0) {
       x = m_rHole * cos(theta) + m_x0;
       y = m_rHole * sin(theta) + m_y0;
       
@@ -252,12 +268,14 @@ ConicAperture::recalcGLParabolic()
       m_holeVertices.push_back(x);
       m_holeVertices.push_back(y);
       m_holeVertices.push_back(z);
+
+      m_edges[1].push_back(x);
+      m_edges[1].push_back(y);
+      m_edges[1].push_back(z);
     }
 
     theta += dTheta;
   }
-
-  
 
   m_axes.clear();
 
@@ -322,7 +340,7 @@ ConicAperture::recalcGLParabolic()
 
 void
 ConicAperture::recalcGL()
-{
+{ 
   if (m_parabola)
     recalcGLParabolic();
   else
