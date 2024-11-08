@@ -4,6 +4,7 @@
 #include "GUIHelpers.h"
 #include <OpticalElement.h>
 #include <DataProducts/Scatter.h>
+#include <QFileDialog>
 
 SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
   QMainWindow(parent),
@@ -14,16 +15,61 @@ SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
   m_product = new RZ::ScatterDataProduct(title.toStdString());
   m_widget  = new ScatterWidget(m_product);
 
+  m_saveDialog = new QFileDialog(this);
+  m_saveDialog->setWindowTitle("Save data");
+  m_saveDialog->setFileMode(QFileDialog::AnyFile);
+  m_saveDialog->setAcceptMode(QFileDialog::AcceptSave);
+  m_saveDialog->setNameFilter(
+    "Comma-separated values (*.csv);;"
+    "All files (*)");
+
+
   ui->centerGrid->addWidget(m_widget, 0, 0, 2, 1);
 
   setWindowTitle("Footprint - " + QString::fromStdString(m_product->productName()));
 
   legend();
+
+  connectAll();
 }
 
 SpotDiagramWindow::~SpotDiagramWindow()
 {
   delete ui;
+}
+
+void
+SpotDiagramWindow::connectAll()
+{
+  connect(
+        ui->actionResetZoom,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(resetZoom()));
+
+  connect(
+        ui->actionSaveData,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onSaveData()));
+
+  connect(
+        ui->actionClear,
+        SIGNAL(triggered(bool)),
+        this,
+        SLOT(onClear()));
+
+  connect(
+        this,
+        SIGNAL(clear()),
+        m_widget,
+        SIGNAL(clearData()));
+
+  connect(
+        this,
+        SIGNAL(saveData(QString)),
+        m_widget,
+        SIGNAL(saveData(QString)));
 }
 
 void
@@ -111,5 +157,18 @@ SpotDiagramWindow::setEdges(std::vector<std::vector<RZ::Real>> const &edges)
   x0 /= static_cast<qreal>(N);
   y0 /= static_cast<qreal>(N);
 
-  m_widget->setResetZoom(1. / (3 * maxAbsX0), x0, y0);
+  m_widget->setResetZoom(1. / (2.5 * maxAbsX0), x0, y0);
+}
+
+void
+SpotDiagramWindow::onClear()
+{
+  emit clear();
+}
+
+void
+SpotDiagramWindow::onSaveData()
+{
+  if (m_saveDialog->exec() && !m_saveDialog->selectedFiles().empty())
+    emit saveData(m_saveDialog->selectedFiles()[0]);
 }

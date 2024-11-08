@@ -28,12 +28,12 @@ namespace RZ {
 
   protected:
     virtual void build();
-    virtual void clear();
 
   public:
     virtual ~DataProduct();
     virtual std::string productType() const = 0;
     virtual bool saveToFile(std::string const &path) const = 0;
+    virtual void clear();
 
     void setProductName(std::string const &);
     std::string productName() const;

@@ -89,16 +89,28 @@ AsyncDataProductRenderer::makeView()
 {
   struct timeval tv, otv, diff;
 
-  printf("Rebuilding...\n");
   gettimeofday(&otv, nullptr);
   m_product->prepareView();
   gettimeofday(&tv, nullptr);
   timersub(&tv, &otv, &diff);
-  printf("Done. %ld.%06ld s\n", diff.tv_sec, diff.tv_usec);
 
   m_haveView = true;
 
   emit viewReady();
+}
+
+void
+AsyncDataProductRenderer::clearData()
+{
+  m_product->clear();
+  emit viewReady();
+}
+
+void
+AsyncDataProductRenderer::saveData(QString data)
+{
+  if (!m_product->saveToFile(data.toStdString()))
+    emit error("Failed to save data to file: " + QString(strerror(errno)));
 }
 
 void

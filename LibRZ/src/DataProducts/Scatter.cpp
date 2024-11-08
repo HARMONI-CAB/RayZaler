@@ -158,10 +158,14 @@ ScatterDataProduct::render(ScatterTreeRenderer *renderer) const
 void
 ScatterDataProduct::clear()
 {
+  pthread_mutex_lock(&m_lock);
   for (auto &p: m_setList)
     delete p;
   
   m_setList.clear();
+  pthread_mutex_unlock(&m_lock);
+
+  discardView();
 }
 
 size_t

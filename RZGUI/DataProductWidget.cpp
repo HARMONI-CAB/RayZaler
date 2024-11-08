@@ -21,6 +21,7 @@
 #include "GUIHelpers.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <QMessageBox>
 
 const QRect g_infinityBox(-(INT_MAX / 2), -(INT_MAX / 2), INT_MAX, INT_MAX);
 
@@ -83,6 +84,24 @@ DataProductWidget::asyncRenderer()
           m_asyncRenderer,
           SLOT(makeView()));
 
+    connect(
+          this,
+          SIGNAL(clearData()),
+          m_asyncRenderer,
+          SLOT(clearData()));
+
+    connect(
+          this,
+          SIGNAL(saveData(QString)),
+          m_asyncRenderer,
+          SLOT(saveData(QString)));
+
+    connect(
+          m_asyncRenderer,
+          SIGNAL(error(QString)),
+          this,
+          SLOT(onError(QString)));
+
     m_renderThread.start();
   }
 
@@ -114,7 +133,7 @@ DataProductWidget::clearCurves()
 qreal
 DataProductWidget::ds() const
 {
-  return 1. / (m_zoom * m_viewRect.width());
+  return 1. / (m_zoom * fmin(m_viewRect.width(), m_viewRect.height()));
 }
 
 void
@@ -543,7 +562,7 @@ DataProductWidget::loc2px(QPointF const &input) const
 void
 DataProductWidget::resizeEvent(QResizeEvent *)
 {
-  qreal oldWidth = m_viewRect.width();
+  qreal oldDim = fmin(m_viewRect.width(), m_viewRect.height());
 
   m_gridTopLeft = QPointF(m_leftMargin, m_topMargin);
   m_gridBottomRight = QPointF(
@@ -553,16 +572,16 @@ DataProductWidget::resizeEvent(QResizeEvent *)
   m_viewRect = QRectF(m_gridTopLeft, m_gridBottomRight);
 
 
-  qreal currWidth = m_viewRect.width();
+  qreal currDim = fmin(m_viewRect.width(), m_viewRect.height());
 
   if (m_firstResize) {
-    oldWidth = m_viewRect.width();
+    oldDim = currDim;
     m_firstResize = false;
     updateView();
   }
 
-  m_zoom            *= oldWidth / currWidth;
-  m_lastRender.zoom *= oldWidth / currWidth;
+  m_zoom            *= oldDim / currDim;
+  m_lastRender.zoom *= oldDim / currDim;
 
   auto ds   = this->ds();
   m_currPos = -QPointF(m_x0 / ds, -m_y0 / ds);
@@ -696,4 +715,10 @@ DataProductWidget::onComplete(qint64 reqId, QImage *image)
     m_renderHistory.remove(reqId);
     update();
   }
+}
+
+void
+DataProductWidget::onError(QString error)
+{
+  QMessageBox::critical(this, "Data product", error);
 }

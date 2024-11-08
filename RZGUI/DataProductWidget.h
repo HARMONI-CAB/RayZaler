@@ -138,11 +138,14 @@ public:
 public slots:
   void    onComplete(qint64, QImage *);
   void    onViewReady();
+  void    onError(QString);
 
 signals:
   void    viewChanged();
   void    makeView();
   void    render(qint64, qreal, qreal, qreal, int, int);
+  void    clearData();
+  void    saveData(QString);
 };
 
 #endif // DATAPRODUCTWIDGET_H

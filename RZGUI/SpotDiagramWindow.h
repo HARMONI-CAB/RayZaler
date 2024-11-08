@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <Vector.h>
 
+class QFileDialog;
+
 namespace RZ {
   class ScatterDataProduct;
 }
@@ -27,8 +29,10 @@ class SpotDiagramWindow : public QMainWindow
 
   RZ::ScatterDataProduct *m_product = nullptr;
   ScatterWidget          *m_widget  = nullptr;
+  QFileDialog            *m_saveDialog = nullptr;
 
   void legend();
+  void connectAll();
 
 public:
   explicit SpotDiagramWindow(QString path, QWidget *parent = nullptr);
@@ -36,7 +40,16 @@ public:
   void updateView();
   void transferFootprint(SurfaceFootprint &);
   void setEdges(std::vector<std::vector<RZ::Real>> const &);
+
+
+public slots:
+  void onSaveData();
+  void onClear();
   void resetZoom();
+
+signals:
+  void clear();
+  void saveData(QString);
 
 private:
   Ui::SpotDiagramWindow *ui;

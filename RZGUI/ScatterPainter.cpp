@@ -13,7 +13,7 @@ ScatterPainter::ScatterPainter(
   m_y0      = y0;
   m_width   = image.width();
   m_height  = image.height();
-  m_dx      = 1. / (m_zoom * m_width);
+  m_dx      = 1. / (m_zoom * fmin(m_height, m_width));
 
   m_stride  = image.bytesPerLine() / sizeof(uint32_t);
   m_imgData = reinterpret_cast<uint32_t *>(m_image->bits());

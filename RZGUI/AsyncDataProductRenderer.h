@@ -44,10 +44,13 @@ public:
 public slots:
   void render(qint64, qreal, qreal, qreal, int, int);
   void makeView();
+  void clearData();
+  void saveData(QString);
 
 signals:
   void complete(qint64, QImage *);
   void viewReady();
+  void error(QString);
 };
 
 #endif // ASYNCDATAPRODUCTRENDERER_H
