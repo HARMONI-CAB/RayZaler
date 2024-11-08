@@ -829,7 +829,7 @@ SimulationState::allocateRays(uint32_t color)
   auto az = setVariable("az", m_azimuthExpr->evaluate());
   auto el = setVariable("el", m_elevationExpr->evaluate());
   auto x0 = setVariable("x0", m_offsetXExpr->evaluate());
-  auto y0 = setVariable("y0", m_offsetXExpr->evaluate());
+  auto y0 = setVariable("y0", m_offsetYExpr->evaluate());
 
   prop.shape     = m_properties.shape;
   prop.numRays   = static_cast<unsigned>(m_properties.rays);
