@@ -1176,11 +1176,13 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
       throw std::runtime_error("Cannot sample focused rays from the sky");
 
     if (properties.converging) {
+      direction = mainDirection;
       Vec3 focus     = origin + direction * (properties.length + properties.focusZ);
 
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (focus - ray.origin).normalized();
+        ray.id        = properties.id;
         dest.push_back(ray);
       }
     } else {

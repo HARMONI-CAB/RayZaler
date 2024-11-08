@@ -333,11 +333,14 @@ SimulationPropertiesDialog::refreshUi()
 void
 SimulationPropertiesDialog::applyProperties(bool setEdited)
 {
+  int originIndex = 0;
+
   ui->pathCombo->clear();
   ui->detectorCombo->clear();
   ui->detectorSaveCombo->clear();
   ui->apertureCombo->clear();
   ui->focalPlaneCombo->clear();
+  ui->opticalElementCombo->clear();
 
   BLOCKSIG(ui->tracingType,     setCurrentIndex(m_properties.ttype));
   BLOCKSIG(ui->simTypeCombo,    setCurrentIndex(m_properties.type));
@@ -364,6 +367,22 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
   BLOCKSIG(ui->overwriteResultsCheck, setChecked(m_properties.overwrite));
   BLOCKSIG(ui->outputDirEdit,         setText(m_properties.saveDir));
+
+  switch (m_properties.ref) {
+    case BEAM_REFERENCE_INPUT_ELEMENT:
+      originIndex = 0;
+      break;
+
+    case BEAM_REFERENCE_APERTURE_STOP:
+      originIndex = 1;
+      break;
+
+    case BEAM_REFERENCE_FOCAL_PLANE:
+      originIndex = 2;
+      break;
+  }
+
+  BLOCKSIG(ui->originCombo, setCurrentIndex(originIndex));
 
   // Add all paths and detectors
   if (m_session != nullptr) {
@@ -441,7 +460,6 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
       m_propModel->setDof(p.first, p.second, setEdited);
 
     // Add optical elements to combo
-    ui->opticalElementCombo->clear();
     for (auto &p : model->opticalElementHierarchy()) {
       auto element = model->resolveElement(p);
       if (element != nullptr) {

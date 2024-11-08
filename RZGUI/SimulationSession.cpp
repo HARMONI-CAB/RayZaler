@@ -766,6 +766,7 @@ SimulationState::allocateRays(uint32_t color)
 
   m_currBeam->clear();
 
+  // Define beam reference
   switch (m_properties.ref) {
     case BEAM_REFERENCE_INPUT_ELEMENT:
       path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
@@ -780,83 +781,20 @@ SimulationState::allocateRays(uint32_t color)
       }
 
       element = path->m_sequence.front()->parent;
-
-      switch (m_properties.beam) {
-        case BEAM_TYPE_COLLIMATED:
-          prop.setElementRelative(element);
-          prop.shape     = m_properties.shape;
-          prop.numRays   = static_cast<unsigned>(m_properties.rays);
-          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
-          prop.direction = -RZ::Matrix3::azel(
-                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
-                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
-          prop.offset    = RZ::Vec3(
-                setVariable("x0",   m_offsetXExpr->evaluate()),
-                setVariable("y0",   m_offsetYExpr->evaluate()),
-                0);
-          prop.length    = 1;
-          prop.id        = color;
-          prop.random    = random;
-          prop.collimate();
-
-          break;
-
-        case BEAM_TYPE_CONVERGING:
-          prop.setElementRelative(element);
-          prop.shape     = m_properties.shape;
-          prop.numRays   = static_cast<unsigned>(m_properties.rays);
-          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
-          prop.direction = -RZ::Matrix3::azel(
-                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
-                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
-          prop.offset    = RZ::Vec3(
-                setVariable("x0",   m_offsetXExpr->evaluate()),
-                setVariable("y0",   m_offsetYExpr->evaluate()),
-                0);
-          prop.length    = 1;
-          prop.id        = color;
-          prop.random    = random;
-          prop.setFNum(fabs(setVariable("fNum", m_fNumExpr->evaluate())), RZ::BeamDiameter);
-          break;
-
-        case BEAM_TYPE_DIVERGING:
-          prop.setElementRelative(element);
-          prop.shape     = m_properties.shape;
-          prop.numRays   = static_cast<unsigned>(m_properties.rays);
-          prop.diameter  = setVariable("D", m_diamExpr->evaluate());
-          prop.direction = -RZ::Matrix3::azel(
-                RZ::deg2rad(setVariable("az", m_azimuthExpr->evaluate())),
-                RZ::deg2rad(setVariable("el",   m_elevationExpr->evaluate()))).vz();
-          prop.offset    = RZ::Vec3(
-                setVariable("x0",   m_offsetXExpr->evaluate()),
-                setVariable("y0",   m_offsetYExpr->evaluate()),
-                0);
-          prop.length    = 1;
-          prop.id        = color;
-          prop.random    = random;
-          prop.setFNum(-fabs(setVariable("fNum", m_fNumExpr->evaluate())), RZ::BeamDiameter);
-          break;
-      }
+      prop.setElementRelative(element);
       break;
 
     case BEAM_REFERENCE_APERTURE_STOP:
-      switch (m_properties.beam) {
-        case BEAM_TYPE_COLLIMATED:
-          // TODO
-          break;
-
-        case BEAM_TYPE_CONVERGING:
-          // TODO
-          break;
-
-        case BEAM_TYPE_DIVERGING:
-          // TODO
-          break;
+      element = m_topLevelModel->lookupOpticalElement(
+            m_properties.apertureStop.toStdString());
+      if (element == nullptr) {
+        m_lastCompileError =
+            "The specified element `" + m_properties.apertureStop.toStdString() + "' does not exist.";
+        return false;
       }
 
-      m_lastCompileError = "Aperture-defined beams not yet implemented";
-      return false;
-      // break;
+      prop.setElementRelative(element);
+      break;
 
     case BEAM_REFERENCE_FOCAL_PLANE:
       fp = m_topLevelModel->getFocalPlane(m_properties.focalPlane.toStdString());
@@ -864,46 +802,43 @@ SimulationState::allocateRays(uint32_t color)
         m_lastCompileError = "The specified focal plane `" + m_properties.focalPlane.toStdString() + "' does not exist";
         return false;
       }
-
-      switch (m_properties.beam) {
-        case BEAM_TYPE_COLLIMATED:
-          // TODO
-          m_lastCompileError = "Focal plane-defined collimated beams not yet implemented";
-          return false;
-          //break;
-
-        case BEAM_TYPE_CONVERGING:
-          RZ::OMModel::addFocalPlaneFocusedBeam(
-                *m_currBeam,
-                fp,
-                static_cast<unsigned>(m_properties.rays),
-                setVariable("fNum", m_fNumExpr->evaluate()),
-                setVariable("az",   m_azimuthExpr->evaluate()),
-                setVariable("el",   m_elevationExpr->evaluate()),
-                setVariable("x0",   m_offsetXExpr->evaluate()),
-                setVariable("y0",   m_offsetYExpr->evaluate()),
-                1,
-                color,
-                random);
-          break;
-
-        case BEAM_TYPE_DIVERGING:
-          RZ::OMModel::addFocalPlaneFocusedBeam(
-                *m_currBeam,
-                fp,
-                static_cast<unsigned>(m_properties.rays),
-                setVariable("fNum", -m_fNumExpr->evaluate()),
-                setVariable("az",    m_azimuthExpr->evaluate()),
-                setVariable("el",    m_elevationExpr->evaluate()),
-                setVariable("x0",    m_offsetXExpr->evaluate()),
-                setVariable("y0",    m_offsetYExpr->evaluate()),
-                1,
-                color,
-                random);
-          break;
-      }
       break;
   }
+
+  // Define beam focus
+  switch (m_properties.beam) {
+    case BEAM_TYPE_COLLIMATED:
+      prop.collimate();
+      break;
+
+    case BEAM_TYPE_CONVERGING:
+      prop.setFNum(
+            fabs(setVariable("fNum", m_fNumExpr->evaluate())),
+            RZ::BeamDiameter);
+      break;
+
+    case BEAM_TYPE_DIVERGING:
+      prop.setFNum
+          (-fabs(setVariable("fNum", m_fNumExpr->evaluate())),
+           RZ::BeamDiameter);
+      break;
+  }
+
+  // Other properties
+  auto D  = setVariable("D",  m_diamExpr->evaluate());
+  auto az = setVariable("az", m_azimuthExpr->evaluate());
+  auto el = setVariable("el", m_elevationExpr->evaluate());
+  auto x0 = setVariable("x0", m_offsetXExpr->evaluate());
+  auto y0 = setVariable("y0", m_offsetXExpr->evaluate());
+
+  prop.shape     = m_properties.shape;
+  prop.numRays   = static_cast<unsigned>(m_properties.rays);
+  prop.diameter  = D;
+  prop.direction = -RZ::Matrix3::azel(RZ::deg2rad(az), RZ::deg2rad(el)).vz();
+  prop.offset    = RZ::Vec3(x0, y0, 0);
+  prop.length    = 1;
+  prop.id        = color;
+  prop.random    = random;
 
   RZ::OMModel::addBeam(*m_currBeam, prop);
 
