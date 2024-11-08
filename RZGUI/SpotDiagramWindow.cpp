@@ -145,6 +145,8 @@ SpotDiagramWindow::setEdges(std::vector<std::vector<RZ::Real>> const &edges)
 
       if (fabs(x) > maxAbsX0)
         maxAbsX0 = x;
+      if (fabs(y) > maxAbsX0)
+        maxAbsX0 = y;
 
       curve.xydata.push_back(QPointF(x, y));
     }
