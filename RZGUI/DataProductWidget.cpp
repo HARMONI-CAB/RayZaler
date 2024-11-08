@@ -145,7 +145,7 @@ DataProductWidget::guessScale()
   auto plotHeight = m_viewRect.height() * ds;
   auto refDim     = fmin(plotWidth, plotHeight);
 
-  int digits = static_cast<int>(ceil(log10(refDim / 10)));
+  int digits = static_cast<int>(ceil(log10(.5 * refDim / 10)));
   auto step  = pow(10., digits);
 
   m_bestCoarseStep = step;
