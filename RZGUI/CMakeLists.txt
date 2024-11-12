@@ -50,6 +50,9 @@ set(PROJECT_SOURCES
         ExportViewDialog.h
         ExportViewDialog.cpp
         ExportViewDialog.ui
+        FootprintInfoWidget.h
+        FootprintInfoWidget.cpp
+        FootprintInfoWidget.ui
         GUIHelpers.h
         GUIHelpers.cpp
         ImageNavWidget.h

@@ -29,8 +29,11 @@ namespace RZ {
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
 
   struct RayBeam {
-    uint64_t count      = 0;
-    uint64_t allocation = 0;
+    uint64_t count       = 0;
+    uint64_t allocation  = 0;
+    uint64_t intercepted = 0;
+    uint64_t pruned      = 0;
+
     Real *origins       = nullptr;
     Real *directions    = nullptr;
     Real *destinations  = nullptr;
@@ -58,16 +61,19 @@ namespace RZ {
       setRefractiveIndex(1.);
     }
 
-    inline void
-    prune(uint64_t c)
-    {
-      mask[c >> 6] |= 1ull << (c & 63);
-    }
-
     inline bool
     hasRay(uint64_t index) const
     {
       return (~mask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
+    }
+
+    inline void
+    prune(uint64_t c)
+    {
+      if (hasRay(c)) {
+        mask[c >> 6] |= 1ull << (c & 63);
+        ++this->pruned;
+      }
     }
 
     inline bool
@@ -121,6 +127,8 @@ namespace RZ {
     virtual void deallocate();
     
     void clearMask();
+    void clearStatistics();
+    
     RayBeam(uint64_t);
     ~RayBeam();
   };

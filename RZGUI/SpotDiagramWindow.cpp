@@ -5,6 +5,7 @@
 #include <OpticalElement.h>
 #include <DataProducts/Scatter.h>
 #include <QFileDialog>
+#include "FootprintInfoWidget.h"
 
 SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
   QMainWindow(parent),
@@ -28,7 +29,7 @@ SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
 
   setWindowTitle("Footprint - " + QString::fromStdString(m_product->productName()));
 
-  legend();
+  delete ui->label;
 
   connectAll();
 }
@@ -73,30 +74,9 @@ SpotDiagramWindow::connectAll()
 }
 
 void
-SpotDiagramWindow::legend()
-{
-  QString html;
-  auto &sets = m_product->dataSets();
-  bool first = true;
-
-  for (auto &set : sets) {
-    if (first)
-      first = false;
-    else
-      html += "<br />\n";
-
-    html += "<b style=\"color: " + argbToCss(set->id()) + "\"> ▬ </b>";
-    html += QString::fromStdString(set->label());
-  }
-
-  ui->legendLabel->setText(html);
-}
-
-void
 SpotDiagramWindow::updateView()
 {
   m_widget->updateView();
-  legend();
 }
 
 void
@@ -108,13 +88,16 @@ SpotDiagramWindow::resetZoom()
 void
 SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
 {
+  auto infoWidget = new FootprintInfoWidget(&footprint);
+
+  ui->verticalLayout->insertWidget(0, infoWidget);
+
   RZ::ScatterSet *set = new RZ::ScatterSet(
         footprint.color,
         footprint.locations,
         footprint.label,
         3,                        // Stride is 3 (3D vectors)
         true);                    // Do transfer
-
   m_widget->addSet(set);
 }
 

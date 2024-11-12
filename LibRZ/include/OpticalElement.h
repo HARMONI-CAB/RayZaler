@@ -35,6 +35,9 @@ namespace RZ {
     const ReferenceFrame       *frame     = nullptr;
     const RayTransferProcessor *processor = nullptr;
     OpticalElement             *parent;
+
+    size_t                      intercepted = 0;
+    size_t                      pruned = 0;
     mutable std::vector<Ray>    hits;
 
     // Haha C++
@@ -45,6 +48,7 @@ namespace RZ {
     std::vector<Real> &directions() const;
 
     void clearCache() const;
+    void clearStatistics();
   };
 
   struct OpticalPath {

@@ -17,10 +17,12 @@ namespace Ui {
 class ScatterWidget;
 
 struct SurfaceFootprint {
-  std::string           fullName;  // Full surface name
-  std::string           label;     // Label as shown in the plot
-  std::vector<qreal> locations;    // Location array
-  uint32_t              color;     // Color for representation
+  std::string           fullName;     // Full surface name
+  std::string           label;        // Label as shown in the plot
+  std::vector<qreal>    locations;    // Location array
+  uint32_t              color;        // Color for representation
+  size_t                transmitted;  // Transmitted rays
+  size_t                vignetted;    // Vignetted
 };
 
 class SpotDiagramWindow : public QMainWindow
@@ -31,7 +33,6 @@ class SpotDiagramWindow : public QMainWindow
   ScatterWidget          *m_widget  = nullptr;
   QFileDialog            *m_saveDialog = nullptr;
 
-  void legend();
   void connectAll();
 
 public:

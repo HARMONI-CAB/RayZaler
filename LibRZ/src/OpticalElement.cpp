@@ -57,6 +57,12 @@ OpticalSurface::clearCache() const
   directionArray.clear();
 }
 
+void
+OpticalSurface::clearStatistics()
+{
+  intercepted = pruned = 0;
+}
+
 ///////////////////////////// Optical Path API /////////////////////////////////
 OpticalPath &
 OpticalPath::plug(OpticalElement *element, std::string const &name)

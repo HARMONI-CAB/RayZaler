@@ -21,6 +21,7 @@
 #include <vector>
 
 template<> RZ::Real sumPrecise(const RZ::Real *, size_t);
+template<> RZ::Vec3 sumPrecise(const RZ::Vec3 *, size_t);
 
 std::string
 string_vprintf(const char* fmt, va_list ap)

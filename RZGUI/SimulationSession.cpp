@@ -1178,16 +1178,21 @@ SimulationState::extractFootprints()
     if (element != nullptr && element->recordHits()) {
       for (auto &surf : element->opticalSurfaces()) {
         if (!surf->hits.empty()) {
+          auto mutSurf = const_cast<RZ::OpticalSurface *>(surf);
+
           SurfaceFootprint fp;
-          fp.fullName  = path + "." + surf->name;
-          fp.label     = m_simName.toStdString();
-          fp.locations = std::move(surf->locations());
-          fp.color     = 0xff000000 | surf->hits[0].id;
+          fp.fullName    = path + "." + surf->name;
+          fp.label       = m_simName.toStdString();
+          fp.locations   = std::move(surf->locations());
+          fp.color       = 0xff000000 | surf->hits[0].id;
+          fp.vignetted   = surf->pruned;
+          fp.transmitted = surf->intercepted;
 
           m_footprints.push_back(std::move(fp));
 
-          surf->hits.clear();
-          surf->clearCache();
+          mutSurf->hits.clear();
+          mutSurf->clearCache();
+          mutSurf->clearStatistics();
         }
       }
     }
