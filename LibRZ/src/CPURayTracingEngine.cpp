@@ -49,8 +49,16 @@ CPURayTracingEngine::cast(Point3 const &center,  Vec3 const &normal, bool revers
       p = 0;
       t = numDot / demDot;
 
-      if (!reversible && t < 0) {
-        beam->prune(r);
+      if (t < 0) {
+        if (!beam->isChief(r) && !reversible) {
+          beam->prune(r);
+        } else {
+          // printf("Beam inversion found on ray %d!\n", r);
+          t = -t;
+          beam->directions[i - 2] = -beam->directions[i - 2];
+          beam->directions[i - 1] = -beam->directions[i - 1];
+          beam->directions[i - 0] = -beam->directions[i - 0];
+        }
       }
 
       numDot = demDot = 0;

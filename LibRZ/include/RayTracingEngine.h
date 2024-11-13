@@ -22,6 +22,9 @@ namespace RZ {
     Real length = 0;
     Real cumOptLength = 0;
 
+    // Defines whether the ray is susceptible to vignetting
+    bool chief = false;
+
     // Defined by the user
     uint32_t id = 0;
   };
@@ -46,6 +49,7 @@ namespace RZ {
     Real n              = 1.;
     uint64_t *mask      = nullptr;
     uint64_t *prevMask  = nullptr;
+    uint64_t *chiefMask = nullptr;
 
     const OpticalSurface *hitSaveSurface = nullptr;
     
@@ -62,6 +66,12 @@ namespace RZ {
     }
 
     inline bool
+    isChief(uint64_t index) const
+    {
+      return (chiefMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
+    }
+
+    inline bool
     hasRay(uint64_t index) const
     {
       return (~mask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
@@ -70,10 +80,30 @@ namespace RZ {
     inline void
     prune(uint64_t c)
     {
-      if (hasRay(c)) {
+      if (!isChief(c) && hasRay(c)) {
         mask[c >> 6] |= 1ull << (c & 63);
-        ++this->pruned;
+        ++pruned;
       }
+    }
+
+    inline bool
+    setChiefRay(uint64_t c)
+    {
+      if (!hasRay(c))
+        return false;
+
+      chiefMask[c >> 6] |= 1ull << (c & 63);
+      return true;
+    }
+
+    inline bool
+    unsetsetChiefRay(uint64_t c)
+    {
+      if (!hasRay(c))
+        return false;
+
+      chiefMask[c >> 6] &= ~(1ull << (c & 63));
+      return true;
     }
 
     inline bool
@@ -93,6 +123,7 @@ namespace RZ {
       dest.origin.setFromArray(origins + 3 * index);
       Vec3 diff = Vec3(destinations + 3 * index) - dest.origin;
       dest.length = diff.norm();
+      dest.chief  = isChief(index);
 
       if (isZero(dest.length))
         return false;
@@ -117,6 +148,11 @@ namespace RZ {
       dest.id = ids[index];
       dest.origin.setFromArray(destinations + 3 * index);
       dest.direction.setFromArray(directions + 3 * index);
+
+      if (lengths[index] < 0)
+        dest.direction = -dest.direction;
+      
+      dest.chief = isChief(index);
       dest.cumOptLength = cumOptLengths[index];
 
       return true;
@@ -128,7 +164,7 @@ namespace RZ {
     
     void clearMask();
     void clearStatistics();
-    
+
     RayBeam(uint64_t);
     ~RayBeam();
   };

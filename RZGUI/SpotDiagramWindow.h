@@ -20,6 +20,7 @@ struct SurfaceFootprint {
   std::string           fullName;     // Full surface name
   std::string           label;        // Label as shown in the plot
   std::vector<qreal>    locations;    // Location array
+  std::vector<qreal>    directions;   // Location array
   uint32_t              color;        // Color for representation
   size_t                transmitted;  // Transmitted rays
   size_t                vignetted;    // Vignetted
@@ -32,6 +33,7 @@ class SpotDiagramWindow : public QMainWindow
   RZ::ScatterDataProduct *m_product = nullptr;
   ScatterWidget          *m_widget  = nullptr;
   QFileDialog            *m_saveDialog = nullptr;
+  int                     m_footprintCount = 0;
 
   void connectAll();
 

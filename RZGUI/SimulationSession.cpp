@@ -805,6 +805,31 @@ SimulationState::allocateRays(uint32_t color)
       break;
   }
 
+  // Other properties
+  auto D  = setVariable("D",  m_diamExpr->evaluate());
+  auto az = setVariable("az", m_azimuthExpr->evaluate());
+  auto el = setVariable("el", m_elevationExpr->evaluate());
+  auto x0 = setVariable("x0", m_offsetXExpr->evaluate());
+  auto y0 = setVariable("y0", m_offsetYExpr->evaluate());
+
+  prop.direction  = -RZ::Matrix3::azel(RZ::deg2rad(az), RZ::deg2rad(el)).vz();
+  prop.offset     = RZ::Vec3(x0, y0, 0);
+  prop.length     = 1;
+  prop.id         = color;
+
+  // Chief ray
+  prop.vignetting = false;
+  prop.shape      = RZ::BeamShape::Point;
+  prop.numRays    = 1;
+  RZ::OMModel::addBeam(*m_currBeam, prop);
+
+  // Main beam
+  prop.vignetting = true;
+  prop.shape      = m_properties.shape;
+  prop.numRays    = static_cast<unsigned>(m_properties.rays);
+  prop.diameter   = D;
+  prop.random     = random;
+
   // Define beam focus
   switch (m_properties.beam) {
     case BEAM_TYPE_COLLIMATED:
@@ -823,22 +848,6 @@ SimulationState::allocateRays(uint32_t color)
            RZ::BeamDiameter);
       break;
   }
-
-  // Other properties
-  auto D  = setVariable("D",  m_diamExpr->evaluate());
-  auto az = setVariable("az", m_azimuthExpr->evaluate());
-  auto el = setVariable("el", m_elevationExpr->evaluate());
-  auto x0 = setVariable("x0", m_offsetXExpr->evaluate());
-  auto y0 = setVariable("y0", m_offsetYExpr->evaluate());
-
-  prop.shape     = m_properties.shape;
-  prop.numRays   = static_cast<unsigned>(m_properties.rays);
-  prop.diameter  = D;
-  prop.direction = -RZ::Matrix3::azel(RZ::deg2rad(az), RZ::deg2rad(el)).vz();
-  prop.offset    = RZ::Vec3(x0, y0, 0);
-  prop.length    = 1;
-  prop.id        = color;
-  prop.random    = random;
 
   RZ::OMModel::addBeam(*m_currBeam, prop);
 
@@ -1184,10 +1193,10 @@ SimulationState::extractFootprints()
           fp.fullName    = path + "." + surf->name;
           fp.label       = m_simName.toStdString();
           fp.locations   = std::move(surf->locations());
+          fp.directions  = std::move(surf->directions());
           fp.color       = 0xff000000 | surf->hits[0].id;
           fp.vignetted   = surf->pruned;
           fp.transmitted = surf->intercepted;
-
           m_footprints.push_back(std::move(fp));
 
           mutSurf->hits.clear();

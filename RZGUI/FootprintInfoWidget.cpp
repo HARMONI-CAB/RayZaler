@@ -66,32 +66,66 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
 
   qreal x0 = center.x / N;
   qreal y0 = center.y / N;
-  ui->showHideButton->setStyleSheet("background-color: " + color.name());
-  ui->fooprintNameLabel->setText(QString::fromStdString(fp->label));
-  ui->centerLabel->setText(toSensibleUnits(x0) + ", " + toSensibleUnits(y0));
+  size_t totalRays = fp->transmitted + fp->vignetted - 1;
 
-  qreal corr, c, t;
-  c = 0;
+  ui->chiefCenterLabel->setText(
+        toSensibleUnits(fp->locations[0])
+        + ", "
+        + toSensibleUnits(fp->locations[1]));
 
-  for (size_t i = 0; i < fp->locations.size(); i += 3) {
-    qreal x = fp->locations[i] - x0;
-    qreal y = fp->locations[i + 1] - y0;
+  if (totalRays == 0) {
+    ui->totalRaysLabel->setText("None");
+    ui->vignettedRaysLabel->setText("None");
+    ui->estimatedFLabel->setText("N/A");
+    ui->centerLabel->setText("N/A");
+    ui->maxRadiusLabel->setText("N/A");
+    ui->rmsRadiusLabel->setText("N/A");
+  } else {
+    qreal vignRate =
+        1e2 * static_cast<qreal>(fp->vignetted)
+        / static_cast<qreal>(totalRays);
+    qreal corr, c, t;
+    qreal fNum = 0;
+    c = 0;
 
-    R2 = x * x + y * y;
-    if (R2 > maxRad)
-      maxRad = R2;
+    ui->totalRaysLabel->setText(QString::number(totalRays));
+    ui->vignettedRaysLabel->setText(
+          QString::asprintf("%ld (%g%%)", fp->vignetted, vignRate));
 
-    corr = R2 - c;
-    t = rmsRad + corr;
-    c = (t - rmsRad) - corr;
-    rmsRad = t;
+    ui->showHideButton->setStyleSheet("background-color: " + color.name());
+    ui->fooprintNameLabel->setText(QString::fromStdString(fp->label));
+    ui->centerLabel->setText(toSensibleUnits(x0) + ", " + toSensibleUnits(y0));
+
+    RZ::Vec3 chiefRayDirection(fp->directions.data());
+
+    for (size_t i = 3; i < fp->locations.size(); i += 3) {
+      qreal x = fp->locations[i] - x0;
+      qreal y = fp->locations[i + 1] - y0;
+
+      R2 = x * x + y * y;
+      if (R2 > maxRad) {
+        RZ::Vec3 direction(fp->directions.data() + i);
+        fNum = .5 / tan(acos(direction * chiefRayDirection));
+        maxRad = R2;
+      }
+
+      corr = R2 - c;
+      t = rmsRad + corr;
+      c = (t - rmsRad) - corr;
+      rmsRad = t;
+    }
+
+    rmsRad = sqrt(rmsRad / static_cast<qreal>(N));
+    maxRad = sqrt(maxRad);
+
+    ui->maxRadiusLabel->setText(toSensibleUnits(maxRad));
+    ui->rmsRadiusLabel->setText(toSensibleUnits(rmsRad));
+
+    if (fabs(fNum) > 1e14)
+      ui->estimatedFLabel->setText("(collimated)");
+    else
+      ui->estimatedFLabel->setText(QString::asprintf("f/%.4g", fNum));
   }
-
-  rmsRad = sqrt(rmsRad / static_cast<qreal>(N));
-  maxRad = sqrt(maxRad);
-
-  ui->maxRadiusLabel->setText(toSensibleUnits(maxRad));
-  ui->rmsRadiusLabel->setText(toSensibleUnits(rmsRad));
 }
 
 

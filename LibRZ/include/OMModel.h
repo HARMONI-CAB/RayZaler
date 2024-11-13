@@ -122,7 +122,7 @@ namespace RZ {
     Vec3 direction           = -Vec3::eZ();  // [1]
     Vec3 offset              = Vec3::zero(); // [m]
     Real focusZ              = 0;            // [m]
-
+    bool vignetting          = true;
 
     // Object structure
     SkyObjectShape objectShape = PointLike;

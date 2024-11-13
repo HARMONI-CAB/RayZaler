@@ -312,6 +312,8 @@ SessionTabWidget::connectAll()
 
 SessionTabWidget::~SessionTabWidget()
 {
+  resetFootprintWindows();
+
   delete m_progressDialog;
   delete m_sourceEditorWindow;
   delete ui;
@@ -445,7 +447,8 @@ SessionTabWidget::openNewFootprintWindow(std::string const &fullName)
   if (surf == nullptr)
     return nullptr;
 
-  window = new SpotDiagramWindow(QString::fromStdString(parts[0]) + " on " + QString::fromStdString(parts[1]));
+  window = new SpotDiagramWindow(
+        QString::fromStdString(parts[1]) + " on " + QString::fromStdString(parts[0]));
 
   auto it = m_footprintQueues.find(fullName);
   if (it != m_footprintQueues.end()) {

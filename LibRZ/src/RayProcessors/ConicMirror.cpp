@@ -113,8 +113,8 @@ ConicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 
       if (hit) {
         auto vec = reflection(
-        Vec3(beam.directions + 3 * i), 
-        plane->fromRelativeVec(normal));
+          Vec3(beam.directions + 3 * i), 
+          plane->fromRelativeVec(normal));
         vec.copyToArray(beam.directions + 3 * i);
       }
     } else {

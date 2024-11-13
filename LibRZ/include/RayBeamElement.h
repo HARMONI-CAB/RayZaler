@@ -29,15 +29,24 @@ namespace RZ {
       void setDefaultColor(Real r, Real g, Real b);
   };
 
+  struct LineVertexSet {
+    std::vector<GLfloat> vertices;
+    std::vector<GLfloat> colors;
+    GLfloat              lineWidth = .25;
+    GLushort             stipple = 0xffff;
+
+    void renderOpenGL();
+    void clear();
+    void push(Vec3 const &origin, Vec3 const &dest, const GLfloat *color);
+  };
+
   class RayBeamElement : public Element {
       static RayColoring   m_defaultColoring;
       const RayColoring   *m_rayColoring = nullptr;
       pthread_mutex_t      m_rayMutex = PTHREAD_MUTEX_INITIALIZER;
       std::list<Ray>       m_rays;
-      std::vector<GLfloat> m_vertices;
-      std::vector<GLfloat> m_colors;
-      std::vector<int>     m_stages;
-      GLfloat              m_lineWidth = .25;
+      LineVertexSet        m_commonRayVert;
+      LineVertexSet        m_chiefRayVert;
       bool                 m_dynamicAlpha = false;
       void raysToVertices();
 

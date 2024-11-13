@@ -1143,8 +1143,9 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
 
   Ray ray;
   Vec3 coord;
-  ray.id = properties.id;
-  
+  ray.id    = properties.id;
+  ray.chief = !properties.vignetting;
+
   if (std::isinf(properties.focusZ)) {
     // Collimated beams are easy to calculate. Just throw some rays parallel
     // to the chief ray.
@@ -1172,8 +1173,10 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
     // - Diverging beams depart from origin to center, and the focus is in
     //   [length] meters from origin, in negative chief ray direction
 
-    if (properties.objectShape != PointLike)
+    if (properties.objectShape != PointLike) {
+      delete raySampler;
       throw std::runtime_error("Cannot sample focused rays from the sky");
+    }
 
     if (properties.converging) {
       direction = mainDirection;
@@ -1182,7 +1185,6 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (focus - ray.origin).normalized();
-        ray.id        = properties.id;
         dest.push_back(ray);
       }
     } else {
@@ -1195,8 +1197,4 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
       }
     }
   }
-  
-done:
-  if (raySampler != nullptr)
-    delete raySampler;
 }

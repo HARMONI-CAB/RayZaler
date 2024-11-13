@@ -27,7 +27,7 @@ SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
 
   ui->centerGrid->addWidget(m_widget, 0, 0, 2, 1);
 
-  setWindowTitle("Footprint - " + QString::fromStdString(m_product->productName()));
+  setWindowTitle(QString::fromStdString(m_product->productName()) + " - Footprint");
 
   delete ui->label;
 
@@ -90,7 +90,7 @@ SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
 {
   auto infoWidget = new FootprintInfoWidget(&footprint);
 
-  ui->verticalLayout->insertWidget(0, infoWidget);
+  ui->verticalLayout->insertWidget(m_footprintCount++, infoWidget);
 
   RZ::ScatterSet *set = new RZ::ScatterSet(
         footprint.color,
@@ -148,6 +148,16 @@ SpotDiagramWindow::setEdges(std::vector<std::vector<RZ::Real>> const &edges)
 void
 SpotDiagramWindow::onClear()
 {
+  int i;
+
+  for (i = 0; i < ui->verticalLayout->count(); ++i) {
+    auto item = ui->verticalLayout->itemAt(0);
+    if (item->widget() != nullptr)
+      delete item->widget();
+  }
+
+  m_footprintCount = 0;
+
   emit clear();
 }
 

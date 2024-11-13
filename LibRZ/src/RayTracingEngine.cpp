@@ -40,7 +40,7 @@ allocBuffer(uint64_t count, T *existing = nullptr)
 
   if (result == nullptr)
     throw std::bad_alloc();
-
+  
   return result;
 }
 
@@ -89,6 +89,9 @@ RayBeam::interceptDone(uint64_t index)
 void
 RayBeam::allocate(uint64_t count)
 {
+  size_t oldMaskLen = (this->count + 63) >> 6;
+  size_t maskLen = (count + 63) >> 6;
+
   if (this->count == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
     this->directions    = allocBuffer<Real>(3 * count);
@@ -98,8 +101,9 @@ RayBeam::allocate(uint64_t count)
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
-    this->mask          = allocBuffer<uint64_t>((count + 63) >> 6);
-    this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6);
+    this->mask          = allocBuffer<uint64_t>(maskLen);
+    this->prevMask      = allocBuffer<uint64_t>(maskLen);
+    this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     this->allocation    = count;
   } else if (count >= this->count) {
     this->origins       = allocBuffer<Real>(3 * count, this->origins);
@@ -110,11 +114,15 @@ RayBeam::allocate(uint64_t count)
     this->lengths       = allocBuffer<Real>(count, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
     this->ids           = allocBuffer<uint32_t>(count, this->ids);
-    this->mask          = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
-    this->prevMask      = allocBuffer<uint64_t>((count + 63) >> 6, this->mask);
+    this->mask          = allocBuffer<uint64_t>(maskLen, this->mask);
+    this->prevMask      = allocBuffer<uint64_t>(maskLen, this->prevMask);
+    this->chiefMask     = allocBuffer<uint64_t>(maskLen, this->chiefMask);
     this->allocation    = count;
+  } else {
+    throw std::runtime_error("Cannot shrink ray list");
   }
 
+  memset(this->chiefMask + oldMaskLen, 0, (maskLen - oldMaskLen) * sizeof(uint64_t));
   this->count = count;
 }
 
@@ -131,6 +139,7 @@ RayBeam::deallocate()
   freeBuffer(ids);
   freeBuffer(mask);
   freeBuffer(prevMask);
+  freeBuffer(chiefMask);
 }
 
 RayBeam::RayBeam(uint64_t count)
@@ -261,6 +270,9 @@ RayTracingEngine::toBeam()
     m_beam->lengths[i]       = p->length;
     m_beam->cumOptLengths[i] = p->cumOptLength;
     m_beam->ids[i]           = p->id;
+    
+    if (p->chief)
+      m_beam->setChiefRay(i);
     
     ++i;
   }

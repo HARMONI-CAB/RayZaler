@@ -73,38 +73,76 @@ PaletteBasedColoring::setDefaultColor(Real r, Real g, Real b)
 }
 
 void
+LineVertexSet::renderOpenGL()
+{
+  // THESE CANNOT BE OR'd
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+
+  glLineWidth(lineWidth);
+
+  glLineStipple(1, stipple);
+  glEnable(GL_LINE_STIPPLE);
+  
+  glColorPointer(4, GL_FLOAT, 4 * sizeof(GLfloat), colors.data());
+  glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), vertices.data());
+  glDrawArrays(GL_LINES, 0, vertices.size() / 3);
+
+  glDisable(GL_LINE_STIPPLE);
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
+}
+
+void
+LineVertexSet::clear()
+{
+  vertices.clear();
+  colors.clear();
+}
+
+void
+LineVertexSet::push(Vec3 const &origin, Vec3 const &dest, const GLfloat *color)
+{
+  size_t p = vertices.size();
+
+  vertices.resize(p + 6);
+
+  vertices[p++]  = origin.x;
+  vertices[p++]  = origin.y;
+  vertices[p++]  = origin.z;
+
+  vertices[p++]  = dest.x;
+  vertices[p++]  = dest.y;
+  vertices[p++]  = dest.z;
+
+  p = colors.size();
+  colors.resize(p + 8);
+
+  memcpy(&colors[p],     color, 4 * sizeof(GLfloat));
+  memcpy(&colors[p + 4], color, 4 * sizeof(GLfloat));
+}
+
+void
 RayBeamElement::raysToVertices()
 {
   size_t size = m_rays.size();
   size_t actualCount = 0;
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
-  size_t i = 0, j = 0;
 
   if (transp > 1)
     transp = 1;
   
-  m_vertices.resize(6 * size);
-  m_colors.resize(8 * size);
+  m_commonRayVert.clear();
+  m_chiefRayVert.clear();
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
     Vec3 destination = p->origin + p->length * p->direction;
-    m_vertices[i++]  = p->origin.x;
-    m_vertices[i++]  = p->origin.y;
-    m_vertices[i++]  = p->origin.z;
+    LineVertexSet *set = p->chief ? &m_chiefRayVert : &m_commonRayVert;
+    GLfloat color[4];
 
-    m_vertices[i++]  = destination.x;
-    m_vertices[i++]  = destination.y;
-    m_vertices[i++]  = destination.z;
-    
-    m_rayColoring->id2color(p->id, transp, &m_colors[j]);
-    memcpy(&m_colors[j + 4], &m_colors[j], 4 * sizeof(GLfloat));
-    j += 8;
-
-    ++actualCount;
+    m_rayColoring->id2color(p->id, transp, color);
+    set->push(p->origin, destination, color);
   }
-
-  m_vertices.resize(6 * actualCount);
-  m_colors.resize(8 * actualCount);
 }
 
 RayBeamElement::RayBeamElement(
@@ -115,6 +153,8 @@ RayBeamElement::RayBeamElement(
 : Element(factory, name, pFrame, parent)
 {
   m_rayColoring = &m_defaultColoring;
+  m_chiefRayVert.stipple = 0xff3c;
+  m_chiefRayVert.lineWidth = 2;
 }
 
 RayBeamElement::~RayBeamElement()
@@ -168,7 +208,7 @@ RayBeamElement::setList(std::list<Ray> const &list)
 void
 RayBeamElement::setRayWidth(Real width)
 {
-  m_lineWidth = width;
+  m_commonRayVert.lineWidth = width;
 }
 
 void
@@ -186,18 +226,8 @@ RayBeamElement::renderOpenGL()
     glDepthFunc(GL_ALWAYS);
   glEnable(GL_DEPTH_TEST);
 
-  // THESE CANNOT BE OR'd
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_COLOR_ARRAY);
-
-  glLineWidth(m_lineWidth);
-
-  glColorPointer(4, GL_FLOAT, 4 * sizeof(GLfloat), m_colors.data());
-  glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
-  glDrawArrays(GL_LINES, 0, m_vertices.size() / 3);
-
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
+  m_chiefRayVert.renderOpenGL();
+  m_commonRayVert.renderOpenGL();
 
   glPopAttrib();
   pthread_mutex_unlock(&m_rayMutex);
