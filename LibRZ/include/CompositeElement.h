@@ -41,7 +41,7 @@ namespace RZ {
       
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
-        GenericEvaluatorSymbolDict *dict,
+        const GenericEvaluatorSymbolDict *dict,
         std::list<GenericCustomFunction *> const &functions,
         ExprRandomState *state) override;
 

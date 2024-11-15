@@ -175,7 +175,7 @@ namespace RZ {
 
   public:
     ExprTkEvaluatorImpl(
-      GenericEvaluatorSymbolDict *dict,
+      const GenericEvaluatorSymbolDict *dict,
       ExprRandomState *state);
     virtual ~ExprTkEvaluatorImpl();
 
@@ -184,6 +184,7 @@ namespace RZ {
     std::list<std::string> const &dependencies() const;
     std::string getLastParserError() const;
     bool registerCustomFunction(GenericCustomFunction *func);
+    void addVariables(const GenericEvaluatorSymbolDict *);
   };
 }
 
@@ -229,12 +230,19 @@ RandN::evaluate(Real const &a, Real const &b)
   return b * m_state->randn() + a;
 }
 
-ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
-  GenericEvaluatorSymbolDict *dict,
-  ExprRandomState *state)
+void
+ExprTkEvaluatorImpl::addVariables(const GenericEvaluatorSymbolDict *dict)
 {
   for (auto p : *dict)
     m_symTab.add_variable(p.first, p.second->value);
+}
+
+ExprTkEvaluatorImpl::ExprTkEvaluatorImpl(
+  const GenericEvaluatorSymbolDict *dict,
+  ExprRandomState *state)
+{
+  if (dict != nullptr)
+    addVariables(dict);
 
   m_uniform = new RandU(state);
   m_normal  = new RandN(state);
@@ -302,7 +310,7 @@ ExprTkEvaluatorImpl::dependencies() const
 
 //////////////////////////// ExprTkEvaluator ///////////////////////////////////
 ExprTkEvaluator::ExprTkEvaluator(
-  GenericEvaluatorSymbolDict *dict,
+  const GenericEvaluatorSymbolDict *dict,
   ExprRandomState *state) :
   GenericEvaluator(dict, state)
 {
@@ -342,4 +350,10 @@ std::string
 ExprTkEvaluator::getLastParserError() const
 {
   return p_impl->getLastParserError();
+}
+
+void
+ExprTkEvaluator::addVariables(const GenericEvaluatorSymbolDict *dict)
+{
+  p_impl->addVariables(dict);
 }

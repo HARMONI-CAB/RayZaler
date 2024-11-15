@@ -28,6 +28,7 @@ namespace Ui {
 
 class PropertyAndDofExprModel;
 class QFileDialog;
+class BeamPropertiesDialog;
 
 #define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
 
@@ -42,6 +43,7 @@ class SimulationPropertiesDialog : public QDialog
   SimulationProperties     m_properties;
   RepresentationProperties m_repProperties;
 
+  BeamPropertiesDialog    *m_beamPropertiesDialog = nullptr;
   QFileDialog             *m_openSettingsDialog = nullptr;
   QFileDialog             *m_saveSettingsDialog = nullptr;
   ColorChooserButton      *m_fixedColorChooser = nullptr;
@@ -72,7 +74,6 @@ public:
   void accept() override;
 
 public slots:
-  void onExprEditChanged();
   void onBrowseOutputDir();
   void onRepChanged();
   void onDataChanged();
@@ -82,6 +83,10 @@ public slots:
   void onAddFootprint();
   void onRemoveFootprint();
   void onRemoveAllFootprints();
+
+  void onAddBeam();
+  void onRemoveBeam();
+  void onRemoveAllBeams();
 
 private:
   Ui::SimulationPropertiesDialog *ui;

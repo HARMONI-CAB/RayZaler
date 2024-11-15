@@ -44,9 +44,9 @@ namespace RZ {
   };
 
   class GenericEvaluator {
-      GenericEvaluatorSymbolDict *m_dict = nullptr;
-      ExprRandomState            *m_randState = nullptr;
-      ExprRandomState            *m_ownState  = nullptr;
+      const GenericEvaluatorSymbolDict  *m_dict = nullptr;
+      ExprRandomState                   *m_randState = nullptr;
+      ExprRandomState                   *m_ownState  = nullptr;
       std::list<GenericCustomFunction *> m_funcList; // Borrowed
 
     protected:
@@ -56,10 +56,9 @@ namespace RZ {
       ExprRandomState *randState() const;
 
     public:
-      GenericEvaluator(GenericEvaluatorSymbolDict *, ExprRandomState *);
+      GenericEvaluator(const GenericEvaluatorSymbolDict *, ExprRandomState *);
       virtual ~GenericEvaluator();
       virtual bool registerCustomFunction(GenericCustomFunction *);
-
       virtual std::list<std::string> dependencies() const = 0;
       virtual bool compile(std::string const &) = 0;
       virtual Real evaluate() = 0;
@@ -162,7 +161,7 @@ namespace RZ {
       
       GenericComponentParamEvaluator *makeExpression(
         std::string const &expr,
-        GenericEvaluatorSymbolDict *dict);
+        const GenericEvaluatorSymbolDict *dict);
         
       static bool getLastDottedElement(
         std::string const &,
@@ -189,7 +188,7 @@ namespace RZ {
       
       virtual GenericEvaluator *allocateEvaluator(
         std::string const &expr,
-        GenericEvaluatorSymbolDict *dict,
+        const GenericEvaluatorSymbolDict *dict,
         std::list<GenericCustomFunction *> const &functions,
         ExprRandomState *state) = 0;
 

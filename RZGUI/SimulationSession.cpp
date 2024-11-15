@@ -17,577 +17,44 @@
 #include <Logger.h>
 #include <cmath>
 
-class RGBRayColoring : public RZ::RayColoring {
+////////////////////////////// RayColoring ////////////////////////////////////
+class RZGUIBeamColoring : public RZ::RayColoring {
+  SimulationSession *m_session = nullptr;
+public:
+  RZGUIBeamColoring(SimulationSession *);
+  virtual ~RZGUIBeamColoring();
   virtual void id2color(uint32_t id, GLfloat *rgb) const override;
 };
 
-void
-RGBRayColoring::id2color(uint32_t id, GLfloat *rgb) const
+RZGUIBeamColoring::RZGUIBeamColoring(SimulationSession *session)
 {
-  rgb[0] = ((id >> 16) & 0xff) / 255.;
-  rgb[1] = ((id >> 8)  & 0xff) / 255.;
-  rgb[2] = ((id >> 0)  & 0xff) / 255.;
+  m_session = session;
 }
 
-static RGBRayColoring g_rgbColoring;
-
-void
-SimulationProperties::loadDefaults()
+RZGUIBeamColoring::~RZGUIBeamColoring()
 {
-  *this = SimulationProperties(); // Haha C++
-}
 
-QByteArray
-SimulationProperties::serialize() const
-{
-  QJsonObject object;
-  QJsonObject dofObj;
-
-  switch (ttype) {
-    case TRACER_TYPE_GEOMETRIC_OPTICS:
-      object["ttype"] = "GEOMETRIC_OPTICS";
-      break;
-
-    case TRACER_TYPE_DIFFRACTION:
-      object["ttype"] = "DIFFRACTION";
-      break;
-  }
-
-  switch (type) {
-    case SIM_TYPE_ONE_SHOT:
-      object["type"] = "ONE_SHOT";
-      break;
-
-    case SIM_TYPE_1D_SWEEP:
-      object["type"] = "1D_SWEEP";
-      break;
-
-    case SIM_TYPE_2D_SWEEP:
-      object["type"] = "2D_SWEEP";
-      break;
-  }
-
-  switch (beam) {
-    case BEAM_TYPE_COLLIMATED:
-      object["beam"] = "COLLIMATED";
-      break;
-
-    case BEAM_TYPE_CONVERGING:
-      object["beam"] = "CONVERGING";
-      break;
-
-    case BEAM_TYPE_DIVERGING:
-      object["beam"] = "DIVERGING";
-      break;
-  }
-
-  switch (shape) {
-    case RZ::Circular:
-      object["shape"] = "CIRCULAR";
-      break;
-
-    case RZ::Ring:
-      object["shape"] = "RING";
-      break;
-
-    case RZ::Point:
-      object["shape"] = "POINT";
-      break;
-
-    case RZ::Custom:
-      object["shape"] = "CUSTOM";
-      break;
-  }
-
-  switch (ref) {
-    case BEAM_REFERENCE_INPUT_ELEMENT:
-      object["ref"] = "INPUT_ELEMENT";
-      break;
-
-    case BEAM_REFERENCE_FOCAL_PLANE:
-      object["ref"] = "FOCAL_PLANE";
-      break;
-
-    case BEAM_REFERENCE_APERTURE_STOP:
-      object["ref"] = "APERTURE_STOP";
-      break;
-  }
-
-#define SERIALIZE(what) object[#what] = what
-  SERIALIZE(diameter);
-  SERIALIZE(refAperture);
-  SERIALIZE(focalPlane);
-  SERIALIZE(fNum);
-  SERIALIZE(azimuth);
-  SERIALIZE(elevation);
-  SERIALIZE(offsetX);
-  SERIALIZE(offsetY);
-  SERIALIZE(wavelength);
-  SERIALIZE(random);
-  SERIALIZE(rays);
-  SERIALIZE(Ni);
-  SERIALIZE(Nj);
-  SERIALIZE(detector);
-  SERIALIZE(path);
-  SERIALIZE(saveArtifacts);
-  SERIALIZE(clearDetector);
-  SERIALIZE(overwrite);
-  SERIALIZE(saveDir);
-  SERIALIZE(saveDetector);
-#undef SERIALIZE
-
-  QJsonArray footprintArray;
-  for (auto &p : footprints)
-    footprintArray.push_back(QString::fromStdString(p));
-
-  object["footprints"] = footprintArray;
-
-  for (auto p : dofs)
-    dofObj[QString::fromStdString(p.first)] = QString::fromStdString(p.second);
-
-  object["dofs"] = dofObj;
-
-  return QJsonDocument(object).toJson();
-}
-
-QString
-SimulationProperties::lastError() const
-{
-  return m_lastError;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    std::list<std::string> &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isArray()) {
-      m_lastError = "Invalid value for property `" + key + "' (not an array)";
-      return false;
-    }
-
-    value.clear();
-    for (auto el : obj[key].toArray())
-      value.push_back(el.toString().toStdString());
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    QString &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    value = obj[key].toString();
-  }
-
-  return true;
-}
-
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    TracerType &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    auto asString = obj[key].toString();
-
-    if (asString == "GEOMETRIC_OPTICS")
-      value = TRACER_TYPE_GEOMETRIC_OPTICS;
-    else if (asString == "DIFFRACTION")
-      value = TRACER_TYPE_DIFFRACTION;
-    else {
-      m_lastError = "Unknown tracer type `" + asString + "'";
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    SimulationType &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    auto asString = obj[key].toString();
-
-    if (asString == "ONE_SHOT")
-      value = SIM_TYPE_ONE_SHOT;
-    else if (asString == "1D_SWEEP")
-      value = SIM_TYPE_1D_SWEEP;
-    else if (asString == "2D_SWEEP")
-      value = SIM_TYPE_2D_SWEEP;
-    else {
-      m_lastError = "Unknown simulation type `" + asString + "'";
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    BeamType &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    auto asString = obj[key].toString();
-
-    if (asString == "COLLIMATED")
-      value = BEAM_TYPE_COLLIMATED;
-    else if (asString == "CONVERGING")
-      value = BEAM_TYPE_CONVERGING;
-    else if (asString == "DIVERGING")
-      value = BEAM_TYPE_DIVERGING;
-    else {
-      m_lastError = "Unknown beam type `" + asString + "'";
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    RZ::BeamShape &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    auto asString = obj[key].toString();
-
-    if (asString == "CIRCULAR")
-      value = RZ::Circular;
-    else if (asString == "RING")
-      value = RZ::Ring;
-    else if (asString == "POINT")
-      value = RZ::Point;
-    else if (asString == "CUSTOM")
-      value = RZ::Custom;
-    else {
-      m_lastError = "Unknown beam type `" + asString + "'";
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    BeamReference &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isString()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a string)";
-      return false;
-    }
-
-    auto asString = obj[key].toString();
-
-    if (asString == "INPUT_ELEMENT")
-      value = BEAM_REFERENCE_INPUT_ELEMENT;
-    else if (asString == "FOCAL_PLANE")
-      value = BEAM_REFERENCE_FOCAL_PLANE;
-    else if (asString == "APERTURE_STOP")
-      value = BEAM_REFERENCE_APERTURE_STOP;
-    else {
-      m_lastError = "Unknown beam reference `" + asString + "'";
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    int &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isDouble()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a number)";
-      return false;
-    }
-
-    value = obj[key].toInt();
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    qreal &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isDouble()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a number)";
-      return false;
-    }
-
-    value = obj[key].toDouble();
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    bool &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isBool()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a boolean)";
-      return false;
-    }
-
-    value = obj[key].toBool(value);
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(
-    QJsonObject const &obj,
-    QString const &key,
-    std::map<std::string, std::string> &value)
-{
-  if (obj.contains(key)) {
-    if (!obj[key].isObject()) {
-      m_lastError = "Invalid value for property `" + key + "' (not a JSON object)";
-      return false;
-    }
-
-    value.clear();
-    auto asObject = obj[key].toObject();
-    for (auto p : asObject.keys()) {
-      if (!asObject[p].isString()) {
-        m_lastError = "Invalid entry `" + p + "` for dictionary `" + key + "' (not a string)";
-        return false;
-      }
-
-      value[p.toStdString()] = asObject[p].toString().toStdString();
-    }
-  }
-
-  return true;
-}
-
-bool
-SimulationProperties::deserialize(QByteArray const &json)
-{
-  QJsonDocument doc;
-  QJsonObject obj;
-  QJsonParseError errors;
-
-  doc = QJsonDocument::fromJson(json, &errors);
-
-  if (doc.isNull()) {
-    m_lastError = errors.errorString();
-    return false;
-  }
-
-  obj = doc.object();
-
-#define DESERIALIZE(field)                \
-  if (!deserialize(obj, #field, field))   \
-    return false
-
-  DESERIALIZE(ttype);
-  DESERIALIZE(type);
-  DESERIALIZE(beam);
-  DESERIALIZE(shape);
-  DESERIALIZE(ref);
-  DESERIALIZE(diameter);
-  DESERIALIZE(refAperture);
-  DESERIALIZE(focalPlane);
-  DESERIALIZE(apertureStop);
-  DESERIALIZE(fNum);
-  DESERIALIZE(azimuth);
-  DESERIALIZE(elevation);
-  DESERIALIZE(offsetX);
-  DESERIALIZE(offsetY);
-  DESERIALIZE(wavelength);
-  DESERIALIZE(random);
-  DESERIALIZE(rays);
-  DESERIALIZE(Ni);
-  DESERIALIZE(Nj);
-  DESERIALIZE(detector);
-  DESERIALIZE(path);
-  DESERIALIZE(dofs);
-  DESERIALIZE(footprints);
-
-  DESERIALIZE(saveArtifacts);
-  DESERIALIZE(clearDetector);
-  DESERIALIZE(overwrite);
-  DESERIALIZE(saveDir);
-  DESERIALIZE(saveDetector);
-
-#undef DESERIALIZE
-
-  return true;
 }
 
 void
-SimulationState::clearAll()
+RZGUIBeamColoring::id2color(uint32_t id, GLfloat *rgb) const
 {
+  uint32_t color = m_session->idToRgba(id);
 
-  if (m_diamExpr != nullptr) {
-    delete m_diamExpr;
-    m_diamExpr = nullptr;
-  }
-
-  if (m_fNumExpr != nullptr) {
-    delete m_fNumExpr;
-    m_fNumExpr = nullptr;
-  }
-
-  if (m_refApExpr != nullptr) {
-    delete m_refApExpr;
-    m_refApExpr = nullptr;
-  }
-  if (m_azimuthExpr != nullptr) {
-    delete m_azimuthExpr;
-    m_azimuthExpr = nullptr;
-  }
-
-  if (m_elevationExpr != nullptr) {
-    delete m_elevationExpr;
-    m_elevationExpr = nullptr;
-  }
-
-  if (m_offsetXExpr != nullptr) {
-    delete m_offsetXExpr;
-    m_offsetXExpr = nullptr;
-  }
-
-  if (m_offsetYExpr != nullptr) {
-    delete m_offsetYExpr;
-    m_offsetYExpr = nullptr;
-  }
-
-  if (m_wavelengthExpr != nullptr) {
-    delete m_wavelengthExpr;
-    m_wavelengthExpr = nullptr;
-  }
-
-  for (auto p : m_dofExprs)
-    if (p.second != nullptr)
-      delete p.second;
-
-  for (auto p : m_dictionary)
-    if (p.second != nullptr)
-      delete p.second;
-
-  m_dictionary.clear();
-  m_varDescriptions.clear();
-  m_dofExprs.clear();
-  m_complete = false;
+  rgb[0] = static_cast<GLfloat>((color >> 16) & 0xff) / 255.f;
+  rgb[1] = static_cast<GLfloat>((color >> 8)  & 0xff) / 255.f;
+  rgb[2] = static_cast<GLfloat>((color >> 0)  & 0xff) / 255.f;
 }
 
-bool
-SimulationState::trySetExpr(
-    RZ::ExprTkEvaluator * &dest,
-    std::string const &expr)
+/////////////////////////// BeamSimulationState ///////////////////////////////
+BeamSimulationState::BeamSimulationState(
+    const SimulationBeamProperties &prop,
+    ExprEvaluationContext *ctx) : evalCtx(ctx)
 {
-  RZ::ExprTkEvaluator *evaluator =
-      new RZ::ExprTkEvaluator(&m_dictionary);
-  bool ok = true;
-
-  if (!evaluator->compile(expr)) {
-    m_lastCompileError = evaluator->getLastParserError();
-    delete evaluator;
-    evaluator = nullptr;
-    ok = false;
-  }
-
-  dest = evaluator;
-
-  return ok;
+  properties = prop;
 }
 
-std::string
-SimulationState::getFirstInvalidExpr() const
-{
-  if (m_diamExpr == nullptr)
-    return "diameter";
-
-  if (m_fNumExpr == nullptr)
-    return "fnum";
-
-  if (m_refApExpr == nullptr)
-    return "refap";
-
-  if (m_azimuthExpr == nullptr)
-    return "azimuth";
-
-  if (m_elevationExpr == nullptr)
-    return "elevation";
-
-  if (m_offsetXExpr == nullptr)
-    return "offsetx";
-
-  if (m_offsetYExpr == nullptr)
-    return "offsety";
-
-  if (m_wavelengthExpr == nullptr)
-    return "wavelength";
-
-  for (auto p : m_dofExprs)
-    if (p.second == nullptr)
-      return "dof:" + p.first;
-
-  return "";
-}
-
+//////////////////////////// SimulationState //////////////////////////////////
 std::string
 SimulationState::getLastError() const
 {
@@ -635,45 +102,49 @@ SimulationState::saveArtifacts()
 }
 
 void
-SimulationState::defineVariable(
-    std::string const &name,
-    RZ::Real value,
-    RZ::Real min,
-    RZ::Real max)
-{
-  m_varDescriptions[name].min        = min;
-  m_varDescriptions[name].max        = max;
-  m_varDescriptions[name].defaultVal = value;
-
-  if (m_dictionary.find(name) == m_dictionary.end())
-    m_dictionary[name] = new RZ::GenericModelParam();
-
-  m_dictionary[name]->description    = &m_varDescriptions[name];
-  m_dictionary[name]->value          = value;
-}
-
-RZ::Real
-SimulationState::setVariable(std::string const &name, RZ::Real value)
-{
-  if (m_dictionary.find(name) == m_dictionary.end()) {
-    fprintf(stderr, "Ayee! Variable %s not in dict\n", name.c_str());
-    abort();
-  }
-
-  m_dictionary[name]->value = value;
-
-  return value;
-}
-
-void
 SimulationState::setRepresentationProperties(RepresentationProperties const &repProp)
 {
   m_repProp = repProp;
 }
 
+void
+SimulationState::clearAndSavePreviousBeams()
+{
+  auto next = m_currentBeams.begin();
+
+  while (next != m_currentBeams.end()) {
+    auto it = next++;
+    BeamSimulationState *beam = *it;
+    if (beam->complete) {
+      m_previousBeams.splice(m_previousBeams.end(), m_currentBeams, it);
+    } else {
+      auto node = m_idToBeam.find(beam->id);
+      if (node != m_idToBeam.end())
+        m_idToBeam.erase(node);
+      delete beam;
+    }
+  }
+
+  m_currentBeams.clear();
+}
+
+BeamSimulationState *
+SimulationState::makeBeamState(SimulationBeamProperties const &props)
+{
+  BeamSimulationState *beam = new BeamSimulationState(props, m_evalModelCtx);
+
+  beam->id = m_nextBeamId++;
+
+  m_idToBeam[beam->id] = beam;
+  m_currentBeams.push_back(beam);
+
+  return beam;
+}
+
 bool
 SimulationState::setProperties(SimulationProperties const &prop)
 {
+  m_complete   = false;
   m_properties = prop;
 
   // Sanitize this
@@ -682,60 +153,45 @@ SimulationState::setProperties(SimulationProperties const &prop)
   else if (prop.type == SIM_TYPE_1D_SWEEP)
     m_properties.Nj = 1;
 
-  clearAll();
+  if (m_evalModelCtx != nullptr)
+    delete m_evalModelCtx;
 
-  // Recreate dictionary
-  defineVariable("i");
-  defineVariable("j");
-  defineVariable("Ni");
-  defineVariable("Nj");
-  defineVariable("wavelength");
-  defineVariable("D");
-  defineVariable("fNum");
-  defineVariable("A");
-  defineVariable("az");
-  defineVariable("el");
-  defineVariable("x0");
-  defineVariable("y0");
-  defineVariable("simU");
-  defineVariable("simN");
-  defineVariable("stepU");
-  defineVariable("stepN");
-  defineVariable("step");
-  defineVariable("sim");
+  m_evalModelCtx = new ExprEvaluationContext(&m_evalSimCtx);
+  clearAndSavePreviousBeams();
 
+  // Start by DOF expressions
   for (auto p : prop.dofs) {
-    m_dofExprs[p.first]  = nullptr;
-    defineVariable("dof_" + p.first);
+    auto dofExprName = p.first;
+    auto dofVarName  = "dof_" + p.first;
+    m_evalModelCtx->defineVariable(dofVarName);
+    if (!m_evalModelCtx->defineExpression(dofExprName, p.second)) {
+      m_firstFailedExpr = dofExprName;
+      return false;
+    }
   }
 
-  if (!trySetExpr(m_diamExpr, prop.diameter.toStdString()))
-    return false;
+#define TRY_DEFINE_BEAM_EXPR(name)                                           \
+  if (!beamState->evalCtx.defineExpression(#name, bp.name.toStdString())) {  \
+    m_firstFailedBeamExpr = #name;                                           \
+    m_failedBeamId = static_cast<int32_t>(beamState->id);                    \
+    return false;                                                            \
+  } do {} while (false)
 
-  if (!trySetExpr(m_fNumExpr, prop.fNum.toStdString()))
-    return false;
+  for (auto &bp : prop.beams) {
+    auto beamState = makeBeamState(bp);
 
-  if (!trySetExpr(m_refApExpr, prop.refAperture.toStdString()))
-    return false;
+    TRY_DEFINE_BEAM_EXPR(diameter);
+    TRY_DEFINE_BEAM_EXPR(fNum);
+    TRY_DEFINE_BEAM_EXPR(uX);
+    TRY_DEFINE_BEAM_EXPR(uY);
+    TRY_DEFINE_BEAM_EXPR(offsetX);
+    TRY_DEFINE_BEAM_EXPR(offsetY);
+    TRY_DEFINE_BEAM_EXPR(offsetZ);
+    TRY_DEFINE_BEAM_EXPR(wavelength);
 
-  if (!trySetExpr(m_azimuthExpr, prop.azimuth.toStdString()))
-    return false;
-
-  if (!trySetExpr(m_elevationExpr, prop.elevation.toStdString()))
-    return false;
-
-  if (!trySetExpr(m_offsetXExpr, prop.offsetX.toStdString()))
-    return false;
-
-  if (!trySetExpr(m_offsetYExpr, prop.offsetY.toStdString()))
-    return false;
-
-  if (!trySetExpr(m_wavelengthExpr, prop.wavelength.toStdString()))
-    return false;
-
-  for (auto p : prop.dofs)
-    if (!trySetExpr(m_dofExprs[p.first], p.second))
-        return false;
+    beamState->complete = true;
+  }
+#undef TRY_DEFINE_BEAM_EXPR
 
   m_complete = true;
 
@@ -743,115 +199,140 @@ SimulationState::setProperties(SimulationProperties const &prop)
 }
 
 bool
-SimulationState::allocateRays(uint32_t color)
+SimulationState::allocateRays()
 {
   const RZ::OpticalPath *path = nullptr;
   RZ::OpticalElement *element = nullptr;
   RZ::ReferenceFrame *fp = nullptr;
   RZ::BeamProperties prop;
-  bool random = m_properties.random;
 
   // TODO: prevent continuous reallocation of beams
-  if (m_currBeam == m_beamAlloc.end())
-    m_currBeam = m_beamAlloc.begin();
+  if (m_currentRayGroup == m_rayGroupAlloc.end())
+    m_currentRayGroup = m_rayGroupAlloc.begin();
   else
-    ++m_currBeam;
+    ++m_currentRayGroup;
 
-  if (m_currBeam == m_beamAlloc.end()) {
-    // End of the list, alloc new beam
-    m_beamAlloc.push_back(std::list<RZ::Ray>());
-    m_currBeam = m_beamAlloc.end();
-    --m_currBeam;
+  if (m_currentRayGroup == m_rayGroupAlloc.end()) {
+    // End of the list, alloc new group
+    m_rayGroupAlloc.push_back(RayGroup());
+    m_currentRayGroup = m_rayGroupAlloc.end();
+    --m_currentRayGroup;
   }
 
-  m_currBeam->clear();
+  m_currentRayGroup->clear();
 
-  // Define beam reference
-  switch (m_properties.ref) {
-    case BEAM_REFERENCE_INPUT_ELEMENT:
-      path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
-      if (path == nullptr) {
-        m_lastCompileError = "The defined optical path does not exist";
-        return false;
-      }
+  for (auto &beamState : m_currentBeams) {
+    auto &beam = beamState->properties;
 
-      if (path->m_sequence.size() == 0) {
-        m_lastCompileError = "Optical path contains no elements";
-        return false;
-      }
+    // Define beam reference
+    switch (beam.ref) {
+      case BEAM_REFERENCE_INPUT_ELEMENT:
+        path = m_topLevelModel->lookupOpticalPath(m_properties.path.toStdString());
+        if (path == nullptr) {
+          m_lastCompileError = "The defined optical path does not exist";
+          return false;
+        }
 
-      element = path->m_sequence.front()->parent;
-      prop.setElementRelative(element);
-      break;
+        if (path->m_sequence.size() == 0) {
+          m_lastCompileError = "Optical path contains no elements";
+          return false;
+        }
 
-    case BEAM_REFERENCE_APERTURE_STOP:
-      element = m_topLevelModel->lookupOpticalElement(
-            m_properties.apertureStop.toStdString());
-      if (element == nullptr) {
-        m_lastCompileError =
-            "The specified element `" + m_properties.apertureStop.toStdString() + "' does not exist.";
-        return false;
-      }
+        element = path->m_sequence.front()->parent;
+        prop.setElementRelative(element);
+        break;
 
-      prop.setElementRelative(element);
-      break;
+      case BEAM_REFERENCE_APERTURE_STOP:
+        element = m_topLevelModel->lookupOpticalElement(
+              beam.apertureStop.toStdString());
+        if (element == nullptr) {
+          m_lastCompileError =
+              "The specified element `" + beam.apertureStop.toStdString() + "' does not exist.";
+          return false;
+        }
 
-    case BEAM_REFERENCE_FOCAL_PLANE:
-      fp = m_topLevelModel->getFocalPlane(m_properties.focalPlane.toStdString());
-      if (fp == nullptr) {
-        m_lastCompileError = "The specified focal plane `" + m_properties.focalPlane.toStdString() + "' does not exist";
-        return false;
-      }
-      break;
+        prop.setElementRelative(element);
+        break;
+
+      case BEAM_REFERENCE_FOCAL_PLANE:
+        fp = m_topLevelModel->getFocalPlane(beam.focalPlane.toStdString());
+        if (fp == nullptr) {
+          m_lastCompileError = "The specified focal plane `" + beam.focalPlane.toStdString() + "' does not exist";
+          return false;
+        }
+        break;
+    }
+
+    // Other properties
+    auto D  = beamState->evalCtx.eval("diameter");
+    auto ux = beamState->evalCtx.eval("uX");
+    auto uy = beamState->evalCtx.eval("uY");
+    auto x0 = beamState->evalCtx.eval("offsetX");
+    auto y0 = beamState->evalCtx.eval("offsetY");
+    auto z0 = beamState->evalCtx.eval("offsetZ");
+    auto wl = beamState->evalCtx.eval("wavelength");
+
+    auto uz = -sqrt(1 - ux * ux - uy * uy);
+
+    prop.direction  = RZ::Vec3(ux, uy, uz);
+    prop.offset     = RZ::Vec3(x0, y0, z0);
+    prop.length     = 1;
+    prop.id         = beam.color.rgba();
+    prop.wavelength = wl;
+    beamState->wavelength = wl;
+
+    // Chief ray
+    prop.vignetting = false;
+    prop.shape      = RZ::BeamShape::Point;
+    prop.numRays    = 1;
+    RZ::OMModel::addBeam(*m_currentRayGroup, prop);
+
+    // Main beam
+    prop.vignetting = true;
+    prop.shape      = beam.shape;
+    prop.numRays    = static_cast<unsigned>(beam.rays);
+    prop.diameter   = D;
+    prop.random     = beam.random;
+
+    // Define beam focus
+    switch (beam.beam) {
+      case BEAM_TYPE_COLLIMATED:
+        prop.collimate();
+        break;
+
+      case BEAM_TYPE_CONVERGING:
+        prop.setFNum(
+              fabs(beamState->evalCtx.eval("fNum")),
+              RZ::BeamDiameter);
+        break;
+
+      case BEAM_TYPE_DIVERGING:
+        prop.setFNum(
+            -fabs(beamState->evalCtx.eval("fNum")),
+             RZ::BeamDiameter);
+        break;
+    }
+
+    RZ::OMModel::addBeam(*m_currentRayGroup, prop);
   }
-
-  // Other properties
-  auto D  = setVariable("D",  m_diamExpr->evaluate());
-  auto az = setVariable("az", m_azimuthExpr->evaluate());
-  auto el = setVariable("el", m_elevationExpr->evaluate());
-  auto x0 = setVariable("x0", m_offsetXExpr->evaluate());
-  auto y0 = setVariable("y0", m_offsetYExpr->evaluate());
-
-  prop.direction  = -RZ::Matrix3::azel(RZ::deg2rad(az), RZ::deg2rad(el)).vz();
-  prop.offset     = RZ::Vec3(x0, y0, 0);
-  prop.length     = 1;
-  prop.id         = color;
-
-  // Chief ray
-  prop.vignetting = false;
-  prop.shape      = RZ::BeamShape::Point;
-  prop.numRays    = 1;
-  RZ::OMModel::addBeam(*m_currBeam, prop);
-
-  // Main beam
-  prop.vignetting = true;
-  prop.shape      = m_properties.shape;
-  prop.numRays    = static_cast<unsigned>(m_properties.rays);
-  prop.diameter   = D;
-  prop.random     = random;
-
-  // Define beam focus
-  switch (m_properties.beam) {
-    case BEAM_TYPE_COLLIMATED:
-      prop.collimate();
-      break;
-
-    case BEAM_TYPE_CONVERGING:
-      prop.setFNum(
-            fabs(setVariable("fNum", m_fNumExpr->evaluate())),
-            RZ::BeamDiameter);
-      break;
-
-    case BEAM_TYPE_DIVERGING:
-      prop.setFNum
-          (-fabs(setVariable("fNum", m_fNumExpr->evaluate())),
-           RZ::BeamDiameter);
-      break;
-  }
-
-  RZ::OMModel::addBeam(*m_currBeam, prop);
 
   return true;
+}
+
+void
+SimulationState::clearBeams()
+{
+  if (m_topLevelModel != nullptr)
+    m_topLevelModel->clearBeam();
+
+  for (auto &beamState : m_previousBeams)
+    delete beamState;
+
+  for (auto &beamState : m_currentBeams)
+    delete beamState;
+
+  m_idToBeam.clear();
+  m_nextBeamId = 0;
 }
 
 void
@@ -859,13 +340,16 @@ SimulationState::applyDofs()
 {
   m_randState->update();
 
-  for (auto p : m_dofExprs) {
-    setVariable("dof_" + p.first, p.second->evaluate());
-    m_topLevelModel->setDof(p.first, m_dictionary["dof_" + p.first]->value);
+  auto dofExprs = m_evalModelCtx->expressions();
+
+  for (auto p : dofExprs) {
+    auto dofVal = m_evalModelCtx->eval(p);
+    m_evalSimCtx.setVariable("dof_" + p, dofVal);
+    m_topLevelModel->setDof(p, dofVal);
   }
 
   if (!m_repProp.accumulate)
-   m_topLevelModel->clearBeam();
+   clearBeams();
 }
 
 void
@@ -1030,10 +514,12 @@ SimulationState::saveCSV()
        + std::to_string(m_i) + ","
        + std::to_string(m_j) + ",";
 
-  for (auto dof : m_properties.dofs) {
-    auto value = m_dictionary["dof_" + dof.first]->value;
-    line += toStringPrecision(value) + ",";
-  }
+    for (auto dof : m_topLevelModel->dofs()) {
+      auto param = m_topLevelModel->lookupDof(dof);
+      auto value = param == nullptr ? std::nan("unavail") : param->value;
+
+      line += toStringPrecision(value) + ",";
+    }
 
   line += getCurrentOutputFileName().toStdString() + "\n";
 
@@ -1051,107 +537,6 @@ SimulationState::closeCSV()
     fclose(m_csvFp);
     m_csvFp = nullptr;
   }
-}
-
-static inline uint32_t
-QColor2uint32_t(QColor const &color)
-{
-  uint32_t tuple = 0;
-
-  tuple |= color.red()   << 16;
-  tuple |= color.green() << 8;
-  tuple |= color.blue();
-
-  return tuple;
-}
-
-// https://www.johndcook.com/wavelength_to_RGB.html
-static inline uint32_t
-wl2uint32_t(qreal w)
-{
-  qreal red, green, blue;
-  qreal factor, gamma;
-  int R, G, B;
-  uint32_t tuple = 0;
-
-  if (w >= 380 && w < 440) {
-    red   = -(w - 440) / (440 - 380);
-    green = 0.0;
-    blue  = 1.0;
-  } else if (w >= 440 && w < 490) {
-    red   = 0.0;
-    green = (w - 440) / (490 - 440);
-    blue  = 1.0;
-  } else if (w >= 490 && w < 510) {
-    red   = 0.0;
-    green = 1.0;
-    blue  = -(w - 510) / (510 - 490);
-  } else if (w >= 510 && w < 580) {
-    red   = (w - 510) / (580 - 510);
-    green = 1.0;
-    blue  = 0.0;
-  } else if (w >= 580 && w < 645) {
-    red   = 1.0;
-    green = -(w - 645) / (645 - 580);
-    blue  = 0.0;
-  } else if (w >= 645 && w < 781) {
-    red   = 1.0;
-    green = 0.0;
-    blue  = 0.0;
-  } else {
-    red   = 0.0;
-    green = 0.0;
-    blue  = 0.0;
-  }
-
-
-  // Let the intensity fall off near the vision limits
-
-  if (w >= 380 && w < 420)
-      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
-  else if (w >= 420 && w < 701)
-      factor = 1.0;
-  else if (w >= 701 && w < 781)
-      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
-  else
-      factor = 0.0;
-
-  gamma = 0.80;
-
-  R = static_cast<int>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
-  G = static_cast<int>(qBound(0., 255 * pow(green * factor, gamma), 255.));
-  B = static_cast<int>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
-
-  tuple |= R << 16;
-  tuple |= G << 8;
-  tuple |= B;
-
-  return tuple;
-}
-
-uint32_t
-SimulationState::beamColorCycle() const
-{
-  uint32_t colors[] =
-  {
-    0xff0000, 0x00ff00, 0x0000ff,
-    0xffff00, 0xff00ff, 0x00ffff,
-    0xffffff
-  };
-
-  switch (m_repProp.coloringMode) {
-    case COLORING_FIXED:
-      return QColor2uint32_t(m_repProp.fixedBeamColor);
-
-    case COLORING_WAVELENGTH:
-      return wl2uint32_t(m_topLevelModel->wavelength() * 1e9);
-
-    case COLORING_CYCLE:
-      return colors[m_simCount % (sizeof(colors) / sizeof(colors[0]))];
-
-  }
-
-  return QColor2uint32_t(m_repProp.fixedBeamColor);
 }
 
 void
@@ -1175,13 +560,13 @@ SimulationState::footprints()
   return m_footprints;
 }
 
+// We are going to find lots of rays with different ids in the same
+// surface. We need to go one by one and decide.
 void
 SimulationState::extractFootprints()
 {
   auto allOpticalElementNames = m_topLevelModel->opticalElementHierarchy("");
 
-  // TODO: Perhaps we can speed this up by adding another hash between
-  // optical elements with recordHits enabled and their paths
   for (auto path : allOpticalElementNames) {
     auto element = m_topLevelModel->resolveOpticalElement(path);
     if (element != nullptr && element->recordHits()) {
@@ -1208,85 +593,32 @@ SimulationState::extractFootprints()
   }
 }
 
-void
-SimulationState::chooseSimulationName()
-{
-  QString name;
-  qreal wavelength = m_wavelengthExpr->evaluate() * 1e-9;
-  QString units;
-
-  sensibleUnits(wavelength, units);
-
-  bool singular = true;
-
-  switch (m_properties.type) {
-    case SIM_TYPE_ONE_SHOT:
-      name += "Single ";
-      break;
-
-    case SIM_TYPE_1D_SWEEP:
-      name    += QString::number(m_properties.Ni) + " ";
-      singular = m_properties.Ni == 1;
-      break;
-
-    case SIM_TYPE_2D_SWEEP:
-      name    += QString::number(m_properties.Ni) + "×" + QString::number(m_properties.Nj) + " ";
-      singular = m_properties.Ni * m_properties.Nj == 1;
-      break;
-  }
-
-  switch (m_properties.beam) {
-    case BEAM_TYPE_COLLIMATED:
-      name += "collimated beam";
-      break;
-
-    case BEAM_TYPE_DIVERGING:
-      name += "-f/" + m_properties.fNum + " beam";
-      break;
-
-    case BEAM_TYPE_CONVERGING:
-      name += "f/" + m_properties.fNum + " beam";
-      break;
-  }
-
-  if (!singular)
-    name += "s";
-
-  name += QString::asprintf(" (λ=%.3g ", wavelength) + units + ")";
-
-  m_simName = name;
-}
-
 bool
 SimulationState::initSimulation()
 {
-  RZ::Real wavelength = m_wavelengthExpr->evaluate();
   m_i = m_j = 0;
 
-  setVariable("i", m_i);
-  setVariable("j", m_j);
+  m_evalSimCtx.setVariable("i", m_i);
+  m_evalSimCtx.setVariable("j", m_j);
 
-  setVariable("Ni", m_properties.Ni);
-  setVariable("Nj", m_properties.Nj);
-  setVariable("wavelength", wavelength);
+  m_evalSimCtx.setVariable("Ni", m_i);
+  m_evalSimCtx.setVariable("Nj", m_j);
+
 
   m_steps = m_properties.Ni * m_properties.Nj;
   m_currStep = 0;
-  setVariable("step", 0);
+  m_evalSimCtx.setVariable("step", 0);
 
-  setVariable("stepN", randNormal());
-  setVariable("stepU", randUniform());
+  m_evalSimCtx.setVariable("stepN", randNormal());
+  m_evalSimCtx.setVariable("stepU", randUniform());
 
-  setVariable("simN", randNormal());
-  setVariable("simU", randUniform());
+  m_evalSimCtx.setVariable("simN", randNormal());
+  m_evalSimCtx.setVariable("simU", randUniform());
 
   applyRecordHits();
 
-  chooseSimulationName();
-
   m_topLevelModel->updateRandState();
   m_topLevelModel->assignEverything();
-  m_topLevelModel->setWavelength(wavelength * 1e-9);
 
   if (m_properties.saveArtifacts) {
     if (!QFile(m_properties.saveDir).exists()) {
@@ -1320,12 +652,12 @@ SimulationState::initSimulation()
 
   ++m_simCount;
 
-  setVariable("sim", SCAST(RZ::Real, m_simCount));
+  m_evalSimCtx.setVariable("sim", SCAST(RZ::Real, m_simCount));
 
   applyDofs();
 
   // We transition to running state only if we manage to allocate rays.
-  m_running = allocateRays(beamColorCycle());
+  m_running = allocateRays();
 
   return m_running;
 }
@@ -1333,10 +665,8 @@ SimulationState::initSimulation()
 bool
 SimulationState::sweepStep()
 {
-  RZ::Real wavelength = m_wavelengthExpr->evaluate();
-
-  setVariable("stepN", randNormal());
-  setVariable("stepU", randUniform());
+  m_evalSimCtx.setVariable("stepN", randNormal());
+  m_evalSimCtx.setVariable("stepU", randUniform());
 
   if (done())
     goto done;
@@ -1357,17 +687,14 @@ SimulationState::sweepStep()
   if (done())
     goto done;
 
-  setVariable("i", m_i);
-  setVariable("j", m_j);
-  setVariable("step", ++m_currStep);
-
-  setVariable("wavelength", wavelength);
-  m_topLevelModel->setWavelength(wavelength * 1e-9);
+  m_evalSimCtx.setVariable("i", m_i);
+  m_evalSimCtx.setVariable("j", m_j);
+  m_evalSimCtx.setVariable("step", ++m_currStep);
 
   // Iteration done, apply Dofs
   applyDofs();
 
-  if (allocateRays(beamColorCycle()))
+  if (allocateRays())
     return true;
 
 done:
@@ -1409,7 +736,7 @@ SimulationState::simCount() const
 void
 SimulationState::releaseRays()
 {
-  m_currBeam = m_beamAlloc.end();
+  m_currentRayGroup = m_rayGroupAlloc.end();
   m_running = false;
 }
 
@@ -1426,9 +753,35 @@ SimulationState::repProperties() const
 }
 
 std::list<RZ::Ray> const &
-SimulationState::beam() const
+SimulationState::rayGroup() const
 {
-  return *m_currBeam;
+  return *m_currentRayGroup;
+}
+
+BeamSimulationState *
+SimulationState::getBeamState(uint32_t id)
+{
+  auto it = m_idToBeam.find(id);
+
+  if (it != m_idToBeam.end())
+    return it->second;
+
+  return nullptr;
+}
+
+void
+SimulationState::initStateEvalCtx()
+{
+  m_evalSimCtx.defineVariable("i");
+  m_evalSimCtx.defineVariable("j");
+  m_evalSimCtx.defineVariable("Ni");
+  m_evalSimCtx.defineVariable("Nj");
+  m_evalSimCtx.defineVariable("simU");
+  m_evalSimCtx.defineVariable("simN");
+  m_evalSimCtx.defineVariable("stepU");
+  m_evalSimCtx.defineVariable("stepN");
+  m_evalSimCtx.defineVariable("step");
+  m_evalSimCtx.defineVariable("sim");
 }
 
 bool
@@ -1447,15 +800,20 @@ SimulationState::setTopLevelModel(RZ::TopLevelModel *model)
 
 SimulationState::SimulationState(RZ::TopLevelModel *model)
 {
-  m_currBeam      = m_beamAlloc.end();
   m_randState     = new RZ::ExprRandomState();
+
+  m_currentRayGroup = m_rayGroupAlloc.end();
+  initStateEvalCtx();
 
   setTopLevelModel(model);
 }
 
 SimulationState::~SimulationState()
 {
-  clearAll();
+  clearBeams();
+
+  if (m_evalModelCtx != nullptr)
+    delete m_evalModelCtx;
 
   if (m_randState != nullptr)
     delete m_randState;
@@ -1520,7 +878,7 @@ SimulationSession::reload(RZ::ParserContext *context)
     goto done;
   }
 
-  topLevelModel->setBeamColoring(m_rgbColoring);
+  topLevelModel->setBeamColoring(m_beamColoring);
 
   /////////////////////// From here, nothing should fail //////////////////////
   if (m_simState == nullptr) {
@@ -1600,10 +958,10 @@ SimulationSession::SimulationSession(
 {
   QFileInfo info(path);
 
-  m_path        = path;
-  m_fileName    = info.fileName();
-  m_searchPath  = info.dir().absolutePath();
-  m_rgbColoring = &g_rgbColoring;
+  m_path         = path;
+  m_fileName     = info.fileName();
+  m_searchPath   = info.dir().absolutePath();
+  m_beamColoring = new RZGUIBeamColoring(this);
 
   m_timer    = new QTimer(this);
   connect(
@@ -1636,6 +994,9 @@ SimulationSession::~SimulationSession()
 
  if (m_recipe != nullptr)
    delete m_recipe;
+
+ if (m_beamColoring != nullptr)
+   delete m_beamColoring;
 }
 
 void
@@ -1738,7 +1099,7 @@ SimulationSession::iterateSimulation()
   if (m_simState->currStep() + 1 >= m_simState->steps())
     tracer()->setUpdateBeam(true);
 
-  tracer()->setBeam(m_simState->beam());
+  tracer()->setBeam(m_simState->rayGroup());
 
   ++m_simPending;
 
@@ -1765,11 +1126,11 @@ SimulationSession::runSimulation()
     return false;
 
   RZInfo(
-        "Triggering simulation #%d on %s: %d steps, %d rays per beam\n",
+        "Triggering simulation #%d on %s: %d steps, %ld beams total\n",
         m_simState->simCount(),
         m_fileName.toStdString().c_str(),
         m_simState->steps(),
-        m_simState->properties().rays);
+        m_simState->properties().beams.size());
 
 
   gettimeofday(&m_lastModelRefresh, nullptr);
@@ -1838,6 +1199,99 @@ SimulationSession::stopped() const
   return !m_playing;
 }
 
+// https://www.johndcook.com/wavelength_to_RGB.html
+static inline uint32_t
+wl2uint32_t(qreal w)
+{
+  qreal red, green, blue;
+  qreal factor, gamma;
+  uint R, G, B;
+  uint32_t tuple = 0;
+
+  if (w >= 380 && w < 440) {
+    red   = -(w - 440) / (440 - 380);
+    green = 0.0;
+    blue  = 1.0;
+  } else if (w >= 440 && w < 490) {
+    red   = 0.0;
+    green = (w - 440) / (490 - 440);
+    blue  = 1.0;
+  } else if (w >= 490 && w < 510) {
+    red   = 0.0;
+    green = 1.0;
+    blue  = -(w - 510) / (510 - 490);
+  } else if (w >= 510 && w < 580) {
+    red   = (w - 510) / (580 - 510);
+    green = 1.0;
+    blue  = 0.0;
+  } else if (w >= 580 && w < 645) {
+    red   = 1.0;
+    green = -(w - 645) / (645 - 580);
+    blue  = 0.0;
+  } else if (w >= 645 && w < 781) {
+    red   = 1.0;
+    green = 0.0;
+    blue  = 0.0;
+  } else {
+    red   = 0.0;
+    green = 0.0;
+    blue  = 0.0;
+  }
+
+
+  // Let the intensity fall off near the vision limits
+
+  if (w >= 380 && w < 420)
+      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
+  else if (w >= 420 && w < 701)
+      factor = 1.0;
+  else if (w >= 701 && w < 781)
+      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
+  else
+      factor = 0.0;
+
+  gamma = 0.80;
+
+  R = static_cast<uint>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
+  G = static_cast<uint>(qBound(0., 255 * pow(green * factor, gamma), 255.));
+  B = static_cast<uint>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
+
+  tuple |= R << 16;
+  tuple |= G << 8;
+  tuple |= B;
+
+  return tuple;
+}
+
+static inline uint32_t
+QColor2uint32_t(QColor const &color)
+{
+  uint32_t tuple = 0;
+
+  tuple |= static_cast<uint32_t>(color.red())   << 16;
+  tuple |= static_cast<uint32_t>(color.green()) << 8;
+  tuple |= static_cast<uint32_t>(color.blue());
+
+  return tuple;
+}
+
+
+uint32_t
+SimulationSession::idToRgba(uint32_t id) const
+{
+  if (m_simState != nullptr) {
+    auto beamState = m_simState->getBeamState(id);
+    if (beamState != nullptr) {
+      if (beamState->properties.colorByWl)
+        return wl2uint32_t(beamState->wavelength);
+      else
+        return QColor2uint32_t(beamState->properties.color);
+    }
+  }
+
+  return 0xffffee00;
+}
+
 void
 SimulationSession::onTimerTick()
 {
@@ -1846,6 +1300,7 @@ SimulationSession::onTimerTick()
     updateAnim();
   }
 }
+
 #include <QCoreApplication>
 void
 SimulationSession::onSimulationDone(bool haveBeam)

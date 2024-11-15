@@ -117,6 +117,7 @@ namespace RZ {
     std::string path;
     Real length              = 10;           // [m]
     Real diameter            = .5;           // [m]
+    Real wavelength          = 535e-9;
     unsigned int numRays     = 1000;
     bool random              = false;
     Vec3 direction           = -Vec3::eZ();  // [1]
@@ -199,9 +200,6 @@ namespace RZ {
 
       // Random state for Diffraction calculations
       ExprRandomState m_randState;
-
-      // Simulation wavelength
-      Real m_wavelength = 555e-9;
 
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
@@ -340,10 +338,6 @@ namespace RZ {
       OpticalElement *lookupOpticalElementOrEx(std::string const &) const;
       Detector *lookupDetectorOrEx(std::string const &) const;
       const OpticalPath *lookupOpticalPathOrEx(std::string const & = "") const;
-
-      // Wavelength of the raytracer
-      void setWavelength(Real);
-      Real wavelength() const;
 
       void setFrequency(Real);
       Real frequency() const;

@@ -27,6 +27,9 @@ set(PROJECT_SOURCES
         AsyncDataProductRenderer.cpp
         AsyncRayTracer.h
         AsyncRayTracer.cpp
+        BeamPropertiesDialog.h
+        BeamPropertiesDialog.cpp
+        BeamPropertiesDialog.ui
         ColorChooserButton.cpp
         ColorChooserButton.h
         ColorChooserButton.ui
@@ -50,6 +53,8 @@ set(PROJECT_SOURCES
         ExportViewDialog.h
         ExportViewDialog.cpp
         ExportViewDialog.ui
+        ExprEvaluationContext.h
+        ExprEvaluationContext.cpp
         FootprintInfoWidget.h
         FootprintInfoWidget.cpp
         FootprintInfoWidget.ui
@@ -57,6 +62,8 @@ set(PROJECT_SOURCES
         GUIHelpers.cpp
         ImageNavWidget.h
         ImageNavWidget.cpp
+        JsonSerializable.h
+        JsonSerializable.cpp
         MainWindow.cpp
         MainWindow.h
         MainWindow.ui
@@ -87,6 +94,8 @@ set(PROJECT_SOURCES
         SimulationProgressDialog.h
         SimulationProgressDialog.cpp
         SimulationProgressDialog.ui
+        SimulationProperties.h
+        SimulationProperties.cpp
         SimulationPropertiesDialog.h
         SimulationPropertiesDialog.cpp
         SimulationPropertiesDialog.ui

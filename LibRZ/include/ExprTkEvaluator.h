@@ -12,7 +12,7 @@ namespace RZ {
       
     public:
       ExprTkEvaluator(
-        GenericEvaluatorSymbolDict *,
+        const GenericEvaluatorSymbolDict *,
         ExprRandomState *state = nullptr);
       virtual ~ExprTkEvaluator();
 
@@ -21,6 +21,8 @@ namespace RZ {
       virtual Real evaluate() override;
       std::string getLastParserError() const;
       virtual bool registerCustomFunction(GenericCustomFunction *) override;
+
+      void addVariables(const GenericEvaluatorSymbolDict *);
   };
 }
 

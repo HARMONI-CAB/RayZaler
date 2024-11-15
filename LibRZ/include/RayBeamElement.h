@@ -12,6 +12,7 @@ namespace RZ {
     public:
       virtual void id2color(uint32_t, GLfloat *rgba) const;
       virtual void id2color(uint32_t, GLfloat alpha, GLfloat *rgba) const;
+      virtual ~RayColoring();
   };
 
   struct CrappyCplusplusColorWrapper {

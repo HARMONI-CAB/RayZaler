@@ -69,13 +69,13 @@ GenericEvaluator::resolve(std::string const &symbol)
   auto it = m_dict->find(symbol);
 
   if (it != m_dict->end())
-    return &(*m_dict)[symbol]->value;
+    return &it->second->value;
 
   return nullptr;
 }
 
 GenericEvaluator::GenericEvaluator(
-  GenericEvaluatorSymbolDict *dict,
+  const GenericEvaluatorSymbolDict *dict,
   ExprRandomState *state)
 {
   m_dict = dict;
@@ -749,7 +749,7 @@ GenericCompositeModel::loadScripts()
 GenericComponentParamEvaluator *
 GenericCompositeModel::makeExpression(
   std::string const &expr,
-  GenericEvaluatorSymbolDict *dict)
+  const GenericEvaluatorSymbolDict *dict)
 {
   GenericComponentParamEvaluator *paramEvaluator = new GenericComponentParamEvaluator();
   std::list<GenericCustomFunction *> customFuncs;
@@ -784,7 +784,7 @@ GenericCompositeModel::makeExpression(
     for (auto dep : deps) {
       auto it = dict->find(dep);
       if (it != dict->end())
-        (*dict)[dep]->dependencies.push_back(paramEvaluator);
+        it->second->dependencies.push_back(paramEvaluator);
     }
   }
 

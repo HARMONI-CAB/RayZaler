@@ -23,7 +23,7 @@ using namespace RZ;
 RayColoring RayBeamElement::m_defaultColoring;
 
 void
-RayColoring::id2color(uint32_t id, GLfloat *rgb) const
+RayColoring::id2color(uint32_t, GLfloat *rgb) const
 {
   // Yellow
   rgb[0] = 1;
@@ -36,6 +36,11 @@ RayColoring::id2color(uint32_t id, GLfloat alpha, GLfloat *rgb) const
 {
   id2color(id, rgb);
   rgb[3] = alpha;
+}
+
+RayColoring::~RayColoring()
+{
+
 }
 
 void

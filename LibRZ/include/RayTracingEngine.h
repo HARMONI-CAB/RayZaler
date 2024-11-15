@@ -8,6 +8,7 @@
 #include <sys/time.h>
 
 #define RZ_SPEED_OF_LIGHT 299792458 // m/s
+#define RZ_WAVELENGTH     555e-9
 
 namespace RZ {
   class ReferenceFrame;
@@ -24,6 +25,8 @@ namespace RZ {
 
     // Defines whether the ray is susceptible to vignetting
     bool chief = false;
+
+    RZ::Real wavelength = RZ_WAVELENGTH;
 
     // Defined by the user
     uint32_t id = 0;
@@ -44,6 +47,7 @@ namespace RZ {
     Real *lengths       = nullptr;
     Real *cumOptLengths = nullptr;
     Real *normals       = nullptr; // Surface normals of the depart surface
+    Real *wavelengths   = nullptr;
     uint32_t *ids       = nullptr;
 
     Real n              = 1.;
@@ -124,6 +128,7 @@ namespace RZ {
       Vec3 diff = Vec3(destinations + 3 * index) - dest.origin;
       dest.length = diff.norm();
       dest.chief  = isChief(index);
+      dest.wavelength = wavelengths[index];
 
       if (isZero(dest.length))
         return false;
@@ -148,6 +153,7 @@ namespace RZ {
       dest.id = ids[index];
       dest.origin.setFromArray(destinations + 3 * index);
       dest.direction.setFromArray(directions + 3 * index);
+      dest.wavelength = wavelengths[index];
 
       if (lengths[index] < 0)
         dest.direction = -dest.direction;
@@ -271,7 +277,6 @@ namespace RZ {
       std::vector<Real> m_currNormals;
       Real m_dA = 1.;     // Area element of the departure surface
       Real m_currdA = 1.; // Area element of the current surface
-      Real m_K = 2 * M_PI;      // Wavenumber
       RayBeam *m_beam = nullptr;
       bool m_beamDirty = true;
       bool m_notificationPendig = false;
@@ -297,18 +302,6 @@ namespace RZ {
       beam() const
       {
         return m_beam;
-      }
-
-      inline void
-      setK(Real K)
-      {
-        m_K = K;
-      }
-
-      inline Real
-      K() const
-      {
-        return m_K;
       }
 
       RayTracingEngine();

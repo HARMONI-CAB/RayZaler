@@ -100,6 +100,7 @@ RayBeam::allocate(uint64_t count)
     this->amplitude     = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
+    this->wavelengths   = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
     this->prevMask      = allocBuffer<uint64_t>(maskLen);
@@ -111,6 +112,7 @@ RayBeam::allocate(uint64_t count)
     this->normals       = allocBuffer<Real>(3 * count, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, this->destinations);
     this->amplitude     = allocBuffer<Complex>(count, this->amplitude);
+    this->wavelengths   = allocBuffer<Real>(count, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
     this->ids           = allocBuffer<uint32_t>(count, this->ids);
@@ -134,6 +136,7 @@ RayBeam::deallocate()
   freeBuffer(destinations);
   freeBuffer(normals);
   freeBuffer(lengths);
+  freeBuffer(wavelengths);
   freeBuffer(cumOptLengths);
   freeBuffer(amplitude);
   freeBuffer(ids);
@@ -270,6 +273,7 @@ RayTracingEngine::toBeam()
     m_beam->lengths[i]       = p->length;
     m_beam->cumOptLengths[i] = p->cumOptLength;
     m_beam->ids[i]           = p->id;
+    m_beam->wavelengths[i]   = p->wavelength;
     
     if (p->chief)
       m_beam->setChiefRay(i);
@@ -344,11 +348,13 @@ void
 RayTracingEngine::propagatePhase()
 {
   auto count = m_beam->count;
-  Real K = m_K;
-
-  for (auto i = 0; i < count; ++i)
-    if (m_beam->hasRay(i))
+  Real K;
+  for (auto i = 0; i < count; ++i) {
+    if (m_beam->hasRay(i)) {
+      K = 2 * M_PI / m_beam->wavelengths[i];
       m_beam->amplitude[i] *= std::exp(Complex(0, K * m_beam->cumOptLengths[i]));
+    }
+  }
 }
 
 void

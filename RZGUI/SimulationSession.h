@@ -7,8 +7,10 @@
 #include <ExprTkEvaluator.h>
 #include <QTimer>
 #include <QColor>
+#include "SimulationProperties.h"
 #include "SpotDiagramWindow.h"
 #include "GUIHelpers.h"
+#include "ExprEvaluationContext.h"
 
 #define RZGUI_MODEL_REFRESH_MS 100
 #define RZGUI_MODEL_DEFAULT_RAY_COLOR 0xffff00 // Yellow
@@ -79,90 +81,24 @@ struct RepresentationProperties {
 };
 Q_DECLARE_METATYPE(RepresentationProperties);
 
-enum TracerType {
-  TRACER_TYPE_GEOMETRIC_OPTICS,
-  TRACER_TYPE_DIFFRACTION
+class SimulationBeamState {
+  QString name;
+
 };
 
-enum SimulationType {
-  SIM_TYPE_ONE_SHOT,
-  SIM_TYPE_1D_SWEEP,
-  SIM_TYPE_2D_SWEEP
+// Beam properties must be copied as they must be visible even after the
+// user changes the properties of the current simulation.
+struct BeamSimulationState {
+  uint32_t                 id = 0;
+  SimulationBeamProperties properties;
+  ExprEvaluationContext    evalCtx;
+  bool                     complete = false;
+  qreal                    wavelength = 555e-9;
+
+  BeamSimulationState(const SimulationBeamProperties &, ExprEvaluationContext *);
 };
 
-enum BeamType {
-  BEAM_TYPE_COLLIMATED,
-  BEAM_TYPE_CONVERGING,
-  BEAM_TYPE_DIVERGING
-};
-
-enum BeamReference {
-  BEAM_REFERENCE_INPUT_ELEMENT,
-  BEAM_REFERENCE_APERTURE_STOP,
-  BEAM_REFERENCE_FOCAL_PLANE
-};
-
-struct SimulationProperties {
-  TracerType     ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
-  SimulationType type  = SIM_TYPE_ONE_SHOT;
-  BeamType       beam  = BEAM_TYPE_COLLIMATED;
-  BeamReference  ref   = BEAM_REFERENCE_INPUT_ELEMENT;
-  RZ::BeamShape  shape = RZ::BeamShape::Circular;
-
-  QString diameter     = "40e-3";       // m
-  QString refAperture  = "200e-3";      // m
-  QString focalPlane   = "";
-  QString apertureStop = "";
-  QString fNum         = "17.37";
-  QString azimuth      = "90";      // deg
-  QString elevation    = "0";       // deg
-  QString offsetX      = "0";       // m
-  QString offsetY      = "0";       // m
-  QString wavelength   = "525";     // nm
-
-  int  rays            = 1000;
-  int  Ni              = 10;
-  int  Nj              = 10;
-  bool random          = false; // Random sampling
-
-  std::list<std::string> footprints;
-
-  QString detector;
-  QString path;
-
-  std::map<std::string, std::string> dofs;
-
-  // Artifact generation properties
-  bool    saveArtifacts = false;
-  bool    saveCSV       = true;
-  bool    clearDetector = false;
-  bool    overwrite     = false;
-
-  QString saveDir = "artifacts";
-  QString saveDetector = "";
-
-  void loadDefaults();
-  QString lastError() const;
-
-  QByteArray serialize() const;
-  bool deserialize(QByteArray const &);
-
-private:
-  QString m_lastError;
-
-  bool deserialize(QJsonObject const &, QString const &, TracerType &);
-  bool deserialize(QJsonObject const &, QString const &, SimulationType &);
-  bool deserialize(QJsonObject const &, QString const &, BeamType &);
-  bool deserialize(QJsonObject const &, QString const &, BeamReference &);
-  bool deserialize(QJsonObject const &, QString const &, RZ::BeamShape &);
-  bool deserialize(QJsonObject const &, QString const &, std::list<std::string> &);
-
-  bool deserialize(QJsonObject const &, QString const &, QString &);
-  bool deserialize(QJsonObject const &, QString const &, int &);
-  bool deserialize(QJsonObject const &, QString const &, bool &);
-  bool deserialize(QJsonObject const &, QString const &, qreal &);
-  bool deserialize(QJsonObject const &, QString const &, std::map<std::string, std::string> &);
-};
+typedef std::list<RZ::Ray> RayGroup;
 
 class SimulationState {
   QString                  m_simName;
@@ -171,65 +107,51 @@ class SimulationState {
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
   RZ::ExprRandomState     *m_randState     = nullptr;
   RZ::RayBeamElement      *m_beamElement   = nullptr;
-
-  RZ::ExprTkEvaluator *m_diamExpr      = nullptr;
-  RZ::ExprTkEvaluator *m_refApExpr     = nullptr;
-  RZ::ExprTkEvaluator *m_fNumExpr      = nullptr;
-
-  RZ::ExprTkEvaluator *m_azimuthExpr   = nullptr;
-  RZ::ExprTkEvaluator *m_elevationExpr = nullptr;
-
-  RZ::ExprTkEvaluator *m_offsetXExpr   = nullptr;
-  RZ::ExprTkEvaluator *m_offsetYExpr   = nullptr;
-
-  RZ::ExprTkEvaluator *m_wavelengthExpr = nullptr;
-
-  std::map<std::string, RZ::ExprTkEvaluator *> m_dofExprs;
-
-  // Variables available to the simulation parameter expressions
-  std::map<std::string, RZ::RecipeParameter>     m_varDescriptions;
-  RZ::GenericEvaluatorSymbolDict                 m_dictionary;
-
-  std::string m_lastCompileError = "";
-  bool m_complete = false;
+  ExprEvaluationContext    m_evalSimCtx;
+  ExprEvaluationContext   *m_evalModelCtx = nullptr;
+  std::string              m_lastCompileError = "";
+  std::string              m_firstFailedExpr = "";
+  std::string              m_firstFailedBeamExpr = "";
+  int32_t                  m_failedBeamId = -1;
+  bool                     m_complete = false;
 
   // Simulation objects
-  std::list<std::list<RZ::Ray>> m_beamAlloc;
-  std::list<std::list<RZ::Ray>>::iterator m_currBeam;
+  std::list<BeamSimulationState *>          m_previousBeams;
+  std::list<BeamSimulationState *>          m_currentBeams;
+  std::map<uint32_t, BeamSimulationState *> m_idToBeam;
+  uint32_t                                  m_nextBeamId = 0;
+
+  std::list<RayGroup>                       m_rayGroupAlloc;
+  std::list<RayGroup>::iterator             m_currentRayGroup;
 
   // Data saving (set if and only if data saving is enabled)
   RZ::Detector *m_saveDetector = nullptr;
-  FILE         *m_csvFp = nullptr;
-  unsigned int  m_pfxCount = 0;
+  FILE         *m_csvFp        = nullptr;
+  unsigned int  m_pfxCount     = 0;
   QString       m_currentSavePrefix;
 
   // Data products
   std::list<SurfaceFootprint> m_footprints;
 
   // Simulation progress
-  bool m_running = false;
+  bool    m_running  = false;
   int64_t m_simCount = 0;
-  int m_steps = 1;
-  int m_currStep = 0;
-  int m_i = 0;
-  int m_j = 0;
+  int     m_steps    = 1;
+  int     m_currStep = 0;
+  int     m_i        = 0;
+  int     m_j        = 0;
 
   // Private functions
-  void clearAll();
-  bool trySetExpr(RZ::ExprTkEvaluator * &, std::string const &);
-  void defineVariable(
-      std::string const &,
-      RZ::Real value = 0,
-      RZ::Real min = -std::numeric_limits<RZ::Real>::infinity(),
-      RZ::Real max = +std::numeric_limits<RZ::Real>::infinity());
-  RZ::Real setVariable(std::string const &, RZ::Real);
+  BeamSimulationState *makeBeamState(SimulationBeamProperties const &);
+  void clearAndSavePreviousBeams();
+  void initStateEvalCtx();
   void applyDofs();
   void resetPrefix();
   void genPrefix();
-  uint32_t beamColorCycle() const;
   QString getCurrentOutputCSVFileName() const;
   QString getCurrentOutputFileName() const;
   void bumpPrefix();
+  void clearBeams();
 
   RZ::Detector *findDetectorForPath(std::string const &);
 
@@ -238,7 +160,6 @@ class SimulationState {
   bool openCSV();
   void saveCSV();
   void closeCSV();
-  void chooseSimulationName();
 
 public:
   SimulationState(RZ::TopLevelModel *);
@@ -256,7 +177,7 @@ public:
   int simCount() const;
 
   void saveArtifacts();
-  bool allocateRays(uint32_t color = RZGUI_MODEL_DEFAULT_RAY_COLOR);
+  bool allocateRays();
   void releaseRays();
 
   void extractFootprints();
@@ -264,11 +185,11 @@ public:
 
   bool setProperties(SimulationProperties const &);
   void setRepresentationProperties(RepresentationProperties const &repProp);
-  std::string getFirstInvalidExpr() const;
   std::string getLastError() const;
   SimulationProperties properties() const;
   RepresentationProperties repProperties() const;
-  std::list<RZ::Ray> const &beam() const;
+  std::list<RZ::Ray> const &rayGroup() const;
+  BeamSimulationState *getBeamState(uint32_t id);
 };
 
 class SimulationSession : public QObject
@@ -285,7 +206,7 @@ class SimulationSession : public QObject
   QThread           *m_tracerThread      = nullptr;
   SimulationState   *m_simState          = nullptr;
   QTimer            *m_timer             = nullptr;
-  RZ::RayColoring   *m_rgbColoring;
+  RZ::RayColoring   *m_beamColoring;
   qreal              m_t                 = 0;
   bool               m_paused            = false;
   bool               m_playing           = false;
@@ -325,6 +246,8 @@ public:
 
   bool                 playing() const;
   bool                 stopped() const;
+
+  uint32_t             idToRgba(uint32_t) const;
 
 signals:
   void modelChanged();
