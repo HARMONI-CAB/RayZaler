@@ -118,6 +118,7 @@ struct SimulationProperties : public JsonSerializable {
   QString saveDetector  = "";
 
   void addBeam(SimulationBeamProperties const &prop);
+  bool removeBeam(int index);
   void clearBeams();
 
   virtual QJsonObject serialize() const override;
@@ -125,14 +126,16 @@ struct SimulationProperties : public JsonSerializable {
   virtual void loadDefaults() override;
 
   SimulationProperties() = default;
-  SimulationProperties(const SimulationProperties &) = default;
-  SimulationProperties(SimulationProperties &&) = default;
-  SimulationProperties& operator=(const SimulationProperties &) = default;
-  SimulationProperties& operator=(SimulationProperties &&) = default;
+  SimulationProperties(const SimulationProperties &);
+  SimulationProperties(SimulationProperties &&);
+  SimulationProperties& operator=(const SimulationProperties &);
+  SimulationProperties& operator=(SimulationProperties &&);
 
 private:
   bool deserialize(QJsonObject const &, QString const &, TracerType &);
   bool deserialize(QJsonObject const &, QString const &, SimulationType &);
+
+  void regenerateBeamVector();
 };
 
 #endif // SIMULATIONPROPERTIES_H

@@ -49,7 +49,6 @@ class SimulationPropertiesDialog : public QDialog
   ColorChooserButton      *m_fixedColorChooser = nullptr;
 
   void connectAll();
-  void refreshUi();
 
   void applySettings();
   void applyProperties(bool setEdited = false);
@@ -77,6 +76,7 @@ public:
   void accept() override;
 
 public slots:
+  void refreshUi();
   void onBrowseOutputDir();
   void onRepChanged();
   void onDataChanged();

@@ -363,6 +363,15 @@ SimulationProperties::deserialize(
   return true;
 }
 
+void
+SimulationProperties::regenerateBeamVector()
+{
+  beamVector.clear();
+  for (auto &p : beams) {
+    p.index = static_cast<int>(beamVector.size());
+    beamVector.push_back(&p);
+  }
+}
 
 bool
 SimulationProperties::deserialize(QJsonObject const &obj)
@@ -390,10 +399,117 @@ SimulationProperties::deserialize(QJsonObject const &obj)
 
 #undef DESERIALIZE
 
-  beamVector.clear();
-  for (auto &p : beams)
-    beamVector.push_back(&p);
+  regenerateBeamVector();
 
   return true;
 }
 
+bool
+SimulationProperties::removeBeam(int index)
+{
+  if (index < 0 || index >= beamVector.size())
+    return false;
+
+  auto it = beams.begin();
+  while (it != beams.end()) {
+    if (it->index == index)
+      break;
+    ++it;
+  }
+
+  if (it == beams.end())
+    throw std::runtime_error("Corrupt beam list");
+
+  beams.erase(it);
+  regenerateBeamVector();
+
+  return true;
+}
+
+SimulationProperties::SimulationProperties(const SimulationProperties &prop)
+{
+  ttype         = prop.ttype;
+  type          = prop.type;
+  Ni            = prop.Ni;
+  Nj            = prop.Nj;
+  beams         = prop.beams;
+  footprints    = prop.footprints;
+  detector      = prop.detector;
+  path          = prop.path;
+  dofs          = prop.dofs;
+  saveArtifacts = prop.saveArtifacts;
+  saveCSV       = prop.saveCSV;
+  clearDetector = prop.clearDetector;
+  overwrite     = prop.overwrite;
+  saveDir       = prop.saveDir;
+  saveDetector  = prop.saveDetector;
+  regenerateBeamVector();
+}
+
+SimulationProperties::SimulationProperties(SimulationProperties &&prop)
+{
+  std::swap(ttype         , prop.ttype);
+  std::swap(type          , prop.type);
+  std::swap(Ni            , prop.Ni);
+  std::swap(Nj            , prop.Nj);
+  std::swap(beams         , prop.beams);
+  std::swap(footprints    , prop.footprints);
+  std::swap(detector      , prop.detector);
+  std::swap(path          , prop.path);
+  std::swap(dofs          , prop.dofs);
+  std::swap(saveArtifacts , prop.saveArtifacts);
+  std::swap(saveCSV       , prop.saveCSV);
+  std::swap(clearDetector , prop.clearDetector);
+  std::swap(overwrite     , prop.overwrite);
+  std::swap(saveDir       , prop.saveDir);
+  std::swap(saveDetector  , prop.saveDetector);
+
+  regenerateBeamVector();
+}
+
+SimulationProperties&
+SimulationProperties::operator=(const SimulationProperties &prop)
+{
+  ttype         = prop.ttype;
+  type          = prop.type;
+  Ni            = prop.Ni;
+  Nj            = prop.Nj;
+  beams         = prop.beams;
+  footprints    = prop.footprints;
+  detector      = prop.detector;
+  path          = prop.path;
+  dofs          = prop.dofs;
+  saveArtifacts = prop.saveArtifacts;
+  saveCSV       = prop.saveCSV;
+  clearDetector = prop.clearDetector;
+  overwrite     = prop.overwrite;
+  saveDir       = prop.saveDir;
+  saveDetector  = prop.saveDetector;
+  regenerateBeamVector();
+
+  return *this;
+}
+
+SimulationProperties&
+SimulationProperties::operator=(SimulationProperties &&prop)
+{
+  std::swap(ttype         , prop.ttype);
+  std::swap(type          , prop.type);
+  std::swap(Ni            , prop.Ni);
+  std::swap(Nj            , prop.Nj);
+  std::swap(beams         , prop.beams);
+  std::swap(footprints    , prop.footprints);
+  std::swap(detector      , prop.detector);
+  std::swap(path          , prop.path);
+  std::swap(dofs          , prop.dofs);
+  std::swap(saveArtifacts , prop.saveArtifacts);
+  std::swap(saveCSV       , prop.saveCSV);
+  std::swap(clearDetector , prop.clearDetector);
+  std::swap(overwrite     , prop.overwrite);
+  std::swap(saveDir       , prop.saveDir);
+  std::swap(saveDetector  , prop.saveDetector);
+
+  regenerateBeamVector();
+
+  return *this;
+}

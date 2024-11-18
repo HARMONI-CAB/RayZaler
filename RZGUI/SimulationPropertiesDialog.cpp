@@ -88,7 +88,11 @@ SimulationPropertiesDialog::refreshBeamList()
 
   for (int i = 0; i < m_properties.beamVector.size(); ++i) {
     QString shape, sampling;
-    int row = ui->beamTableWidget->rowCount();
+
+    if (i != ui->beamTableWidget->rowCount())
+      throw std::runtime_error("Unexpected beamTableWidget behavior");
+
+    int row = i;
 
     ui->beamTableWidget->insertRow(row);
 
@@ -241,6 +245,24 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(cellDoubleClicked(int, int)),
         this,
         SLOT(onEditBeam(int, int)));
+
+  connect(
+        ui->beamTableWidget,
+        SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem *)),
+        this,
+        SLOT(refreshUi()));
+
+  connect(
+        ui->removeBeamButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onRemoveBeam()));
+
+  connect(
+        ui->removeAllBeamsButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onRemoveAllBeams()));
 }
 
 void
@@ -298,6 +320,8 @@ SimulationPropertiesDialog::refreshUi()
   ui->clearDetCheck->setEnabled(ui->saveCheck->isChecked());
   ui->browseDirButton->setEnabled(ui->saveCheck->isChecked());
   ui->overwriteResultsCheck->setEnabled(ui->saveCheck->isChecked());
+  ui->removeBeamButton->setEnabled(ui->beamTableWidget->currentRow() != -1);
+  ui->removeAllBeamsButton->setEnabled(!m_properties.beams.empty());
 }
 
 void
@@ -764,24 +788,35 @@ SimulationPropertiesDialog::onAddBeam()
   if (m_beamPropertiesDialog->exec()) {
     m_properties.addBeam(m_beamPropertiesDialog->getProperties());
     refreshBeamList();
+    refreshUi();
   }
 }
 
 void
 SimulationPropertiesDialog::onRemoveBeam()
 {
+  int selectedRow = ui->beamTableWidget->currentRow();
 
+  if (selectedRow >= 0 && selectedRow < m_properties.beamVector.size()) {
+    m_properties.removeBeam(selectedRow);
+    refreshBeamList();
+    refreshUi();
+  }
 }
 
 void
 SimulationPropertiesDialog::onRemoveAllBeams()
 {
-
+  m_properties.clearBeams();
+  refreshBeamList();
+  refreshUi();
 }
 
 void
-SimulationPropertiesDialog::onEditBeam(int row, int)
+SimulationPropertiesDialog::onEditBeam(int row, int col)
 {
+  printf("Edit beam: %d, %d\n", row, col);
+
   if (row >= 0 && row < m_properties.beamVector.size()) {
     m_beamPropertiesDialog->setBeamProperties(*m_properties.beamVector[row]);
     if (m_beamPropertiesDialog->exec()) {
