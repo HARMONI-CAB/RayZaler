@@ -57,6 +57,9 @@ class SimulationPropertiesDialog : public QDialog
   void parseRepProperties();
   void sanitizeSaveDirectory();
   void insertFootprintElement(std::string const &);
+  void refreshBeamList();
+
+  QString suggestBeamName() const;
 
 public:
   explicit SimulationPropertiesDialog(QWidget *parent = nullptr);
@@ -87,6 +90,7 @@ public slots:
   void onAddBeam();
   void onRemoveBeam();
   void onRemoveAllBeams();
+  void onEditBeam(int, int);
 
 private:
   Ui::SimulationPropertiesDialog *ui;

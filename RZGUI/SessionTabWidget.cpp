@@ -598,7 +598,7 @@ SessionTabWidget::onSweepFinished()
 
   }
 
-  footprints.clear();
+  m_session->state()->clearFootprints();
 
   if (haveResults)
     emit simulationResults();

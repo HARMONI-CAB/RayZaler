@@ -62,7 +62,7 @@ struct SimulationBeamProperties : public JsonSerializable {
   QString focalPlane   = "";
   QString apertureStop = "";
   QString fNum         = "17.37";
-  QString uX           = "90";      // (cos)
+  QString uX           = "0";      // (cos)
   QString uY           = "0";       // (cos)
   QString offsetX      = "0";       // m
   QString offsetY      = "0";       // m
@@ -118,6 +118,7 @@ struct SimulationProperties : public JsonSerializable {
   QString saveDetector  = "";
 
   void addBeam(SimulationBeamProperties const &prop);
+  void clearBeams();
 
   virtual QJsonObject serialize() const override;
   virtual bool deserialize(QJsonObject const &) override;

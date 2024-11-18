@@ -232,12 +232,18 @@ SimulationProperties::addBeam(SimulationBeamProperties const &prop)
 {
   beams.push_back(prop);
 
-  auto last = beams.end();
-  --last;
+  auto last = &beams.back();
 
   last->index = static_cast<int>(beamVector.size());
 
-  beamVector.push_back(&*last);
+  beamVector.push_back(last);
+}
+
+void
+SimulationProperties::clearBeams()
+{
+  beams.clear();
+  beamVector.clear();
 }
 
 QJsonObject
@@ -383,6 +389,10 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(saveDetector);
 
 #undef DESERIALIZE
+
+  beamVector.clear();
+  for (auto &p : beams)
+    beamVector.push_back(&p);
 
   return true;
 }

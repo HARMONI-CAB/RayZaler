@@ -295,7 +295,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_17">
        <item row="1" column="0">
-        <widget class="QTableWidget" name="tableWidget">
+        <widget class="QTableWidget" name="beamTableWidget">
          <property name="horizontalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>
          </property>
@@ -317,6 +317,11 @@
          <attribute name="verticalHeaderDefaultSectionSize">
           <number>24</number>
          </attribute>
+         <column>
+          <property name="text">
+           <string>Color</string>
+          </property>
+         </column>
          <column>
           <property name="text">
            <string>Name</string>

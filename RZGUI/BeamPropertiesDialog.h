@@ -33,7 +33,7 @@ public:
   void setSession(SimulationSession *);
 
   void setBeamProperties(SimulationBeamProperties const &);
-  SimulationBeamProperties getProperties() const;
+  SimulationBeamProperties getProperties();
   void highlightFaultyField(QString const &);
 
 public slots:

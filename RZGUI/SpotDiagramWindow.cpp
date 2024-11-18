@@ -25,7 +25,7 @@ SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
     "All files (*)");
 
 
-  ui->centerGrid->addWidget(m_widget, 0, 0, 2, 1);
+  ui->splitter->replaceWidget(0, m_widget);
 
   setWindowTitle(QString::fromStdString(m_product->productName()) + " - Footprint");
 

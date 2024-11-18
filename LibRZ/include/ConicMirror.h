@@ -38,11 +38,11 @@ namespace RZ {
       Real m_K = 0;
       Real m_rCurv = 2e-2;
       bool m_convex = false;
-      Real m_displacement;
+      Real m_displacement = 0;
       Real m_x0 = 0;
       Real m_y0 = 0;
       Real m_rHole = .5;
-      Real m_rHoleHeight;
+      Real m_rHoleHeight = 0;
       
       void recalcModel();
 

@@ -80,6 +80,54 @@ SimulationPropertiesDialog::~SimulationPropertiesDialog()
 }
 
 void
+SimulationPropertiesDialog::refreshBeamList()
+{
+  ui->beamTableWidget->setRowCount(0);
+
+  printf("Beams in beam vector: %d\n", m_properties.beamVector.size());
+
+  for (int i = 0; i < m_properties.beamVector.size(); ++i) {
+    QString shape, sampling;
+    int row = ui->beamTableWidget->rowCount();
+
+    ui->beamTableWidget->insertRow(row);
+
+    auto props = m_properties.beamVector[i];
+
+    switch (props->shape) {
+      case RZ::BeamShape::Circular:
+        shape = "Circular";
+        break;
+
+      case RZ::BeamShape::Ring:
+        shape = "Ring";
+        break;
+
+      case RZ::BeamShape::Point:
+        shape = "Point-like";
+        break;
+
+      case RZ::BeamShape::Custom:
+        shape = "Custom";
+        break;
+    }
+
+    sampling = props->random ? "Random" : "Uniform";
+
+    auto item = new QTableWidgetItem;
+
+    item->setBackground(props->color);
+
+    ui->beamTableWidget->setItem(row, 0, item);
+    ui->beamTableWidget->setItem(row, 1, new QTableWidgetItem(props->name));
+    ui->beamTableWidget->setItem(row, 2, new QTableWidgetItem(shape));
+    ui->beamTableWidget->setItem(row, 3, new QTableWidgetItem(props->fNum));
+    ui->beamTableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(props->rays)));
+    ui->beamTableWidget->setItem(row, 5, new QTableWidgetItem(sampling));
+  }
+}
+
+void
 SimulationPropertiesDialog::applySettings()
 {
   RZGUISingleton::loadSetting(m_repProperties, "Representation");
@@ -187,6 +235,12 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(clicked(bool)),
         this,
         SLOT(onRemoveAllFootprints()));
+
+  connect(
+        ui->beamTableWidget,
+        SIGNAL(cellDoubleClicked(int, int)),
+        this,
+        SLOT(onEditBeam(int, int)));
 }
 
 void
@@ -265,6 +319,9 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
   BLOCKSIG(ui->overwriteResultsCheck, setChecked(m_properties.overwrite));
   BLOCKSIG(ui->outputDirEdit,         setText(m_properties.saveDir));
+
+  // Add all beams
+  refreshBeamList();
 
   // Add all paths and detectors
   if (m_session != nullptr) {
@@ -543,6 +600,7 @@ SimulationPropertiesDialog::doLoadFromFile()
             + properties.lastError().toStdString());
 
       m_properties = properties;
+
       sanitizeSaveDirectory(); // To prevent nasty things
 
       m_propModel->setModel(m_session->topLevelModel());
@@ -675,16 +733,37 @@ SimulationPropertiesDialog::onRemoveAllFootprints()
   m_properties.footprints.clear();
 }
 
+QString
+SimulationPropertiesDialog::suggestBeamName() const
+{
+  if (m_properties.beams.empty()) {
+    return "New beam";
+  } else {
+    unsigned num = 0;
+    auto &last = m_properties.beams.back();
+    std::string stdName = last.name.toStdString();
+    const char *cName = stdName.c_str();
+    const char *par = strchr(cName, '(');
+
+    if (par != nullptr) {
+      if (sscanf(par + 1, "%u", &num) < 1)
+        num = 0;
+      else
+        stdName = stdName.substr(0, static_cast<size_t>(par - cName) - 1);
+    }
+
+    return QString::fromStdString(stdName) + " (" + QString::number(num + 1) + ")";
+  }
+}
+
 void
 SimulationPropertiesDialog::onAddBeam()
 {
-  m_beamPropertiesDialog->setNameHint("New beam");
-  m_beamPropertiesDialog->setColorHint(QColor::fromRgb(255, 255, 0));
+  m_beamPropertiesDialog->setNameHint(suggestBeamName());
 
   if (m_beamPropertiesDialog->exec()) {
-    printf("Accepted\n");
-  } else {
-    printf("Rejected\n");
+    m_properties.addBeam(m_beamPropertiesDialog->getProperties());
+    refreshBeamList();
   }
 }
 
@@ -698,4 +777,16 @@ void
 SimulationPropertiesDialog::onRemoveAllBeams()
 {
 
+}
+
+void
+SimulationPropertiesDialog::onEditBeam(int row, int)
+{
+  if (row >= 0 && row < m_properties.beamVector.size()) {
+    m_beamPropertiesDialog->setBeamProperties(*m_properties.beamVector[row]);
+    if (m_beamPropertiesDialog->exec()) {
+      *m_properties.beamVector[row] = m_beamPropertiesDialog->getProperties();
+      refreshBeamList();
+    }
+  }
 }

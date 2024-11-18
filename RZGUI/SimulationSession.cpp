@@ -17,6 +17,83 @@
 #include <Logger.h>
 #include <cmath>
 
+
+// https://www.johndcook.com/wavelength_to_RGB.html
+static inline uint32_t
+wl2uint32_t(qreal w)
+{
+  qreal red, green, blue;
+  qreal factor, gamma;
+  uint R, G, B;
+  uint32_t tuple = 0;
+
+  if (w >= 380 && w < 440) {
+    red   = -(w - 440) / (440 - 380);
+    green = 0.0;
+    blue  = 1.0;
+  } else if (w >= 440 && w < 490) {
+    red   = 0.0;
+    green = (w - 440) / (490 - 440);
+    blue  = 1.0;
+  } else if (w >= 490 && w < 510) {
+    red   = 0.0;
+    green = 1.0;
+    blue  = -(w - 510) / (510 - 490);
+  } else if (w >= 510 && w < 580) {
+    red   = (w - 510) / (580 - 510);
+    green = 1.0;
+    blue  = 0.0;
+  } else if (w >= 580 && w < 645) {
+    red   = 1.0;
+    green = -(w - 645) / (645 - 580);
+    blue  = 0.0;
+  } else if (w >= 645 && w < 781) {
+    red   = 1.0;
+    green = 0.0;
+    blue  = 0.0;
+  } else {
+    red   = 0.0;
+    green = 0.0;
+    blue  = 0.0;
+  }
+
+
+  // Let the intensity fall off near the vision limits
+
+  if (w >= 380 && w < 420)
+      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
+  else if (w >= 420 && w < 701)
+      factor = 1.0;
+  else if (w >= 701 && w < 781)
+      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
+  else
+      factor = 0.0;
+
+  gamma = 0.80;
+
+  R = static_cast<uint>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
+  G = static_cast<uint>(qBound(0., 255 * pow(green * factor, gamma), 255.));
+  B = static_cast<uint>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
+
+  tuple |= R << 16;
+  tuple |= G << 8;
+  tuple |= B;
+
+  return tuple;
+}
+
+static inline uint32_t
+QColor2uint32_t(QColor const &color)
+{
+  uint32_t tuple = 0;
+
+  tuple |= static_cast<uint32_t>(color.red())   << 16;
+  tuple |= static_cast<uint32_t>(color.green()) << 8;
+  tuple |= static_cast<uint32_t>(color.blue());
+
+  return tuple;
+}
+
 ////////////////////////////// RayColoring ////////////////////////////////////
 class RZGUIBeamColoring : public RZ::RayColoring {
   SimulationSession *m_session = nullptr;
@@ -118,6 +195,7 @@ SimulationState::clearAndSavePreviousBeams()
     if (beam->complete) {
       m_previousBeams.splice(m_previousBeams.end(), m_currentBeams, it);
     } else {
+      printf("Remove beam ID %d\n", beam->id);
       auto node = m_idToBeam.find(beam->id);
       if (node != m_idToBeam.end())
         m_idToBeam.erase(node);
@@ -135,6 +213,7 @@ SimulationState::makeBeamState(SimulationBeamProperties const &props)
 
   beam->id = m_nextBeamId++;
 
+  printf("Make beam %d\n", beam->id);
   m_idToBeam[beam->id] = beam;
   m_currentBeams.push_back(beam);
 
@@ -170,6 +249,7 @@ SimulationState::setProperties(SimulationProperties const &prop)
     }
   }
 
+  printf("Set properties! %d beams defined\n", prop.beams.size());
 #define TRY_DEFINE_BEAM_EXPR(name)                                           \
   if (!beamState->evalCtx.defineExpression(#name, bp.name.toStdString())) {  \
     m_firstFailedBeamExpr = #name;                                           \
@@ -190,6 +270,8 @@ SimulationState::setProperties(SimulationProperties const &prop)
     TRY_DEFINE_BEAM_EXPR(wavelength);
 
     beamState->complete = true;
+
+    printf("Beam done\n");
   }
 #undef TRY_DEFINE_BEAM_EXPR
 
@@ -277,7 +359,7 @@ SimulationState::allocateRays()
     prop.direction  = RZ::Vec3(ux, uy, uz);
     prop.offset     = RZ::Vec3(x0, y0, z0);
     prop.length     = 1;
-    prop.id         = beam.color.rgba();
+    prop.id         = beamState->id;
     prop.wavelength = wl;
     beamState->wavelength = wl;
 
@@ -313,7 +395,13 @@ SimulationState::allocateRays()
         break;
     }
 
+    RZInfo(
+          "Add beam %s (id = %d)\n",
+          beamState->properties.name.toStdString().c_str(),
+          beamState->id);
+    prop.debug();
     RZ::OMModel::addBeam(*m_currentRayGroup, prop);
+    RZInfo("\n");
   }
 
   return true;
@@ -333,6 +421,9 @@ SimulationState::clearBeams()
 
   m_idToBeam.clear();
   m_nextBeamId = 0;
+
+  m_previousBeams.clear();
+  m_currentBeams.clear();
 }
 
 void
@@ -347,9 +438,6 @@ SimulationState::applyDofs()
     m_evalSimCtx.setVariable("dof_" + p, dofVal);
     m_topLevelModel->setDof(p, dofVal);
   }
-
-  if (!m_repProp.accumulate)
-   clearBeams();
 }
 
 void
@@ -540,6 +628,13 @@ SimulationState::closeCSV()
 }
 
 void
+SimulationState::clearFootprints()
+{
+  m_idToFootprint.clear();
+  m_footprints.clear();
+}
+
+void
 SimulationState::applyRecordHits()
 {
   auto allOpticalElements = m_topLevelModel->allOpticalElements();
@@ -560,6 +655,83 @@ SimulationState::footprints()
   return m_footprints;
 }
 
+void
+SimulationState::extractFootprintsFromSurface(
+    std::string const &path,
+    RZ::OpticalSurface *surf)
+{
+  uint32_t currId = 0xffffffff;
+  BeamSimulationState *beamState = nullptr;
+  SurfaceFootprint *footprint = nullptr;
+  auto &locations = surf->locations();
+  auto &directions = surf->directions();
+  size_t i = 0;
+  size_t prevIndex = 0;
+  size_t hitsCount = surf->hits.size();
+
+  for (i = 0; i < hitsCount; ++i) {
+    auto &hit = surf->hits[i];
+
+    if (hit.id != currId) {
+      if (footprint != nullptr) {
+        footprint->locations.insert(
+              footprint->locations.end(),
+              &locations[3 * prevIndex],
+              &locations[3 * i]);
+
+        footprint->directions.insert(
+              footprint->directions.end(),
+              &directions[3 * prevIndex],
+              &directions[3 * i]);
+      }
+
+      prevIndex  = i;
+
+      currId     = hit.id;
+      beamState  = nullptr;
+      footprint  = nullptr;
+
+      auto it = m_idToBeam.find(currId);
+      if (it == m_idToBeam.end())
+        continue;
+
+      beamState = it->second;
+
+      auto fit = m_idToFootprint.find(currId);
+      if (fit == m_idToFootprint.end()) {
+        SurfaceFootprint fp;
+        fp.fullName    = path + "." + surf->name;
+        fp.label       = beamState->properties.name.toStdString();
+        fp.color       = 0xff000000 | m_session->idToRgba(currId);
+        fp.vignetted   = surf->pruned;
+        fp.transmitted = surf->intercepted;
+
+        m_footprints.push_back(std::move(fp));
+        footprint = &m_footprints.back();
+        m_idToFootprint[currId] = footprint;
+      } else {
+        footprint = fit->second;
+      }
+    }
+  }
+
+  if (footprint != nullptr) {
+    footprint->locations.insert(
+          footprint->locations.end(),
+          &locations[3 * prevIndex],
+          &locations[3 * hitsCount]);
+
+    footprint->directions.insert(
+          footprint->directions.end(),
+          &directions[3 * prevIndex],
+          &directions[3 * hitsCount]);
+  }
+
+  surf->hits.clear();
+  surf->clearCache();
+  surf->clearStatistics();
+}
+
 // We are going to find lots of rays with different ids in the same
 // surface. We need to go one by one and decide.
 void
@@ -573,20 +745,7 @@ SimulationState::extractFootprints()
       for (auto &surf : element->opticalSurfaces()) {
         if (!surf->hits.empty()) {
           auto mutSurf = const_cast<RZ::OpticalSurface *>(surf);
-
-          SurfaceFootprint fp;
-          fp.fullName    = path + "." + surf->name;
-          fp.label       = m_simName.toStdString();
-          fp.locations   = std::move(surf->locations());
-          fp.directions  = std::move(surf->directions());
-          fp.color       = 0xff000000 | surf->hits[0].id;
-          fp.vignetted   = surf->pruned;
-          fp.transmitted = surf->intercepted;
-          m_footprints.push_back(std::move(fp));
-
-          mutSurf->hits.clear();
-          mutSurf->clearCache();
-          mutSurf->clearStatistics();
+          extractFootprintsFromSurface(path, mutSurf);
         }
       }
     }
@@ -766,6 +925,8 @@ SimulationState::getBeamState(uint32_t id)
   if (it != m_idToBeam.end())
     return it->second;
 
+  printf("WARNING!! No such beam %d!!\n", id);
+
   return nullptr;
 }
 
@@ -798,14 +959,15 @@ SimulationState::setTopLevelModel(RZ::TopLevelModel *model)
   return true;
 }
 
-SimulationState::SimulationState(RZ::TopLevelModel *model)
+SimulationState::SimulationState(SimulationSession *session)
 {
-  m_randState     = new RZ::ExprRandomState();
-
+  m_randState      = new RZ::ExprRandomState();
+  m_session         = session;
   m_currentRayGroup = m_rayGroupAlloc.end();
+
   initStateEvalCtx();
 
-  setTopLevelModel(model);
+  setTopLevelModel(session->topLevelModel());
 }
 
 SimulationState::~SimulationState()
@@ -822,6 +984,25 @@ SimulationState::~SimulationState()
 }
 
 ////////////////////////////////// Simulation session /////////////////////////
+uint32_t
+SimulationSession::idToRgba(uint32_t id) const
+{
+  if (m_simState != nullptr) {
+    auto beamState = m_simState->getBeamState(id);
+    if (beamState != nullptr) {
+      if (beamState->properties.colorByWl)
+        return wl2uint32_t(beamState->wavelength);
+      else
+        return QColor2uint32_t(beamState->properties.color);
+    } else {
+      printf("Failed to get color for beam 0x%x\n", id);
+    }
+  } else {
+    printf("Failed to get simulation state\n");
+  }
+
+  return 0xffffee00;
+}
 
 void
 SimulationSession::reload(RZ::ParserContext *context)
@@ -881,14 +1062,8 @@ SimulationSession::reload(RZ::ParserContext *context)
   topLevelModel->setBeamColoring(m_beamColoring);
 
   /////////////////////// From here, nothing should fail //////////////////////
-  if (m_simState == nullptr) {
-    m_simState = new SimulationState(topLevelModel);
-  } else {
-    if (!m_simState->setTopLevelModel(topLevelModel)) {
-      error = "Failed to top model of simulation state (memory leak)!";
-      goto done;
-    }
-  }
+  if (m_simState == nullptr)
+    m_simState = new SimulationState(this);
 
   if (m_tracer == nullptr) {
     m_tracer = new AsyncRayTracer(topLevelModel);
@@ -928,10 +1103,14 @@ SimulationSession::reload(RZ::ParserContext *context)
 
 done:
   if (ok) {
-    std::swap(recipe, m_recipe);
-    std::swap(topLevelModel, m_topLevelModel);
-
-    m_selectedElement = nullptr;
+    if (!m_simState->setTopLevelModel(topLevelModel)) {
+      error = "Failed to top model of simulation state (memory leak)!";
+      ok = false;
+    } else {
+      std::swap(recipe, m_recipe);
+      std::swap(topLevelModel, m_topLevelModel);
+      m_selectedElement = nullptr;
+    }
   }
 
   if (topLevelModel != nullptr)
@@ -1197,99 +1376,6 @@ bool
 SimulationSession::stopped() const
 {
   return !m_playing;
-}
-
-// https://www.johndcook.com/wavelength_to_RGB.html
-static inline uint32_t
-wl2uint32_t(qreal w)
-{
-  qreal red, green, blue;
-  qreal factor, gamma;
-  uint R, G, B;
-  uint32_t tuple = 0;
-
-  if (w >= 380 && w < 440) {
-    red   = -(w - 440) / (440 - 380);
-    green = 0.0;
-    blue  = 1.0;
-  } else if (w >= 440 && w < 490) {
-    red   = 0.0;
-    green = (w - 440) / (490 - 440);
-    blue  = 1.0;
-  } else if (w >= 490 && w < 510) {
-    red   = 0.0;
-    green = 1.0;
-    blue  = -(w - 510) / (510 - 490);
-  } else if (w >= 510 && w < 580) {
-    red   = (w - 510) / (580 - 510);
-    green = 1.0;
-    blue  = 0.0;
-  } else if (w >= 580 && w < 645) {
-    red   = 1.0;
-    green = -(w - 645) / (645 - 580);
-    blue  = 0.0;
-  } else if (w >= 645 && w < 781) {
-    red   = 1.0;
-    green = 0.0;
-    blue  = 0.0;
-  } else {
-    red   = 0.0;
-    green = 0.0;
-    blue  = 0.0;
-  }
-
-
-  // Let the intensity fall off near the vision limits
-
-  if (w >= 380 && w < 420)
-      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
-  else if (w >= 420 && w < 701)
-      factor = 1.0;
-  else if (w >= 701 && w < 781)
-      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
-  else
-      factor = 0.0;
-
-  gamma = 0.80;
-
-  R = static_cast<uint>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
-  G = static_cast<uint>(qBound(0., 255 * pow(green * factor, gamma), 255.));
-  B = static_cast<uint>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
-
-  tuple |= R << 16;
-  tuple |= G << 8;
-  tuple |= B;
-
-  return tuple;
-}
-
-static inline uint32_t
-QColor2uint32_t(QColor const &color)
-{
-  uint32_t tuple = 0;
-
-  tuple |= static_cast<uint32_t>(color.red())   << 16;
-  tuple |= static_cast<uint32_t>(color.green()) << 8;
-  tuple |= static_cast<uint32_t>(color.blue());
-
-  return tuple;
-}
-
-
-uint32_t
-SimulationSession::idToRgba(uint32_t id) const
-{
-  if (m_simState != nullptr) {
-    auto beamState = m_simState->getBeamState(id);
-    if (beamState != nullptr) {
-      if (beamState->properties.colorByWl)
-        return wl2uint32_t(beamState->wavelength);
-      else
-        return QColor2uint32_t(beamState->properties.color);
-    }
-  }
-
-  return 0xffffee00;
 }
 
 void

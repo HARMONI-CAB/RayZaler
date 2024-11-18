@@ -283,12 +283,14 @@ void
 BeamPropertiesDialog::setBeamProperties(SimulationBeamProperties const &beam)
 {
   m_properties = beam;
-
+  refreshUi();
+  refreshUiState();
 }
 
 SimulationBeamProperties
-BeamPropertiesDialog::getProperties() const
+BeamPropertiesDialog::getProperties()
 {
+  parseProperties();
   return m_properties;
 }
 
@@ -333,6 +335,8 @@ BeamPropertiesDialog::BeamPropertiesDialog(
   refreshUiState();
 
   setSession(sess);
+
+  setColorHint(QColor::fromRgb(255, 255, 0));
 }
 
 BeamPropertiesDialog::~BeamPropertiesDialog()

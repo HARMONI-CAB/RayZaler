@@ -133,20 +133,27 @@ RayBeamElement::raysToVertices()
   size_t size = m_rays.size();
   size_t actualCount = 0;
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
-
+  uint32_t currId = 0;
+  GLfloat currColor[4];
+  
   if (transp > 1)
     transp = 1;
   
   m_commonRayVert.clear();
   m_chiefRayVert.clear();
 
+  m_rayColoring->id2color(currId, transp, currColor);
+
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
     Vec3 destination = p->origin + p->length * p->direction;
     LineVertexSet *set = p->chief ? &m_chiefRayVert : &m_commonRayVert;
-    GLfloat color[4];
 
-    m_rayColoring->id2color(p->id, transp, color);
-    set->push(p->origin, destination, color);
+    if (p->id != currId) {
+      currId = p->id;
+      m_rayColoring->id2color(currId, transp, currColor);
+    }
+
+    set->push(p->origin, destination, currColor);
   }
 }
 

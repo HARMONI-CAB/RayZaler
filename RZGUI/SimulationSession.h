@@ -100,6 +100,7 @@ struct BeamSimulationState {
 
 typedef std::list<RZ::Ray> RayGroup;
 
+class SimulationSession;
 class SimulationState {
   QString                  m_simName;
   SimulationProperties     m_properties;
@@ -113,6 +114,7 @@ class SimulationState {
   std::string              m_firstFailedExpr = "";
   std::string              m_firstFailedBeamExpr = "";
   int32_t                  m_failedBeamId = -1;
+  SimulationSession       *m_session = nullptr;
   bool                     m_complete = false;
 
   // Simulation objects
@@ -132,6 +134,7 @@ class SimulationState {
 
   // Data products
   std::list<SurfaceFootprint> m_footprints;
+  std::map<uint32_t, SurfaceFootprint *> m_idToFootprint;
 
   // Simulation progress
   bool    m_running  = false;
@@ -157,12 +160,16 @@ class SimulationState {
 
   void applyRecordHits();
 
+  void extractFootprintsFromSurface(
+      std::string const &path,
+      RZ::OpticalSurface *);
+
   bool openCSV();
   void saveCSV();
   void closeCSV();
 
 public:
-  SimulationState(RZ::TopLevelModel *);
+  SimulationState(SimulationSession *);
   ~SimulationState();
 
   bool setTopLevelModel(RZ::TopLevelModel *);
@@ -182,6 +189,7 @@ public:
 
   void extractFootprints();
   std::list<SurfaceFootprint> &footprints();
+  void clearFootprints();
 
   bool setProperties(SimulationProperties const &);
   void setRepresentationProperties(RepresentationProperties const &repProp);
