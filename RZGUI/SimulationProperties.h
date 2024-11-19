@@ -52,17 +52,19 @@ struct SimulationBeamProperties : public JsonSerializable {
 
   QString        name;
   QColor         color;
-  BeamType       beam  = BEAM_TYPE_COLLIMATED;
-  BeamReference  ref   = BEAM_REFERENCE_INPUT_ELEMENT;
-  RZ::BeamShape  shape = RZ::BeamShape::Circular;
+  BeamType       beam            = BEAM_TYPE_COLLIMATED;
+  BeamReference  ref             = BEAM_REFERENCE_INPUT_ELEMENT;
+  RZ::BeamShape  shape           = RZ::BeamShape::Circular;
+  RZ::SkyObjectShape objectShape = RZ::SkyObjectShape::PointLike;
 
   int     rays         = 1000;
   QString path         = "";
-  QString diameter     = "40e-3";       // m
+  QString diameter     = "40e-3";   // m
+  QString span         = "0";       // deg
   QString focalPlane   = "";
   QString apertureStop = "";
   QString fNum         = "17.37";
-  QString uX           = "0";      // (cos)
+  QString uX           = "0";       // (cos)
   QString uY           = "0";       // (cos)
   QString offsetX      = "0";       // m
   QString offsetY      = "0";       // m
@@ -87,6 +89,7 @@ protected:
   bool deserialize(QJsonObject const &, QString const &, BeamType &);
   bool deserialize(QJsonObject const &, QString const &, BeamReference &);
   bool deserialize(QJsonObject const &, QString const &, RZ::BeamShape &);
+  bool deserialize(QJsonObject const &, QString const &, RZ::SkyObjectShape &);
 };
 
 ////////////////////////// SimulationProperties ////////////////////////////////

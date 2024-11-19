@@ -135,16 +135,24 @@ RayBeamElement::raysToVertices()
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
   uint32_t currId = 0;
   GLfloat currColor[4];
-  
+  bool tooMany = m_rays.size() > m_maxRays;
+  Real drawP = 1;
+
   if (transp > 1)
     transp = 1;
   
+  if (tooMany)
+    drawP = static_cast<Real>(m_maxRays) / m_rays.size();
+
   m_commonRayVert.clear();
   m_chiefRayVert.clear();
 
   m_rayColoring->id2color(currId, transp, currColor);
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
+    if (tooMany && drawP < m_randState.randu())
+      continue;
+    
     Vec3 destination = p->origin + p->length * p->direction;
     LineVertexSet *set = p->chief ? &m_chiefRayVert : &m_commonRayVert;
 

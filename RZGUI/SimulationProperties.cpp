@@ -96,6 +96,35 @@ bool
 SimulationBeamProperties::deserialize(
     QJsonObject const &obj,
     QString const &key,
+    RZ::SkyObjectShape &value)
+{
+  if (obj.contains(key)) {
+    if (!obj[key].isString()) {
+      setLastError("Invalid value for property `" + key + "' (not a string)");
+      return false;
+    }
+
+    auto asString = obj[key].toString();
+
+    if (asString == "POINTLIKE")
+      value = RZ::PointLike;
+    else if (asString == "CIRCLELIKE")
+      value = RZ::CircleLike;
+    else if (asString == "EXTENDED")
+      value = RZ::Extended;
+    else {
+      setLastError("Unknown sky object type `" + asString + "'");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool
+SimulationBeamProperties::deserialize(
+    QJsonObject const &obj,
+    QString const &key,
     BeamReference &value)
 {
   if (obj.contains(key)) {
@@ -158,6 +187,21 @@ SimulationBeamProperties::serialize() const
       break;
   }
 
+  switch (objectShape) {
+    case RZ::PointLike:
+      object["objectShape"] = "POINTLIKE";
+      break;
+
+    case RZ::CircleLike:
+      object["objectShape"] = "CIRCLELIKE";
+      break;
+
+    case RZ::Extended:
+      object["objectShape"] = "EXTENDED";
+      break;
+  }
+
+
   switch (ref) {
     case BEAM_REFERENCE_INPUT_ELEMENT:
       object["ref"] = "INPUT_ELEMENT";
@@ -179,6 +223,7 @@ SimulationBeamProperties::serialize() const
   SERIALIZE(path);
 
   SERIALIZE(diameter);
+  SERIALIZE(span);
   SERIALIZE(focalPlane);
   SERIALIZE(apertureStop);
   SERIALIZE(fNum);
@@ -206,10 +251,12 @@ SimulationBeamProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(color);
   DESERIALIZE(beam);
   DESERIALIZE(shape);
+  DESERIALIZE(objectShape);
   DESERIALIZE(ref);
   DESERIALIZE(path);
 
   DESERIALIZE(diameter);
+  DESERIALIZE(span);
   DESERIALIZE(focalPlane);
   DESERIALIZE(apertureStop);
   DESERIALIZE(fNum);

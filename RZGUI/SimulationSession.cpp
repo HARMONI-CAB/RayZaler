@@ -259,6 +259,7 @@ SimulationState::setProperties(SimulationProperties const &prop)
     auto beamState = makeBeamState(bp);
 
     TRY_DEFINE_BEAM_EXPR(diameter);
+    TRY_DEFINE_BEAM_EXPR(span);
     TRY_DEFINE_BEAM_EXPR(fNum);
     TRY_DEFINE_BEAM_EXPR(uX);
     TRY_DEFINE_BEAM_EXPR(uY);
@@ -343,6 +344,7 @@ SimulationState::allocateRays()
 
     // Other properties
     auto D  = beamState->evalCtx.eval("diameter");
+    auto S  = beamState->evalCtx.eval("span");
     auto ux = beamState->evalCtx.eval("uX");
     auto uy = beamState->evalCtx.eval("uY");
     auto x0 = beamState->evalCtx.eval("offsetX");
@@ -352,26 +354,29 @@ SimulationState::allocateRays()
 
     auto uz = -sqrt(1 - ux * ux - uy * uy);
 
-    prop.direction  = RZ::Vec3(ux, uy, uz);
-    prop.offset     = RZ::Vec3(x0, y0, z0);
-    prop.length     = 1;
-    prop.id         = beamState->id;
-    prop.wavelength = wl;
+    prop.direction   = RZ::Vec3(ux, uy, uz);
+    prop.offset      = RZ::Vec3(x0, y0, z0);
+    prop.length      = 1;
+    prop.id          = beamState->id;
+    prop.wavelength  = wl;
     beamState->wavelength = wl;
 
     // Chief ray
-    prop.vignetting = false;
-    prop.shape      = RZ::BeamShape::Point;
-    prop.numRays    = 1;
+    prop.vignetting  = false;
+    prop.shape       = RZ::BeamShape::Point;
+    prop.numRays     = 1;
 
     RZ::OMModel::addBeam(*m_currentRayGroup, prop);
 
     // Main beam
-    prop.vignetting = true;
-    prop.shape      = beam.shape;
-    prop.numRays    = static_cast<unsigned>(beam.rays);
-    prop.diameter   = D;
-    prop.random     = beam.random;
+    prop.vignetting      = true;
+    prop.shape           = beam.shape;
+    prop.numRays         = static_cast<unsigned>(beam.rays);
+    prop.diameter        = D;
+    prop.random          = beam.random;
+    prop.objectShape     = beam.objectShape;
+    prop.angularDiameter = S;
+    prop.objectPath      = beam.path.toStdString();
 
     // Define beam focus
     switch (beam.beam) {

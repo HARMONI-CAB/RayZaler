@@ -10,14 +10,16 @@ namespace Ui {
 
 class ColorChooserButton;
 class SimulationSession;
+class QFileDialog;
 
 class BeamPropertiesDialog : public QDialog
 {
   Q_OBJECT
 
   SimulationBeamProperties m_properties;
-  SimulationSession       *m_session = nullptr;
-  ColorChooserButton      *m_colorChooser = nullptr;
+  SimulationSession       *m_session         = nullptr;
+  ColorChooserButton      *m_colorChooser    = nullptr;
+  QFileDialog             *m_openImageDialog = nullptr;
 
   void connectAll();
   void parseProperties();

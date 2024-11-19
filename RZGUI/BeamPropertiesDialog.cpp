@@ -2,6 +2,7 @@
 #include "ui_BeamPropertiesDialog.h"
 #include "ColorChooserButton.h"
 #include "SimulationSession.h"
+#include <QFileDialog>
 
 void
 BeamPropertiesDialog::connectAll()
@@ -20,6 +21,12 @@ BeamPropertiesDialog::connectAll()
 
   connect(
         ui->fNumEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onExprEditChanged()));
+
+  connect(
+        ui->angleSpanEdit,
         SIGNAL(textChanged(QString)),
         this,
         SLOT(onExprEditChanged()));
@@ -70,6 +77,12 @@ BeamPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->objectShapeCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->apertureCombo,
         SIGNAL(activated(int)),
         this,
@@ -86,6 +99,12 @@ BeamPropertiesDialog::connectAll()
         SIGNAL(activated(int)),
         this,
         SLOT(onDataChanged()));
+
+  connect(
+        ui->browseButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onBrowse()));
 }
 
 void
@@ -130,9 +149,24 @@ BeamPropertiesDialog::parseProperties()
       break;
   }
 
+  switch (ui->objectShapeCombo->currentIndex()) {
+    case 0:
+      m_properties.objectShape = RZ::PointLike;
+      break;
+
+    case 1:
+      m_properties.objectShape = RZ::CircleLike;
+      break;
+
+    case 2:
+      m_properties.objectShape = RZ::Extended;
+      break;
+  }
+
   m_properties.name         = ui->beamNameEdit->text();
   m_properties.color        = m_colorChooser->getColor();
   m_properties.diameter     = ui->diamEdit->text();
+  m_properties.span         = ui->angleSpanEdit->text();
   m_properties.fNum         = ui->fNumEdit->text();
   m_properties.uX           = ui->uXEdit->text();
   m_properties.uY           = ui->uYEdit->text();
@@ -144,7 +178,7 @@ BeamPropertiesDialog::parseProperties()
   m_properties.colorByWl    = ui->wavelengthColorButton->isChecked();
   m_properties.focalPlane   = ui->focalPlaneCombo->currentData().toString();
   m_properties.apertureStop = ui->apertureCombo->currentData().toString();
-
+  m_properties.path         = ui->pathEdit->text();
   m_properties.rays         = ui->rayNumberSpin->value();
 
 }
@@ -153,6 +187,7 @@ void
 BeamPropertiesDialog::refreshUi()
 {
   int originIndex = 0;
+  int objShapeIndex = 0;
 
   BLOCKSIG(ui->beamTypeCombo,     setCurrentIndex(m_properties.beam));
   BLOCKSIG(ui->beamShapeCombo,    setCurrentIndex(m_properties.shape));
@@ -160,6 +195,7 @@ BeamPropertiesDialog::refreshUi()
   BLOCKSIG(m_colorChooser,        setColor(m_properties.color));
   BLOCKSIG(ui->wavelengthColorButton, setChecked(m_properties.colorByWl));
   BLOCKSIG(ui->beamNameEdit,      setText(m_properties.name));
+  BLOCKSIG(ui->angleSpanEdit,     setText(m_properties.span));
   BLOCKSIG(ui->diamEdit,          setText(m_properties.diameter));
   BLOCKSIG(ui->fNumEdit,          setText(m_properties.fNum));
   BLOCKSIG(ui->uXEdit,            setText(m_properties.uX));
@@ -169,7 +205,7 @@ BeamPropertiesDialog::refreshUi()
   BLOCKSIG(ui->offsetZEdit,       setText(m_properties.offsetZ));
   BLOCKSIG(ui->wlEdit,            setText(m_properties.wavelength));
   BLOCKSIG(ui->beamSamplingCombo, setCurrentIndex(m_properties.random ? 1 : 0));
-
+  BLOCKSIG(ui->pathEdit,          setText(m_properties.path));
   BLOCKSIG(ui->rayNumberSpin,     setValue(m_properties.rays));
 
   switch (m_properties.ref) {
@@ -187,6 +223,22 @@ BeamPropertiesDialog::refreshUi()
   }
 
   BLOCKSIG(ui->originCombo, setCurrentIndex(originIndex));
+
+  switch (m_properties.objectShape) {
+    case RZ::PointLike:
+      objShapeIndex = 0;
+      break;
+
+    case RZ::CircleLike:
+      objShapeIndex = 1;
+      break;
+
+    case RZ::Extended:
+      objShapeIndex = 2;
+      break;
+  }
+
+  BLOCKSIG(ui->objectShapeCombo, setCurrentIndex(objShapeIndex));
 }
 
 void
@@ -208,6 +260,11 @@ BeamPropertiesDialog::refreshUiState()
 {
   bool haveApertures   = ui->apertureCombo->count() > 0;
   bool haveFocalPlanes = ui->focalPlaneCombo->count() > 0;
+  bool fileEnabled     = m_properties.objectShape == RZ::Extended;
+
+  ui->pathLabel->setEnabled(fileEnabled);
+  ui->pathEdit->setEnabled(fileEnabled);
+  ui->browseButton->setEnabled(fileEnabled);
 
   m_colorChooser->setEnabled(!ui->wavelengthColorButton->isChecked());
 
@@ -327,6 +384,13 @@ BeamPropertiesDialog::BeamPropertiesDialog(
 {
   ui->setupUi(this);
 
+  m_openImageDialog = new QFileDialog(this);
+
+  m_openImageDialog->setWindowTitle("Define radiance map");
+  m_openImageDialog->setFileMode(QFileDialog::ExistingFile);
+  m_openImageDialog->setAcceptMode(QFileDialog::AcceptOpen);
+  m_openImageDialog->setNameFilter("PNG image (*.png);;All files (*)");
+
   m_colorChooser = new ColorChooserButton(this);
   ui->gridLayout_9->addWidget(m_colorChooser, 0, 4, 1, 1);
 
@@ -348,7 +412,13 @@ BeamPropertiesDialog::~BeamPropertiesDialog()
 void
 BeamPropertiesDialog::onBrowse()
 {
-  printf("TODO: Implement me!\n");
+  if (m_openImageDialog->exec()
+      && !m_openImageDialog->selectedFiles().empty()) {
+    QString fileName = m_openImageDialog->selectedFiles()[0];
+
+    m_properties.path = fileName;
+    refreshUi();
+  }
 }
 
 void

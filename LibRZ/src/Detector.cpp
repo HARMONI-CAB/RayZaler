@@ -218,7 +218,7 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     // Check intercept
     if (beam.hasRay(i)) {
       Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
-      if (!m_storage->hit(coord.x, coord.y, beam.amplitude[i]))
+      if (!beam.isChief(i) && !m_storage->hit(coord.x, coord.y, beam.amplitude[i]))
         beam.prune(i);
       else
         beam.interceptDone(i);

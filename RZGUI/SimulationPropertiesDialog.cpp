@@ -84,8 +84,6 @@ SimulationPropertiesDialog::refreshBeamList()
 {
   ui->beamTableWidget->setRowCount(0);
 
-  printf("Beams in beam vector: %d\n", m_properties.beamVector.size());
-
   for (int i = 0; i < m_properties.beamVector.size(); ++i) {
     QString shape, sampling;
 
@@ -815,8 +813,6 @@ SimulationPropertiesDialog::onRemoveAllBeams()
 void
 SimulationPropertiesDialog::onEditBeam(int row, int col)
 {
-  printf("Edit beam: %d, %d\n", row, col);
-
   if (row >= 0 && row < m_properties.beamVector.size()) {
     m_beamPropertiesDialog->setBeamProperties(*m_properties.beamVector[row]);
     if (m_beamPropertiesDialog->exec()) {

@@ -4,6 +4,7 @@
 #include <Element.h>
 #include <RayTracingEngine.h>
 #include <GLHelpers.h>
+#include <Random.h>
 #include <pthread.h>
 #include <map>
 
@@ -44,6 +45,8 @@ namespace RZ {
   class RayBeamElement : public Element {
       static RayColoring   m_defaultColoring;
       const RayColoring   *m_rayColoring = nullptr;
+      ExprRandomState      m_randState;
+      unsigned int         m_maxRays = 5000;
       pthread_mutex_t      m_rayMutex = PTHREAD_MUTEX_INITIALIZER;
       std::list<Ray>       m_rays;
       LineVertexSet        m_commonRayVert;
