@@ -65,6 +65,9 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
 
 SimulationPropertiesDialog::~SimulationPropertiesDialog()
 {
+  if (m_propModel != nullptr)
+    m_propModel->deleteLater();
+
   delete ui;
 }
 

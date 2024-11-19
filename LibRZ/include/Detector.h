@@ -85,11 +85,12 @@ namespace RZ {
       const Complex  *amplitude() const;
   };
 
-  class DetectorProcessor : public PassThroughProcessor {
+  class DetectorProcessor : public RayTransferProcessor {
       DetectorStorage *m_storage; // Borrowed
 
     public:
       DetectorProcessor(DetectorStorage *storage);
+      virtual ~DetectorProcessor() = default;
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };

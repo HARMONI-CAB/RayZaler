@@ -667,6 +667,15 @@ MainWindow::doReload()
 
 MainWindow::~MainWindow()
 {
+  if (m_compPropModel != nullptr)
+    m_compPropModel->deleteLater();
+
+  if (m_omModel != nullptr)
+    m_omModel->deleteLater();
+
+  if (m_propModel != nullptr)
+    m_propModel->deleteLater();
+
   delete ui;
 }
 

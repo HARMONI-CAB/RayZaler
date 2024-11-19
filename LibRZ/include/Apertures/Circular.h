@@ -24,7 +24,8 @@ namespace RZ {
     
   public:
     CircularAperture(Real radius);
-
+    virtual ~CircularAperture() = default;
+    
     virtual std::vector<std::vector<Real>> const &edges() const override;
     void setRadius(Real);
     void setEccentricity(Real);

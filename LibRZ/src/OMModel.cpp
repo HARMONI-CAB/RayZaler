@@ -1032,6 +1032,7 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   const ReferenceFrame *frame = nullptr;
   Sampler *raySampler = nullptr;
   WorldFrame worldFrame("sky");
+  const char *except = nullptr;
   const OpticalElement *optEl;
 
   switch (properties.reference) {
@@ -1174,4 +1175,7 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
       }
     }
   }
+
+  if (raySampler != nullptr)
+    delete raySampler;
 }

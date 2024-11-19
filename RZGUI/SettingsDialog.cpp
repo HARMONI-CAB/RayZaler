@@ -67,12 +67,16 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
   m_pathColor    = new ColorChooserButton(ui->tab);
   ui->gridLayout_2->addWidget(m_pathColor, 1, 3, 1, 1);
 
-  ui->tabWidget->tabBar()->setStyle(new CustomTabStyle);
+  m_style = new CustomTabStyle;
+  ui->tabWidget->tabBar()->setStyle(m_style);
+
   loadColorSettings();
 }
 
 SettingsDialog::~SettingsDialog()
 {
+  m_style->deleteLater();
+
   delete ui;
 }
 

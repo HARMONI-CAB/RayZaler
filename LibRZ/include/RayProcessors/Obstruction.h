@@ -11,6 +11,7 @@ namespace RZ {
 
     public:
       ObstructionProcessor();
+      virtual ~ObstructionProcessor() = default;
       void setRadius(Real);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;

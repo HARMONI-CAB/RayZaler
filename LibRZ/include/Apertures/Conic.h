@@ -54,7 +54,8 @@ namespace RZ {
 
   public:
     ConicAperture(Real radius, Real RCurv, Real K);
-
+    virtual ~ConicAperture() = default;
+    
     void setRadius(Real);
     void setConicConstant(Real);
     void setCurvatureRadius(Real);

@@ -1111,6 +1111,9 @@ SimulationSession::~SimulationSession()
 
  if (m_beamColoring != nullptr)
    delete m_beamColoring;
+
+ if (m_tracer != nullptr)
+   m_tracer->deleteLater();
 }
 
 void

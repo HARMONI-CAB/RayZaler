@@ -36,6 +36,7 @@ namespace RZ {
 
     public:
       ConicMirrorProcessor();
+      virtual ~ConicMirrorProcessor() = default;
       void setRadius(Real);
       void setCenterOffset(Real, Real);
 

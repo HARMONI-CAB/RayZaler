@@ -143,6 +143,9 @@ ConicMirror::~ConicMirror()
 {
   if (m_processor != nullptr)
     delete m_processor;
+
+  if (m_reflectiveSurfacePort != nullptr)
+  delete m_reflectiveSurfacePort;
 }
 
 void

@@ -27,6 +27,7 @@ namespace Ui {
 }
 
 class ColorChooserButton;
+class CustomTabStyle;
 
 class SettingsDialog : public QDialog
 {
@@ -36,6 +37,7 @@ class SettingsDialog : public QDialog
   ColorChooserButton *m_bgBelowColor = nullptr;
   ColorChooserButton *m_gridColor    = nullptr;
   ColorChooserButton *m_pathColor    = nullptr;
+  CustomTabStyle     *m_style        = nullptr;
 
   mutable ColorSettings m_colorSettings;
   void                  loadColorSettings();
