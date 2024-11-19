@@ -41,19 +41,15 @@ class SimulationPropertiesDialog : public QDialog
   SimulationSession       *m_session;
   PropertyAndDofExprModel *m_propModel = nullptr;
   SimulationProperties     m_properties;
-  RepresentationProperties m_repProperties;
 
   BeamPropertiesDialog    *m_beamPropertiesDialog = nullptr;
   QFileDialog             *m_openSettingsDialog = nullptr;
   QFileDialog             *m_saveSettingsDialog = nullptr;
-  ColorChooserButton      *m_fixedColorChooser = nullptr;
 
   void connectAll();
 
-  void applySettings();
   void applyProperties(bool setEdited = false);
   void parseProperties();
-  void parseRepProperties();
   void sanitizeSaveDirectory();
   void insertFootprintElement(std::string const &);
   void refreshBeamList();
@@ -69,7 +65,6 @@ public:
   void setProperties(SimulationProperties const &);
 
   SimulationProperties properties() const;
-  RepresentationProperties repProperties() const;
 
   bool doLoadFromFile();
   bool doUpdateState();
@@ -78,7 +73,6 @@ public:
 public slots:
   void refreshUi();
   void onBrowseOutputDir();
-  void onRepChanged();
   void onDataChanged();
   void onLoadSettings();
   void onExportSettings();

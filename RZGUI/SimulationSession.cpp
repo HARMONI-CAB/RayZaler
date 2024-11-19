@@ -17,71 +17,8 @@
 #include <Logger.h>
 #include <cmath>
 #include <QElapsedTimer>
+#include <GUIHelpers.h>
 
-
-// https://www.johndcook.com/wavelength_to_RGB.html
-static inline uint32_t
-wl2uint32_t(qreal w)
-{
-  qreal red, green, blue;
-  qreal factor, gamma;
-  uint R, G, B;
-  uint32_t tuple = 0;
-
-  if (w >= 380 && w < 440) {
-    red   = -(w - 440) / (440 - 380);
-    green = 0.0;
-    blue  = 1.0;
-  } else if (w >= 440 && w < 490) {
-    red   = 0.0;
-    green = (w - 440) / (490 - 440);
-    blue  = 1.0;
-  } else if (w >= 490 && w < 510) {
-    red   = 0.0;
-    green = 1.0;
-    blue  = -(w - 510) / (510 - 490);
-  } else if (w >= 510 && w < 580) {
-    red   = (w - 510) / (580 - 510);
-    green = 1.0;
-    blue  = 0.0;
-  } else if (w >= 580 && w < 645) {
-    red   = 1.0;
-    green = -(w - 645) / (645 - 580);
-    blue  = 0.0;
-  } else if (w >= 645 && w < 781) {
-    red   = 1.0;
-    green = 0.0;
-    blue  = 0.0;
-  } else {
-    red   = 0.0;
-    green = 0.0;
-    blue  = 0.0;
-  }
-
-
-  // Let the intensity fall off near the vision limits
-
-  if (w >= 380 && w < 420)
-      factor = 0.3 + 0.7*(w - 380) / (420 - 380);
-  else if (w >= 420 && w < 701)
-      factor = 1.0;
-  else if (w >= 701 && w < 781)
-      factor = 0.3 + 0.7*(780 - w) / (780 - 700);
-  else
-      factor = 0.0;
-
-  gamma = 0.80;
-
-  R = static_cast<uint>(qBound(0., 255 * pow(red   * factor, gamma), 255.));
-  G = static_cast<uint>(qBound(0., 255 * pow(green * factor, gamma), 255.));
-  B = static_cast<uint>(qBound(0., 255 * pow(blue  * factor, gamma), 255.));
-
-  tuple |= R << 16;
-  tuple |= G << 8;
-  tuple |= B;
-
-  return tuple;
-}
 
 static inline uint32_t
 QColor2uint32_t(QColor const &color)
@@ -130,6 +67,7 @@ BeamSimulationState::BeamSimulationState(
     ExprEvaluationContext *ctx) : evalCtx(ctx)
 {
   properties = prop;
+  stateName  = prop.name;
 }
 
 //////////////////////////// SimulationState //////////////////////////////////
@@ -180,12 +118,6 @@ SimulationState::saveArtifacts()
 }
 
 void
-SimulationState::setRepresentationProperties(RepresentationProperties const &repProp)
-{
-  m_repProp = repProp;
-}
-
-void
 SimulationState::clearAndSavePreviousBeams()
 {
   auto next = m_currentBeams.begin();
@@ -216,7 +148,44 @@ SimulationState::makeBeamState(SimulationBeamProperties const &props)
   m_idToBeam[beam->id] = beam;
   m_currentBeams.push_back(beam);
 
+  if (m_properties.type == SIM_TYPE_1D_SWEEP)
+    beam->stateName += QString::asprintf("[%d]", m_i);
+  else if (m_properties.type == SIM_TYPE_2D_SWEEP)
+    beam->stateName += QString::asprintf("[%d, %d]", m_i, m_j);
+
   return beam;
+}
+
+bool
+SimulationState::createNewBeamStates()
+{
+  clearAndSavePreviousBeams();
+
+#define TRY_DEFINE_BEAM_EXPR(name)                                           \
+  if (!beamState->evalCtx.defineExpression(#name, bp.name.toStdString())) {  \
+    m_firstFailedBeamExpr = #name;                                           \
+    m_failedBeamId = static_cast<int32_t>(beamState->id);                    \
+    return false;                                                            \
+  } do {} while (false)
+
+  for (auto &bp : m_properties.beams) {
+    auto beamState = makeBeamState(bp);
+
+    TRY_DEFINE_BEAM_EXPR(diameter);
+    TRY_DEFINE_BEAM_EXPR(span);
+    TRY_DEFINE_BEAM_EXPR(fNum);
+    TRY_DEFINE_BEAM_EXPR(uX);
+    TRY_DEFINE_BEAM_EXPR(uY);
+    TRY_DEFINE_BEAM_EXPR(offsetX);
+    TRY_DEFINE_BEAM_EXPR(offsetY);
+    TRY_DEFINE_BEAM_EXPR(offsetZ);
+    TRY_DEFINE_BEAM_EXPR(wavelength);
+
+    beamState->complete = true;
+  }
+#undef TRY_DEFINE_BEAM_EXPR
+
+  return true;
 }
 
 bool
@@ -235,7 +204,6 @@ SimulationState::setProperties(SimulationProperties const &prop)
     delete m_evalModelCtx;
 
   m_evalModelCtx = new ExprEvaluationContext(&m_evalSimCtx);
-  clearAndSavePreviousBeams();
 
   // Start by DOF expressions
   for (auto p : prop.dofs) {
@@ -247,30 +215,6 @@ SimulationState::setProperties(SimulationProperties const &prop)
       return false;
     }
   }
-
-#define TRY_DEFINE_BEAM_EXPR(name)                                           \
-  if (!beamState->evalCtx.defineExpression(#name, bp.name.toStdString())) {  \
-    m_firstFailedBeamExpr = #name;                                           \
-    m_failedBeamId = static_cast<int32_t>(beamState->id);                    \
-    return false;                                                            \
-  } do {} while (false)
-
-  for (auto &bp : prop.beams) {
-    auto beamState = makeBeamState(bp);
-
-    TRY_DEFINE_BEAM_EXPR(diameter);
-    TRY_DEFINE_BEAM_EXPR(span);
-    TRY_DEFINE_BEAM_EXPR(fNum);
-    TRY_DEFINE_BEAM_EXPR(uX);
-    TRY_DEFINE_BEAM_EXPR(uY);
-    TRY_DEFINE_BEAM_EXPR(offsetX);
-    TRY_DEFINE_BEAM_EXPR(offsetY);
-    TRY_DEFINE_BEAM_EXPR(offsetZ);
-    TRY_DEFINE_BEAM_EXPR(wavelength);
-
-    beamState->complete = true;
-  }
-#undef TRY_DEFINE_BEAM_EXPR
 
   m_complete = true;
 
@@ -697,7 +641,7 @@ SimulationState::extractFootprintsFromSurface(
       if (fit == m_idToFootprint.end()) {
         SurfaceFootprint fp;
         fp.fullName    = path + "." + surf->name;
-        fp.label       = beamState->properties.name.toStdString();
+        fp.label       = beamState->stateName.toStdString();
         fp.color       = 0xff000000 | m_session->idToRgba(currId);
         fp.vignetted   = surf->pruned;
         fp.transmitted = surf->intercepted;
@@ -756,8 +700,8 @@ SimulationState::initSimulation()
   m_evalSimCtx.setVariable("i", m_i);
   m_evalSimCtx.setVariable("j", m_j);
 
-  m_evalSimCtx.setVariable("Ni", m_i);
-  m_evalSimCtx.setVariable("Nj", m_j);
+  m_evalSimCtx.setVariable("Ni", m_properties.Ni);
+  m_evalSimCtx.setVariable("Nj", m_properties.Nj);
 
 
   m_steps = m_properties.Ni * m_properties.Nj;
@@ -811,6 +755,11 @@ SimulationState::initSimulation()
 
   applyDofs();
 
+  if (!createNewBeamStates()) {
+    RZError("Failed to create new beam states\n");
+    return false;
+  }
+
   // We transition to running state only if we manage to allocate rays.
   m_running = allocateRays();
   return m_running;
@@ -847,6 +796,9 @@ SimulationState::sweepStep()
 
   // Iteration done, apply Dofs
   applyDofs();
+
+  if (!createNewBeamStates())
+    goto done;
 
   if (allocateRays())
     return true;
@@ -898,12 +850,6 @@ SimulationProperties
 SimulationState::properties() const
 {
   return m_properties;
-}
-
-RepresentationProperties
-SimulationState::repProperties() const
-{
-  return m_repProp;
 }
 
 std::list<RZ::Ray> const &
@@ -1304,7 +1250,7 @@ SimulationSession::runSimulation()
   gettimeofday(&m_lastModelRefresh, nullptr);
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
-  m_tracer->setAccumulate(m_simState->repProperties().accumulate);
+  m_tracer->setAccumulate(false);
   m_tracer->setDiffraction(
         m_simState->properties().ttype == TRACER_TYPE_DIFFRACTION);
   gettimeofday(&m_simulationStart, nullptr);

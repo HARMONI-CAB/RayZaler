@@ -3,6 +3,7 @@
 #include "ColorChooserButton.h"
 #include "SimulationSession.h"
 #include <QFileDialog>
+#include <QFontMetrics>
 
 void
 BeamPropertiesDialog::connectAll()
@@ -37,13 +38,23 @@ BeamPropertiesDialog::connectAll()
         this,
         SLOT(onExprEditChanged()));
 
-
   connect(
         ui->uYEdit,
         SIGNAL(textChanged(QString)),
         this,
         SLOT(onExprEditChanged()));
 
+  connect(
+        ui->uXEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onEditDirectionCosines()));
+
+  connect(
+        ui->uYEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onEditDirectionCosines()));
 
   connect(
         ui->offsetXEdit,
@@ -290,6 +301,8 @@ BeamPropertiesDialog::refreshUiState()
 
   ui->apertureCombo->setEnabled(haveApertures);
   ui->focalPlaneCombo->setEnabled(haveFocalPlanes);
+
+  onEditDirectionCosines();
 }
 
 void
@@ -340,6 +353,7 @@ void
 BeamPropertiesDialog::setBeamProperties(SimulationBeamProperties const &beam)
 {
   m_properties = beam;
+
   refreshUi();
   refreshUiState();
 }
@@ -384,6 +398,11 @@ BeamPropertiesDialog::BeamPropertiesDialog(
 {
   ui->setupUi(this);
 
+  auto minAzElWidth = ui->azLabel->fontMetrics().horizontalAdvance("+00.00 º");
+
+  ui->azLabel->setMinimumWidth(minAzElWidth);
+  ui->elLabel->setMinimumWidth(minAzElWidth);
+
   m_openImageDialog = new QFileDialog(this);
 
   m_openImageDialog->setWindowTitle("Define radiance map");
@@ -392,7 +411,7 @@ BeamPropertiesDialog::BeamPropertiesDialog(
   m_openImageDialog->setNameFilter("PNG image (*.png);;All files (*)");
 
   m_colorChooser = new ColorChooserButton(this);
-  ui->gridLayout_9->addWidget(m_colorChooser, 0, 4, 1, 1);
+  ui->gridLayout_9->addWidget(m_colorChooser, 0, 3, 1, 1);
 
   connectAll();
   refreshUi();
@@ -424,7 +443,37 @@ BeamPropertiesDialog::onBrowse()
 void
 BeamPropertiesDialog::onEditDirectionCosines()
 {
-  printf("TODO: Implement me!\n");
+  bool uXok, uYok;
+  qreal uX, uY;
+
+  uX = ui->uXEdit->text().toDouble(&uXok);
+  uY = ui->uYEdit->text().toDouble(&uYok);
+
+  if (uXok && uYok) {
+    qreal uZ = 1 - uX * uX - uY * uY;
+
+    if (uZ < 0) {
+      highlightFaultyField("uX");
+      highlightFaultyField("uY");
+
+      ui->azLabel->setText("N/A");
+      ui->elLabel->setText("N/A");
+      ui->uZLabel->setText("Invalid");
+    } else {
+      uZ = -sqrt(uZ);
+
+      qreal az = atan2(uX, uY); // Yes, this is right.
+      qreal el = asin(-uZ);
+
+      ui->azLabel->setText(QString::asprintf("%+.4gº", RZ::rad2deg(az)));
+      ui->elLabel->setText(QString::asprintf("%+.4gº", RZ::rad2deg(el)));
+      ui->uZLabel->setText(QString::number(uZ));
+    }
+  } else {
+    ui->azLabel->setText("N/A");
+    ui->elLabel->setText("N/A");
+    ui->uZLabel->setText("N/A");
+  }
 }
 
 void

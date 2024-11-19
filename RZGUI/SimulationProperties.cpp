@@ -221,7 +221,7 @@ SimulationBeamProperties::serialize() const
 #define SERIALIZE(what) object[#what] = what
   SERIALIZE(name);
   SERIALIZE(path);
-
+  SERIALIZE(colorByWl);
   SERIALIZE(diameter);
   SERIALIZE(span);
   SERIALIZE(focalPlane);
@@ -249,6 +249,7 @@ SimulationBeamProperties::deserialize(QJsonObject const &obj)
 
   DESERIALIZE(name);
   DESERIALIZE(color);
+  DESERIALIZE(colorByWl);
   DESERIALIZE(beam);
   DESERIALIZE(shape);
   DESERIALIZE(objectShape);

@@ -49,38 +49,6 @@ enum ColoringMode {
 };
 Q_DECLARE_METATYPE(ColoringMode);
 
-struct RepresentationProperties {
-  bool accumulate           = false;
-  ColoringMode coloringMode = COLORING_FIXED;
-  QColor fixedBeamColor     = QColor(1, 1, 0);
-
-  bool
-  operator==(const RepresentationProperties & o){
-    bool equals = true;
-
-    equals = equals && o.accumulate == accumulate;
-    equals = equals && o.coloringMode == coloringMode;
-    equals = equals && o.fixedBeamColor == fixedBeamColor;
-
-    return equals;
-  }
-
-  friend QDataStream &operator<<(QDataStream &out, const RepresentationProperties &rhs){
-    out << rhs.accumulate;
-    out << rhs.coloringMode;
-    out << rhs.fixedBeamColor;
-    return out;
-  }
-  friend QDataStream &operator>>(QDataStream &in, RepresentationProperties &rhs){
-    in >> rhs.accumulate;
-    in >> rhs.coloringMode;
-    in >> rhs.fixedBeamColor;
-    return in;
-  }
-
-};
-Q_DECLARE_METATYPE(RepresentationProperties);
-
 class SimulationBeamState {
   QString name;
 
@@ -90,6 +58,7 @@ class SimulationBeamState {
 // user changes the properties of the current simulation.
 struct BeamSimulationState {
   uint32_t                 id = 0;
+  QString                  stateName;
   SimulationBeamProperties properties;
   ExprEvaluationContext    evalCtx;
   bool                     complete = false;
@@ -104,7 +73,6 @@ class SimulationSession;
 class SimulationState {
   QString                  m_simName;
   SimulationProperties     m_properties;
-  RepresentationProperties m_repProp;
   RZ::TopLevelModel       *m_topLevelModel = nullptr;
   RZ::ExprRandomState     *m_randState     = nullptr;
   RZ::RayBeamElement      *m_beamElement   = nullptr;
@@ -168,6 +136,8 @@ class SimulationState {
   void saveCSV();
   void closeCSV();
 
+  bool createNewBeamStates();
+
 public:
   SimulationState(SimulationSession *);
   ~SimulationState();
@@ -192,10 +162,8 @@ public:
   void clearFootprints();
 
   bool setProperties(SimulationProperties const &);
-  void setRepresentationProperties(RepresentationProperties const &repProp);
   std::string getLastError() const;
   SimulationProperties properties() const;
-  RepresentationProperties repProperties() const;
   std::list<RZ::Ray> const &rayGroup() const;
   BeamSimulationState *getBeamState(uint32_t id);
 };

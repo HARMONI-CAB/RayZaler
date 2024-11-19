@@ -43,15 +43,6 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
         3,
         new CustomTextEditDelegate(this));
 
-  m_fixedColorChooser = new ColorChooserButton();
-  m_fixedColorChooser->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-
-  ui->colorCycleLayout->addWidget(m_fixedColorChooser, 0, 2, 1, 1);
-
-  auto spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-  ui->colorCycleLayout->addItem(spacer, 0, 3, 1, 1);
-
   m_beamPropertiesDialog = new BeamPropertiesDialog(nullptr, this);
 
   m_openSettingsDialog = new QFileDialog(this);
@@ -70,8 +61,6 @@ SimulationPropertiesDialog::SimulationPropertiesDialog(QWidget *parent) :
         "JSON simulation settings (*.json);;All files (*)");
 
   connectAll();
-
-  applySettings();
 }
 
 SimulationPropertiesDialog::~SimulationPropertiesDialog()
@@ -118,7 +107,23 @@ SimulationPropertiesDialog::refreshBeamList()
 
     auto item = new QTableWidgetItem;
 
-    item->setBackground(props->color);
+    if (props->colorByWl) {
+      bool ok;
+
+      qreal wl = props->wavelength.toDouble(&ok);
+
+      if (ok) {
+        uint32_t colorRgb = wl2uint32_t(wl);
+        item->setBackground(QColor::fromRgb(colorRgb));
+      } else {
+        item->setText("(Dynamic)");
+        item->setTextAlignment(Qt::AlignHCenter);
+      }
+
+    } else {
+      item->setBackground(props->color);
+    }
+
 
     ui->beamTableWidget->setItem(row, 0, item);
     ui->beamTableWidget->setItem(row, 1, new QTableWidgetItem(props->name));
@@ -127,33 +132,6 @@ SimulationPropertiesDialog::refreshBeamList()
     ui->beamTableWidget->setItem(row, 4, new QTableWidgetItem(QString::number(props->rays)));
     ui->beamTableWidget->setItem(row, 5, new QTableWidgetItem(sampling));
   }
-}
-
-void
-SimulationPropertiesDialog::applySettings()
-{
-  RZGUISingleton::loadSetting(m_repProperties, "Representation");
-  QRadioButton *coloringRadio = nullptr;
-
-  BLOCKSIG(ui->accumCheck, setChecked(m_repProperties.accumulate));
-  BLOCKSIG(m_fixedColorChooser, setColor(m_repProperties.fixedBeamColor));
-
-  switch (m_repProperties.coloringMode) {
-    case COLORING_FIXED:
-      coloringRadio = ui->fixedColorRadio;
-      break;
-
-    case COLORING_WAVELENGTH:
-      coloringRadio = ui->wlColorRadio;
-      break;
-
-    case COLORING_CYCLE:
-      coloringRadio = ui->incrementalColorRadio;
-      break;
-  }
-
-  if (coloringRadio != nullptr)
-    BLOCKSIG(coloringRadio, setChecked(true));
 }
 
 void
@@ -213,12 +191,6 @@ SimulationPropertiesDialog::connectAll()
         SIGNAL(clicked(bool)),
         this,
         SLOT(onExportSettings()));
-
-  connect(
-        ui->fixedColorRadio,
-        SIGNAL(toggled(bool)),
-        this,
-        SLOT(onRepChanged()));
 
   connect(
         ui->addFootprintButton,
@@ -301,8 +273,6 @@ SimulationPropertiesDialog::refreshUi()
 
   ui->steps1Spin->setEnabled(m_properties.type != SIM_TYPE_ONE_SHOT);
   ui->steps2Spin->setEnabled(m_properties.type == SIM_TYPE_2D_SWEEP);
-
-  m_fixedColorChooser->setEnabled(ui->fixedColorRadio->isChecked());
 
   ui->pathCombo->setEnabled(ui->pathCombo->count() > 0);
   ui->detectorCombo->setEnabled(ui->detectorCombo->count() > 0);
@@ -473,21 +443,6 @@ SimulationPropertiesDialog::parseProperties()
   }
 }
 
-void
-SimulationPropertiesDialog::parseRepProperties()
-{
-  m_repProperties.accumulate = ui->accumCheck->isChecked();
-
-  if (ui->fixedColorRadio->isChecked())
-    m_repProperties.coloringMode = COLORING_FIXED;
-  else if (ui->wlColorRadio->isChecked())
-    m_repProperties.coloringMode = COLORING_WAVELENGTH;
-  else if (ui->incrementalColorRadio->isChecked())
-    m_repProperties.coloringMode = COLORING_CYCLE;
-
-  m_repProperties.fixedBeamColor = m_fixedColorChooser->getColor();
-}
-
 bool
 SimulationPropertiesDialog::doUpdateState()
 {
@@ -503,8 +458,6 @@ SimulationPropertiesDialog::doUpdateState()
             "Beam properties",
             "Some of the simulation properties contain errors");
     }
-
-    state->setRepresentationProperties(m_repProperties);
   }
 
   return stateUpdated;
@@ -514,10 +467,6 @@ void
 SimulationPropertiesDialog::accept()
 {
   parseProperties();
-  parseRepProperties();
-
-  RZGUISingleton::saveSetting(m_repProperties, "Representation");
-  RZGUISingleton::sync();
 
   if (doUpdateState())
     QDialog::accept();
@@ -702,12 +651,6 @@ SimulationPropertiesDialog::onBrowseOutputDir()
 
   if (!dir.isNull())
     ui->outputDirEdit->setText(dir);
-}
-
-void
-SimulationPropertiesDialog::onRepChanged()
-{
-  refreshUi();
 }
 
 void
