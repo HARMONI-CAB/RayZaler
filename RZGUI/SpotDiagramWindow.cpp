@@ -88,9 +88,11 @@ SpotDiagramWindow::resetZoom()
 void
 SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
 {
-  auto infoWidget = new FootprintInfoWidget(&footprint);
+  auto infoWidget = new FootprintInfoWidget(&footprint, this);
 
-  ui->verticalLayout->insertWidget(m_footprintCount++, infoWidget);
+  ui->verticalLayout->insertWidget(m_infoWidgets.size(), infoWidget);
+
+  m_infoWidgets.push_back(infoWidget);
 
   RZ::ScatterSet *set = new RZ::ScatterSet(
         footprint.color,
@@ -150,13 +152,12 @@ SpotDiagramWindow::onClear()
 {
   int i;
 
-  for (i = 0; i < ui->verticalLayout->count(); ++i) {
-    auto item = ui->verticalLayout->itemAt(0);
-    if (item->widget() != nullptr)
-      delete item->widget();
+  for (auto &p: m_infoWidgets) {
+    ui->verticalLayout->removeWidget(p);
+    p->deleteLater();
   }
 
-  m_footprintCount = 0;
+  m_infoWidgets.clear();
 
   emit clear();
 }

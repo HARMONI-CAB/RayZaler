@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <Logger.h>
 #include <cmath>
+#include <QElapsedTimer>
 
 
 // https://www.johndcook.com/wavelength_to_RGB.html
@@ -195,7 +196,6 @@ SimulationState::clearAndSavePreviousBeams()
     if (beam->complete) {
       m_previousBeams.splice(m_previousBeams.end(), m_currentBeams, it);
     } else {
-      printf("Remove beam ID %d\n", beam->id);
       auto node = m_idToBeam.find(beam->id);
       if (node != m_idToBeam.end())
         m_idToBeam.erase(node);
@@ -213,7 +213,6 @@ SimulationState::makeBeamState(SimulationBeamProperties const &props)
 
   beam->id = m_nextBeamId++;
 
-  printf("Make beam %d\n", beam->id);
   m_idToBeam[beam->id] = beam;
   m_currentBeams.push_back(beam);
 
@@ -249,7 +248,6 @@ SimulationState::setProperties(SimulationProperties const &prop)
     }
   }
 
-  printf("Set properties! %d beams defined\n", prop.beams.size());
 #define TRY_DEFINE_BEAM_EXPR(name)                                           \
   if (!beamState->evalCtx.defineExpression(#name, bp.name.toStdString())) {  \
     m_firstFailedBeamExpr = #name;                                           \
@@ -270,8 +268,6 @@ SimulationState::setProperties(SimulationProperties const &prop)
     TRY_DEFINE_BEAM_EXPR(wavelength);
 
     beamState->complete = true;
-
-    printf("Beam done\n");
   }
 #undef TRY_DEFINE_BEAM_EXPR
 
@@ -286,7 +282,6 @@ SimulationState::allocateRays()
   const RZ::OpticalPath *path = nullptr;
   RZ::OpticalElement *element = nullptr;
   RZ::ReferenceFrame *fp = nullptr;
-  RZ::BeamProperties prop;
 
   // TODO: prevent continuous reallocation of beams
   if (m_currentRayGroup == m_rayGroupAlloc.end())
@@ -304,6 +299,7 @@ SimulationState::allocateRays()
   m_currentRayGroup->clear();
 
   for (auto &beamState : m_currentBeams) {
+    RZ::BeamProperties prop;
     auto &beam = beamState->properties;
 
     // Define beam reference
@@ -367,6 +363,7 @@ SimulationState::allocateRays()
     prop.vignetting = false;
     prop.shape      = RZ::BeamShape::Point;
     prop.numRays    = 1;
+
     RZ::OMModel::addBeam(*m_currentRayGroup, prop);
 
     // Main beam
@@ -395,13 +392,7 @@ SimulationState::allocateRays()
         break;
     }
 
-    RZInfo(
-          "Add beam %s (id = %d)\n",
-          beamState->properties.name.toStdString().c_str(),
-          beamState->id);
-    prop.debug();
     RZ::OMModel::addBeam(*m_currentRayGroup, prop);
-    RZInfo("\n");
   }
 
   return true;
@@ -817,7 +808,6 @@ SimulationState::initSimulation()
 
   // We transition to running state only if we manage to allocate rays.
   m_running = allocateRays();
-
   return m_running;
 }
 
@@ -925,8 +915,6 @@ SimulationState::getBeamState(uint32_t id)
   if (it != m_idToBeam.end())
     return it->second;
 
-  printf("WARNING!! No such beam %d!!\n", id);
-
   return nullptr;
 }
 
@@ -994,11 +982,7 @@ SimulationSession::idToRgba(uint32_t id) const
         return wl2uint32_t(beamState->wavelength);
       else
         return QColor2uint32_t(beamState->properties.color);
-    } else {
-      printf("Failed to get color for beam 0x%x\n", id);
     }
-  } else {
-    printf("Failed to get simulation state\n");
   }
 
   return 0xffffee00;

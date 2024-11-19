@@ -15,6 +15,7 @@ namespace Ui {
 }
 
 class ScatterWidget;
+class FootprintInfoWidget;
 
 struct SurfaceFootprint {
   std::string           fullName;     // Full surface name
@@ -30,10 +31,10 @@ class SpotDiagramWindow : public QMainWindow
 {
   Q_OBJECT
 
-  RZ::ScatterDataProduct *m_product = nullptr;
-  ScatterWidget          *m_widget  = nullptr;
-  QFileDialog            *m_saveDialog = nullptr;
-  int                     m_footprintCount = 0;
+  RZ::ScatterDataProduct           *m_product = nullptr;
+  ScatterWidget                    *m_widget  = nullptr;
+  QFileDialog                      *m_saveDialog = nullptr;
+  std::list<FootprintInfoWidget *>  m_infoWidgets;
 
   void connectAll();
 
