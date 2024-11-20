@@ -325,6 +325,24 @@ GenericCompositeModel::assignEverything()
     p->assign();
 }
 
+void
+GenericCompositeModel::boundingBox(Vec3 &p1, Vec3 &p2)
+{
+  for (auto frame : m_frames) {
+    p1.x = fmin(p1.x, frame->getCenter().x);
+    p1.y = fmin(p1.y, frame->getCenter().y);
+    p1.z = fmin(p1.z, frame->getCenter().z);
+
+    p2.x = fmax(p2.x, frame->getCenter().x);
+    p2.y = fmax(p2.y, frame->getCenter().y);
+    p2.z = fmax(p2.z, frame->getCenter().z);
+  }
+
+  for (auto el : m_elements)
+    if (el->nestedCompositeModel() != nullptr)
+      el->nestedCompositeModel()->boundingBox(p1, p2);
+}
+
 bool
 GenericCompositeModel::loadScript(std::string const &path)
 {

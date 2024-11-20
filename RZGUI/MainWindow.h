@@ -69,6 +69,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   SessionTabWidget *currentSessionWidget() const;
 
 public:
+  virtual void closeEvent(QCloseEvent *event) override;
   virtual void logFunction(
           RZ::LogLevel level,
           std::string const &file,

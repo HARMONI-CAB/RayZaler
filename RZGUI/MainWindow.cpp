@@ -640,6 +640,12 @@ MainWindow::finalizeDOFWidget(SessionUI &sessUI)
 }
 
 void
+MainWindow::closeEvent(QCloseEvent *)
+{
+  QApplication::quit();
+}
+
+void
 MainWindow::doReload()
 {
   SessionTabWidget *widget = currentSessionWidget();
@@ -667,6 +673,12 @@ MainWindow::doReload()
 
 MainWindow::~MainWindow()
 {
+  if (ui != nullptr && ui->sessionTabWidget != nullptr) {
+    while (ui->sessionTabWidget->count() > 0)
+      onCloseTab(0);
+    delete ui;
+  }
+
   if (m_compPropModel != nullptr)
     m_compPropModel->deleteLater();
 
@@ -675,8 +687,6 @@ MainWindow::~MainWindow()
 
   if (m_propModel != nullptr)
     m_propModel->deleteLater();
-
-  delete ui;
 }
 
 void
@@ -700,7 +710,8 @@ MainWindow::onReload()
 void
 MainWindow::onCloseTab(int index)
 {
-  SessionTabWidget *widget = currentSessionWidget();
+  SessionTabWidget *widget = qobject_cast<SessionTabWidget *>(
+        ui->sessionTabWidget->widget(index));
 
   ui->sessionTabWidget->removeTab(index);
 
@@ -716,6 +727,8 @@ MainWindow::onCloseTab(int index)
     finalizeDOFWidget(sessUI);
 
     session->deleteLater();
+
+    widget->deleteLater();
   }
 }
 

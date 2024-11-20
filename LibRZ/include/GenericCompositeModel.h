@@ -219,6 +219,7 @@ namespace RZ {
 
       std::string resolveFilePath(std::string const &) const;
 
+      void boundingBox(Vec3 &p1, Vec3 &p2);
       void assignEverything();
       void updateRandState();
       void setRandomState(ExprRandomState * state);
