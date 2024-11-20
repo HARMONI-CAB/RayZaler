@@ -26,6 +26,10 @@ Obstruction::recalcModel()
 {
   m_processor->setRadius(m_radius);
   m_disc.setRadius(m_radius);
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, 0),
+      Vec3(+m_radius, +m_radius, 0));
 }
 
 bool

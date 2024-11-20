@@ -18,6 +18,7 @@ namespace RZ {
 
       GLCappedCylinder m_cylinder;
 
+      void recalcBoundingBox();
       void initSides();
 
     protected:

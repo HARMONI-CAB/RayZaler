@@ -31,6 +31,8 @@
 
 using namespace RZ;
 
+#define RZ_DETECTOR_THICKNESS 1e-4
+
 DetectorStorage::DetectorStorage(
   unsigned int cols,
   unsigned int rows,
@@ -242,6 +244,10 @@ Detector::recalcModel()
   m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
   m_processor->aperture<RectangularAperture>()->setWidth(m_width);
   m_processor->aperture<RectangularAperture>()->setHeight(m_height);
+
+  setBoundingBox(
+    Vec3(-m_width / 2, -m_height/2, 0),
+    Vec3(+m_width / 2, +m_height/2, 2 * RZ_DETECTOR_THICKNESS));
 }
 
 bool
@@ -293,7 +299,6 @@ Detector::Detector(
   m_detectorSurface = new TranslatedFrame("detSurf", frame, Vec3::zero());
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_processor);
-
 
   refreshProperties();
   recalcModel();
@@ -418,7 +423,7 @@ Detector::nativeMaterialOpenGL(std::string const &name)
 void
 Detector::renderOpenGL()
 {
-  const GLfloat thickness = 1e-4;
+  const GLfloat thickness = RZ_DETECTOR_THICKNESS;
 
   glTranslatef(0, 0, -thickness / 2);
   

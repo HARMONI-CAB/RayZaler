@@ -19,6 +19,7 @@ namespace RZ {
 
       GLTube m_tube;
 
+      void recalcBoundingBox();
       void initSides();
 
     protected:

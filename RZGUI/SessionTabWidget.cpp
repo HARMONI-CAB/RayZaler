@@ -23,6 +23,8 @@ SessionTabWidget::SessionTabWidget(
   QWidget(parent),
   ui(new Ui::SessionTabWidget)
 {
+  RZ::Vec3 p1, p2;
+  auto topLevel = session->topLevelModel();
   ColorSettings colorSettings;
 
   m_session = session;
@@ -32,7 +34,11 @@ SessionTabWidget::SessionTabWidget(
   m_glWidget = new RZGUIGLWidget(this);
   ui->mainGrid->addWidget(m_glWidget, 0, 0, 1, 1);
 
-  m_glWidget->setModel(session->topLevelModel());
+
+  topLevel->boundingBox(p1, p2);
+
+  m_glWidget->setModel(topLevel);
+  m_glWidget->zoomToBox(p1, p2);
 
   m_progressDialog = new SimulationProgressDialog(session->tracer(), this);
   m_progressDialog->setWindowTitle(
@@ -487,7 +493,10 @@ SessionTabWidget::reloadModel()
           "Cannot reload model: " + QString::fromStdString(e.what()));
   }
 
-  m_glWidget->setModel(m_session->topLevelModel());
+  auto topLevel = m_session->topLevelModel();
+
+  m_glWidget->setModel(topLevel);
+
   m_detWindow->setSession(m_session);
   m_progressDialog->setTracer(m_session->tracer());
   reconnectTracer();

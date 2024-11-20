@@ -252,6 +252,35 @@ Element::material(std::string const &role)
 }
 
 void
+Element::setBoundingBox(Vec3 const &p1, Vec3 const &p2)
+{
+  m_bb1 = p1;
+  m_bb2 = p2;
+}
+
+void
+Element::boundingBox(Vec3 &p1, Vec3 &p2)
+{
+  if (m_parentFrame == nullptr) {
+    p1 = m_bb1;
+    p2 = m_bb2;
+  } else {
+    for (unsigned i = 0; i < 8; ++i) {
+      bool whichX = (i & 1) != 0;
+      bool whichY = (i & 2) != 0;
+      bool whichZ = (i & 4) != 0;
+
+      Vec3 p = Vec3(
+        whichX ? m_bb1.x : m_bb2.x,
+        whichY ? m_bb1.y : m_bb2.y,
+        whichZ ? m_bb1.z : m_bb2.z);
+      Vec3 abs = m_parentFrame->fromRelative(p);
+      expandBox(p1, p2, abs);
+    }
+  }
+}
+
+void
 Element::setSelected(bool selected)
 {
   auto nested = nestedModel();

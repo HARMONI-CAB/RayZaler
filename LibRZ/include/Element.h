@@ -86,7 +86,8 @@ namespace RZ {
       ReferenceFrame        *m_parentFrame = nullptr;
       GenericCompositeModel *m_parentModel = nullptr;
       ElementFactory        *m_factory     = nullptr;
-      
+      Vec3                   m_bb1;
+      Vec3                   m_bb2;
       std::list<Element *>                    m_children;
       std::list<ReferenceFrame *>             m_portList;
       std::map<std::string, ReferenceFrame *> m_nameToPort;
@@ -132,6 +133,8 @@ namespace RZ {
       }
 
       virtual bool propertyChanged(std::string const &, PropertyValue const &);
+
+      void setBoundingBox(Vec3 const &p1, Vec3 const &p2);
 
       Element(
         ElementFactory *,
@@ -243,7 +246,8 @@ namespace RZ {
       // Representation methods
       void setSelected(bool);
       void setVisible(bool);
-
+      void boundingBox(Vec3 &p1, Vec3 &p2);
+      
       // Representation interface
       virtual void enterOpenGL();
       virtual void nativeMaterialOpenGL(std::string const &role);

@@ -27,6 +27,14 @@ using namespace RZ;
 #define ROD_DEFAULT_LENGTH   5e-2
 #define ROD_DEFAULT_DIAMETER 3e-3
 
+void
+RodElement::recalcBoundingBox()
+{
+  setBoundingBox(
+    Vec3(-m_cachedDiameter / 2, -m_cachedDiameter / 2, -m_cachedLength/2),
+    Vec3(+m_cachedDiameter / 2, +m_cachedDiameter / 2, +m_cachedLength/2));
+}
+
 bool
 RodElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
@@ -50,6 +58,7 @@ RodElement::propertyChanged(std::string const &name, PropertyValue const &val)
     m_sides[1]->recalculate();
     m_cylinder.setHeight(m_cachedLength);
     m_cylinder.setRadius(.5 * m_cachedDiameter);
+    recalcBoundingBox();
     return true;
   }
 
@@ -95,6 +104,8 @@ RodElement::initSides()
   m_cylinder.setRadius(.5 * m_cachedDiameter);
   m_cylinder.setVisibleCaps(true, true);
   m_cylinder.setSlices(24);
+
+  recalcBoundingBox();
 }
 
 RodElement::RodElement(

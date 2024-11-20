@@ -26,6 +26,14 @@ using namespace RZ;
 #define ROD_DEFAULT_LENGTH   5e-2
 #define ROD_DEFAULT_DIAMETER 3e-3
 
+void
+TubeElement::recalcBoundingBox()
+{
+  setBoundingBox(
+    Vec3(-m_cachedOuterDiameter / 2, -m_cachedOuterDiameter / 2, -m_cachedLength/2),
+    Vec3(+m_cachedOuterDiameter / 2, +m_cachedOuterDiameter / 2, +m_cachedLength/2));
+}
+
 bool
 TubeElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
@@ -56,6 +64,8 @@ TubeElement::propertyChanged(std::string const &name, PropertyValue const &val)
   m_tube.setHeight(m_cachedLength);
   m_tube.setOuterRadius(.5 * m_cachedOuterDiameter);
   m_tube.setInnerRadius(.5 * m_cachedInnerDiameter);
+
+  recalcBoundingBox();
 
   return true;
 }

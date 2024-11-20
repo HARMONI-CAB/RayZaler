@@ -32,6 +32,9 @@ class RZGUIGLWidget : public QOpenGLWidget
   bool    m_displayGrids        = true;
   bool    m_displayMeasurements = false;
 
+  bool    m_zoomToBoxPending    = false;
+  RZ::Vec3 m_lastP1, m_lastP2;
+
   bool    m_fixedLight          = false;
   bool    m_newViewPort         = false;
   int     m_width;
@@ -121,6 +124,7 @@ public:
   RZ::GLCurrentView *view();
 
   void setModel(RZ::OMModel *model);
+  void zoomToBox(RZ::Vec3 const &, RZ::Vec3 const &);
   void getCurrentRot(GLfloat *) const;
   void setCurrentRot(const GLfloat *);
   void setDisplayNames(bool);

@@ -31,6 +31,7 @@ bool
 BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
   Real value = val;
+  bool hadIt = false;
 
   if (name == "length") {
     m_sides[0]->setDistance(.5 * value * Vec3::eZ());
@@ -38,25 +39,34 @@ BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
     m_sides[0]->recalculate();
     m_sides[1]->recalculate();
     m_cachedLength = value;
-    return true;
+    hadIt = true;
   } else if (name == "width") {
     m_sides[2]->setDistance(.5 * value * Vec3::eZ());
     m_sides[3]->setDistance(.5 * value * Vec3::eZ());
     m_sides[2]->recalculate();
     m_sides[3]->recalculate();
     m_cachedWidth = value;
-    return true;
+    hadIt = true;
   } else if (name == "height") {
     m_sides[4]->setDistance(.5 * value * Vec3::eZ());
     m_sides[5]->setDistance(.5 * value * Vec3::eZ());
     m_sides[4]->recalculate();
     m_sides[5]->recalculate();
     m_cachedHeight = value;
-    return true;
+    hadIt = true;
   } else if (name == "wireFrame") {
     m_wireFrame = value > .5;
+    hadIt = true;
+  }
+  
+  if (hadIt) {
+    setBoundingBox(
+      Vec3(-m_cachedLength / 2, -m_cachedWidth/2, -m_cachedHeight/2),
+      Vec3(+m_cachedLength / 2, +m_cachedWidth/2, +m_cachedHeight/2));
+
     return true;
   }
+  
   
   return Element::propertyChanged(name, val);
 }
@@ -132,6 +142,10 @@ BlockElement::BlockElement(
   m_cachedLength = BLOCK_DEFAULT_LENGTH;
   m_cachedWidth  = BLOCK_DEFAULT_WIDTH;
   m_cachedHeight = BLOCK_DEFAULT_HEIGHT;
+
+  setBoundingBox(
+      Vec3(-m_cachedLength / 2, -m_cachedWidth/2, -m_cachedHeight/2),
+      Vec3(+m_cachedLength / 2, +m_cachedWidth/2, +m_cachedHeight/2));
 
   initSides();
 

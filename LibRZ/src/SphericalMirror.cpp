@@ -57,6 +57,10 @@ SphericalMirror::recalcModel()
 
   m_reflectiveSurfaceFrame->setDistance(m_depth * Vec3::eZ());
   m_reflectiveSurfaceFrame->recalculate();
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, 0),
+      Vec3(+m_radius, +m_radius, m_depth));
 }
 
 bool

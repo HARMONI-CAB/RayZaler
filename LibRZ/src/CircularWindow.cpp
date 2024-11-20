@@ -37,6 +37,11 @@ CircularWindow::recalcModel()
   // Intercept surfaces
   m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
   m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, -m_thickness/2),
+      Vec3(+m_radius, +m_radius, +m_thickness/2));
+
 }
 
 bool

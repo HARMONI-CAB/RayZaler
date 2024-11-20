@@ -29,7 +29,7 @@ ConicMirror::recalcModel()
   Real Rc2 = m_rCurv  * m_rCurv;
   bool convex = m_rCurv < 0;
   Real sigma = convex ? 1 : -1;
-
+  
   if (isZero(m_K + 1)) {
     m_displacement = .5 * R2 / m_rCurv;
     m_rHoleHeight  = .5 * m_rHole * m_rHole / m_rCurv;
@@ -37,6 +37,8 @@ ConicMirror::recalcModel()
     m_displacement = (Rc - sqrt(Rc2 - (m_K + 1) * R2)) / (m_K + 1);
     m_rHoleHeight  = (Rc - sqrt(Rc2 - (m_K + 1) * m_rHoleHeight * m_rHoleHeight)) / (m_K + 1);
   }
+
+  Real apertureZ = m_thickness - sigma * m_displacement;
 
   m_cap.setRadius(m_radius);
   m_cap.setCurvatureRadius(Rc);
@@ -61,8 +63,8 @@ ConicMirror::recalcModel()
   m_processor->setConvex(convex);
   m_processor->setCenterOffset(m_x0, m_y0);
 
-  m_reflectiveSurfaceFrame->setDistance((m_thickness - sigma * m_displacement) * Vec3::eZ());
-  m_reflectiveSurfacePort->setDistance((m_thickness - sigma * m_displacement) * Vec3::eZ());
+  m_reflectiveSurfaceFrame->setDistance(apertureZ * Vec3::eZ());
+  m_reflectiveSurfacePort->setDistance(apertureZ * Vec3::eZ());
 
   m_reflectiveSurfaceFrame->recalculate();
   m_reflectiveSurfacePort->recalculate();
@@ -75,6 +77,10 @@ ConicMirror::recalcModel()
   m_hole.setHeight(m_thickness);
   m_hole.setVisibleCaps(false, false);
   m_processor->setHoleRadius(m_rHole);
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, 0),
+      Vec3(+m_radius, +m_radius, apertureZ));
 }
 
 bool

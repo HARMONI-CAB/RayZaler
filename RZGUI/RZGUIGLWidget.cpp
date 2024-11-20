@@ -786,6 +786,9 @@ RZGUIGLWidget::resizeGL(int w, int h)
 
   m_view.setScreenGeom(w, h);
 
+  if (m_zoomToBoxPending)
+    zoomToBox(m_lastP1, m_lastP2);
+
   configureViewPort();
 }
 
@@ -890,6 +893,35 @@ RZGUIGLWidget::setModel(RZ::OMModel *model)
     m_model->recalculate();
 
   update();
+}
+
+void
+RZGUIGLWidget::zoomToBox(RZ::Vec3 const &p1, RZ::Vec3 const &p2)
+{
+  m_lastP1 = p1;
+  m_lastP2 = p2;
+
+  if (m_width == 0 || m_height == 0) {
+    m_zoomToBoxPending = true;
+  } else {
+    RZ::Real sX, sY;
+    RZ::Vec3 center = .5 * (m_lastP1 + m_lastP2);
+    RZ::Real dist   = (m_lastP1 - center).norm();
+    RZ::Real aspect = static_cast<RZ::Real>(m_width) / static_cast<RZ::Real>(m_height);
+    RZ::Matrix3 rotation =
+        RZ::Matrix3::rot(RZ::Vec3::eX(), +.25 * M_PI) *
+        RZ::Matrix3::rot(RZ::Vec3::eY(), -.25 * M_PI);
+
+    m_view.setRotation(rotation);
+
+    m_view.setZoom(1 / (fmax(1e-12, dist) * fmax(1, aspect)));
+    m_view.worldToScreen(sX, sY, .5 * (center.x + center.y), .866 * center.z);
+
+    m_view.setCenter(sX - m_width / 2, sY - m_height / 2);
+
+    display();
+    m_zoomToBoxPending = false;
+  }
 }
 
 void

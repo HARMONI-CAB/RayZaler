@@ -34,6 +34,9 @@ RectangularStop::recalcModel()
   m_processor->setWidth(m_width);
   m_processor->setHeight(m_height);
 
+  Real fullWidth  = m_width + m_borderWidth;
+  Real fullHeight = m_height + m_borderHeight;
+
   Real verticalSpacing   = .5 * (m_borderHeight - m_height);
   Real horizontalSpacing = .5 * (m_borderWidth - m_width);
 
@@ -45,6 +48,10 @@ RectangularStop::recalcModel()
 
   m_hRect.setWidth(horizontalSpacing);
   m_hRect.setHeight(m_borderHeight);
+
+  setBoundingBox(
+    Vec3(-fullWidth/2, -fullHeight/2, 0),
+    Vec3(+fullWidth/2, +fullHeight/2, 0));
 }
 
 bool

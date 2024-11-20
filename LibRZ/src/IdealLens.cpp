@@ -30,6 +30,10 @@ IdealLens::recalcModel()
 
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_fLen);
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, 0),
+      Vec3(+m_radius, +m_radius, 0));
 }
 
 bool

@@ -48,6 +48,10 @@ ParabolicMirror::recalcModel()
 
   m_reflectiveSurfaceFrame->recalculate();
   m_reflectiveSurfacePort->recalculate();
+
+  setBoundingBox(
+      Vec3(-m_radius, -m_radius, 0),
+      Vec3(+m_radius, +m_radius, m_thickness + m_displacement));
 }
 
 bool

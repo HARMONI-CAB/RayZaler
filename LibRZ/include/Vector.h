@@ -234,6 +234,18 @@ namespace RZ {
   {
     return v * k;
   }
+
+  static inline void
+  expandBox(Vec3 &p1, Vec3 &p2, Vec3 const &newPoint)
+  {
+    p1.x = fmin(p1.x, newPoint.x);
+    p1.y = fmin(p1.y, newPoint.y);
+    p1.z = fmin(p1.z, newPoint.z);
+
+    p2.x = fmax(p2.x, newPoint.x);
+    p2.y = fmax(p2.y, newPoint.y);
+    p2.z = fmax(p2.z, newPoint.z);
+  }
 }
 
 inline std::ostream&

@@ -34,6 +34,10 @@ ApertureStop::recalcModel()
   m_pinHole.setRadius(m_radius);
   m_pinHole.setHeight(m_height);
   m_pinHole.setWidth(m_width);
+
+  setBoundingBox(
+    Vec3(-m_width / 2, -m_height/2, 0),
+    Vec3(-m_width / 2, -m_height/2, 0));
 }
 
 bool

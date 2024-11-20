@@ -63,6 +63,10 @@ LensletArray::recalcModel()
   
   m_cap.setInvertNormals(true);
   m_cylinder.setCaps(&m_cap, &m_cap);
+
+  setBoundingBox(
+      Vec3(-m_width / 2, -m_height / 2, -m_thickness / 2),
+      Vec3(+m_width / 2, +m_height / 2, +m_thickness / 2));
 }
 
 bool
