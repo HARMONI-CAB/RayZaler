@@ -20,6 +20,11 @@
 
 using namespace RZ;
 
+GenericAperture::~GenericAperture()
+{
+  
+}
+
 void
 GenericAperture::renderOpenGL()
 {

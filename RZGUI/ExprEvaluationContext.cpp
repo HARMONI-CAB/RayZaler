@@ -45,6 +45,9 @@ ExprEvaluationContext::~ExprEvaluationContext()
 {
   for (auto &p : m_evaluators)
     delete p.second;
+
+  for (auto &node : m_variables)
+    delete node.second;
 }
 
 bool

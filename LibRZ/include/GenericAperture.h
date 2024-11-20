@@ -15,6 +15,8 @@ namespace RZ {
       std::vector<std::vector<Real>> m_emptyEdges;
 
     public:
+      virtual ~GenericAperture();
+      
       inline ExprRandomState &randState()
       {
         return m_state;
@@ -44,6 +46,7 @@ namespace RZ {
 
       virtual std::vector<std::vector<Real>> const &edges() const;
       virtual void renderOpenGL();
+      
   };
 }
 

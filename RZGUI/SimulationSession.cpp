@@ -1103,6 +1103,12 @@ SimulationSession::~SimulationSession()
     m_tracerThread->wait();
   }
 
+  if (m_tracer != nullptr)
+    delete m_tracer;
+
+  if (m_simState != nullptr)
+    delete m_simState;
+
   if (m_topLevelModel != nullptr)
     delete m_topLevelModel;
 
@@ -1111,9 +1117,6 @@ SimulationSession::~SimulationSession()
 
  if (m_beamColoring != nullptr)
    delete m_beamColoring;
-
- if (m_tracer != nullptr)
-   m_tracer->deleteLater();
 }
 
 void
