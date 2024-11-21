@@ -21,6 +21,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   std::vector<RZ::GLArrow>  m_pathArrows;
   const RZ::ReferenceFrame *m_selectedRefFrame = nullptr;
   const RZ::OpticalPath    *m_selectedPath = nullptr;
+  RZ::Element              *m_selectedElement = nullptr;
 
   RZ::OMModel *m_model = nullptr;
   GLfloat m_refMatrix[16];
@@ -33,12 +34,13 @@ class RZGUIGLWidget : public QOpenGLWidget
   bool    m_displayMeasurements = false;
 
   bool    m_zoomToBoxPending    = false;
+
   RZ::Vec3 m_lastP1, m_lastP2;
 
   bool    m_fixedLight          = false;
   bool    m_newViewPort         = false;
-  int     m_width;
-  int     m_height;
+  int     m_width               = 0;
+  int     m_height              = 0;
   int     m_hWnd = -1;
   bool    m_dragging = false;
 
@@ -64,6 +66,7 @@ class RZGUIGLWidget : public QOpenGLWidget
   void setOrientationAndCenter(RZ::Matrix3 const &, RZ::Vec3 const &);
   void pushReferenceFrameMatrix(const RZ::ReferenceFrame *);
   void pushElementMatrix(const RZ::Element *);
+
   void popElementMatrix();
   void displayModel(RZ::OMModel *);
   void displayApertures(const RZ::Element *);
@@ -138,6 +141,7 @@ public:
   void setGridColor(const GLfloat *);
   void setSelectedOpticalPath(RZ::OpticalPath const *path);
   void setSelectedReferenceFrame(RZ::ReferenceFrame *sel, const char *name = nullptr);
+  void setSelectedElement(RZ::Element *);
   void rotateToCurrentFrame();
 
   void setGridDivs(unsigned);

@@ -37,8 +37,8 @@ FlatMirror::recalcModel()
   m_b = .5 * m_height / m_radius;
 
   setBoundingBox(
-      Vec3(-m_width / 2, -m_height / 2, -m_thickness / 2),
-      Vec3(+m_width / 2, +m_height / 2, +m_thickness / 2));
+      Vec3(-m_width / 2, -m_height / 2, 0),
+      Vec3(+m_width / 2, +m_height / 2, +m_thickness));
 }
 
 bool

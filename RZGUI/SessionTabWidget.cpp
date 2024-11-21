@@ -231,6 +231,13 @@ SessionTabWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
   m_glWidget->setSelectedOpticalPath(path);
 }
 
+void
+SessionTabWidget::setSelectedElement(RZ::Element *el)
+{
+  m_selectedElement = el;
+  m_glWidget->setSelectedElement(el);
+}
+
 bool
 SessionTabWidget::displayRefFrames() const
 {
@@ -484,6 +491,9 @@ SessionTabWidget::reloadModel()
   m_glWidget->setModel(nullptr);
   m_progressDialog->setTracer(nullptr);
 
+  m_selectedElement = nullptr;
+  m_selectedFrame = nullptr;
+
   try {
     m_session->reload();
   } catch (std::runtime_error const &e) {
@@ -566,6 +576,9 @@ SessionTabWidget::reloadModelFromEditor()
 void
 SessionTabWidget::onModelChanged()
 {
+  if (m_selectedElement != nullptr)
+    m_selectedElement->renderBoundingBoxOpenGL();
+
   updateDetectorWindow();
   updateModel();
 }

@@ -1151,11 +1151,6 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
     // - Diverging beams depart from origin to center, and the focus is in
     //   [length] meters from origin, in negative chief ray direction
 
-    if (properties.objectShape != PointLike) {
-      delete raySampler;
-      throw std::runtime_error("Cannot sample focused rays from the sky");
-    }
-
     if (properties.converging) {
       direction = mainDirection;
       Vec3 focus     = origin + direction * (properties.length + properties.focusZ);

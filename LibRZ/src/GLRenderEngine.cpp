@@ -165,6 +165,12 @@ GLCurrentView::setRotation(RZ::Matrix3 const &matrix)
 }
 
 void
+GLCurrentView::setScreenRotation(IncrementalRotation const &rot)
+{
+  screenRotation = rot;
+}
+
+void
 GLCurrentView::rotateRelative(RZ::Vec3 const &vec, Real angle)
 {
   rotation.rotateRelative(vec.normalized(), RZ::deg2rad(angle));
@@ -213,7 +219,7 @@ GLCurrentView::configureOrientation(bool translate) const
 }
 
 void
-GLCurrentView::screenToWorld(Real &wX, Real &wY, Real sX, Real sY)
+GLCurrentView::screenToWorld(Real &wX, Real &wY, Real sX, Real sY) const
 {
   // IMPORTANT: Both horizontal and vertical zoom levels are given by the width
 
@@ -222,10 +228,104 @@ GLCurrentView::screenToWorld(Real &wX, Real &wY, Real sX, Real sY)
 }
 
 void
-GLCurrentView::worldToScreen(Real &sX, Real &sY, Real wX, Real wY)
+GLCurrentView::worldToScreen(Real &sX, Real &sY, Real wX, Real wY) const
 {
   sX = +.25 * wX * (zoomLevel * width) + center[0] + width  * .5;
   sY = -.25 * wY * (zoomLevel * width) + center[1] + height  * .5;
+}
+
+//
+//     RZ::IncrementalRotation correctedRotation = m_view.rotation;
+
+//correctedRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
+//correctedRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
+//
+bool
+GLCurrentView::worldToFrame(
+    Vec3 &result,
+    ReferenceFrame const &frame,
+    Real wX,
+    Real wY) const
+{
+  RZ::Vec3 coords(wX, wY, 0);
+  RZ::Vec3 screenNormal, screenCoords;
+
+  IncrementalRotation currRot = rotation;
+  currRot.rotate(screenRotation);
+  Matrix3 screenMatrix = currRot.matrix();
+
+  //
+  // p0: m_selectedFrame.getCenter()
+  // sx: correctedRotation.matrix().vx
+  // sy: correctedRotation.matrix().vy
+  // ns: correctedRotation.matrix().vz
+  // z:  m_selectedFrame.z
+  //
+
+  auto sx    = screenMatrix.vx();
+  auto sy    = screenMatrix.vy();
+  auto ns    = screenMatrix.vz();
+  auto dx    = wX * sx;
+  auto dy    = wY * sy;
+  auto ez    = frame.getOrientation().t().vz();
+
+  auto p0    = frame.getCenter();
+  auto sproj = (p0 - dx - dy) * ez;
+  auto nproj = ns * ez;
+
+  if (!RZ::isZero(nproj)) {
+    RZ::Real t  = sproj / nproj;
+    auto pt     = dx + dy + t * ns; // Point in the frame
+    result = frame.toRelative(pt);
+    return true;
+  }
+
+  return false;
+}
+
+bool
+GLCurrentView::screenToFrame(
+    Vec3 &result,
+    ReferenceFrame const &frame,
+    Real sX,
+    Real sY) const
+{
+  Real wX, wY;
+
+  screenToWorld(wX, wY, sX, sY);
+  return worldToFrame(result, frame, wX, wY);
+}
+
+void
+GLCurrentView::frameToWorld(
+    Real &wX,
+    Real &wY,
+    ReferenceFrame const &frame,
+    Vec3 const &vec) const
+{
+  IncrementalRotation currRot = rotation;
+  currRot.rotate(screenRotation);
+  Matrix3 screenMatrix = currRot.matrix();
+
+  auto pt = frame.fromRelative(vec);
+
+  auto world = screenMatrix * pt;
+
+  wX = world.x;
+  wY = world.y;
+}
+
+void
+GLCurrentView::frameToScreen(
+    Real &sX,
+    Real &sY,
+    ReferenceFrame const &frame,
+    Vec3 const &vec) const
+{
+  Real wX, wY;
+
+  frameToWorld(wX, wY, frame, vec);
+  worldToScreen(sX, sY, wX, wY);
 }
 
 ///////////////////////////// GLRenderEngine ///////////////////////////////////

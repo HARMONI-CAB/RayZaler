@@ -14,6 +14,7 @@ namespace RZ {
     Real                  center[2] = {0, 0};
     Real                  width, height;
     IncrementalRotation   rotation;
+    IncrementalRotation   screenRotation;
 
     void zoom(Real delta);
     void incAzEl(Real deltaAz, Real deltaEl);
@@ -24,14 +25,22 @@ namespace RZ {
     void setZoom(Real delta);
     void setCenter(Real, Real);
     void setRotation(Real, Real, Real, Real);
-    void setRotation(RZ::Vec3 const &, Real);
-    void setRotation(RZ::Matrix3 const &);
-    void rotateRelative(RZ::Vec3 const &, Real);
+    void setRotation(Vec3 const &, Real);
+    void setRotation(Matrix3 const &);
+    void setScreenRotation(IncrementalRotation const &);
+    void rotateRelative(Vec3 const &, Real);
     void configureViewPort(unsigned int width, unsigned int height) const;
     void configureOrientation(bool translate = true) const;
 
-    void screenToWorld(Real &wX, Real &wY, Real sX, Real sY);
-    void worldToScreen(Real &sX, Real &sY, Real wX, Real wY);
+    void screenToWorld(Real &wX, Real &wY, Real sX, Real sY) const;
+    void worldToScreen(Real &sX, Real &sY, Real wX, Real wY) const;
+
+    bool screenToFrame(Vec3 &, ReferenceFrame const &, Real sX, Real sY) const;
+    bool worldToFrame(Vec3 &, ReferenceFrame const &, Real wX, Real wY) const;
+
+    void frameToWorld(Real &wX, Real &wY, ReferenceFrame const &, Vec3 const &) const;
+    void frameToScreen(Real &sX, Real &sY, ReferenceFrame const &, Vec3 const &) const;
+
   };
 
   class GLHelperGrid {

@@ -294,6 +294,63 @@ Element::setSelected(bool selected)
 }
 
 void
+Element::calcBoundingBoxOpenGL()
+{
+  Vec3 vertex;
+
+  // Yay, Gray coding!
+  unsigned int vertices[] = 
+  {
+    0, 1, 1, 5, 5, 4, 4, 0, // Front face
+    2, 3, 3, 7, 7, 6, 6, 2, // Back face
+    1, 3, 5, 7, 4, 6, 0, 2, // Lines between faces
+  };
+
+  const unsigned N = sizeof(vertices) / sizeof(vertices[0]);
+  m_bbLines.resize(N * 3);
+
+  if (m_parentFrame != nullptr)
+    m_parentFrame->recalculate();
+
+  for (unsigned i = 0; i < N; ++i) {
+    auto c = vertices[i];
+    
+    bool whichX = (c & 1) != 0;
+    bool whichY = (c & 2) != 0;
+    bool whichZ = (c & 4) != 0;
+
+    Vec3 p = Vec3(
+      whichX ? m_bb1.x : m_bb2.x,
+      whichY ? m_bb1.y : m_bb2.y,
+      whichZ ? m_bb1.z : m_bb2.z);
+
+    m_bbLines[3 * i + 0] = p.x;
+    m_bbLines[3 * i + 1] = p.y;
+    m_bbLines[3 * i + 2] = p.z;
+  }
+}
+
+void
+Element::renderBoundingBoxOpenGL()
+{
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
+
+  glDisable(GL_LIGHTING);
+
+  glColor4f(1, 1, 0, 1);
+  glLineWidth(2.);
+  glLineStipple(1, 0xcccc);
+  glEnable(GL_LINE_STIPPLE);
+
+  glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_bbLines.data());
+  glDrawArrays(GL_LINES, 0, m_bbLines.size() / 3);
+
+  glPopAttrib();
+  glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void
 Element::setVisible(bool visible)
 {
   m_visible = visible;

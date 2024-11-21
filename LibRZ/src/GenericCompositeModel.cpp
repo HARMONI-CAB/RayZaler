@@ -328,13 +328,12 @@ GenericCompositeModel::assignEverything()
 void
 GenericCompositeModel::boundingBox(Vec3 &p1, Vec3 &p2)
 {
-  for (auto frame : m_frames)
-    expandBox(p1, p2, frame->getCenter());
+  auto beamFactory = Singleton::instance()->lookupElementFactory("RayBeam");
 
   for (auto el : m_elements)
     if (el->nestedCompositeModel() != nullptr)
       el->nestedCompositeModel()->boundingBox(p1, p2);
-    else
+    else if (el->factory() != beamFactory)
       el->boundingBox(p1, p2);
 }
 

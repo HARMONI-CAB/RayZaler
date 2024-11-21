@@ -36,7 +36,8 @@ namespace RZ {
     void rotateRelative(Vec3 const &vec, Real theta);
     void rotate(Vec3 const &vec, Real theta);
     void rotate(Matrix3 const &R);
-    
+    void rotate(IncrementalRotation const &);
+
     void setRotation(Vec3 const &vec, Real theta);
     void setRotation(Matrix3 const &R);
     void setAzEl(Real az, Real el);

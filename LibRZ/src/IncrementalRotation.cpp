@@ -103,7 +103,15 @@ IncrementalRotation::rotate(Vec3 const &vec, Real theta)
 void
 IncrementalRotation::rotate(Matrix3 const &R)
 {
-  m_R = R * m_R;
+  m_R = m_R * R;
+
+  toRodrigues();
+}
+
+void
+IncrementalRotation::rotate(IncrementalRotation const &rot)
+{
+  m_R = m_R * rot.m_R;
 
   toRodrigues();
 }

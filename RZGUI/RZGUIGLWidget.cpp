@@ -34,7 +34,16 @@
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
   setMouseTracking(true);
+
+
   m_glLabelText.setFace("gridfont");
+
+  RZ::IncrementalRotation screenRotation;
+
+  screenRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
+  screenRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
+
+  m_view.setScreenRotation(screenRotation);
 }
 
 void
@@ -268,6 +277,9 @@ RZGUIGLWidget::displayLoop(
     if (frames)
       displayAxes();
 
+    if (p == m_selectedElement)
+      p->renderBoundingBoxOpenGL();
+
     if (elements)
       p->renderOpenGL();
 
@@ -488,6 +500,16 @@ RZGUIGLWidget::setSelectedReferenceFrame(RZ::ReferenceFrame *frame, const char *
     update();
   }
 }
+
+void
+RZGUIGLWidget::setSelectedElement(RZ::Element *el)
+{
+  m_selectedElement = el;
+
+  if (el != nullptr)
+    el->calcBoundingBoxOpenGL();
+}
+
 void
 RZGUIGLWidget::configureLighting()
 {
@@ -590,38 +612,10 @@ RZGUIGLWidget::mouseMotion(int x, int y)
 
   m_view.screenToWorld(wX, wY, x, y);
 
+  RZ::Vec3 result;
+
   if (m_selectedRefFrame != nullptr && m_displayMeasurements) {
-    RZ::Vec3 coords(wX, wY, 0);
-    RZ::Vec3 screenNormal, screenCoords;
-
-    RZ::IncrementalRotation correctedRotation = m_view.rotation;
-
-    correctedRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
-    correctedRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
-
-    //
-    // p0: m_selectedFrame.getCenter()
-    // sx: correctedRotation.matrix().vx
-    // sy: correctedRotation.matrix().vy
-    // ns: correctedRotation.matrix().vz
-    // z:  m_selectedFrame.z
-    //
-
-    auto p0    = m_selectedRefFrame->getCenter();
-    auto sx    = correctedRotation.matrix().vx();
-    auto sy    = correctedRotation.matrix().vy();
-    auto ns    = correctedRotation.matrix().vz();
-    auto dx    = wX * sx;
-    auto dy    = wY * sy;
-    auto ez    = m_selectedRefFrame->getOrientation().t().vz();
-
-    auto sproj = (p0 - dx - dy) * ez;
-    auto nproj = ns * ez;
-
-    if (!RZ::isZero(nproj)) {
-      RZ::Real t  = sproj / nproj;
-      auto pt     = dx + dy + t * ns; // Point in the frame
-      auto result = m_selectedRefFrame->toRelative(pt);
+    if (m_view.worldToFrame(result, *m_selectedRefFrame, wX, wY)) {
       m_grid.highlight(result.x, result.y);
       emit planeCoords(result.x, result.y);
       update();
@@ -895,29 +889,69 @@ RZGUIGLWidget::setModel(RZ::OMModel *model)
   update();
 }
 
+//
+// Relationship between x, y and a reference frame:
+//   screenToWorld(wX, wY, x, y);
+//       RZ::Vec3 coords(wX, wY, 0);
+//       RZ::Vec3 screenNormal, screenCoords;
+//       RZ::IncrementalRotation correctedRotation = m_view.rotation;
+//       correctedRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
+//       correctedRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
+
+
 void
 RZGUIGLWidget::zoomToBox(RZ::Vec3 const &p1, RZ::Vec3 const &p2)
 {
   m_lastP1 = p1;
   m_lastP2 = p2;
 
-  if (m_width == 0 || m_height == 0) {
+  if (m_width == 0 || m_height == 0 || m_model == nullptr) {
     m_zoomToBoxPending = true;
   } else {
     RZ::Real sX, sY;
     RZ::Vec3 center = .5 * (m_lastP1 + m_lastP2);
-    RZ::Real dist   = (m_lastP1 - center).norm();
-    RZ::Real aspect = static_cast<RZ::Real>(m_width) / static_cast<RZ::Real>(m_height);
+
     RZ::Matrix3 rotation =
         RZ::Matrix3::rot(RZ::Vec3::eX(), +.25 * M_PI) *
         RZ::Matrix3::rot(RZ::Vec3::eY(), -.25 * M_PI);
 
     m_view.setRotation(rotation);
 
-    m_view.setZoom(1 / (fmax(1e-12, dist) * fmax(1, aspect)));
-    m_view.worldToScreen(sX, sY, .5 * (center.x + center.y), .866 * center.z);
+    m_view.frameToScreen(sX, sY, *m_model->world(), center);
+    RZ::Vec3 s1(sX, sY, 0);
+    RZ::Vec3 s2(sX, sY, 0);
 
-    m_view.setCenter(sX - m_width / 2, sY - m_height / 2);
+    for (auto i = 0; i < 8; ++i) {
+      RZ::Real cornerX, cornerY;
+      bool whichX = (i & 1) != 0;
+      bool whichY = (i & 2) != 0;
+      bool whichZ = (i & 4) != 0;
+
+      RZ::Vec3 p = RZ::Vec3(
+        whichX ? m_lastP1.x : m_lastP2.x,
+        whichY ? m_lastP1.y : m_lastP2.y,
+        whichZ ? m_lastP1.z : m_lastP2.z);
+
+      m_view.frameToScreen(cornerX, cornerY, *m_model->world(), p);
+
+      RZ::Vec3 s(cornerX, cornerY, 0);
+
+      expandBox(s1, s2, s);
+    }
+
+    // Correct zoom
+    auto geom = s2 - s1;
+    RZ::Real zoom;
+    if (geom.x > geom.y)
+      zoom = m_width / (1e-12 + geom.x);
+    else
+      zoom = m_height / (1e-12 + geom.y);
+
+    m_view.zoomLevel = zoom;
+
+    // Center
+    m_view.frameToScreen(sX, sY, *m_model->world(), center);
+    m_view.setCenter(-2 * (sX - m_width / 2), -2 * (sY - m_height / 2));
 
     display();
     m_zoomToBoxPending = false;

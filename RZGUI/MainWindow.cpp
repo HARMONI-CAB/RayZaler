@@ -937,6 +937,7 @@ MainWindow::onTreeItemSelectionChanged()
 
     ui->actionCenterSelection->setEnabled(widget->selectedFrame() != nullptr);
     m_currSession->selectElement(selectedElement);
+    widget->setSelectedElement(selectedElement);
     widget->setSelectedReferenceFrame(selectedFrame, name);
     widget->setSelectedOpticalPath(selectedPath);
 

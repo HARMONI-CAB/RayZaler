@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <variant>
+#include <GLHelpers.h>
 
 //
 // An optical element is something that:
@@ -88,12 +89,14 @@ namespace RZ {
       ElementFactory        *m_factory     = nullptr;
       Vec3                   m_bb1;
       Vec3                   m_bb2;
+      std::vector<GLfloat>   m_bbLines;
+      
       std::list<Element *>                    m_children;
       std::list<ReferenceFrame *>             m_portList;
       std::map<std::string, ReferenceFrame *> m_nameToPort;
       std::vector<std::string>                m_sortedProperties;
       std::map<std::string, PropertyValue>    m_properties;
-
+      
       // Representation state
       bool m_selected  = false;
       bool m_visible   = true;
@@ -252,6 +255,10 @@ namespace RZ {
       virtual void enterOpenGL();
       virtual void nativeMaterialOpenGL(std::string const &role);
       virtual void renderOpenGL();
+      
+      void calcBoundingBoxOpenGL();
+      void renderBoundingBoxOpenGL();
+
       virtual OMModel *nestedModel() const;
       virtual GenericCompositeModel *nestedCompositeModel() const;
 

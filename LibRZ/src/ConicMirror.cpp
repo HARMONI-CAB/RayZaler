@@ -79,8 +79,8 @@ ConicMirror::recalcModel()
   m_processor->setHoleRadius(m_rHole);
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, 0),
-      Vec3(+m_radius, +m_radius, apertureZ));
+      Vec3(-m_radius, -m_radius, fmin(0, -sigma * m_displacement)),
+      Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ + sigma * m_displacement)));
 }
 
 bool
