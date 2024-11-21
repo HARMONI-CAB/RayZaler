@@ -6,6 +6,7 @@
 #include <DataProducts/Scatter.h>
 #include <QFileDialog>
 #include "FootprintInfoWidget.h"
+#include <QResizeEvent>
 
 SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
   QMainWindow(parent),
@@ -71,6 +72,20 @@ SpotDiagramWindow::connectAll()
         SIGNAL(saveData(QString)),
         m_widget,
         SIGNAL(saveData(QString)));
+
+  connect(
+        ui->splitter,
+        SIGNAL(splitterMoved(int, int)),
+        this,
+        SLOT(onSplitterMoved()));
+}
+
+void
+SpotDiagramWindow::resizeEvent(QResizeEvent *ev)
+{
+  QList<int> sizes;
+  sizes << (ev->size().width() - m_legendWidth) << m_legendWidth;
+  ui->splitter->setSizes(sizes);
 }
 
 void
@@ -150,8 +165,6 @@ SpotDiagramWindow::setEdges(std::vector<std::vector<RZ::Real>> const &edges)
 void
 SpotDiagramWindow::onClear()
 {
-  int i;
-
   for (auto &p: m_infoWidgets) {
     ui->verticalLayout->removeWidget(p);
     p->deleteLater();
@@ -167,4 +180,12 @@ SpotDiagramWindow::onSaveData()
 {
   if (m_saveDialog->exec() && !m_saveDialog->selectedFiles().empty())
     emit saveData(m_saveDialog->selectedFiles()[0]);
+}
+
+void
+SpotDiagramWindow::onSplitterMoved()
+{
+  auto sizes = ui->splitter->sizes();
+
+  m_legendWidth = sizes.at(1);
 }

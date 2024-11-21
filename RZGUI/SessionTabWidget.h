@@ -31,7 +31,7 @@ class SessionTabWidget : public QWidget
   SimulationProgressDialog *m_progressDialog      = nullptr;  // Owned
   SourceEditorWindow       *m_sourceEditorWindow  = nullptr;
   const RZ::ReferenceFrame *m_selectedFrame       = nullptr;
-  RZ::Element              *m_selectedElement;
+  RZ::Element              *m_selectedElement     = nullptr;
   bool                      m_displayNames        = false;
   bool                      m_displayApertures    = false;
   bool                      m_displayElements     = true;

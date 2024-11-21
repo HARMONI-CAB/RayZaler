@@ -35,10 +35,12 @@ class SpotDiagramWindow : public QMainWindow
   ScatterWidget                    *m_widget  = nullptr;
   QFileDialog                      *m_saveDialog = nullptr;
   std::list<FootprintInfoWidget *>  m_infoWidgets;
-
+  int                               m_legendWidth = 300;
   void connectAll();
 
 public:
+  virtual void resizeEvent(QResizeEvent *ev) override;
+
   explicit SpotDiagramWindow(QString path, QWidget *parent = nullptr);
   virtual ~SpotDiagramWindow() override;
   void updateView();
@@ -50,6 +52,7 @@ public slots:
   void onSaveData();
   void onClear();
   void resetZoom();
+  void onSplitterMoved();
 
 signals:
   void clear();
