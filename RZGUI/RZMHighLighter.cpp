@@ -38,6 +38,10 @@ void
 RZMHighLighter::defineFormat(QString const &name, QTextCharFormat const &fmt)
 {
   m_formats[name] = fmt;
+
+  for (auto &rule : m_rules)
+    if (rule.formatName == name)
+      rule.format = fmt;
 }
 
 void
@@ -138,6 +142,7 @@ RZMHighLighter::RZMHighLighter(QTextDocument *parent) : QSyntaxHighlighter(paren
   addRule("keyword", WORD("parameter"));
   addRule("keyword", WORD("dof"));
   addRule("keyword", WORD("on"));
+  addRule("keyword", WORD("var"));
   addRule("keyword", WORD("of"));
   addRule("keyword", WORD("element"));
   addRule("keyword", WORD("port"));

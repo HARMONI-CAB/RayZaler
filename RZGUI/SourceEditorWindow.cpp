@@ -27,7 +27,6 @@ SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   ui(new Ui::SourceEditorWindow)
 {
   QFont font;
-  QTextCharFormat fmt;
 
   font.setFamily("Cascadia Mono PL");
   font.setFixedPitch(true);
@@ -48,8 +47,43 @@ SourceEditorWindow::SourceEditorWindow(QWidget *parent) :
   ui->sourceTextEdit->setUndoRedoEnabled(true);
 
   m_highlighter = new RZMHighLighter(ui->sourceTextEdit->document());
-  //fmt.setBackground(ui->sourceTextEdit->textBackgroundColor());
-  //m_highlighter->defineFormat("background", fmt);
+
+  QTextCharFormat fmt;
+
+  auto pal = ui->sourceTextEdit->palette();
+
+  fmt.setForeground(pal.text().color());
+  fmt.setBackground(pal.base().color());
+
+  m_highlighter->defineFormat("identifier", fmt);
+  m_highlighter->defineFormat("background", fmt);
+
+  // Is this a dark theme?
+  if (pal.base().color().value() < 64) {
+    fmt.setForeground(QColor("#8FF0A4"));
+    fmt.setFontWeight(QFont::Normal);
+    m_highlighter->defineFormat("datatype", fmt);
+
+    fmt.setForeground(QColor("#99C1F1"));
+    fmt.setFontWeight(QFont::Bold);
+    fmt.setFontWeight(QFont::Normal);
+    m_highlighter->defineFormat("keyword", fmt);
+
+    fmt.setForeground(QColor("#DC8ADD"));
+    fmt.setFontWeight(QFont::Normal);
+    m_highlighter->defineFormat("constant", fmt);
+
+    fmt.setForeground(QColor("#F66151"));
+    fmt.setFontWeight(QFont::Bold);
+    m_highlighter->defineFormat("string", fmt);
+
+    fmt.setForeground(pal.text().color());
+    fmt.setBackground(QColor("#C01C28"));
+    fmt.setFontWeight(QFont::Normal);
+    m_highlighter->defineFormat("error", fmt);
+  }
+
+  m_highlighter->rehighlight();
 
   connectAll();
 }
