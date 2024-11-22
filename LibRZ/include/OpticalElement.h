@@ -36,8 +36,8 @@ namespace RZ {
     const RayTransferProcessor *processor = nullptr;
     OpticalElement             *parent;
 
-    size_t                      intercepted = 0;
-    size_t                      pruned = 0;
+    std::map<uint32_t, RayBeamStatistics> statistics;
+    
     mutable std::vector<Ray>    hits;
 
     // Haha C++

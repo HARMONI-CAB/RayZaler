@@ -66,7 +66,7 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
 
   qreal x0 = center.x / N;
   qreal y0 = center.y / N;
-  size_t totalRays = fp->transmitted + fp->vignetted - 1;
+  size_t totalRays = fp->transmitted + fp->vignetted;
 
   ui->chiefCenterLabel->setText(
         toSensibleUnits(fp->locations[0])

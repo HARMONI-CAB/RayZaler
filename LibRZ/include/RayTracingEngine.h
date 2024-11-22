@@ -5,6 +5,7 @@
 #include <Vector.h>
 #include <vector>
 #include <list>
+#include <map>
 #include <sys/time.h>
 
 #define RZ_SPEED_OF_LIGHT 299792458 // m/s
@@ -34,11 +35,24 @@ namespace RZ {
 
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
 
+  struct RayBeamStatistics {
+    uint64_t intercepted = 0;
+    uint64_t pruned      = 0;
+
+    inline RayBeamStatistics &
+    operator +=(RayBeamStatistics const &existing)
+    {
+      intercepted += existing.intercepted;
+      pruned      += existing.pruned;
+      return *this;
+    }
+  };
+
   struct RayBeam {
     uint64_t count       = 0;
     uint64_t allocation  = 0;
-    uint64_t intercepted = 0;
-    uint64_t pruned      = 0;
+    
+    std::map<uint32_t, RayBeamStatistics> statistics;
 
     Real *origins       = nullptr;
     Real *directions    = nullptr;
@@ -84,10 +98,8 @@ namespace RZ {
     inline void
     prune(uint64_t c)
     {
-      if (!isChief(c) && hasRay(c)) {
+      if (!isChief(c) && hasRay(c))
         mask[c >> 6] |= 1ull << (c & 63);
-        ++pruned;
-      }
     }
 
     inline bool
@@ -169,6 +181,7 @@ namespace RZ {
     virtual void deallocate();
     
     void clearMask();
+    void computeStatistics();
     void clearStatistics();
 
     RayBeam(uint64_t);

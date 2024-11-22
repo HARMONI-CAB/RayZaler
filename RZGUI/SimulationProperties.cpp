@@ -294,6 +294,16 @@ SimulationProperties::clearBeams()
   beamVector.clear();
 }
 
+int
+SimulationProperties::findBeamByName(QString const &name) const
+{
+  for (auto i = 0; i < beamVector.size(); ++i)
+    if (beamVector[i]->name == name)
+      return i;
+
+  return -1;
+}
+
 QJsonObject
 SimulationProperties::serialize() const
 {
@@ -449,6 +459,23 @@ SimulationProperties::deserialize(QJsonObject const &obj)
 
   regenerateBeamVector();
 
+  return true;
+}
+
+bool
+SimulationProperties::removeBeam(SimulationBeamProperties *beam)
+{
+  auto it = beams.begin();
+
+  // std::find, thank you for nothing
+  while (it != beams.end() && &*it != beam)
+    ++it;
+
+  if (it == beams.end())
+    return false;
+
+  beams.erase(it);
+  regenerateBeamVector();
   return true;
 }
 

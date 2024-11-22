@@ -68,10 +68,24 @@ RayBeam::clearMask()
 }
 
 void
+RayBeam::computeStatistics()
+{
+  uint64_t i;
+
+  for (i = 0; i < this->count; ++i) {
+    if (hadRay(i) && !isChief(i)) {
+      if (hasRay(i))
+        ++statistics[ids[i]].intercepted;
+      else
+        ++statistics[ids[i]].pruned;
+    }
+  }
+}
+
+void
 RayBeam::clearStatistics()
 {
-  this->pruned      = 0;
-  this->intercepted = 0;
+  this->statistics.clear();
 }
 
 void
@@ -79,10 +93,8 @@ RayBeam::interceptDone(uint64_t index)
 {
   if (hitSaveSurface != nullptr) {
     Ray ray;
-    if (extractPartialRay(ray, index, false)) {
+    if (extractPartialRay(ray, index, false))
       hitSaveSurface->hits.push_back(ray);
-      ++this->intercepted;
-    }
   }
 }
 
@@ -367,8 +379,19 @@ RayTracingEngine::updateNormals()
 void
 RayTracingEngine::updateOrigins()
 {
+  m_beam->computeStatistics();
+
   memcpy(m_beam->origins, m_beam->destinations, 3 * m_beam->count * sizeof(Real));
   memcpy(m_beam->prevMask, m_beam->mask, ((m_beam->count + 63) >> 6) << 3);
+
+  if (m_beam->hitSaveSurface != nullptr) {
+    auto surf = const_cast<OpticalSurface *>(m_beam->hitSaveSurface);
+
+    for (auto &p : m_beam->statistics)
+      surf->statistics[p.first] += p.second;
+  }
+
+  m_beam->clearStatistics();
 }
 
 void
@@ -387,12 +410,6 @@ RayTracingEngine::transfer()
   auto count = m_beam->count;
 
   m_currentSurface->processor->process(*m_beam, m_currentFrame);
-
-  if (m_beam->hitSaveSurface != nullptr) {
-    auto surf = const_cast<OpticalSurface *>(m_beam->hitSaveSurface);
-    surf->intercepted += m_beam->intercepted;
-    surf->pruned      += m_beam->pruned;
-  }
 
   propagatePhase();
 

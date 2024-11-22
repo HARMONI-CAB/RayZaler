@@ -37,7 +37,7 @@ class RZGUIBeamColoring : public RZ::RayColoring {
   SimulationSession *m_session = nullptr;
 public:
   RZGUIBeamColoring(SimulationSession *);
-  virtual ~RZGUIBeamColoring();
+  virtual ~RZGUIBeamColoring() override;
   virtual void id2color(uint32_t id, GLfloat *rgb) const override;
 };
 
@@ -570,7 +570,6 @@ SimulationState::closeCSV()
 void
 SimulationState::clearFootprints()
 {
-  m_idToFootprint.clear();
   m_footprints.clear();
 }
 
@@ -609,6 +608,8 @@ SimulationState::extractFootprintsFromSurface(
   size_t prevIndex = 0;
   size_t hitsCount = surf->hits.size();
 
+  std::map<uint32_t, SurfaceFootprint *> idToFootprint;
+
   for (i = 0; i < hitsCount; ++i) {
     auto &hit = surf->hits[i];
 
@@ -637,18 +638,24 @@ SimulationState::extractFootprintsFromSurface(
 
       beamState = it->second;
 
-      auto fit = m_idToFootprint.find(currId);
-      if (fit == m_idToFootprint.end()) {
+      // What??? What is this even for
+      auto fit = idToFootprint.find(currId);
+      if (fit == idToFootprint.end()) {
         SurfaceFootprint fp;
         fp.fullName    = path + "." + surf->name;
         fp.label       = beamState->stateName.toStdString();
         fp.color       = 0xff000000 | m_session->idToRgba(currId);
-        fp.vignetted   = surf->pruned;
-        fp.transmitted = surf->intercepted;
+
+        auto sit = surf->statistics.find(currId);
+        // We artificall
+        if (sit != surf->statistics.end()) {
+          fp.vignetted   = sit->second.pruned;
+          fp.transmitted = sit->second.intercepted;
+        }
 
         m_footprints.push_back(std::move(fp));
         footprint = &m_footprints.back();
-        m_idToFootprint[currId] = footprint;
+        idToFootprint[currId] = footprint;
       } else {
         footprint = fit->second;
       }

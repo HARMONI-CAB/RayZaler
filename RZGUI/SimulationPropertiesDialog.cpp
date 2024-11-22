@@ -147,6 +147,12 @@ SimulationPropertiesDialog::connectAll()
         SLOT(onAddBeam()));
 
   connect(
+        ui->dupButton,
+        SIGNAL(clicked(bool)),
+        this,
+        SLOT(onDupBeam()));
+
+  connect(
         ui->removeBeamButton,
         SIGNAL(clicked(bool)),
         this,
@@ -226,16 +232,10 @@ SimulationPropertiesDialog::connectAll()
         SLOT(refreshUi()));
 
   connect(
-        ui->removeBeamButton,
-        SIGNAL(clicked(bool)),
+        ui->beamTableWidget,
+        SIGNAL(itemSelectionChanged()),
         this,
-        SLOT(onRemoveBeam()));
-
-  connect(
-        ui->removeAllBeamsButton,
-        SIGNAL(clicked(bool)),
-        this,
-        SLOT(onRemoveAllBeams()));
+        SLOT(refreshUi()));
 }
 
 void
@@ -291,6 +291,7 @@ SimulationPropertiesDialog::refreshUi()
   ui->clearDetCheck->setEnabled(ui->saveCheck->isChecked());
   ui->browseDirButton->setEnabled(ui->saveCheck->isChecked());
   ui->overwriteResultsCheck->setEnabled(ui->saveCheck->isChecked());
+  ui->dupButton->setEnabled(ui->beamTableWidget->currentRow() != -1);
   ui->removeBeamButton->setEnabled(ui->beamTableWidget->currentRow() != -1);
   ui->removeAllBeamsButton->setEnabled(!m_properties.beams.empty());
 }
@@ -702,26 +703,41 @@ SimulationPropertiesDialog::onRemoveAllFootprints()
 }
 
 QString
-SimulationPropertiesDialog::suggestBeamName() const
+SimulationPropertiesDialog::suggestBeamName(QString name) const
 {
-  if (m_properties.beams.empty()) {
-    return "New beam";
-  } else {
-    unsigned num = 0;
-    auto &last = m_properties.beams.back();
-    std::string stdName = last.name.toStdString();
-    const char *cName = stdName.c_str();
-    const char *par = strchr(cName, '(');
+  QString suggestedName;
+  QString originalName;
+  unsigned num = 0;
 
-    if (par != nullptr) {
-      if (sscanf(par + 1, "%u", &num) < 1)
-        num = 0;
-      else
-        stdName = stdName.substr(0, static_cast<size_t>(par - cName) - 1);
+  if (name.isEmpty()) {
+    if (m_properties.beams.empty()) {
+      originalName = "New beam";
+    } else {
+      auto &last = m_properties.beams.back();
+      originalName = last.name;
     }
-
-    return QString::fromStdString(stdName) + " (" + QString::number(num + 1) + ")";
+  } else {
+    originalName = name;
   }
+
+  suggestedName = name;
+
+  // If the name contains a parenthesis at the end, try to extract a number
+  // from there
+  auto asStdString  = suggestedName.toStdString();
+  const char *cName = asStdString.c_str();
+  const char *par = strchr(cName, '(');
+
+  if (par != nullptr && sscanf(par + 1, "%u", &num) == 1) {
+    asStdString   = asStdString.substr(0, static_cast<size_t>(par - cName) - 1);
+    originalName  = QString::fromStdString(asStdString);
+    suggestedName = originalName + " (" + QString::number(++num) + ")";
+  }
+
+  while (m_properties.findBeamByName(suggestedName) != -1)
+    suggestedName = originalName + " (" + QString::number(++num) + ")";
+
+  return suggestedName;
 }
 
 void
@@ -737,15 +753,53 @@ SimulationPropertiesDialog::onAddBeam()
 }
 
 void
-SimulationPropertiesDialog::onRemoveBeam()
+SimulationPropertiesDialog::onDupBeam()
 {
+  QString copyOf = "Copy of ";
   int selectedRow = ui->beamTableWidget->currentRow();
 
   if (selectedRow >= 0 && selectedRow < m_properties.beamVector.size()) {
-    m_properties.removeBeam(selectedRow);
+    SimulationBeamProperties beamProp = *m_properties.beamVector[selectedRow];
+    QString name = beamProp.name;
+    if (!name.startsWith(copyOf))
+      name = copyOf + name;
+
+    beamProp.name = suggestBeamName(name);
+
+    // Change the color w.rt. copy
+    if (!beamProp.colorByWl) {
+      int h, s, v;
+      beamProp.color.getHsv(&h, &s, &v);
+      h = (h + 150) % 360;
+      beamProp.color.setHsv(h, s, v);
+    }
+
+    m_properties.addBeam(beamProp);
     refreshBeamList();
+
+    ui->beamTableWidget->setCurrentCell(selectedRow + 1, 0);
+
     refreshUi();
   }
+}
+
+void
+SimulationPropertiesDialog::onRemoveBeam()
+{
+  auto items = ui->beamTableWidget->selectedItems();
+  std::list<SimulationBeamProperties *> selectedBeams;
+
+  for (auto &item : items) {
+    int row = item->row();
+    if (row >= 0 && row < m_properties.beamVector.size())
+      selectedBeams.push_back(m_properties.beamVector[row]);
+  }
+
+  for (auto beam : selectedBeams)
+    m_properties.removeBeam(beam);
+
+  refreshBeamList();
+  refreshUi();
 }
 
 void

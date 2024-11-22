@@ -121,8 +121,10 @@ struct SimulationProperties : public JsonSerializable {
   QString saveDetector  = "";
 
   void addBeam(SimulationBeamProperties const &prop);
+  bool removeBeam(SimulationBeamProperties *);
   bool removeBeam(int index);
   void clearBeams();
+  int  findBeamByName(QString const &) const;
 
   virtual QJsonObject serialize() const override;
   virtual bool deserialize(QJsonObject const &) override;

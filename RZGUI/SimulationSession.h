@@ -102,7 +102,6 @@ class SimulationState {
 
   // Data products
   std::list<SurfaceFootprint> m_footprints;
-  std::map<uint32_t, SurfaceFootprint *> m_idToFootprint;
 
   // Simulation progress
   bool    m_running  = false;

@@ -377,21 +377,21 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="removeBeamButton">
-            <property name="text">
-             <string>&amp;Remove</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
+          <item row="0" column="3">
            <widget class="QPushButton" name="removeAllBeamsButton">
             <property name="text">
              <string>&amp;Remove all</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="3">
+          <item row="0" column="2">
+           <widget class="QPushButton" name="removeBeamButton">
+            <property name="text">
+             <string>&amp;Remove</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
            <spacer name="horizontalSpacer_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -403,6 +403,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="dupButton">
+            <property name="text">
+             <string>&amp;Duplicate</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -619,7 +626,4 @@
    </hints>
   </connection>
  </connections>
- <buttongroups>
-  <buttongroup name="buttonGroup"/>
- </buttongroups>
 </ui>

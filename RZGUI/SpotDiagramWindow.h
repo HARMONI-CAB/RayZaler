@@ -35,7 +35,7 @@ class SpotDiagramWindow : public QMainWindow
   ScatterWidget                    *m_widget  = nullptr;
   QFileDialog                      *m_saveDialog = nullptr;
   std::list<FootprintInfoWidget *>  m_infoWidgets;
-  int                               m_legendWidth = 300;
+  int                               m_legendWidth = 230;
   void connectAll();
 
 public:

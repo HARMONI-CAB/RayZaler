@@ -60,7 +60,7 @@ OpticalSurface::clearCache() const
 void
 OpticalSurface::clearStatistics()
 {
-  intercepted = pruned = 0;
+  statistics.clear();
 }
 
 ///////////////////////////// Optical Path API /////////////////////////////////
