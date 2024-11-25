@@ -645,7 +645,7 @@ SimulationState::extractFootprintsFromSurface(
         fp.fullName    = path + "." + surf->name;
         fp.label       = beamState->stateName.toStdString();
         fp.color       = 0xff000000 | m_session->idToRgba(currId);
-
+        fp.id          = currId;
         auto sit = surf->statistics.find(currId);
         // We artificall
         if (sit != surf->statistics.end()) {

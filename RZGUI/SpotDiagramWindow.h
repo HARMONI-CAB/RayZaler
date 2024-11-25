@@ -18,6 +18,7 @@ class ScatterWidget;
 class FootprintInfoWidget;
 
 struct SurfaceFootprint {
+  uint32_t              id;           // Beam Id
   std::string           fullName;     // Full surface name
   std::string           label;        // Label as shown in the plot
   std::vector<qreal>    locations;    // Location array
@@ -34,9 +35,11 @@ class SpotDiagramWindow : public QMainWindow
   RZ::ScatterDataProduct           *m_product = nullptr;
   ScatterWidget                    *m_widget  = nullptr;
   QFileDialog                      *m_saveDialog = nullptr;
+  std::list<SurfaceFootprint>       m_footprints;
   std::list<FootprintInfoWidget *>  m_infoWidgets;
   int                               m_legendWidth = 250;
   void connectAll();
+  bool saveToFile(QString path);
 
 public:
   virtual void resizeEvent(QResizeEvent *ev) override;
@@ -46,7 +49,6 @@ public:
   void updateView();
   void transferFootprint(SurfaceFootprint &);
   void setEdges(std::vector<std::vector<RZ::Real>> const &);
-
 
 public slots:
   void onSaveData();

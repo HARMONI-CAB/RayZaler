@@ -2,11 +2,13 @@
 #include "ui_SpotDiagramWindow.h"
 #include "ScatterWidget.h"
 #include "GUIHelpers.h"
+#include <Helpers.h>
 #include <OpticalElement.h>
 #include <DataProducts/Scatter.h>
 #include <QFileDialog>
 #include "FootprintInfoWidget.h"
 #include <QResizeEvent>
+#include <QMessageBox>
 
 SpotDiagramWindow::SpotDiagramWindow(QString title, QWidget *parent) :
   QMainWindow(parent),
@@ -88,6 +90,83 @@ SpotDiagramWindow::resizeEvent(QResizeEvent *ev)
   ui->splitter->setSizes(sizes);
 }
 
+bool
+SpotDiagramWindow::saveToFile(QString path)
+{
+  std::string strPath = path.toStdString();
+  FILE *oFile = nullptr;
+  bool ok = false;
+
+  try {
+    if ((oFile = fopen(strPath.c_str(), "wb")) == nullptr)
+      throw std::runtime_error(
+            string_printf(
+              "Cannot open selected file for writing: %s",
+              strerror(errno)));
+#define FULLFMT "%+23.15e"
+
+    std::string line;
+    line =
+        string_printf(
+          "%10s, %23s, %23s, %23s, %23s, %23s, %23s, "
+          "%20s, %10s, %10s, %10s\n",
+          "Ray id", "pX", "pY", "pZ", "uX", "uY", "uZ",
+          "label", "Beam id", "Transmitted", "Vignetted");
+
+    if (fwrite(line.c_str(), line.size(), 1, oFile) < 1)
+      throw std::runtime_error(
+          string_printf(
+            "Failed to write ray data: %s",
+            strerror(errno)));
+
+    for (auto &fp : m_footprints) {
+      for (unsigned int i = 0; i < fp.locations.size() / 3; ++i) {
+        line = string_printf(
+              "%10u, "                                // Ray index
+              FULLFMT ", " FULLFMT ", " FULLFMT ", "  // Location
+              FULLFMT ", " FULLFMT ", " FULLFMT ",",  // Direction
+              i,
+              fp.locations[3 * i + 0],
+              fp.locations[3 * i + 1],
+              fp.locations[3 * i + 2],
+              fp.directions[3 * i + 0],
+              fp.directions[3 * i + 1],
+              fp.directions[3 * i + 2]);
+        if (i == 0) {
+          line += string_printf(
+                " %20s, "   // Label
+                "%10u, "   // Beam ID
+                "%11lu, "  // Transmitted
+                "%10lu",   // Vignetted
+                fp.label.c_str(),
+                fp.id,
+                fp.transmitted,
+                fp.vignetted);
+        } else {
+          line += ",,,";
+        }
+
+        line += "\n";
+
+        if (fwrite(line.c_str(), line.size(), 1, oFile) < 1)
+          throw std::runtime_error(
+              string_printf(
+                "Failed to write ray data: %s",
+                strerror(errno)));
+      }
+    }
+    ok = true;
+  } catch (std::runtime_error const &e) {
+    QMessageBox::critical(this, "Save data to file", e.what());
+  }
+#undef FULLFMT
+
+  if (oFile != nullptr)
+    fclose(oFile);
+
+  return ok;
+}
+
 void
 SpotDiagramWindow::updateView()
 {
@@ -101,8 +180,12 @@ SpotDiagramWindow::resetZoom()
 }
 
 void
-SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
+SpotDiagramWindow::transferFootprint(SurfaceFootprint &newFootprint)
 {
+  m_footprints.push_back(std::move(newFootprint));
+
+  auto &footprint = m_footprints.back();
+
   auto infoWidget = new FootprintInfoWidget(&footprint, this);
 
   ui->verticalLayout->insertWidget(m_infoWidgets.size(), infoWidget);
@@ -114,7 +197,7 @@ SpotDiagramWindow::transferFootprint(SurfaceFootprint &footprint)
         footprint.locations,
         footprint.label,
         3,                        // Stride is 3 (3D vectors)
-        true);                    // Do transfer
+        false);                   // Do transfer
   m_widget->addSet(set);
 }
 
@@ -171,6 +254,7 @@ SpotDiagramWindow::onClear()
   }
 
   m_infoWidgets.clear();
+  m_footprints.clear();
 
   emit clear();
 }
@@ -179,7 +263,7 @@ void
 SpotDiagramWindow::onSaveData()
 {
   if (m_saveDialog->exec() && !m_saveDialog->selectedFiles().empty())
-    emit saveData(m_saveDialog->selectedFiles()[0]);
+    saveToFile(m_saveDialog->selectedFiles()[0]);
 }
 
 void
