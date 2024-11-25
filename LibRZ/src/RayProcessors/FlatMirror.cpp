@@ -1,12 +1,12 @@
 #include <RayProcessors/FlatMirror.h>
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 FlatMirrorProcessor::FlatMirrorProcessor()
 {
-  defineAperture(new CircularAperture(m_radius));
+  setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
@@ -18,7 +18,7 @@ FlatMirrorProcessor::name() const
 void
 FlatMirrorProcessor::setRadius(Real R)
 {
-  aperture<CircularAperture>()->setRadius(R);
+  surfaceShape<CircularFlatSurface>()->setRadius(R);
 
   m_radius = R;
 }
@@ -26,7 +26,7 @@ FlatMirrorProcessor::setRadius(Real R)
 void
 FlatMirrorProcessor::setEccentricity(Real ecc)
 {
-  aperture<CircularAperture>()->setEccentricity(ecc);
+  surfaceShape<CircularFlatSurface>()->setEccentricity(ecc);
 
   m_ecc = ecc;
 }
@@ -45,7 +45,7 @@ FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     // Check intercept
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
-    if (aperture()->intercept(coord)) {
+    if (surfaceShape()->intercept(coord)) {
       beam.interceptDone(i);
       reflection(
         Vec3(beam.directions + 3 * i), 

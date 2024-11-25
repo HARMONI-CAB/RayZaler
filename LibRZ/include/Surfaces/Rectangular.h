@@ -1,10 +1,10 @@
-#ifndef _APERTURES_RECTANGULAR_H
-#define _APERTURES_RECTANGULAR_H
+#ifndef _SURFACES_RECTANGULAR_H
+#define _SURFACES_RECTANGULAR_H
 
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
-  class RectangularAperture : public GenericAperture {
+  class RectangularFlatSurface : public SurfaceShape {
     Real m_width             = 100e-3;
     Real m_height            = 100e-3;
     void updateEdges();
@@ -23,8 +23,8 @@ namespace RZ {
       return m_height;
     }
     
-    RectangularAperture();
-    virtual ~RectangularAperture();
+    RectangularFlatSurface();
+    virtual ~RectangularFlatSurface();
 
     void setWidth(Real);
     void setHeight(Real);
@@ -48,4 +48,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_RECTANGULAR_H
+#endif // _SURFACES_RECTANGULAR_H

@@ -10,12 +10,12 @@
 #define GENERIC_APERTURE_NUM_GRIDLINES    13
 
 namespace RZ {
-  class GenericAperture {
+  class SurfaceShape {
       ExprRandomState                m_state;
       std::vector<std::vector<Real>> m_emptyEdges;
 
     public:
-      virtual ~GenericAperture();
+      virtual ~SurfaceShape();
       
       inline ExprRandomState &randState()
       {

@@ -17,14 +17,14 @@
 //
 
 #include <RayProcessors/ConicMirror.h>
-#include <Apertures/Conic.h>
+#include <Surfaces/Conic.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 ConicMirrorProcessor::ConicMirrorProcessor()
 {
-  defineAperture(new ConicAperture(m_radius, m_rCurv, m_K));
+  setSurfaceShape(new ConicSurface(m_radius, m_rCurv, m_K));
 }
 
 std::string
@@ -37,14 +37,14 @@ void
 ConicMirrorProcessor::setRadius(Real R)
 {
   m_radius = R;
-  aperture<ConicAperture>()->setRadius(R);
+  surfaceShape<ConicSurface>()->setRadius(R);
 }
 
 void
 ConicMirrorProcessor::setCurvatureRadius(Real Rc)
 {
   m_rCurv = Rc;
-  aperture<ConicAperture>()->setCurvatureRadius(Rc);
+  surfaceShape<ConicSurface>()->setCurvatureRadius(Rc);
 }
 
 void
@@ -52,7 +52,7 @@ ConicMirrorProcessor::setHoleRadius(Real Rh)
 {
   m_rHole  = Rh;
   m_rHole2 = Rh * Rh;
-  aperture<ConicAperture>()->setHoleRadius(Rh);
+  surfaceShape<ConicSurface>()->setHoleRadius(Rh);
 }
 
 
@@ -60,7 +60,7 @@ void
 ConicMirrorProcessor::setConicConstant(Real K)
 {
   m_K = K;
-  aperture<ConicAperture>()->setConicConstant(K);
+  surfaceShape<ConicSurface>()->setConicConstant(K);
 }
 
 void
@@ -69,7 +69,7 @@ ConicMirrorProcessor::setCenterOffset(Real x, Real y)
   m_x0 = x;
   m_y0 = y;
 
-  aperture<ConicAperture>()->setCenterOffset(x, y);
+  surfaceShape<ConicSurface>()->setCenterOffset(x, y);
 }
 
 void
@@ -77,7 +77,7 @@ ConicMirrorProcessor::setConvex(bool convex)
 {
   if (convex != m_convex) {
     m_convex = convex;
-    aperture<ConicAperture>()->setConvex(convex);
+    surfaceShape<ConicSurface>()->setConvex(convex);
   }
 }
 
@@ -97,7 +97,7 @@ ConicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     Vec3 normal;
     Real dt;
  
-    if (aperture()->intercept(coord, normal, dt, origin)) {
+    if (surfaceShape()->intercept(coord, normal, dt, origin)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
 

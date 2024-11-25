@@ -24,7 +24,7 @@
 #include <GL/glut.h>
 #include <Logger.h>
 #include <RayTracingEngine.h>
-#include <Apertures/Rectangular.h>
+#include <Surfaces/Rectangular.h>
 #include <png++/png.hpp>
 #include <cmath>
 #include <complex>
@@ -231,7 +231,7 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 DetectorProcessor::DetectorProcessor(DetectorStorage *storage)
 {
   m_storage = storage;
-  defineAperture(new RectangularAperture());
+  setSurfaceShape(new RectangularFlatSurface());
 }
 
 /////////////////////////////// Detector element ///////////////////////////////
@@ -242,8 +242,8 @@ Detector::recalcModel()
   m_height = m_pxHeight * m_rows;
 
   m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
-  m_processor->aperture<RectangularAperture>()->setWidth(m_width);
-  m_processor->aperture<RectangularAperture>()->setHeight(m_height);
+  m_processor->surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
+  m_processor->surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
 
   setBoundingBox(
     Vec3(-m_width / 2, -m_height/2, 0),

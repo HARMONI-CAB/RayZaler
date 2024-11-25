@@ -16,14 +16,14 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _APERTURES_CONIC_H
-#define _APERTURES_CONIC_H
+#ifndef _SURFACES_CONIC_H
+#define _SURFACES_CONIC_H
 
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <GLHelpers.h>
 
 namespace RZ {
-  class ConicAperture : public GenericAperture {
+  class ConicSurface : public SurfaceShape {
     Real m_radius = 1;
     Real m_radius2 = 1;
     Real m_rCurv   = 2;
@@ -53,8 +53,8 @@ namespace RZ {
     void recalcDistribution();
 
   public:
-    ConicAperture(Real radius, Real RCurv, Real K);
-    virtual ~ConicAperture() = default;
+    ConicSurface(Real radius, Real RCurv, Real K);
+    virtual ~ConicSurface() = default;
     
     void setRadius(Real);
     void setConicConstant(Real);
@@ -82,4 +82,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_CONIC_H
+#endif // _SURFACES_CONIC_H

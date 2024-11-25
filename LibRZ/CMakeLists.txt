@@ -33,7 +33,6 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Element.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
   ${LIBRZ_SRCDIR}/FT2Facade.cpp
-  ${LIBRZ_SRCDIR}/GenericAperture.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
   ${LIBRZ_SRCDIR}/GLModel.cpp
   ${LIBRZ_SRCDIR}/GLRenderEngine.cpp
@@ -65,6 +64,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/SkySampler.cpp
   ${LIBRZ_SRCDIR}/StlMesh.cpp
+  ${LIBRZ_SRCDIR}/SurfaceShape.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
   ${LIBRZ_SRCDIR}/Tripod.cpp
   ${LIBRZ_SRCDIR}/TripodFrame.cpp
@@ -89,12 +89,12 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
 
-  ${LIBRZ_SRCDIR}/Apertures/Array.cpp
-  ${LIBRZ_SRCDIR}/Apertures/Circular.cpp
-  ${LIBRZ_SRCDIR}/Apertures/Conic.cpp
-  ${LIBRZ_SRCDIR}/Apertures/Parabolic.cpp
-  ${LIBRZ_SRCDIR}/Apertures/Rectangular.cpp
-  ${LIBRZ_SRCDIR}/Apertures/Spherical.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Array.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Circular.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Conic.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Parabolic.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Rectangular.cpp
+  ${LIBRZ_SRCDIR}/Surfaces/Spherical.cpp
 
   ${LIBRZ_SRCDIR}/Samplers/Circular.cpp
   ${LIBRZ_SRCDIR}/Samplers/Map.cpp
@@ -121,7 +121,6 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/exprtk.hpp
   ${LIBRZ_INCLUDEDIR}/FT2Facade.h
-  ${LIBRZ_INCLUDEDIR}/GenericAperture.h
   ${LIBRZ_INCLUDEDIR}/GenericCompositeModel.h
   ${LIBRZ_INCLUDEDIR}/GLHelpers.h
   ${LIBRZ_INCLUDEDIR}/GLModel.h
@@ -153,6 +152,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/SkySampler.h
   ${LIBRZ_INCLUDEDIR}/StlMesh.h
+  ${LIBRZ_INCLUDEDIR}/SurfaceShape.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
   ${LIBRZ_INCLUDEDIR}/Tripod.h
   ${LIBRZ_INCLUDEDIR}/TripodFrame.h
@@ -178,12 +178,12 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
   
-  ${LIBRZ_INCLUDEDIR}/Apertures/Array.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Circular.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Conic.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Parabolic.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Rectangular.h
-  ${LIBRZ_INCLUDEDIR}/Apertures/Spherical.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Circular.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Conic.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Parabolic.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Rectangular.h
+  ${LIBRZ_INCLUDEDIR}/Surfaces/Spherical.h
   
   ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Map.h

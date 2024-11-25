@@ -16,23 +16,23 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 using namespace RZ;
 
-GenericAperture::~GenericAperture()
+SurfaceShape::~SurfaceShape()
 {
-  
+  // This language is nuts.
 }
 
 void
-GenericAperture::renderOpenGL()
+SurfaceShape::renderOpenGL()
 {
   // Implement me!
 }
 
 std::vector<std::vector<Real>> const &
-GenericAperture::edges() const
+SurfaceShape::edges() const
 {
   // Implement me!
   return m_emptyEdges;

@@ -1,11 +1,11 @@
-#ifndef _APERTURES_CIRCULAR_H
-#define _APERTURES_CIRCULAR_H
+#ifndef _SURFACES_CIRCULAR_H
+#define _SURFACES_CIRCULAR_H
 
 #include <GLHelpers.h>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
-  class CircularAperture : public GenericAperture {
+  class CircularFlatSurface : public SurfaceShape {
     Real m_radius;
     Real m_radius2;
     Real m_a  = 1;
@@ -23,8 +23,8 @@ namespace RZ {
     void renderOpenGLObstruction();
     
   public:
-    CircularAperture(Real radius);
-    virtual ~CircularAperture() = default;
+    CircularFlatSurface(Real radius);
+    virtual ~CircularFlatSurface() = default;
     
     virtual std::vector<std::vector<Real>> const &edges() const override;
     void setRadius(Real);
@@ -105,4 +105,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_CIRCULAR_H
+#endif // _SURFACES_CIRCULAR_H

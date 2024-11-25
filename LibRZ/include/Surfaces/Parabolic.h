@@ -1,11 +1,11 @@
-#ifndef _APERTURES_PARABOLIC_H
-#define _APERTURES_PARABOLIC_H
+#ifndef _SURFACES_PARABOLIC_H
+#define _SURFACES_PARABOLIC_H
 
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <GLHelpers.h>
 
 namespace RZ {
-  class ParabolicAperture : public GenericAperture {
+  class ParabolicSurface : public SurfaceShape {
     Real m_radius;
     Real m_radius2;
     Real m_flength = 1;
@@ -26,7 +26,7 @@ namespace RZ {
     void recalcDistribution();
 
   public:
-    ParabolicAperture(Real radius, Real fLength);
+    ParabolicSurface(Real radius, Real fLength);
     virtual std::vector<std::vector<Real>> const &edges() const override;
 
     void setRadius(Real);
@@ -51,4 +51,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_PARABOLIC_H
+#endif // _SURFACES_PARABOLIC_H

@@ -1,5 +1,5 @@
 #include <RayProcessors/ApertureStop.h>
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 
 #include <ReferenceFrame.h>
 
@@ -8,7 +8,7 @@ using namespace RZ;
 ApertureStopProcessor::ApertureStopProcessor()
 {
   setReversible(true);
-  defineAperture(new CircularAperture(m_radius));
+  setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
@@ -20,7 +20,7 @@ ApertureStopProcessor::name() const
 void
 ApertureStopProcessor::setRadius(Real R)
 {
-  aperture<CircularAperture>()->setRadius(R);
+  surfaceShape<CircularFlatSurface>()->setRadius(R);
   
   m_radius = R;
 }
@@ -34,7 +34,7 @@ ApertureStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
   for (i = 0; i < count; ++i) {
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
 
-    if (!aperture()->intercept(coord))
+    if (!surfaceShape()->intercept(coord))
       beam.prune(i);
     else
       beam.interceptDone(i);

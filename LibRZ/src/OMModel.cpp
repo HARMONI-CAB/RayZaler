@@ -24,7 +24,7 @@
 #include <TranslatedFrame.h>
 #include <Logger.h>
 #include <sys/time.h>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <Samplers/Circular.h>
 #include <Samplers/Ring.h>
 #include <Samplers/Point.h>

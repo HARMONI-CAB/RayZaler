@@ -18,7 +18,7 @@
 
 #include <FlatMirror.h>
 #include <TranslatedFrame.h>
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 #include <Logger.h>
 
 using namespace RZ;
@@ -57,11 +57,11 @@ FlatMirror::propertyChanged(
     recalcModel();
   } else if (name == "width") {
     m_width  = value;
-    CircularAperture::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
+    CircularFlatSurface::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
     recalcModel();
   } else if (name == "height") {
     m_height = value;
-    CircularAperture::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
+    CircularFlatSurface::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
     recalcModel();
   } else {
     return false;

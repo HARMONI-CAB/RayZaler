@@ -1,12 +1,12 @@
 #include <RayProcessors/CircularWindow.h>
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 CircularWindowProcessor::CircularWindowProcessor()
 {
-  defineAperture(new CircularAperture(m_radius));
+  setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
@@ -19,7 +19,7 @@ void
 CircularWindowProcessor::setRadius(Real R)
 {
   m_radius = R;
-  aperture<CircularAperture>()->setRadius(R);
+  surfaceShape<CircularFlatSurface>()->setRadius(R);
 }
 
 void
@@ -44,7 +44,7 @@ CircularWindowProcessor::process(RayBeam &beam, const ReferenceFrame *plane) con
     Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 normal = Vec3::eZ();
 
-    if (aperture()->intercept(coord)) {
+    if (surfaceShape()->intercept(coord)) {
       beam.interceptDone(i);
       
       snell(

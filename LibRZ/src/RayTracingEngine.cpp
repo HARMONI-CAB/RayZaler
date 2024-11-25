@@ -20,7 +20,7 @@
 #include <ReferenceFrame.h>
 #include <cstdlib>
 #include <cstring>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <Logger.h>
 #include <exception>
 #include <sys/param.h>
@@ -170,8 +170,8 @@ RayBeam::~RayBeam()
 /////////////////////////////// RayTransferProcessor ///////////////////////////
 RayTransferProcessor::~RayTransferProcessor()
 {
-  if (m_aperture != nullptr)
-    delete m_aperture;
+  if (m_surfaceShape != nullptr)
+    delete m_surfaceShape;
 }
 
 //////////////////////////// RayTracingProcessListener /////////////////////////
@@ -406,7 +406,7 @@ RayTracingEngine::transfer()
     m_currStage,
     m_numStages);
   
-  auto aperture = m_currentSurface->processor->aperture();
+  auto aperture = m_currentSurface->processor->surfaceShape();
   auto count = m_beam->count;
 
   m_currentSurface->processor->process(*m_beam, m_currentFrame);

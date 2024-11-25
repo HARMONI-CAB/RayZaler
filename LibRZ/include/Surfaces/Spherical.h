@@ -1,11 +1,11 @@
-#ifndef _APERTURES_SPHERICAL_H
-#define _APERTURES_SPHERICAL_H
+#ifndef _SURFACES_SPHERICAL_H
+#define _SURFACES_SPHERICAL_H
 
 #include <GLHelpers.h>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
-  class SphericalAperture : public GenericAperture {
+  class SphericalSurface : public SurfaceShape {
     Real m_radius;
     Real m_radius2;
     Real m_rCurv  =  1;
@@ -33,7 +33,7 @@ namespace RZ {
       return m_convex ? +m_center : -m_center;
     }
 
-    SphericalAperture(Real radius, Real rCurv);
+    SphericalSurface(Real radius, Real rCurv);
 
     void setCenterOffset(Real, Real);
     void setConvex(bool);
@@ -58,4 +58,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_SPHERICAL_H
+#endif // _SURFACES_SPHERICAL_H

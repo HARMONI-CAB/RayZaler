@@ -1,9 +1,9 @@
-#include <Apertures/Rectangular.h>
+#include <Surfaces/Rectangular.h>
 #include <GLHelpers.h>
 
 using namespace RZ;
 
-RectangularAperture::RectangularAperture()
+RectangularFlatSurface::RectangularFlatSurface()
 {
   m_edges.resize(1);
   m_edges[0].resize(3 * 4);
@@ -11,12 +11,12 @@ RectangularAperture::RectangularAperture()
   updateEdges();
 }
 
-RectangularAperture::~RectangularAperture()
+RectangularFlatSurface::~RectangularFlatSurface()
 {
 }
 
 void
-RectangularAperture::updateEdges()
+RectangularFlatSurface::updateEdges()
 {
   unsigned int p;
   Real x[] = {m_width / 2, -m_width / 2, -m_width / 2, m_width / 2};
@@ -30,27 +30,27 @@ RectangularAperture::updateEdges()
 }
 
 std::vector<std::vector<Real>> const &
-RectangularAperture::edges() const
+RectangularFlatSurface::edges() const
 {
   return m_edges;
 }
 
 void
-RectangularAperture::setWidth(Real width)
+RectangularFlatSurface::setWidth(Real width)
 {
   m_width = width;
   updateEdges();
 }
 
 void
-RectangularAperture::setHeight(Real height)
+RectangularFlatSurface::setHeight(Real height)
 {
   m_height = height;
   updateEdges();
 }
 
 bool
-RectangularAperture::intercept(
+RectangularFlatSurface::intercept(
   Vec3 &coord,
   Vec3 &n,
   Real &deltaT,
@@ -63,7 +63,7 @@ RectangularAperture::intercept(
 }
 
 void
-RectangularAperture::generatePoints(
+RectangularFlatSurface::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
     Real *normalArr,
@@ -82,13 +82,13 @@ RectangularAperture::generatePoints(
 }
 
 Real
-RectangularAperture::area() const
+RectangularFlatSurface::area() const
 {
   return m_width * m_height;
 }
 
 void
-RectangularAperture::renderOpenGL()
+RectangularFlatSurface::renderOpenGL()
 {
   glBegin(GL_LINE_LOOP);
     glVertex3f(-m_width / 2, -m_height / 2, 0);

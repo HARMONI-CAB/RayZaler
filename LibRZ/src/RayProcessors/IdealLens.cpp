@@ -17,14 +17,14 @@
 //
 
 #include <RayProcessors/IdealLens.h>
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 IdealLensProcessor::IdealLensProcessor()
 {
-  defineAperture(new CircularAperture(m_radius));
+  setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
@@ -37,7 +37,7 @@ void
 IdealLensProcessor::setRadius(Real R)
 {
   m_radius = R;
-  aperture<CircularAperture>()->setRadius(R);
+  surfaceShape<CircularFlatSurface>()->setRadius(R);
 }
 
 void
@@ -58,7 +58,7 @@ IdealLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
     
-    if (aperture()->intercept(coord)) {
+    if (surfaceShape()->intercept(coord)) {
       beam.interceptDone(i);
 
       Vec3 inDir  = plane->toRelativeVec((beam.directions + 3 * i));

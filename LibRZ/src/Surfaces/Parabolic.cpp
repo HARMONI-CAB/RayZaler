@@ -1,8 +1,8 @@
-#include <Apertures/Parabolic.h>
+#include <Surfaces/Parabolic.h>
 
 using namespace RZ;
 
-ParabolicAperture::ParabolicAperture(Real R, Real fLength)
+ParabolicSurface::ParabolicSurface(Real R, Real fLength)
 {
   m_edges.resize(1);
 
@@ -12,7 +12,7 @@ ParabolicAperture::ParabolicAperture(Real R, Real fLength)
 }
 
 void
-ParabolicAperture::recalcDistribution()
+ParabolicSurface::recalcDistribution()
 {
   Real K;
   Real x2, y2, invnorm;
@@ -37,7 +37,7 @@ ParabolicAperture::recalcDistribution()
 }
 
 void
-ParabolicAperture::setCenterOffset(Real x, Real y)
+ParabolicSurface::setCenterOffset(Real x, Real y)
 {
   m_x0 = x;
   m_y0 = y;
@@ -47,7 +47,7 @@ ParabolicAperture::setCenterOffset(Real x, Real y)
 }
 
 void
-ParabolicAperture::setRadius(Real R)
+ParabolicSurface::setRadius(Real R)
 {
   m_radius  = R;
   m_radius2 = R * R;
@@ -57,7 +57,7 @@ ParabolicAperture::setRadius(Real R)
 }
 
 void
-ParabolicAperture::setFocalLength(Real fLength)
+ParabolicSurface::setFocalLength(Real fLength)
 {
   m_flength = fLength;
   
@@ -66,13 +66,13 @@ ParabolicAperture::setFocalLength(Real fLength)
 }
 
 std::vector<std::vector<Real>> const &
-ParabolicAperture::edges() const
+ParabolicSurface::edges() const
 {
   return m_edges;
 }
 
 void
-ParabolicAperture::recalcGL()
+ParabolicSurface::recalcGL()
 {
   GLfloat x, y, z, r, dh;
   Real theta = 0;
@@ -132,7 +132,7 @@ ParabolicAperture::recalcGL()
 }
 
 bool
-ParabolicAperture::intercept(
+ParabolicSurface::intercept(
   Vec3 &intercept,
   Vec3 &normal,
   Real &deltaT,
@@ -192,7 +192,7 @@ ParabolicAperture::intercept(
 }
 
 void
-ParabolicAperture::generatePoints(
+ParabolicSurface::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
     Real *normalArr,
@@ -266,14 +266,14 @@ ParabolicAperture::generatePoints(
 //
 
 Real
-ParabolicAperture::area() const
+ParabolicSurface::area() const
 {
   Real A = 2. * M_PI * m_4f2 / 3. * (pow(1 + m_radius2 / m_4f2, 1.5) - 1.);
   return A;
 }
 
 void
-ParabolicAperture::renderOpenGL()
+ParabolicSurface::renderOpenGL()
 {
   auto N = m_axes.size() / (2 * 3);
 

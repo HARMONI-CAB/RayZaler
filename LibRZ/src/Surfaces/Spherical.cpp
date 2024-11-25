@@ -1,8 +1,8 @@
-#include <Apertures/Spherical.h>
+#include <Surfaces/Spherical.h>
 
 using namespace RZ;
 
-SphericalAperture::SphericalAperture(Real R, Real rCurv)
+SphericalSurface::SphericalSurface(Real R, Real rCurv)
 {
   m_edges.resize(1);
 
@@ -12,7 +12,7 @@ SphericalAperture::SphericalAperture(Real R, Real rCurv)
 }
 
 void
-SphericalAperture::setCenterOffset(Real x, Real y)
+SphericalSurface::setCenterOffset(Real x, Real y)
 {
   m_x0 = x;
   m_y0 = y;
@@ -26,7 +26,7 @@ SphericalAperture::setCenterOffset(Real x, Real y)
 //
 
 void
-SphericalAperture::recalcGL()
+SphericalSurface::recalcGL()
 {
   GLfloat x, y, z, r, dh;
   Real theta = 0;
@@ -85,7 +85,7 @@ SphericalAperture::recalcGL()
 }
 
 void
-SphericalAperture::recalcDistribution()
+SphericalSurface::recalcDistribution()
 {
   m_rCurv2 = m_rCurv * m_rCurv;
   m_K      = 1. / (m_rCurv2 - m_rCurv * sqrt(m_rCurv2 - m_radius2));
@@ -93,7 +93,7 @@ SphericalAperture::recalcDistribution()
 }
 
 void
-SphericalAperture::setRadius(Real R)
+SphericalSurface::setRadius(Real R)
 {
   m_radius  = R;
   m_radius2 = R * R;
@@ -103,14 +103,14 @@ SphericalAperture::setRadius(Real R)
 }
 
 void
-SphericalAperture::setConvex(bool convex)
+SphericalSurface::setConvex(bool convex)
 {
   m_convex = convex;
   recalcGL();
 }
 
 void
-SphericalAperture::setCurvatureRadius(Real rCurv)
+SphericalSurface::setCurvatureRadius(Real rCurv)
 {
   m_rCurv = rCurv;
   m_center = sqrt(m_rCurv * m_rCurv - m_radius2);
@@ -175,7 +175,7 @@ SphericalAperture::setCurvatureRadius(Real rCurv)
 //  
 
 bool
-SphericalAperture::intercept(
+SphericalSurface::intercept(
   Vec3 &coord,
   Vec3 &normal,
   Real &deltaT,
@@ -223,7 +223,7 @@ SphericalAperture::intercept(
 }
 
 void
-SphericalAperture::generatePoints(
+SphericalSurface::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
     Real *normalArr,
@@ -285,13 +285,13 @@ SphericalAperture::generatePoints(
 //
 
 Real
-SphericalAperture::area() const
+SphericalSurface::area() const
 {
   return 2 * M_PI * m_rCurv * (m_rCurv - m_center);
 }
 
 void
-SphericalAperture::renderOpenGL()
+SphericalSurface::renderOpenGL()
 {
   auto N = m_axes.size() / (2 * 3);
 

@@ -1,11 +1,11 @@
-#ifndef _APERTURES_ARRAY_H
-#define _APERTURES_ARRAY_H
+#ifndef _SURFACES_ARRAY_H
+#define _SURFACES_ARRAY_H
 
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
-  class ApertureArray : public GenericAperture {
-    GenericAperture *m_subAperture = nullptr;
+  class SurfaceArray : public SurfaceShape {
+    SurfaceShape *m_subAperture = nullptr;
     Real m_width             = 100e-3;
     Real m_height            = 100e-3;
     unsigned int m_rows      = 10;
@@ -17,7 +17,7 @@ namespace RZ {
     void recalculateDimensions();
 
   public:
-    inline GenericAperture *subAperture() const
+    inline SurfaceShape *subAperture() const
     {
       return m_subAperture;
     }
@@ -60,8 +60,8 @@ namespace RZ {
     
     virtual std::vector<std::vector<Real>> const &edges() const override;
 
-    ApertureArray(GenericAperture *);
-    virtual ~ApertureArray();
+    SurfaceArray(SurfaceShape *);
+    virtual ~SurfaceArray();
 
     void setWidth(Real);
     void setHeight(Real);
@@ -86,4 +86,4 @@ namespace RZ {
   };
 }
 
-#endif // _APERTURES_ARRAY_H
+#endif // _SURFACES_ARRAY_H

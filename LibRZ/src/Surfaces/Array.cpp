@@ -1,10 +1,10 @@
-#include <Apertures/Array.h>
+#include <Surfaces/Array.h>
 #include <GLHelpers.h>
 
 using namespace RZ;
 
 void
-ApertureArray::recalculateDimensions()
+SurfaceArray::recalculateDimensions()
 {
   m_subApertureWidth  = m_width / m_cols;
   m_subApertureHeight = m_height / m_rows;
@@ -36,54 +36,54 @@ ApertureArray::recalculateDimensions()
   }
 }
 
-ApertureArray::ApertureArray(GenericAperture *ap)
+SurfaceArray::SurfaceArray(SurfaceShape *ap)
 {
   m_subAperture = ap;
   recalculateDimensions();
 }
 
 std::vector<std::vector<Real>> const &
-ApertureArray::edges() const
+SurfaceArray::edges() const
 {
   return m_edges;
 }
 
-ApertureArray::~ApertureArray()
+SurfaceArray::~SurfaceArray()
 {
   if (m_subAperture != nullptr)
     delete m_subAperture;
 }
 
 void
-ApertureArray::setWidth(Real width)
+SurfaceArray::setWidth(Real width)
 {
   m_width = width;
   recalculateDimensions();
 }
 
 void
-ApertureArray::setHeight(Real height)
+SurfaceArray::setHeight(Real height)
 {
   m_height = height;
   recalculateDimensions();
 }
 
 void
-ApertureArray::setCols(unsigned cols)
+SurfaceArray::setCols(unsigned cols)
 {
   m_cols = cols;
   recalculateDimensions();
 }
 
 void
-ApertureArray::setRows(unsigned rows)
+SurfaceArray::setRows(unsigned rows)
 {
   m_rows = rows;
   recalculateDimensions();
 }
 
 bool
-ApertureArray::intercept(
+SurfaceArray::intercept(
   Vec3 &coord,
   Vec3 &n,
   Real &deltaT,
@@ -123,7 +123,7 @@ ApertureArray::intercept(
 }
 
 void
-ApertureArray::generatePoints(
+SurfaceArray::generatePoints(
     const ReferenceFrame *,
     Real *pointArr,
     Real *normalArr,
@@ -133,14 +133,14 @@ ApertureArray::generatePoints(
 }
 
 Real
-ApertureArray::area() const
+SurfaceArray::area() const
 {
   // TODO
   return m_width * m_height;
 }
 
 void
-ApertureArray::renderOpenGL()
+SurfaceArray::renderOpenGL()
 {
   unsigned int i, j;
   Real halfW  = .5 * m_width;

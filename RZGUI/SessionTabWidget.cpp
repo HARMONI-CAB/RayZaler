@@ -3,7 +3,7 @@
 #include "ui_SessionTabWidget.h"
 #include <QMessageBox>
 #include <QAction>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 
 #include "GUIHelpers.h"
 #include "RZGUIGLWidget.h"
@@ -421,7 +421,7 @@ SessionTabWidget::updateFootprintWindows()
     if (surf == nullptr)
       continue;
 
-    fp.second->setEdges(surf->processor->aperture()->edges());
+    fp.second->setEdges(surf->processor->surfaceShape()->edges());
   }
 }
 
@@ -471,7 +471,7 @@ SessionTabWidget::openNewFootprintWindow(std::string const &fullName)
       queue.pop_front();
     }
 
-    window->setEdges(surf->processor->aperture()->edges());
+    window->setEdges(surf->processor->surfaceShape()->edges());
 
     // Trigger recalc of the new footprints
     window->updateView();

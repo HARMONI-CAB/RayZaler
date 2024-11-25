@@ -1,22 +1,22 @@
-#include <Apertures/Circular.h>
+#include <Surfaces/Circular.h>
 #include <Logger.h>
 
 using namespace RZ;
 
-CircularAperture::CircularAperture(Real radius)
+CircularFlatSurface::CircularFlatSurface(Real radius)
 {
   m_edges.resize(1);
   setRadius(radius);
 }
 
 std::vector<std::vector<Real>> const &
-CircularAperture::edges() const
+CircularFlatSurface::edges() const
 {
   return m_edges;
 }
 
 void
-CircularAperture::recalculate()
+CircularFlatSurface::recalculate()
 {
   Real theta  = 0;
   Real dTheta = 2 * M_PI / GENERIC_APERTURE_NUM_SEGMENTS;
@@ -98,7 +98,7 @@ CircularAperture::recalculate()
 }
 
 void
-CircularAperture::setRadius(Real radius)
+CircularFlatSurface::setRadius(Real radius)
 {
   m_radius  = radius;
   m_radius2 = radius * radius;
@@ -131,7 +131,7 @@ CircularAperture::setRadius(Real radius)
 //
 
 void
-CircularAperture::setEccentricity(Real ecc)
+CircularFlatSurface::setEccentricity(Real ecc)
 {
   if (ecc <= -1 || ecc >= 1) {
     RZError("Eccentricity out of bounds\n");
@@ -153,7 +153,7 @@ CircularAperture::setEccentricity(Real ecc)
 }
 
 bool
-CircularAperture::intercept(
+CircularFlatSurface::intercept(
   Vec3 &coord,
   Vec3 &n,
   Real &deltaT,
@@ -179,7 +179,7 @@ CircularAperture::intercept(
 // I.e. there is a scaling factor of r. 
 
 void
-CircularAperture::generatePoints(
+CircularFlatSurface::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
     Real *normalArr,
@@ -203,14 +203,14 @@ CircularAperture::generatePoints(
 }
 
 Real
-CircularAperture::area() const
+CircularFlatSurface::area() const
 {
   // a and b properly normalized, no need to care about them.
   return M_PI * m_radius2;
 }
 
 void
-CircularAperture::setObstruction(bool obs)
+CircularFlatSurface::setObstruction(bool obs)
 {
   m_obstruction = obs;
 
@@ -218,7 +218,7 @@ CircularAperture::setObstruction(bool obs)
 }
 
 void
-CircularAperture::renderOpenGLAperture()
+CircularFlatSurface::renderOpenGLAperture()
 {
   glBegin(GL_LINES);
     glVertex3f(-m_radius * m_a, 0, 0);
@@ -229,7 +229,7 @@ CircularAperture::renderOpenGLAperture()
 }
 
 void
-CircularAperture::renderOpenGLObstruction()
+CircularFlatSurface::renderOpenGLObstruction()
 {
   glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_grid.data());
@@ -238,7 +238,7 @@ CircularAperture::renderOpenGLObstruction()
 }
 
 void
-CircularAperture::renderOpenGL()
+CircularFlatSurface::renderOpenGL()
 {
   glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());

@@ -188,17 +188,17 @@ namespace RZ {
     ~RayBeam();
   };
 
-  class GenericAperture;
+  class SurfaceShape;
 
   class RayTransferProcessor {
-    GenericAperture *m_aperture = nullptr;
-    bool             m_reversible = false;
+    SurfaceShape *m_surfaceShape = nullptr;
+    bool          m_reversible = false;
 
   protected:
     inline void
-    defineAperture(GenericAperture *ap)
+    setSurfaceShape(SurfaceShape *ap)
     {
-      m_aperture = ap;
+      m_surfaceShape = ap;
     }
 
     inline void
@@ -214,22 +214,24 @@ namespace RZ {
       return m_reversible;
     }
     
-    inline GenericAperture *
-    aperture() const
+    inline SurfaceShape *
+    surfaceShape() const
     {
-      return m_aperture;
+      return m_surfaceShape;
     }
 
     template <class T>
-    inline T *aperture()
+    inline T *
+    surfaceShape()
     {
-      return static_cast<T *>(aperture());
+      return static_cast<T *>(surfaceShape());
     }
     
     template <class T>
-    inline T const *aperture() const
+    inline T const *
+    surfaceShape() const
     {
-      return static_cast<const T *>(aperture());
+      return static_cast<const T *>(surfaceShape());
     }
 
     static inline void

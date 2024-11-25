@@ -1,12 +1,12 @@
 #include <RayProcessors/ParabolicMirror.h>
-#include <Apertures/Parabolic.h>
+#include <Surfaces/Parabolic.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 ParabolicMirrorProcessor::ParabolicMirrorProcessor()
 {
-  defineAperture(new ParabolicAperture(m_radius, m_flength));
+  setSurfaceShape(new ParabolicSurface(m_radius, m_flength));
 }
 
 std::string
@@ -19,20 +19,20 @@ void
 ParabolicMirrorProcessor::setRadius(Real R)
 {
   m_radius = R;
-  aperture<ParabolicAperture>()->setRadius(R);
+  surfaceShape<ParabolicSurface>()->setRadius(R);
 }
 
 void
 ParabolicMirrorProcessor::setFocalLength(Real f)
 {
   m_flength = f;
-  aperture<ParabolicAperture>()->setFocalLength(f);
+  surfaceShape<ParabolicSurface>()->setFocalLength(f);
 }
 
 void
 ParabolicMirrorProcessor::setCenterOffset(Real x, Real y)
 {
-  aperture<ParabolicAperture>()->setCenterOffset(x, y);
+  surfaceShape<ParabolicSurface>()->setCenterOffset(x, y);
 }
 
 void
@@ -49,7 +49,7 @@ ParabolicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
     Vec3 normal;
     Real dt;
 
-    if (aperture()->intercept(coord, normal, dt, origin)) {
+    if (surfaceShape()->intercept(coord, normal, dt, origin)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);

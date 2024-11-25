@@ -18,7 +18,7 @@
 
 #include <RectangularStop.h>
 #include <TranslatedFrame.h>
-#include <Apertures/Rectangular.h>
+#include <Surfaces/Rectangular.h>
 
 using namespace RZ;
 

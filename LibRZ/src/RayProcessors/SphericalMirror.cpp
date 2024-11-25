@@ -1,12 +1,12 @@
 #include <RayProcessors/SphericalMirror.h>
-#include <Apertures/Spherical.h>
+#include <Surfaces/Spherical.h>
 #include <ReferenceFrame.h>
 
 using namespace RZ;
 
 SphericalMirrorProcessor::SphericalMirrorProcessor()
 {
-  defineAperture(new SphericalAperture(m_radius, 2 * m_flength));
+  setSurfaceShape(new SphericalSurface(m_radius, 2 * m_flength));
 }
 
 std::string
@@ -19,7 +19,7 @@ void
 SphericalMirrorProcessor::setRadius(Real R)
 {
   m_radius = R;
-  aperture<SphericalAperture>()->setRadius(R);
+  surfaceShape<SphericalSurface>()->setRadius(R);
 }
 
 void
@@ -28,7 +28,7 @@ SphericalMirrorProcessor::setCenterOffset(Real x, Real y)
   m_x0 = x;
   m_y0 = y;
 
-  aperture<SphericalAperture>()->setCenterOffset(x, y);
+  surfaceShape<SphericalSurface>()->setCenterOffset(x, y);
 }
 
 void
@@ -36,8 +36,8 @@ SphericalMirrorProcessor::setFocalLength(Real f)
 {
   bool convex = f > 0;
   
-  aperture<SphericalAperture>()->setConvex(convex);
-  aperture<SphericalAperture>()->setCurvatureRadius(2 * f);
+  surfaceShape<SphericalSurface>()->setConvex(convex);
+  surfaceShape<SphericalSurface>()->setCurvatureRadius(2 * f);
 }
 
 void
@@ -55,7 +55,7 @@ SphericalMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) co
     Vec3 orig   = plane->toRelative(Vec3(beam.origins + 3 * i));
     Vec3 normal;
 
-    if (aperture()->intercept(coord, normal, dt, orig)) {
+    if (surfaceShape()->intercept(coord, normal, dt, orig)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
 

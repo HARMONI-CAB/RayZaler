@@ -20,7 +20,7 @@
 #include <GLHelpers.h>
 #include <Element.h>
 #include <OpticalElement.h>
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <RayProcessors.h>
 
 using namespace RZ;
@@ -104,7 +104,7 @@ GLModel::drawElementApertures(const Element *el)
     auto &surfaces = optEl->opticalSurfaces();
     
     for (auto &surf : surfaces) {
-      RZ::GenericAperture *ap = surf->processor->aperture();
+      RZ::SurfaceShape *ap = surf->processor->surfaceShape();
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);

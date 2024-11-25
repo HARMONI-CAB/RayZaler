@@ -1,8 +1,8 @@
 #include <RayProcessors/LensletArray.h>
-#include <Apertures/Spherical.h>
+#include <Surfaces/Spherical.h>
 #include <ReferenceFrame.h>
-#include <Apertures/Array.h>
-#include <Apertures/Spherical.h>
+#include <Surfaces/Array.h>
+#include <Surfaces/Spherical.h>
 
 using namespace RZ;
 
@@ -11,9 +11,9 @@ using namespace RZ;
 
 LensletArrayProcessor::LensletArrayProcessor()
 {
-  defineAperture(
-    new ApertureArray(
-      new SphericalAperture(1e-2, m_rCurv)));
+  setSurfaceShape(
+    new SurfaceArray(
+      new SphericalSurface(1e-2, m_rCurv)));
 
   recalculateDimensions();
 }
@@ -22,8 +22,8 @@ void
 LensletArrayProcessor::recalculateDimensions()
 {
   if (m_dirty) {
-    auto *array   = aperture<ApertureArray>();
-    auto *lenslet = array->subAperture<SphericalAperture>();
+    auto *array   = surfaceShape<SurfaceArray>();
+    auto *lenslet = array->subAperture<SphericalSurface>();
 
     Real lensletWidth  = array->subApertureWidth();
     Real lensletHeight = array->subApertureHeight();
@@ -72,7 +72,7 @@ LensletArrayProcessor::name() const
 void
 LensletArrayProcessor::setWidth(Real width)
 {
-  aperture<ApertureArray>()->setWidth(width);
+  surfaceShape<SurfaceArray>()->setWidth(width);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -80,7 +80,7 @@ LensletArrayProcessor::setWidth(Real width)
 void
 LensletArrayProcessor::setHeight(Real height)
 {
-  aperture<ApertureArray>()->setHeight(height);
+  surfaceShape<SurfaceArray>()->setHeight(height);
   m_dirty  = true;
   recalculateDimensions();
 }
@@ -88,7 +88,7 @@ LensletArrayProcessor::setHeight(Real height)
 void
 LensletArrayProcessor::setCols(unsigned cols)
 {
-  aperture<ApertureArray>()->setCols(cols);
+  surfaceShape<SurfaceArray>()->setCols(cols);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -104,7 +104,7 @@ LensletArrayProcessor::setConvex(bool convex)
 void
 LensletArrayProcessor::setRows(unsigned rows)
 {
-  aperture<ApertureArray>()->setRows(rows);
+  surfaceShape<SurfaceArray>()->setRows(rows);
   m_dirty = true;
   recalculateDimensions();
 }
@@ -121,7 +121,7 @@ LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
     Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
     Real dt     = 0;
 
-    if (aperture()->intercept(coord, normal, dt, origin)) {
+    if (surfaceShape()->intercept(coord, normal, dt, origin)) {
       beam.lengths[i]       += dt;
       beam.cumOptLengths[i] += beam.n * dt;
       plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);

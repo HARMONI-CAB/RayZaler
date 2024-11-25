@@ -24,7 +24,7 @@
 #include <GL/glut.h>
 #include <QPainter>
 #include "GUIHelpers.h"
-#include <GenericAperture.h>
+#include <SurfaceShape.h>
 #include <RayBeamElement.h>
 #include <QKeyEvent>
 
@@ -228,7 +228,7 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
     auto &surfaces = optEl->opticalSurfaces();
     
     for (auto &surf : surfaces) {
-      RZ::GenericAperture *ap = surf->processor->aperture();
+      RZ::SurfaceShape *ap = surf->processor->surfaceShape();
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);

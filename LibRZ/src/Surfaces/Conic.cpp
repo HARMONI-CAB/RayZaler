@@ -17,11 +17,11 @@
 //
 
 
-#include <Apertures/Conic.h>
+#include <Surfaces/Conic.h>
 
 using namespace RZ;
 
-ConicAperture::ConicAperture(Real R, Real RCurv, Real K)
+ConicSurface::ConicSurface(Real R, Real RCurv, Real K)
 {
   m_edges.resize(2);
 
@@ -32,7 +32,7 @@ ConicAperture::ConicAperture(Real R, Real RCurv, Real K)
 }
 
 void
-ConicAperture::recalcDistribution()
+ConicSurface::recalcDistribution()
 {
   Real x2, y2, invnorm;
   /* TODO */
@@ -57,7 +57,7 @@ ConicAperture::recalcDistribution()
 }
 
 void
-ConicAperture::setCenterOffset(Real x, Real y)
+ConicSurface::setCenterOffset(Real x, Real y)
 {
   m_x0 = x;
   m_y0 = y;
@@ -67,7 +67,7 @@ ConicAperture::setCenterOffset(Real x, Real y)
 }
 
 void
-ConicAperture::setRadius(Real R)
+ConicSurface::setRadius(Real R)
 {
   m_radius  = R;
   m_radius2 = R * R;
@@ -77,7 +77,7 @@ ConicAperture::setRadius(Real R)
 }
 
 void
-ConicAperture::setCurvatureRadius(Real R)
+ConicSurface::setCurvatureRadius(Real R)
 {
   m_rCurv  = R;
   m_rCurv2 = R * R;
@@ -87,7 +87,7 @@ ConicAperture::setCurvatureRadius(Real R)
 }
 
 void
-ConicAperture::setConicConstant(Real K)
+ConicSurface::setConicConstant(Real K)
 {
   m_K        = K;
   m_parabola = isZero(K + 1);
@@ -97,7 +97,7 @@ ConicAperture::setConicConstant(Real K)
 }
 
 void
-ConicAperture::setHoleRadius(Real Rc)
+ConicSurface::setHoleRadius(Real Rc)
 {
   m_rHole = Rc;
 
@@ -106,7 +106,7 @@ ConicAperture::setHoleRadius(Real Rc)
 }
 
 void
-ConicAperture::setConvex(bool convex)
+ConicSurface::setConvex(bool convex)
 {
   m_convex = convex;
 
@@ -115,13 +115,13 @@ ConicAperture::setConvex(bool convex)
 }
 
 std::vector<std::vector<Real>> const &
-ConicAperture::edges() const
+ConicSurface::edges() const
 {
   return m_edges;
 }
 
 void
-ConicAperture::recalcGLConic()
+ConicSurface::recalcGLConic()
 {
   GLfloat x, y, z, r, dh;
   Real theta = 0;
@@ -226,7 +226,7 @@ ConicAperture::recalcGLConic()
 }
 
 void
-ConicAperture::recalcGLParabolic()
+ConicSurface::recalcGLParabolic()
 {
   GLfloat x, y, z, r, dh;
   Real theta = 0;
@@ -339,7 +339,7 @@ ConicAperture::recalcGLParabolic()
 }
 
 void
-ConicAperture::recalcGL()
+ConicSurface::recalcGL()
 { 
   if (m_parabola)
     recalcGLParabolic();
@@ -348,7 +348,7 @@ ConicAperture::recalcGL()
 }
 
 bool
-ConicAperture::intercept(
+ConicSurface::intercept(
   Vec3 &intercept,
   Vec3 &normal,
   Real &deltaT,
@@ -411,7 +411,7 @@ ConicAperture::intercept(
 }
 
 void
-ConicAperture::generatePoints(
+ConicSurface::generatePoints(
     const ReferenceFrame *frame,
     Real *pointArr,
     Real *normalArr,
@@ -421,13 +421,13 @@ ConicAperture::generatePoints(
 }
 
 Real
-ConicAperture::area() const
+ConicSurface::area() const
 {
   throw std::runtime_error("Surface area of a general conic not yet implemented");
 }
 
 void
-ConicAperture::renderOpenGL()
+ConicSurface::renderOpenGL()
 {
   auto N = m_axes.size() / (4 * 3);
 

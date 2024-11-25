@@ -1,15 +1,15 @@
 #include <RayProcessors/RectangularStop.h>
 #include <ReferenceFrame.h>
-#include <Apertures/Rectangular.h>
+#include <Surfaces/Rectangular.h>
 
 using namespace RZ;
 
 RectangularStopProcessor::RectangularStopProcessor()
 {
-  defineAperture(new RectangularAperture());
+  setSurfaceShape(new RectangularFlatSurface());
 
-  aperture<RectangularAperture>()->setHeight(m_height);
-  aperture<RectangularAperture>()->setWidth(m_width);
+  surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
+  surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
 }
 
 std::string
@@ -22,14 +22,14 @@ void
 RectangularStopProcessor::setWidth(Real width)
 {
   m_width = width;
-  aperture<RectangularAperture>()->setWidth(m_width);
+  surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
 }
 
 void
 RectangularStopProcessor::setHeight(Real height)
 {
   m_height = height;
-  aperture<RectangularAperture>()->setHeight(m_height);
+  surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
 }
 
 void
