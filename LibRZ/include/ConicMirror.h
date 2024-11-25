@@ -56,7 +56,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~ConicMirror();
+      virtual ~ConicMirror() override;
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
