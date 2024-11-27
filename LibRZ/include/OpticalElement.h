@@ -34,7 +34,7 @@ namespace RZ {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
     const RayTransferProcessor *processor = nullptr;
-    OpticalElement             *parent;
+    OpticalElement             *parent    = nullptr;
 
     std::map<uint32_t, RayBeamStatistics> statistics;
     

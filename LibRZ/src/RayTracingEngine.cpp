@@ -31,7 +31,7 @@ using namespace RZ;
 
 template<typename T>
 static T *
-allocBuffer(uint64_t count, T *existing = nullptr)
+allocBuffer(uint64_t count, uint64_t prev = 0, T *existing = nullptr)
 {
   if (count == 0)
     return nullptr;
@@ -40,6 +40,8 @@ allocBuffer(uint64_t count, T *existing = nullptr)
 
   if (result == nullptr)
     throw std::bad_alloc();
+
+  memset(result + prev, 0, (count - prev) * sizeof(T));
   
   return result;
 }
@@ -54,10 +56,10 @@ freeBuffer(T *&buf)
   }
 }
 
-template static Real *allocBuffer<Real>(uint64_t, Real *);
+template static Real *allocBuffer<Real>(uint64_t, uint64_t, Real *);
 template static void  freeBuffer<Real>(Real *&);
 
-template static uint64_t *allocBuffer<uint64_t>(uint64_t, uint64_t *);
+template static uint64_t *allocBuffer<uint64_t>(uint64_t, uint64_t, uint64_t *);
 template static void freeBuffer<uint64_t>(uint64_t *&);
 
 void
@@ -103,8 +105,9 @@ RayBeam::allocate(uint64_t count)
 {
   size_t oldMaskLen = (this->count + 63) >> 6;
   size_t maskLen = (count + 63) >> 6;
+  size_t prev = this->count;
 
-  if (this->count == 0) {
+  if (prev == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
@@ -119,18 +122,18 @@ RayBeam::allocate(uint64_t count)
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     this->allocation    = count;
   } else if (count >= this->count) {
-    this->origins       = allocBuffer<Real>(3 * count, this->origins);
-    this->directions    = allocBuffer<Real>(3 * count, this->directions);
-    this->normals       = allocBuffer<Real>(3 * count, this->normals);
-    this->destinations  = allocBuffer<Real>(3 * count, this->destinations);
-    this->amplitude     = allocBuffer<Complex>(count, this->amplitude);
-    this->wavelengths   = allocBuffer<Real>(count, this->wavelengths);
-    this->lengths       = allocBuffer<Real>(count, this->lengths);
-    this->cumOptLengths = allocBuffer<Real>(count, this->cumOptLengths);
-    this->ids           = allocBuffer<uint32_t>(count, this->ids);
-    this->mask          = allocBuffer<uint64_t>(maskLen, this->mask);
-    this->prevMask      = allocBuffer<uint64_t>(maskLen, this->prevMask);
-    this->chiefMask     = allocBuffer<uint64_t>(maskLen, this->chiefMask);
+    this->origins       = allocBuffer<Real>(3 * count, prev, this->origins);
+    this->directions    = allocBuffer<Real>(3 * count, prev, this->directions);
+    this->normals       = allocBuffer<Real>(3 * count, prev, this->normals);
+    this->destinations  = allocBuffer<Real>(3 * count, prev, this->destinations);
+    this->amplitude     = allocBuffer<Complex>(count, prev, this->amplitude);
+    this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
+    this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
+    this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
+    this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
+    this->mask          = allocBuffer<uint64_t>(maskLen, prev, this->mask);
+    this->prevMask      = allocBuffer<uint64_t>(maskLen, prev, this->prevMask);
+    this->chiefMask     = allocBuffer<uint64_t>(maskLen, prev, this->chiefMask);
     this->allocation    = count;
   } else {
     throw std::runtime_error("Cannot shrink ray list");
@@ -247,7 +250,7 @@ RayTracingEngine::pushRay(
   ray.direction = direction.normalized();
   ray.length    = l;
   ray.id        = id;
-
+  
   m_rays.push_back(ray);
 
   m_beamDirty = true;
@@ -319,6 +322,9 @@ RayTracingEngine::setCurrentSurface(
   unsigned int i,
   unsigned int total)
 {
+  if (m_beamDirty)
+    toBeam();
+  
   m_currentSurface = surf;
   m_currentFrame   = surf == nullptr ? nullptr : surf->frame;
 

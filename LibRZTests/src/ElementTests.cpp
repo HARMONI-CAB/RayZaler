@@ -88,8 +88,11 @@ TEST_CASE("Bench stacking", "[libRZ]")
   Point3 point(RZ_URANDSIGN, RZ_URANDSIGN, 1 + RZ_URANDSIGN);
 
   // Stack a  bench on top of the same bench
-  newElement = element.plug<BenchElement>("surface", "Bench", "new_bench");
+  newElement = element.plug<BenchElement>("surface", "BenchElement", "new_bench");
+  REQUIRE(newElement);
+  
   ReferenceFrame *surf = newElement->getPortFrame("surface");
+  REQUIRE(surf != nullptr);
 
   surf->addPoint("testPoint", point);
   world.recalculate();

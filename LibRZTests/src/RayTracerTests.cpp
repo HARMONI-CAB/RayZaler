@@ -46,9 +46,11 @@ TEST_CASE("Pushing rays to raytracer", "[libRZ]")
 
 TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
 {
-  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThru");
+  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThrough");
   WorldFrame world("world");
   OpticalSurface surf;
+
+  REQUIRE(processor != nullptr);
 
   surf.frame = &world;
   surf.processor = processor;
@@ -82,7 +84,7 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
     REQUIRE(outputRays.size() == BEAM_SIZE);
 
     for (auto ray = outputRays.begin(); ray != outputRays.end(); ++ray) {
-      auto relRay = ray->origin - origin;
+      auto relRay = ray->origin + ray->length * ray->direction - origin;
 
       REQUIRE(ray->length >= dist);
       REQUIRE(isZero(relRay * normal));
@@ -93,10 +95,12 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
 
 TEST_CASE("Ensuring that all rays are intercepted in the destination plane", "[libRZ]")
 {
-  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThru");
+  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThrough");
   WorldFrame world("world");
   RotatedFrame frame("detector", &world, Vec3::eZ(), 0);
   OpticalSurface surf;
+
+  REQUIRE(processor != nullptr);
 
   surf.frame = &frame;
   surf.processor = processor;
@@ -132,7 +136,7 @@ TEST_CASE("Ensuring that all rays are intercepted in the destination plane", "[l
     REQUIRE(outputRays.size() == BEAM_SIZE);
 
     for (auto ray = outputRays.begin(); ray != outputRays.end(); ++ray) {
-      auto relRay = ray->origin - origin;
+      auto relRay = ray->origin + ray->length * ray->direction - origin;
 
       REQUIRE(ray->length >= dist);
       REQUIRE(isZero(relRay * normal));
