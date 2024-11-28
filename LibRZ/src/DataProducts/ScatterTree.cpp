@@ -128,10 +128,13 @@ ScatterTree::push(double x, double y)
 void
 ScatterTree::buildNode(ScatterTreeNode *node)
 {
+  unsigned int numLeaves = 0;
+  
   auto &cog         = node->cog;
   auto &topLeft     = node->topLeft;
   auto &bottomRight = node->bottomRight;
   
+
   node->nElem = node->unplaced.size();
   bool doSplit = node->nElem > m_splitThreshold;
 
@@ -165,17 +168,24 @@ ScatterTree::buildNode(ScatterTreeNode *node)
       int yIndex = p.y < node->cog.y ? 0 : 1;
       auto &leaf = node->leaves[yIndex][xIndex];
 
-      if (leaf == nullptr)
+      if (leaf == nullptr) {
         leaf = makeNode();
+        ++numLeaves;
+      }
 
       leaf->unplaced.push_back(p);
     }
   }
 
-  for (auto i = 0; i < 2; ++i)
+  // There is a degenerate case in which all points are always the same.
+  // We must abort the recursive split in this case.
+
+  if (numLeaves > 1) {
+    for (auto i = 0; i < 2; ++i)
       for (auto j = 0; j < 2; ++j)
         if (node->leaves[j][i] != nullptr)
           buildNode(node->leaves[j][i]);
+  }
 }
 
 static inline int

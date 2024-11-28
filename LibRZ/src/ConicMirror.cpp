@@ -71,14 +71,15 @@ ConicMirror::recalcModel()
   m_aperturePort->setDistance(apertureZ * Vec3::eZ());
   m_vertexPort->setDistance((m_thickness + backPlaneZ) * Vec3::eZ());
 
+  m_reflectiveSurfaceFrame->recalculate();
+  m_aperturePort->recalculate();
+  m_vertexPort->recalculate();
+  
   m_processor->setRadius(m_radius);
   m_processor->setCurvatureRadius(Rc);
   m_processor->setConicConstant(m_K);
   m_processor->setConvex(convex);
   m_processor->setCenterOffset(m_x0, m_y0);
-
-  m_reflectiveSurfaceFrame->recalculate();
-  m_aperturePort->recalculate();
 
   m_cap.setHoleRadius(m_rHole);
   m_rearCap.setHoleRadius(m_rHole);
@@ -168,6 +169,7 @@ ConicMirror::ConicMirror(
   m_rearCap.setInvertNormals(false);
 
   refreshProperties();
+  recalcModel();
 }
 
 ConicMirror::~ConicMirror()
