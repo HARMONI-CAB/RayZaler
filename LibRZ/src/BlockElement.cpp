@@ -23,9 +23,9 @@
 
 using namespace RZ;
 
-#define BLOCK_DEFAULT_LENGTH 1
-#define BLOCK_DEFAULT_WIDTH  1
-#define BLOCK_DEFAULT_HEIGHT 1
+#define BLOCK_DEFAULT_LENGTH 1.
+#define BLOCK_DEFAULT_WIDTH  1.
+#define BLOCK_DEFAULT_HEIGHT 1.
 
 bool
 BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)

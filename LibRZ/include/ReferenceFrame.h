@@ -141,6 +141,23 @@ namespace RZ{
         return m_typeId;
       }
       
+      inline const char *
+      typeString() const
+      {
+        switch (m_typeId) {
+          case RZ_REF_FRAME_WORLD_ID:
+            return "World";
+          case RZ_REF_FRAME_ROTATION_ID:
+            return "Rotation";
+          case RZ_REF_FRAME_TRANSLATION_ID:
+            return "Translation";
+          case RZ_REF_FRAME_TRIPOD_ID:
+            return "Tripod";
+        }
+
+        return nullptr;
+      }
+      
       inline Vec3
       toRelative(Vec3 const &absv) const
       {

@@ -11,7 +11,9 @@ add_executable(
   RZTests
   src/ReferenceFrameTests.cpp
   src/RayTracerTests.cpp
-  src/ElementTests.cpp)
+  src/ElementTests.cpp
+  src/TopLevelTests.cpp
+  src/HitTests.cpp)
 
 target_link_directories(RZTests PRIVATE ${LIBRZ_LIBDIR})
 

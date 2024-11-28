@@ -64,7 +64,7 @@ FlatMirror::propertyChanged(
     CircularFlatSurface::radiusEccentricity(m_radius, m_ecc, m_width, m_height);
     recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;

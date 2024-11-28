@@ -29,10 +29,12 @@
 %token  NUM         "number"
 %token  IDENTIFIER  "identifier"
 %token  STRING      "string"
+%token  COMP_OP     "comparison-operator"
 %token  ROTATE_KEYWORD TRANSLATE_KEYWORD PORT_KEYWORD ELEMENT_KEYWORD PATH_KEYWORD TO_KEYWORD PARAM_KEYWORD DOF_KEYWORD ON_KEYWORD OF_KEYWORD IMPORT_KEYWORD SCRIPT_KEYWORD VAR_KEYWORD
 %nterm  expr
 
 %precedence '='
+%left       COMP_OP
 %left       '-' '+'
 %left       '*' '/'
 %precedence NEG /* negation--unary minus */
@@ -164,10 +166,12 @@ expr:                                             // Type: string
    | IDENTIFIER                { $$ = $1; }    
    | IDENTIFIER '(' expr ')'   { $$ = $1.str() + "(" + $3.str() + ")"; }
    | IDENTIFIER '(' expr ',' expr ')'   { $$ = $1.str() + "(" + $3.str() + "," + $5.str() + ")"; }
+   | '!' expr %prec NEG        { $$ = "!" + $2.str(); }
    | expr '+' expr             { $$ = $1.str() + "+" + $3.str(); }
    | expr '-' expr             { $$ = $1.str() + "-" + $3.str(); }
    | expr '*' expr             { $$ = $1.str() + "*" + $3.str(); }
    | expr '/' expr             { $$ = $1.str() + "/" + $3.str(); }
+   | expr COMP_OP expr         { $$ = $1.str() + $2.str() + $3.str(); }
    | '-' expr  %prec NEG       { $$ = "-" + $2.str();            }
    | expr '^' expr             { $$ = $1.str() + "^" + $3.str(); }
    | '(' expr ')'              { $$ = "(" + $2.str() + ")";      }

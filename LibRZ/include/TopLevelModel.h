@@ -72,6 +72,11 @@ namespace RZ {
       static TopLevelModel *fromFile(
         std::string const &path,
         std::list<std::string> const &searchPaths = std::list<std::string>());
+
+      static TopLevelModel *fromString(
+        std::string const &str,
+        std::list<std::string> const &searchPath = std::list<std::string>(),
+        std::string const &fileName = "<string>");
   };
 }
 

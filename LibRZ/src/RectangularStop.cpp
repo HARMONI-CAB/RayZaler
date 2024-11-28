@@ -72,7 +72,7 @@ RectangularStop::propertyChanged(
     m_height = value;
     recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;

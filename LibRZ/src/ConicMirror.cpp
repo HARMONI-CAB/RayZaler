@@ -94,6 +94,12 @@ ConicMirror::propertyChanged(
   } else if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "diameter") {
+    m_radius = .5 * static_cast<Real>(value);
+    recalcModel();
+  } else if (name == "focalLength") {
+    m_rCurv = 2 * static_cast<Real>(value);
+    recalcModel();
   } else if (name == "curvature") {
     m_rCurv = value;
     recalcModel();
@@ -124,13 +130,15 @@ ConicMirror::ConicMirror(
 {
   m_processor = new ConicMirrorProcessor;
 
-  registerProperty("thickness",   1e-2);
-  registerProperty("radius",    2.5e-2);
-  registerProperty("curvature",  10e-2);
-  registerProperty("conic",          0);
-  registerProperty("hole",           0);
-  registerProperty("x0",            0.);
-  registerProperty("y0",            0.);
+  registerProperty("thickness",    1e-2);
+  registerProperty("radius",     2.5e-2);
+  registerProperty("diameter",     5e-2);
+  registerProperty("curvature",   10e-2);
+  registerProperty("focalLength",  5e-2);
+  registerProperty("conic",          0.);
+  registerProperty("hole",           0.);
+  registerProperty("x0",             0.);
+  registerProperty("y0",             0.);
   
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
   m_reflectiveSurfacePort  = new TranslatedFrame("refPort", frame, Vec3::zero());

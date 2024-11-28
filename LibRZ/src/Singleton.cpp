@@ -65,6 +65,17 @@ Singleton::lookupElementFactory(std::string const &name) const
   return it->second;
 }
 
+std::list<std::string>
+Singleton::elementFactories() const
+{
+  std::list<std::string> list;
+
+  for (auto &p : m_elementFactories)
+    list.push_back(p.first);
+
+  return list;
+}
+
 bool
 Singleton::registerRayTransferProcessor(RayTransferProcessor *proc)
 {

@@ -20,27 +20,14 @@
 #define _PARABOLIC_MIRROR_H
 
 #include <OpticalElement.h>
+#include <ConicMirror.h>
 #include <RayProcessors.h>
 #include <GLHelpers.h>
 
 namespace RZ {
   class TranslatedFrame;
 
-  class ParabolicMirror : public OpticalElement {
-      GLCappedCylinder m_cylinder;
-      GLParabolicCap   m_cap, m_rearCap;
-      ParabolicMirrorProcessor *m_processor;
-      TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
-      TranslatedFrame *m_reflectiveSurfacePort = nullptr;
-      Real m_thickness = 1e-2;
-      Real m_radius = 1e-2;
-      Real m_flength = 1;
-      Real m_displacement;
-      Real m_x0 = 0;
-      Real m_y0 = 0;
-      
-      void recalcModel();
-
+  class ParabolicMirror : public ConicMirror {
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
@@ -52,9 +39,6 @@ namespace RZ {
         Element *parent = nullptr);
       
       ~ParabolicMirror();
-
-      virtual void nativeMaterialOpenGL(std::string const &) override;
-      virtual void renderOpenGL() override;
   };
 
   class ParabolicMirrorFactory : public ElementFactory {

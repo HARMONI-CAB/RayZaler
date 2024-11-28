@@ -202,6 +202,17 @@ namespace RZ {
         return m_properties.find(prop) != m_properties.end();
       }
 
+      inline PropertyValueType
+      queryPropertyType(std::string const &prop) const
+      {
+        auto it = m_properties.find(prop);
+
+        if (it == m_properties.end())
+          return UndefinedValue;
+
+        return it->second.type();
+      }
+
       // Get hidden parameter number
       inline unsigned
       hidden() const

@@ -19,28 +19,14 @@
 #ifndef _SPHERICAL_MIRROR_H
 #define _SPHERICAL_MIRROR_H
 
-#include <OpticalElement.h>
+#include <ConicMirror.h>
 #include <RayProcessors.h>
 #include <GLHelpers.h>
 
 namespace RZ {
   class TranslatedFrame;
 
-  class SphericalMirror : public OpticalElement {
-      GLCappedCylinder m_cylinder;
-      GLSphericalCap   m_topCap, m_bottomCap;
-      SphericalMirrorProcessor *m_processor;
-      TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
-      Real m_thickness = 1e-2;
-      Real m_radius = 1e-2;
-      Real m_flength = 1;
-      Real m_depth;
-      Real m_displacement;
-      Real m_x0 = 0;
-      Real m_y0 = 0;
-      
-      void recalcModel();
-
+  class SphericalMirror : public ConicMirror {
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
@@ -52,9 +38,6 @@ namespace RZ {
         Element *parent = nullptr);
       
       ~SphericalMirror();
-
-      virtual void nativeMaterialOpenGL(std::string const &) override;
-      virtual void renderOpenGL() override;
   };
 
   class SphericalMirrorFactory : public ElementFactory {

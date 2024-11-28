@@ -276,12 +276,11 @@ Detector::propertyChanged(
       recalcModel();
     }
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
-
+  
   return true;
 }
-
 
 Detector::Detector(
   ElementFactory *factory,

@@ -17,95 +17,135 @@
 //
 
 #define CATCH_CONFIG_MAIN
+#define THIS_TEST_TAG "[Element]"
+
 #include <catch2/catch_test_macros.hpp>
+#include <Element.h>
 #include <WorldFrame.h>
 #include <Singleton.h>
-#include <BenchElement.h>
 #include <algorithm>
 
 using namespace RZ;
 
-TEST_CASE("Bench instantiation", "[libRZ]")
+TEST_CASE("Element instantiation", THIS_TEST_TAG)
 {
   WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
+
+  for (auto &p : Singleton::instance()->elementFactories()) {
+    auto factory = Singleton::instance()->lookupElementFactory(p);
+    REQUIRE(factory != nullptr);
+
+    auto element = factory->make(p, &world, nullptr);
+    REQUIRE(element != nullptr);
+
+    delete element;
+  }
 }
 
-TEST_CASE("Bench identification of ports", "[libRZ]")
+TEST_CASE("Element property access", THIS_TEST_TAG)
 {
   WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
-
-  auto ports = element.ports();
-  REQUIRE(ports.find("surface") != ports.end());
-}
-
-TEST_CASE("Bench identification of properties", "[libRZ]")
-{
-  WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
-
-  auto props = element.properties();
-  REQUIRE(props.find("height") != props.end());
-}
-
-TEST_CASE("Bench surface access", "[libRZ]")
-{
-  WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
-  ReferenceFrame *surf = element.getPortFrame("surface");
-
-  REQUIRE(surf !=  nullptr);
-}
-
-TEST_CASE("Bench surface height access", "[libRZ]")
-{
-  WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
-  Point3 point(RZ_URANDSIGN, RZ_URANDSIGN, 1 + RZ_URANDSIGN);
-  Real height = RZ_URANDSIGN + 1;
-
-  ReferenceFrame *surf = element.getPortFrame("surface");
-  REQUIRE(surf !=  nullptr);
-
-  surf->addPoint("testPoint", point);
-  world.recalculate();
-
-  element.set("height", height);
-
-  auto trueLocation = surf->getPoint("testPoint");
-  REQUIRE(trueLocation != nullptr);
-
-  REQUIRE(*trueLocation == point + height * Vec3::eZ());
-}
-
-TEST_CASE("Bench stacking", "[libRZ]")
-{
-  WorldFrame world("world");
-  BenchElement element(nullptr, "bench", &world);
-  BenchElement *newElement;
-  Singleton *singleton = Singleton::instance();
-  Point3 point(RZ_URANDSIGN, RZ_URANDSIGN, 1 + RZ_URANDSIGN);
-
-  // Stack a  bench on top of the same bench
-  newElement = element.plug<BenchElement>("surface", "BenchElement", "new_bench");
-  REQUIRE(newElement);
   
-  ReferenceFrame *surf = newElement->getPortFrame("surface");
-  REQUIRE(surf != nullptr);
+  for (auto &p : Singleton::instance()->elementFactories()) {
+    auto factory = Singleton::instance()->lookupElementFactory(p);
+    REQUIRE(factory != nullptr);
 
-  surf->addPoint("testPoint", point);
-  world.recalculate();
+    auto element = factory->make(p, &world, nullptr);
+    REQUIRE(element != nullptr);
 
-  for (auto i = 0; i < 100; ++i) {
-    Real height1 = RZ_URANDSIGN + 1;
-    Real height2 = RZ_URANDSIGN + 1;
+    printf("Checking properties of %s:\n", p.c_str());
 
-    element.set("height", height1);
-    newElement->set("height", height2);
+    for (auto &prop : element->properties()) {
+      PropertyValue val = element->get(prop);
+      printf("  - %10s [type = %d] ", prop.c_str(), val.type());
+      REQUIRE(val.type() != UndefinedValue);
 
-    auto trueLocation = surf->getPoint("testPoint");
-    REQUIRE(trueLocation != nullptr);
-    REQUIRE(*trueLocation == point + (height1 + height2) * Vec3::eZ());
+      Real asReal, newReal;
+      std::string asString, newString;
+      int64_t asInteger, newInteger;
+      bool asBool, newBool;
+
+      switch (val.type()) {
+        case RealValue:
+          asReal = std::get<Real>(val);
+          if (isZero(asReal))
+            asReal += 1e-1;
+          else
+            asReal *= 0.9;
+
+          REQUIRE(element->set(prop, asReal));
+          newReal = element->get(prop);
+          printf("(%g -> %g)\n", asReal, newReal);
+          REQUIRE(releq(asReal, newReal));
+          break;
+
+        case IntegerValue:
+          asInteger = std::get<int64_t>(val);
+          ++asInteger;
+          REQUIRE(element->set(prop, asInteger));
+          newInteger = element->get(prop);
+          printf("%d -> %d\n", asInteger, newInteger);
+          REQUIRE(asInteger == newInteger);
+          break;
+
+        case BooleanValue:
+          // The optical property is read-only and should not be changed
+          asBool = std::get<bool>(val);
+          if (prop == "optical")
+            REQUIRE(asBool);
+          
+          asBool = !asBool;
+
+          if (prop == "optical")
+            REQUIRE(!element->set(prop, asBool));
+          else
+            REQUIRE(element->set(prop, asBool));
+
+          newBool = std::get<bool>(element->get(prop));
+          printf("%d -> %d\n", asBool, newBool);
+
+          if (prop == "optical")
+            REQUIRE(newBool);
+          else
+            REQUIRE(newBool == asBool);
+          break;
+
+        case StringValue:
+          asString = std::get<std::string>(val);
+          asString += "-suffix";
+          REQUIRE(element->set(prop, asString));
+          newString = std::get<std::string>(element->get(prop));
+          printf("(\"%s\" -> \"%s\")\n", asString.c_str(), newString.c_str());
+          REQUIRE(newString == asString);
+          break;
+      }
+    }
+
+    delete element;
+  }
+}
+
+
+TEST_CASE("Element port access", THIS_TEST_TAG)
+{
+  WorldFrame world("world");
+  
+  for (auto &p : Singleton::instance()->elementFactories()) {
+    auto factory = Singleton::instance()->lookupElementFactory(p);
+    REQUIRE(factory != nullptr);
+
+    auto element = factory->make(p, &world, nullptr);
+    REQUIRE(element != nullptr);
+
+    printf("Checking ports of %s:\n", p.c_str());
+
+    for (auto &port : element->ports()) {
+      printf("  - %10s ", port.c_str());
+
+      auto portObj = element->getPortFrame(port);
+      REQUIRE(portObj != nullptr);
+      REQUIRE(portObj->typeString() != nullptr);
+      printf("[%s]\n", portObj->typeString());
+    }
   }
 }

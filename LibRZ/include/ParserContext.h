@@ -320,6 +320,17 @@ namespace RZ {
       virtual int read() override;
       virtual ~FileParserContext();
   };
+
+  class StringParserContext : public RZ::ParserContext {
+      using ParserContext::ParserContext;
+      std::string m_contents;
+      unsigned int m_ptr = 0;
+      
+    public:
+      void setContents(std::string const &contents, std::string const &name);
+      virtual int read() override;
+      virtual ~StringParserContext();
+  };
 }
 
 #endif // _PARSER_CONTEXT_H

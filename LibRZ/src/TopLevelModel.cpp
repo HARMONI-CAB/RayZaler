@@ -214,3 +214,43 @@ done:
 
   return tlModel;
 }
+
+TopLevelModel *
+TopLevelModel::fromString(
+  std::string const &str,
+  std::list<std::string> const &searchPaths,
+  std::string const &fileName)
+{
+  std::string exceptionString;
+  TopLevelModel *tlModel = nullptr;
+  Recipe *recipe = new Recipe();
+
+  recipe->addDof("t", 0, 0, 1e6);
+
+  StringParserContext *ctx = new StringParserContext(recipe);
+
+  for (auto &srchPath : searchPaths)
+    ctx->addSearchPath(srchPath);
+
+  ctx->setContents(str, fileName);
+
+  if (!ctx->parse()) {
+    exceptionString = "Cannot parse model description: model has errors\n";
+    goto done;
+  }
+
+  try {
+    tlModel = new TopLevelModel(recipe);
+    tlModel->setName(fileName);
+  } catch (std::runtime_error const &e) {
+    exceptionString = e.what();
+  }
+
+done:
+  delete ctx;
+
+  if (tlModel == nullptr)
+    throw std::runtime_error(exceptionString);
+
+  return tlModel;
+}

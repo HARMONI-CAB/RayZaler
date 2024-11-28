@@ -17,6 +17,7 @@
 //
 
 #define CATCH_CONFIG_MAIN
+#define THIS_TEST_TAG "[ReferenceFrame]"
 #include <catch2/catch_test_macros.hpp>
 #include <ReferenceFrame.h>
 #include <WorldFrame.h>
@@ -27,7 +28,7 @@
 
 using namespace RZ;
 
-TEST_CASE("Testing vector comparison", "[libRZ]")
+TEST_CASE("Testing vector comparison", THIS_TEST_TAG)
 {
   REQUIRE(Vec3::zero() == Vec3(0, 0, 0));
   REQUIRE(Vec3::zero() != Vec3::eX());
@@ -38,7 +39,7 @@ TEST_CASE("Testing vector comparison", "[libRZ]")
   REQUIRE(Vec3(1, 2, 3) != Vec3(1, 2, -3));
 }
 
-TEST_CASE("Testing basic vector algebra", "[libRZ]")
+TEST_CASE("Testing basic vector algebra", THIS_TEST_TAG)
 {
   Vec3 sum = Vec3::eX() + 2 * Vec3::eY() - 3 * Vec3::eZ();
 
@@ -47,7 +48,7 @@ TEST_CASE("Testing basic vector algebra", "[libRZ]")
   REQUIRE(sum - Vec3(1, 2, -3) == Vec3::zero());
 }
 
-TEST_CASE("Testing cross products", "[libRZ]")
+TEST_CASE("Testing cross products", THIS_TEST_TAG)
 {
   REQUIRE(Vec3::eX().cross(Vec3::eY()) == Vec3::eZ());
   REQUIRE(Vec3::eY().cross(Vec3::eZ()) == Vec3::eX());
@@ -58,7 +59,7 @@ TEST_CASE("Testing cross products", "[libRZ]")
   REQUIRE(Vec3::eX().cross(Vec3::eZ()) == -Vec3::eY());
 }
 
-TEST_CASE("Testing basic matrix algebra", "[libRZ]")
+TEST_CASE("Testing basic matrix algebra", THIS_TEST_TAG)
 {
   Matrix3 eye = Matrix3::eye();
   Real x, y, z;
@@ -76,7 +77,7 @@ TEST_CASE("Testing basic matrix algebra", "[libRZ]")
   }
 }
 
-TEST_CASE("Testing composed rotations", "[libRZ]")
+TEST_CASE("Testing composed rotations", THIS_TEST_TAG)
 {
   Real x, y, z;
 
@@ -102,7 +103,7 @@ TEST_CASE("Testing composed rotations", "[libRZ]")
   }
 }
 
-TEST_CASE("Testing matrix-vector poducts", "[libRZ]")
+TEST_CASE("Testing matrix-vector poducts", THIS_TEST_TAG)
 {
   Real x, y, z;
   Matrix3 M(Vec3::eY(), Vec3::eZ(), Vec3::eX());
@@ -122,7 +123,7 @@ TEST_CASE("Testing matrix-vector poducts", "[libRZ]")
 }
 
 
-TEST_CASE("Testing rotation around different axes", "[libRZ]")
+TEST_CASE("Testing rotation around different axes", THIS_TEST_TAG)
 {
   Real x, y, z, angle;
 
@@ -147,7 +148,7 @@ TEST_CASE("Testing rotation around different axes", "[libRZ]")
   }
 }
 
-TEST_CASE("Reference frame (instantiation)", "[libRZ]")
+TEST_CASE("Reference frame (instantiation)", THIS_TEST_TAG)
 {
   WorldFrame wf("world");
 
@@ -157,7 +158,7 @@ TEST_CASE("Reference frame (instantiation)", "[libRZ]")
   REQUIRE(wf.getOrientation() == Matrix3::eye());
 }
 
-TEST_CASE("Translated frame (instantiation)", "[libRZ]")
+TEST_CASE("Translated frame (instantiation)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 center(1, 2, 3);
@@ -167,7 +168,7 @@ TEST_CASE("Translated frame (instantiation)", "[libRZ]")
   REQUIRE(frame.isCalculated());
 }
 
-TEST_CASE("Translated frame (verification)", "[libRZ]")
+TEST_CASE("Translated frame (verification)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 center(1, 2, 3);
@@ -182,7 +183,7 @@ TEST_CASE("Translated frame (verification)", "[libRZ]")
   REQUIRE(frame.getOrientation() == Matrix3::eye());
 }
 
-TEST_CASE("Translated frame (definition of primitives)", "[libRZ]")
+TEST_CASE("Translated frame (definition of primitives)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 center(1, 2, 3);
@@ -211,7 +212,7 @@ TEST_CASE("Translated frame (definition of primitives)", "[libRZ]")
   REQUIRE(*pPoint == center + point);
 }
 
-TEST_CASE("Rotated frame (instantiation)", "[libRZ]")
+TEST_CASE("Rotated frame (instantiation)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 axis(1, 1, 1);
@@ -225,7 +226,7 @@ TEST_CASE("Rotated frame (instantiation)", "[libRZ]")
   REQUIRE(frame.isCalculated());
 }
 
-TEST_CASE("Rotated frame (verification)", "[libRZ]")
+TEST_CASE("Rotated frame (verification)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Real angle = deg2rad(45);
@@ -242,7 +243,7 @@ TEST_CASE("Rotated frame (verification)", "[libRZ]")
   REQUIRE(frame.getOrientation() == rotMatrix);
 }
 
-TEST_CASE("Rotated frame (definition of primitives)", "[libRZ]")
+TEST_CASE("Rotated frame (definition of primitives)", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 rotAxis(1, 1, 1);
@@ -273,7 +274,7 @@ TEST_CASE("Rotated frame (definition of primitives)", "[libRZ]")
   REQUIRE(*pPoint == rotMatrix * point + frame.getCenter());
 }
 
-TEST_CASE("Frame composition", "[libRZ]")
+TEST_CASE("Frame composition", THIS_TEST_TAG)
 {
   WorldFrame world("world");
   Vec3 rotAxis(1, 1, 1);

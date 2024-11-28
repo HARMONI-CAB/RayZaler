@@ -41,7 +41,7 @@ Obstruction::propertyChanged(
     m_radius = value;
     recalcModel();
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;

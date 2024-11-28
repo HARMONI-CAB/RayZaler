@@ -30,7 +30,7 @@ namespace RZ
   class FT2Facade;
 
   class Singleton {
-      std::map<std::string, ElementFactory *> m_elementFactories;
+      std::map<std::string, ElementFactory *>       m_elementFactories;
       std::map<std::string, RayTransferProcessor *> m_rayTransferProcessors;
       FT2Facade *m_freeType = nullptr;
 
@@ -44,6 +44,8 @@ namespace RZ
       bool registerRayTransferProcessor(RayTransferProcessor *);
 
       ElementFactory *lookupElementFactory(std::string const &) const;
+      std::list<std::string> elementFactories() const;
+      
       RayTransferProcessor *lookupRayTransferProcessor(std::string const &) const;
       FT2Facade *freetype() const;
 

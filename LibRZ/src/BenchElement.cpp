@@ -42,8 +42,8 @@ BenchElement::propertyChanged(std::string const &name, PropertyValue const &val)
     m_surfaceFrame->recalculate();
     return true;
   }
-  
-  return false;
+
+  return Element::propertyChanged(name, val);
 }
 
 BenchElement::BenchElement(

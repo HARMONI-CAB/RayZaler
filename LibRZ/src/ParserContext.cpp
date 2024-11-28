@@ -76,7 +76,7 @@ ParserError::ParserError(
 bool
 ParserContext::isOperatorChar(int c)
 {
-  return std::string("+-/*^();,={}").find(c) != std::string::npos;
+  return std::string("+-/*^();,{}!<=>").find(c) != std::string::npos;
 }
 
 bool
@@ -127,6 +127,14 @@ ParserContext::isTerminator(int c) const
   } else if (isIdStartChar(m_buf[0])) {
     return !isIdChar(c);
   } else if (isOperatorChar(m_buf[0])) {
+    if (m_buf.size() == 1 && c == '=') {
+      const char *compStarts = "!<=>";
+
+      // If the first character is either one of the "comparison operator
+      // starts", it is NOT a terminator.
+      return strchr(compStarts, m_buf[0]) == nullptr;
+    }
+
     return true;
   }
 
@@ -254,6 +262,10 @@ ParserContext::lexNonString(int c)
   return tokenCompleted;
 }
 
+enum ParserLexingMode {
+  
+};
+
 int
 ParserContext::lex()
 {
@@ -366,6 +378,14 @@ ParserContext::tokenType() const
     else
       return IDENTIFIER;
   } else if (isOperatorChar(m_lastToken[0])) {
+    if (m_lastToken == "=="
+          || m_lastToken == "!="
+          || m_lastToken == ">="
+          || m_lastToken == "<="
+          || m_lastToken == "<"
+          || m_lastToken == ">")
+      return COMP_OP;
+    
     return m_lastToken[0]; // Self-identifying token
   }
 
@@ -707,4 +727,28 @@ FileParserContext::~FileParserContext()
 {
   if (m_fp != nullptr && m_fp != stdin)
     fclose(m_fp);
+}
+
+//////////////////////////// String parser context /////////////////////////////
+void
+StringParserContext::setContents(std::string const &contents, std::string const &name)
+{
+  m_contents = contents;
+  m_ptr = 0;
+
+  ParserContext::setFile(name);
+}
+
+int
+StringParserContext::read()
+{
+  if (m_ptr < m_contents.size())
+    return m_contents[m_ptr++];
+
+  return -1;
+}
+
+StringParserContext::~StringParserContext()
+{
+  
 }

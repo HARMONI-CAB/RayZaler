@@ -17,6 +17,8 @@
 //
 
 #define CATCH_CONFIG_MAIN
+#define THIS_TEST_TAG "[RayTracer]"
+
 #include <catch2/catch_test_macros.hpp>
 #include <CPURayTracingEngine.h>
 #include <Singleton.h>
@@ -30,12 +32,12 @@
 
 using namespace RZ;
 
-TEST_CASE("Raytracer instantiation", "[libRZ]")
+TEST_CASE("Raytracer instantiation", THIS_TEST_TAG)
 {
   CPURayTracingEngine engine;
 }
 
-TEST_CASE("Pushing rays to raytracer", "[libRZ]")
+TEST_CASE("Pushing rays to raytracer", THIS_TEST_TAG)
 {
   CPURayTracingEngine engine;
 
@@ -44,7 +46,7 @@ TEST_CASE("Pushing rays to raytracer", "[libRZ]")
   engine.pushRay(Point3::zero(), Vec3(3, 1, 0));
 }
 
-TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
+TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
 {
   RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThrough");
   WorldFrame world("world");
@@ -93,7 +95,7 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", "[libRZ]")
   }
 }
 
-TEST_CASE("Ensuring that all rays are intercepted in the destination plane", "[libRZ]")
+TEST_CASE("Ensuring that all rays are intercepted in the destination plane", THIS_TEST_TAG)
 {
   RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThrough");
   WorldFrame world("world");

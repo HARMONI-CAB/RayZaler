@@ -102,7 +102,7 @@ PhaseScreen::propertyChanged(
       recalcTexture();
     }
   } else {
-    return false;
+    return Element::propertyChanged(name, value);
   }
 
   return true;
@@ -120,7 +120,7 @@ PhaseScreen::PhaseScreen(
   unsigned int i;
 
   for (i = 0; i < 60; ++i)
-    registerProperty(string_printf("Z%u", i), 0);
+    registerProperty(string_printf("Z%u", i), 0.);
   
   registerProperty("radius",    2.5e-2);
   registerProperty("ni",        1);
