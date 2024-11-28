@@ -30,6 +30,8 @@ namespace RZ {
       GLCappedCylinder m_cylinder;
       FlatMirrorProcessor *m_processor;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
+      TranslatedFrame *m_vertexFrame = nullptr;
+      bool m_vertexRelative = false;
       Real m_thickness = 1e-2;
       Real m_radius = 1e-2;
       Real m_width  = 2e-2;

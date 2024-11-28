@@ -38,7 +38,17 @@ ConicMirror::recalcModel()
     m_rHoleHeight  = (Rc - sqrt(Rc2 - (m_K + 1) * m_rHoleHeight * m_rHoleHeight)) / (m_K + 1);
   }
 
-  Real apertureZ = m_thickness - sigma * m_displacement;
+  Real backPlaneZ, apertureZ;
+
+  if (m_vertexRelative) {
+    // Mirror is centered around vertex
+    apertureZ  = -sigma * m_displacement;
+    backPlaneZ = -m_thickness;
+  } else {
+    // Mirror starts at backplane (default)
+    apertureZ  = m_thickness - sigma * m_displacement;
+    backPlaneZ = 0;
+  }
 
   m_cap.setRadius(m_radius);
   m_cap.setCurvatureRadius(Rc);
@@ -57,17 +67,18 @@ ConicMirror::recalcModel()
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setCaps(&m_cap, &m_rearCap);
 
+  m_reflectiveSurfaceFrame->setDistance(apertureZ * Vec3::eZ());
+  m_aperturePort->setDistance(apertureZ * Vec3::eZ());
+  m_vertexPort->setDistance((m_thickness + backPlaneZ) * Vec3::eZ());
+
   m_processor->setRadius(m_radius);
   m_processor->setCurvatureRadius(Rc);
   m_processor->setConicConstant(m_K);
   m_processor->setConvex(convex);
   m_processor->setCenterOffset(m_x0, m_y0);
 
-  m_reflectiveSurfaceFrame->setDistance(apertureZ * Vec3::eZ());
-  m_reflectiveSurfacePort->setDistance(apertureZ * Vec3::eZ());
-
   m_reflectiveSurfaceFrame->recalculate();
-  m_reflectiveSurfacePort->recalculate();
+  m_aperturePort->recalculate();
 
   m_cap.setHoleRadius(m_rHole);
   m_rearCap.setHoleRadius(m_rHole);
@@ -79,8 +90,8 @@ ConicMirror::recalcModel()
   m_processor->setHoleRadius(m_rHole);
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, fmin(0, -sigma * m_displacement)),
-      Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ + sigma * m_displacement)));
+      Vec3(-m_radius, -m_radius, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
+      Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
 }
 
 bool
@@ -90,6 +101,9 @@ ConicMirror::propertyChanged(
 {
   if (name == "thickness") {
     m_thickness = value;
+    recalcModel();
+  } else if (name == "vertexRelative") {
+    m_vertexRelative = static_cast<bool>(value);
     recalcModel();
   } else if (name == "radius") {
     m_radius = value;
@@ -139,12 +153,15 @@ ConicMirror::ConicMirror(
   registerProperty("hole",           0.);
   registerProperty("x0",             0.);
   registerProperty("y0",             0.);
-  
-  m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
-  m_reflectiveSurfacePort  = new TranslatedFrame("refPort", frame, Vec3::zero());
+  registerProperty("vertexRelative", false);
+
+  m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf",  frame, Vec3::zero());
+  m_aperturePort           = new TranslatedFrame("aperture", frame, Vec3::zero());
+  m_vertexPort             = new TranslatedFrame("vertex",   frame, Vec3::zero());
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
-  addPort("refPort", m_reflectiveSurfacePort);
+  addPort("aperture", m_aperturePort);
+  addPort("vertex",   m_vertexPort);
 
   m_cylinder.setVisibleCaps(false, false);
   m_cap.setInvertNormals(true);
@@ -158,8 +175,11 @@ ConicMirror::~ConicMirror()
   if (m_processor != nullptr)
     delete m_processor;
 
-  if (m_reflectiveSurfacePort != nullptr)
-  delete m_reflectiveSurfacePort;
+  if (m_aperturePort != nullptr)
+    delete m_aperturePort;
+
+  if (m_vertexPort != nullptr)
+    delete m_vertexPort;
 }
 
 void
@@ -179,10 +199,11 @@ ConicMirror::renderOpenGL()
 {
   bool convex = m_rCurv < 0;
   Real sigma = convex ? 1 : -1;
+  Real dz    = m_vertexRelative ? -m_thickness : 0;
 
   glPushMatrix();
   material("mirror");
-  glTranslatef(0, 0, -sigma * m_displacement);
+  glTranslatef(0, 0, dz - sigma * m_displacement);
 
   m_rearCap.display();
   m_cylinder.display();
@@ -193,7 +214,7 @@ ConicMirror::renderOpenGL()
   m_cap.display();
   glPopMatrix();
 
-  glTranslatef(0, 0, -sigma * m_rHoleHeight);
+  glTranslatef(0, 0, dz - sigma * m_rHoleHeight);
   m_hole.display();
 }
 

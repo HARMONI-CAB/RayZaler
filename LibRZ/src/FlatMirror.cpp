@@ -26,19 +26,30 @@ using namespace RZ;
 void
 FlatMirror::recalcModel()
 {
+  Real backPlane, frontPlane;
+
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
   m_processor->setRadius(m_radius);
   m_processor->setEccentricity(m_ecc);
-  m_reflectiveSurfaceFrame->setDistance(m_thickness * Vec3::eZ());
+
+  if (m_vertexRelative) {
+    backPlane  = -m_thickness;
+    frontPlane = 0;
+  } else {
+    backPlane  = 0;
+    frontPlane = m_thickness;
+  }
+
+  m_reflectiveSurfaceFrame->setDistance(frontPlane * Vec3::eZ());
 
   m_a = .5 * m_width  / m_radius;
   m_b = .5 * m_height / m_radius;
 
   setBoundingBox(
-      Vec3(-m_width / 2, -m_height / 2, 0),
-      Vec3(+m_width / 2, +m_height / 2, +m_thickness));
+      Vec3(-m_width / 2, -m_height / 2, backPlane),
+      Vec3(+m_width / 2, +m_height / 2, frontPlane));
 }
 
 bool
@@ -49,8 +60,17 @@ FlatMirror::propertyChanged(
   if (name == "thickness") {
     m_thickness = value;
     recalcModel();
+  } else if (name == "vertexRelative") {
+    m_vertexRelative = static_cast<bool>(value);
+    recalcModel();
   } else if (name == "radius") {
     m_radius = value;
+    m_width  = 2 * m_radius;
+    m_height = 2 * m_radius;
+    m_ecc    = 0;
+    recalcModel();
+    } else if (name == "diameter") {
+    m_radius = 0.5 * std::get<Real>(value);
     m_width  = 2 * m_radius;
     m_height = 2 * m_radius;
     m_ecc    = 0;
@@ -79,15 +99,18 @@ FlatMirror::FlatMirror(
 {
   m_processor = new FlatMirrorProcessor;
 
-  registerProperty("thickness",   1e-2);
-  registerProperty("radius",    2.5e-2);
-  registerProperty("width",       5e-2);
-  registerProperty("height",      5e-2);
+  registerProperty("thickness",       1e-2);
+  registerProperty("radius",        2.5e-2);
+  registerProperty("diameter",        5e-2);
+  registerProperty("width",           5e-2);
+  registerProperty("height",          5e-2);
+  registerProperty("vertexRelative", false);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
-
+  addPort("vertex", m_reflectiveSurfaceFrame);
+  
   m_cylinder.setVisibleCaps(true, true);
   
   recalcModel();
@@ -97,6 +120,9 @@ FlatMirror::~FlatMirror()
 {
   if (m_processor != nullptr)
     delete m_processor;
+
+  if (m_vertexFrame != nullptr)
+    delete m_vertexFrame;
 }
 
 void

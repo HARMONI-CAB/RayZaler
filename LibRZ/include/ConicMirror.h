@@ -31,8 +31,9 @@ namespace RZ {
       GLCappedCylinder m_hole;
       GLConicCap   m_cap, m_rearCap;
       ConicMirrorProcessor *m_processor;
-      TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
-      TranslatedFrame *m_reflectiveSurfacePort = nullptr;
+      TranslatedFrame *m_reflectiveSurfaceFrame  = nullptr;
+      TranslatedFrame *m_aperturePort            = nullptr;
+      TranslatedFrame *m_vertexPort              = nullptr;
       Real m_thickness = 1e-2;
       Real m_radius = 1e-2;
       Real m_K = 0;
@@ -43,6 +44,7 @@ namespace RZ {
       Real m_y0 = 0;
       Real m_rHole = .5;
       Real m_rHoleHeight = 0;
+      bool m_vertexRelative = false;
       
       void recalcModel();
 

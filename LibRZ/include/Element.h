@@ -20,6 +20,7 @@
 #define _ELEMENT_H
 
 #include "ReferenceFrame.h"
+#include "Helpers.h"
 #include <set>
 #include <list>
 #include <map>
@@ -97,6 +98,29 @@ namespace RZ {
       }
   };
 
+  template<>
+  inline PropertyValue::operator bool() const
+  {
+    std::string val;
+
+    switch (type()) {
+      case IntegerValue:
+        return std::get<int64_t>(*this) != 0;
+      
+      case RealValue:
+        return std::get<Real>(*this) < -0.5 
+        || std::get<Real>(*this) > 0.5;
+
+      case BooleanValue:
+        return std::get<bool>(*this);
+      
+      case StringValue:
+        return val == "1" || iequals(val, "yes") || iequals(val, "true");
+    }
+
+    return false;
+  }
+  
   class ElementFactory;
 
   class Element {

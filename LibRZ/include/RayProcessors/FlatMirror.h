@@ -25,8 +25,8 @@ namespace RZ {
   class ReferenceFrame;
 
   class FlatMirrorProcessor : public RayTransferProcessor {
-      Real m_radius = .5;
-      Real m_ecc    = 0;
+      Real m_radius         = .5;
+      Real m_ecc            = 0;
 
     public:
       FlatMirrorProcessor();

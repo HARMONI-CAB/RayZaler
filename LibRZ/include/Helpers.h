@@ -26,12 +26,28 @@
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
+#include <algorithm>
+#include <cctype>
 
 std::string string_vprintf(const char* fmt, va_list ap);
 std::string string_printf(const char* fmt, ...);
 
 std::vector<std::string> operator / (std::string const &, std::string const &);
 std::vector<std::string> operator / (std::string const &, char sep);
+
+static inline bool
+iequals(const std::string &a, const std::string &b)
+{
+    return a.size() == b.size() &&
+          std::equal(
+            a.begin(),
+            a.end(),
+            b.begin(),
+            [](char c_a, char c_b) {
+              return std::tolower(static_cast<unsigned char>(c_a)) ==
+                std::tolower(static_cast<unsigned char>(c_b));
+            });
+}
 
 #if defined(__GNUC__)
 #  pragma GCC push_options

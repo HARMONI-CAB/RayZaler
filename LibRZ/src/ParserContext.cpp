@@ -316,10 +316,15 @@ ParserContext::lex()
   yylval = token();
   m_buf.clear();
 
-  if (stringMode)
+  if (stringMode) {
     return STRING;
-  else
+  } else {
+    if (m_lastToken == "true")
+      m_lastToken = "1";
+    else if (m_lastToken == "false")
+      m_lastToken = "0";
     return tokenType();
+  }
 }
 
 void
@@ -342,7 +347,7 @@ ParserContext::looksLikeNumber(std::string const &string)
 
 int
 ParserContext::tokenType() const
-{
+{  
   if (looksLikeNumber(m_lastToken)) {
     return NUM;
   } else if (m_lastToken[0] == '"') {
