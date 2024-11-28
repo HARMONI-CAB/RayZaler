@@ -81,11 +81,14 @@ ConvexLens::propertyChanged(
   } else if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "diameter") {
+    m_radius = 0.5 * static_cast<Real>(value);
+    recalcModel();
   } else if (name == "curvature") {
     m_rCurv = value;
     m_fromFlen = false;
     recalcModel();
-  } else if (name == "fLen") {
+  } else if (name == "focalLength") {
     m_f = value;
     m_fromFlen = true;
     recalcModel();
@@ -113,9 +116,10 @@ ConvexLens::ConvexLens(
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
+  registerProperty("diameter",    5e-2);
   registerProperty("curvature",     1.);
   registerProperty("n",            1.5);
-  registerProperty("fLen",          1.);
+  registerProperty("focalLength",   1.);
 
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());

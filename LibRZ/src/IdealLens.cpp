@@ -44,7 +44,10 @@ IdealLens::propertyChanged(
   if (name == "radius") {
     m_radius = value;
     recalcModel();
-  } else if (name == "flength") {
+  } else if (name == "diameter") {
+    m_radius = 0.5 * static_cast<Real>(value);
+    recalcModel();
+  } else if (name == "focalLength") {
     m_fLen = value;
     recalcModel();
   } else {
@@ -63,13 +66,14 @@ IdealLens::IdealLens(
   m_processor  = new IdealLensProcessor;
 
   registerProperty("radius",    2.5e-2);
-  registerProperty("flength",      1.);
+  registerProperty("diameter",    5e-2);
+  registerProperty("focalLength",   1.);
   
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
 
   pushOpticalSurface("inputFace",  m_inputFrame,  m_processor);
 
-  addPort("inputPort", m_inputFrame);
+  addPort("aperture", m_inputFrame);
   
   m_cylinder.setVisibleCaps(true, true);
   

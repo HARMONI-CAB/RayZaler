@@ -49,6 +49,10 @@ ApertureStop::propertyChanged(
     m_radius = value;
     recalcModel();
     return true;
+  } else if (name == "diameter") {
+    m_radius = static_cast<Real>(value);
+    recalcModel();
+    return true;
   } else if (name == "width") {
     m_width = value;
     recalcModel();
@@ -72,6 +76,7 @@ ApertureStop::ApertureStop(
   m_processor = new ApertureStopProcessor;
 
   registerProperty("radius",    2.5e-2);
+  registerProperty("diameter",  5e-2);
   registerProperty("width",     7.5e-2);
   registerProperty("height",    7.5e-2);
 

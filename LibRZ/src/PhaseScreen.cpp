@@ -89,6 +89,9 @@ PhaseScreen::propertyChanged(
   if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "diameter") {
+    m_radius = 0.5 * static_cast<Real>(value);
+    recalcModel();
   } else if (name == "ni") {
     m_muIn = value;
     recalcModel();
@@ -123,11 +126,14 @@ PhaseScreen::PhaseScreen(
     registerProperty(string_printf("Z%u", i), 0.);
   
   registerProperty("radius",    2.5e-2);
-  registerProperty("ni",        1);
-  registerProperty("no",        1.5);
-  m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
+  registerProperty("diameter",    5e-2);
+  registerProperty("ni",            1.);
+  registerProperty("no",           1.5);
 
-  pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
+  m_tSurface = new TranslatedFrame("interface", frame, Vec3::zero());
+
+  pushOpticalSurface("interface", m_tSurface, m_processor);
+  addPort("aperture", m_tSurface);
 
   m_textureData.resize(3 * 256 * 256);
 

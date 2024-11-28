@@ -40,6 +40,9 @@ Obstruction::propertyChanged(
   if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "diameter") {
+    m_radius = 0.5 * static_cast<Real>(value);
+    recalcModel();
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -57,6 +60,7 @@ Obstruction::Obstruction(
   m_processor = new ObstructionProcessor;
 
   registerProperty("radius",    2.5e-2);
+  registerProperty("diameter",  5e-2);
 
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 

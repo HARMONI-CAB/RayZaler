@@ -95,7 +95,8 @@ RectangularStop::RectangularStop(
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
-
+  addPort("aperture", m_stopSurface);
+  
   recalcModel();
 }
 

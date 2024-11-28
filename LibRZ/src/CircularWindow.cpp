@@ -55,6 +55,9 @@ CircularWindow::propertyChanged(
   } else if (name == "radius") {
     m_radius = value;
     recalcModel();
+  } else if (name == "diameter") {
+    m_radius = 0.5 * static_cast<Real>(value);
+    recalcModel();
   } else if (name == "n") {
     m_mu = value;
     recalcModel();
@@ -76,6 +79,7 @@ CircularWindow::CircularWindow(
 
   registerProperty("thickness",   1e-2);
   registerProperty("radius",    2.5e-2);
+  registerProperty("diameter",    5e-2);
   registerProperty("n",            1.5);
   
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());

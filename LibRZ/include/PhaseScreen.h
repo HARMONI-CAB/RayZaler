@@ -32,7 +32,7 @@ namespace RZ {
       GLDisc    m_skyDiscFront;
       GLDisc    m_skyDiscBack;
 
-      TranslatedFrame *m_stopSurface = nullptr;
+      TranslatedFrame *m_tSurface = nullptr;
       Real m_muIn    = 1;
       Real m_muOut   = 1.5;
       Real m_radius  = 2.5e-2;

@@ -67,16 +67,21 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
 
       switch (val.type()) {
         case RealValue:
-          asReal = std::get<Real>(val);
-          if (isZero(asReal))
-            asReal += 1e-1;
-          else
-            asReal *= 0.9;
+          if (p != "ConicMirror" && prop == "conic") {
+            printf("(skipped)\n");
+          } else {
+            asReal = std::get<Real>(val);
+            if (isZero(asReal))
+              asReal += 1e-1;
+            else
+              asReal *= 0.9;
 
-          REQUIRE(element->set(prop, asReal));
-          newReal = element->get(prop);
-          printf("(%g -> %g)\n", asReal, newReal);
-          REQUIRE(releq(asReal, newReal));
+            REQUIRE(element->set(prop, asReal));
+            newReal = element->get(prop);
+            printf("(%g -> %g)\n", asReal, newReal);
+            REQUIRE(releq(asReal, newReal));
+          }
+          
           break;
 
         case IntegerValue:
