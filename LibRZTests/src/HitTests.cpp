@@ -24,6 +24,18 @@
 
 using namespace RZ;
 
+static const char *g_parabolicReflectorCode = 
+  "dof focalLength = 1;"
+  "dof D           = 1;"
+
+  "ParabolicMirror M1("
+  "  focalLength = focalLength,"
+  "  diameter    = D,"
+  "  thickness   = 1e-2);"
+
+  "on vertex of M1 translate(dz = focalLength) rotate(180, 1, 0, 0) Detector det;"
+  "path M1 to det;";
+
 struct SpotStatistics {
   Real maxRad = 0.0;
   Real rmsRad = 0.0;
@@ -81,19 +93,7 @@ SpotStatistics::computeFromSurface(
 
 TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
 {
-  std::string modelSource = 
-    "dof focalLength = 1;"
-    "dof D           = 1;"
-
-    "ParabolicMirror M1("
-    "  focalLength = focalLength,"
-    "  diameter    = D,"
-    "  thickness   = 1e-2);"
-
-    "on vertex of M1 translate(dz = focalLength) rotate(180, 1, 0, 0) Detector det;"
-    "path M1 to det;";
-
-  auto model = TopLevelModel::fromString(modelSource);
+  auto model = TopLevelModel::fromString(g_parabolicReflectorCode);
   REQUIRE(model);
 
   model->setDof("focalLength", 1);
@@ -117,21 +117,18 @@ TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
   std::list<Ray> rays;
   BeamProperties beamProp;
 
-  beamProp.id        = 0;
-  beamProp.length    = 1;
-  beamProp.diameter  = 1;
-  beamProp.offset    = Vec3::zero();
-  beamProp.direction = -Vec3::eZ();
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = 1;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
   beamProp.angularDiameter = 0;
-  beamProp.numRays   = 1000;
-  beamProp.shape     = Circular;
-  beamProp.objectShape = PointLike;
-  beamProp.random    = true;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Circular;
+  beamProp.objectShape     = PointLike;
+  beamProp.random          = true;
   beamProp.setElementRelative(m1);
-
   beamProp.collimate();
-
-  beamProp.debug();
 
   OMModel::addBeam(rays, beamProp);
 
@@ -141,18 +138,89 @@ TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
   SpotStatistics statistics;
   statistics.computeFromSurface(fp);
 
-  auto it = fp->statistics.find(beamProp.id);
-  REQUIRE(it != fp->statistics.end());
-  
-  printf("Vignetted: %d\n", it->second.pruned);
-  printf("Transmitted: %d\n", it->second.intercepted);
-  printf("Max radius: %g\n", statistics.maxRad);
-  printf("fNum: %g\n", statistics.fNum);
-  printf("Center: %g, %g\n", statistics.x0, statistics.y0);
-  
+  // Okay, things we need: that all rays have passed and that all of them
+  // are perfectly focused
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
+
+  delete model;
+}
+
+TEST_CASE("Simulate f/#", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_parabolicReflectorCode);
+  REQUIRE(model);
+
+  auto m1 = model->lookupOpticalElement("M1");
+  REQUIRE(m1);
+
+  auto vertex = m1->getPortFrame("vertex");
+  REQUIRE(vertex);
+
+  auto aperture = m1->getPortFrame("aperture");
+  REQUIRE(aperture);
+
+  auto detector = model->lookupOpticalElement("det");
+  REQUIRE(detector);
+
+  auto surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  // Record hits!
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 1;
+  Real diameter = 1;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = diameter;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 100;
+  beamProp.shape           = Ring;
+  beamProp.objectShape     = PointLike;
+  beamProp.random          = false;
+  beamProp.setPlaneRelative(model->world());
+  beamProp.collimate();
+
+  OMModel::addBeam(rays, beamProp);
+
+  model->setDof("focalLength", focalLength);
+
+  model->setDof("D", diameter);
+  Vec3 apertureLocation = aperture->getCenter();
+
+  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
   
+  REQUIRE(model->traceDefault(rays));
+
+  // Do statistics
+  SpotStatistics statistics;
+  statistics.computeFromSurface(fp);
+
+  // Now, in theory, the f/# should be f/D = 1/1 = 1. However, we are going to
+  // get a smaller number. Why? Because the focal length is measured
+  // from the aperture, but in a paraboloid the focal length refers to a 
+  // distance from the vertex. We need to account for this difference by
+  // taking into account the relative distance between vertex and aperture.
+
+  Real dishDepth    = (apertureLocation - vertex->getCenter()).norm();  
+  Real desiredFNum  = focalLength / diameter;
+  Real expectedFNum = (focalLength - dishDepth) / diameter;
   
+  printf("Desired  f/#: %g\n", desiredFNum);
+  printf("Expected f/#: %g\n", expectedFNum);
+  printf("Obtained f/#: %g\n", statistics.fNum);
+
+  REQUIRE(expectedFNum == statistics.fNum);
+
+  delete model;
 }

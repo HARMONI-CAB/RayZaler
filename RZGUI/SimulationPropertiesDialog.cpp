@@ -709,7 +709,7 @@ SimulationPropertiesDialog::suggestBeamName(QString name) const
   QString originalName;
   unsigned num = 0;
 
-  if (name.isEmpty()) {
+  if (name.trimmed().isEmpty()) {
     if (m_properties.beams.empty()) {
       originalName = "New beam";
     } else {
@@ -720,7 +720,7 @@ SimulationPropertiesDialog::suggestBeamName(QString name) const
     originalName = name;
   }
 
-  suggestedName = name;
+  suggestedName = originalName;
 
   // If the name contains a parenthesis at the end, try to extract a number
   // from there
