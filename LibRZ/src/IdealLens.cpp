@@ -31,6 +31,12 @@ IdealLens::recalcModel()
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_fLen);
 
+  m_inputFocalPlane->setDistance(-m_fLen * Vec3::eZ());
+  m_outputFocalPlane->setDistance(+m_fLen * Vec3::eZ());
+  
+  m_objectPlane->setDistance(-2 * m_fLen * Vec3::eZ());
+  m_imagePlane->setDistance(+2 * m_fLen * Vec3::eZ());
+
   setBoundingBox(
       Vec3(-m_radius, -m_radius, 0),
       Vec3(+m_radius, +m_radius, 0));
@@ -75,6 +81,17 @@ IdealLens::IdealLens(
 
   addPort("aperture", m_inputFrame);
   
+  m_inputFocalPlane  = new TranslatedFrame("inputFocalPlane", frame, Vec3::zero());
+  m_outputFocalPlane = new TranslatedFrame("outputFocalPlane", frame, Vec3::zero());
+
+  m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
+  m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
+
+  addPort("inputFocalPlane",  m_inputFocalPlane);
+  addPort("outputFocalPlane", m_outputFocalPlane);
+  addPort("objectPlane",      m_objectPlane);
+  addPort("imagePlane",       m_imagePlane);
+
   m_cylinder.setVisibleCaps(true, true);
   
   refreshProperties();
@@ -84,6 +101,18 @@ IdealLens::~IdealLens()
 {
   if (m_processor != nullptr)
     delete m_processor;
+
+  if (m_inputFocalPlane != nullptr)
+    delete m_inputFocalPlane;
+  
+  if (m_outputFocalPlane != nullptr)
+    delete m_outputFocalPlane;
+  
+  if (m_objectPlane != nullptr)
+    delete m_objectPlane;
+  
+  if (m_imagePlane != nullptr)
+    delete m_imagePlane;
 }
 
 void

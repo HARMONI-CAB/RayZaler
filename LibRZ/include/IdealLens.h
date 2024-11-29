@@ -31,6 +31,12 @@ namespace RZ {
       GLCappedCylinder    m_cylinder;
       IdealLensProcessor *m_processor  = nullptr;
       TranslatedFrame    *m_inputFrame = nullptr;
+      
+      TranslatedFrame    *m_inputFocalPlane  = nullptr;
+      TranslatedFrame    *m_outputFocalPlane = nullptr;
+
+      TranslatedFrame    *m_objectPlane      = nullptr;
+      TranslatedFrame    *m_imagePlane       = nullptr;
 
       Real m_fLen      = 1.;
       Real m_radius    = 1e-2;
