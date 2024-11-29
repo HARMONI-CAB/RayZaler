@@ -75,18 +75,17 @@ set(LIBRZ_SOURCES
   
   ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/CircularWindow.cpp
+  ${LIBRZ_SRCDIR}/RayProcessors/ConicLens.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/ConicMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/IdealLens.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/InfiniteMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/LensletArray.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/Obstruction.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/PassThrough.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/RectangularStop.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SphericalLens.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
 
   ${LIBRZ_SRCDIR}/Surfaces/Array.cpp
@@ -164,18 +163,17 @@ set(LIBRZ_HEADERS
 
   ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/CircularWindow.h
+  ${LIBRZ_INCLUDEDIR}/RayProcessors/ConicLens.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/ConicMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/IdealLens.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/InfiniteMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/Obstruction.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/ParabolicMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/PassThrough.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/RectangularStop.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalLens.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
   
   ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
