@@ -25,6 +25,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
+  ${LIBRZ_SRCDIR}/ConicLens.cpp
   ${LIBRZ_SRCDIR}/ConicMirror.cpp
   ${LIBRZ_SRCDIR}/ConvexLens.cpp
   ${LIBRZ_SRCDIR}/SphericalMirror.cpp
@@ -111,6 +112,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
+  ${LIBRZ_INCLUDEDIR}/ConicLens.h
   ${LIBRZ_INCLUDEDIR}/ConicMirror.h
   ${LIBRZ_INCLUDEDIR}/ConvexLens.h
   ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
