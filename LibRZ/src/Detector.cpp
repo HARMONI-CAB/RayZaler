@@ -300,7 +300,7 @@ Detector::Detector(
 
   m_storage         = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
   m_processor       = new DetectorProcessor(m_storage);
-  m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), M_PI);
+  m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), 0);
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_processor);
 

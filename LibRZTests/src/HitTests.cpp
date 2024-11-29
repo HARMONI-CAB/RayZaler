@@ -33,8 +33,43 @@ static const char *g_parabolicReflectorCode =
   "  diameter    = D,"
   "  thickness   = 1e-2);"
 
-  "on vertex of M1 translate(dz = focalLength) rotate(180, 1, 0, 0) Detector det;"
+  "on vertex of M1 translate(dz = focalLength) Detector det;"
   "path M1 to det;";
+
+static const char *g_focusLens = 
+  "dof K(-4, 4) = -1;"
+  "dof focalLength(.1, .3) = .2;"
+  "dof D = 5e-2;"
+
+  "ConicLens L1("
+  "  thickness   = 2e-3,"
+  "  conic       = K,"
+  "  focalLength = focalLength,"
+  "  diameter    = D);"
+
+  "on backFocalPlane of L1 Detector bfpDet;"
+  "on imagePlane of L1 Detector imgDet;"
+  "on objectPlane of L1 port object;"
+
+  "path bfp L1 to bfpDet;"
+  "path img L1 to imgDet;";
+
+static const char *g_idealFocusLens = 
+  "dof focalLength(.1, .3) = .2;"
+  "dof D = 5e-2;"
+
+  "IdealLens L1("
+  "  thickness   = 2e-3,"
+  "  focalLength = focalLength,"
+  "  diameter    = D);"
+
+  "on backFocalPlane of L1 Detector bfpDet;"
+  "on imagePlane of L1 Detector imgDet;"
+  "on objectPlane of L1 port object;"
+
+  "path bfp L1 to bfpDet;"
+  "path img L1 to imgDet;";
+
 
 struct SpotStatistics {
   Real maxRad = 0.0;
@@ -91,7 +126,7 @@ SpotStatistics::computeFromSurface(
   maxRad = sqrt(maxRad);
 }
 
-TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
+TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(g_parabolicReflectorCode);
   REQUIRE(model);
@@ -131,7 +166,8 @@ TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
   beamProp.collimate();
 
   OMModel::addBeam(rays, beamProp);
-
+  REQUIRE(rays.size() == beamProp.numRays);
+  
   REQUIRE(model->traceDefault(rays));
 
   // Do statistics
@@ -147,7 +183,7 @@ TEST_CASE("Simulate parabolic reflectors", THIS_TEST_TAG)
   delete model;
 }
 
-TEST_CASE("Simulate f/#", THIS_TEST_TAG)
+TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(g_parabolicReflectorCode);
   REQUIRE(model);
@@ -192,7 +228,8 @@ TEST_CASE("Simulate f/#", THIS_TEST_TAG)
   beamProp.collimate();
 
   OMModel::addBeam(rays, beamProp);
-
+  REQUIRE(rays.size() == beamProp.numRays);
+  
   model->setDof("focalLength", focalLength);
 
   model->setDof("D", diameter);
@@ -221,6 +258,157 @@ TEST_CASE("Simulate f/#", THIS_TEST_TAG)
   printf("Obtained f/#: %g\n", statistics.fNum);
 
   REQUIRE(expectedFNum == statistics.fNum);
+
+  delete model;
+}
+
+TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_idealFocusLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto iSurf = surfaces.front();
+  REQUIRE(iSurf != nullptr);
+
+  auto detector = model->lookupOpticalElement("bfpDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  // Record hits!
+  L1->setRecordHits(true);
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real diameter    = 0.05;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = diameter;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 100;
+  beamProp.shape           = Ring;
+  beamProp.objectShape     = PointLike;
+  beamProp.random          = false;
+  beamProp.setElementRelative(L1);
+  beamProp.collimate();
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == beamProp.numRays);
+
+  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
+  model->setDof("focalLength", focalLength);
+
+  REQUIRE(model->trace("bfp", rays));
+  REQUIRE(iSurf->hits.size() == rays.size());
+
+  REQUIRE(fp->hits.size() == rays.size());
+
+  Real idealFNum = focalLength / diameter;
+
+  // Do statistics
+  SpotStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
+  printf("MaxRadius: %g\n", statistics.maxRad);
+
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(isZero(statistics.maxRad));
+  REQUIRE(releq(fabs(statistics.fNum), idealFNum));
+
+  REQUIRE(statistics.maxRad < 5e-4); // Make room for aberrations
+
+  delete model;
+}
+
+TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_focusLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 2);
+
+  auto iSurf = surfaces.front();
+  REQUIRE(iSurf != nullptr);
+
+  auto oSurf = surfaces.back();
+  REQUIRE(oSurf != nullptr);
+
+  auto detector = model->lookupOpticalElement("bfpDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  // Record hits!
+  L1->setRecordHits(true);
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real diameter    = 0.05;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = diameter;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 100;
+  beamProp.shape           = Ring;
+  beamProp.objectShape     = PointLike;
+  beamProp.random          = false;
+  beamProp.setElementRelative(L1);
+  beamProp.collimate();
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == beamProp.numRays);
+
+  model->setDof("K", -1);
+  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
+  model->setDof("focalLength", focalLength);
+
+  REQUIRE(model->trace("bfp", rays));
+  REQUIRE(iSurf->hits.size() == rays.size());
+  REQUIRE(oSurf->hits.size() == rays.size());
+
+  REQUIRE(fp->hits.size() == rays.size());
+
+  Real idealFNum = focalLength / diameter;
+
+  // Do statistics
+  SpotStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
+
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(statistics.maxRad < 5e-4); // Make room for aberrations
 
   delete model;
 }

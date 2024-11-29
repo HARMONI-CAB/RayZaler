@@ -135,6 +135,9 @@ ConicSurface::recalcGLConic()
   auto K1 = m_K + 1;
   auto invK1 = 1 / K1;
 
+  m_edges[0].clear();
+  m_edges[1].clear();
+
   for (unsigned i = 0; i < GENERIC_APERTURE_NUM_SEGMENTS; ++i) {
     x = m_radius * cos(theta) + m_x0;
     y = m_radius * sin(theta) + m_y0;
@@ -145,7 +148,11 @@ ConicSurface::recalcGLConic()
     m_vertices.push_back(x);
     m_vertices.push_back(y);
     m_vertices.push_back(z);
-    
+
+    m_edges[0].push_back(x);
+    m_edges[0].push_back(y);
+    m_edges[0].push_back(z);
+
     if (m_rHole > 0) {
       x = m_rHole * cos(theta) + m_x0;
       y = m_rHole * sin(theta) + m_y0;
@@ -156,6 +163,10 @@ ConicSurface::recalcGLConic()
       m_holeVertices.push_back(x);
       m_holeVertices.push_back(y);
       m_holeVertices.push_back(z);
+
+      m_edges[1].push_back(x);
+      m_edges[1].push_back(y);
+      m_edges[1].push_back(z);
     }
 
     theta += dTheta;

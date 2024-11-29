@@ -31,12 +31,18 @@ IdealLens::recalcModel()
   m_processor->setRadius(m_radius);
   m_processor->setFocalLength(m_fLen);
 
-  m_frontFocalPlane->setDistance(-m_fLen * Vec3::eZ());
-  m_backFocalPlane->setDistance(+m_fLen * Vec3::eZ());
-  
-  m_objectPlane->setDistance(-2 * m_fLen * Vec3::eZ());
-  m_imagePlane->setDistance(+2 * m_fLen * Vec3::eZ());
+  m_frontFocalPlane->setDistance(+m_fLen * Vec3::eZ());
+  m_frontFocalPlane->recalculate();
 
+  m_backFocalPlane->setDistance(-m_fLen * Vec3::eZ());
+  m_backFocalPlane->recalculate();
+
+  m_objectPlane->setDistance(+2 * m_fLen * Vec3::eZ());
+  m_objectPlane->recalculate();
+
+  m_imagePlane->setDistance(-2 * m_fLen * Vec3::eZ());
+  m_imagePlane->recalculate();
+  
   setBoundingBox(
       Vec3(-m_radius, -m_radius, 0),
       Vec3(+m_radius, +m_radius, 0));
@@ -87,8 +93,8 @@ IdealLens::IdealLens(
   m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
   m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
 
-  addPort("inputFocalPlane",  m_frontFocalPlane);
-  addPort("outputFocalPlane", m_backFocalPlane);
+  addPort("frontFocalPlane",  m_frontFocalPlane);
+  addPort("backFocalPlane",   m_backFocalPlane);
   addPort("objectPlane",      m_objectPlane);
   addPort("imagePlane",       m_imagePlane);
 

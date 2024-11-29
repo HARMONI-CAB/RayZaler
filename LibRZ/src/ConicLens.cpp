@@ -42,13 +42,18 @@ ConicLens::recalcModel()
     m_displacement = (Rc - sqrt(Rc2 - (m_K + 1) * R2)) / (m_K + 1);
   
   // Input focal plane: located at -f minus half the thickness
-  m_frontFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength)* Vec3::eZ());
+  m_frontFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength)* Vec3::eZ());
+  m_frontFocalPlane->recalculate();
 
   // Output focal plane: opposite side
-  m_backFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength) * Vec3::eZ());
-  
-  m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
-  m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
+  m_backFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength) * Vec3::eZ());
+  m_backFocalPlane->recalculate();
+
+  m_objectPlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
+  m_objectPlane->recalculate();
+
+  m_imagePlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
+  m_imagePlane->recalculate();
 
   m_topCap.setRadius(m_radius);
   m_topCap.setCurvatureRadius(Rc);
@@ -71,17 +76,20 @@ ConicLens::recalcModel()
   m_inputProcessor->setCurvatureRadius(Rc);
   m_inputProcessor->setRefractiveIndex(1, m_mu);
   m_inputProcessor->setConicConstant(m_K);
-  m_inputProcessor->setConvex(!convex);
+  m_inputProcessor->setConvex(convex);
 
   m_outputProcessor->setRadius(m_radius);
   m_outputProcessor->setCurvatureRadius(Rc);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
   m_outputProcessor->setConicConstant(m_K);
-  m_outputProcessor->setConvex(convex);
+  m_outputProcessor->setConvex(!convex);
   
   // Intercept surfaces
-  m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
-  m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_inputFrame->recalculate();
+
+  m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
+  m_outputFrame->recalculate();
 
   setBoundingBox(
       Vec3(-m_radius, -m_radius, -m_thickness / 2),
@@ -167,6 +175,9 @@ ConicLens::ConicLens(
   m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
   m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
 
+  addPort("inputAperture",    m_inputFrame);
+  addPort("outputAperture",   m_outputFrame);
+  
   addPort("frontFocalPlane",  m_frontFocalPlane);
   addPort("backFocalPlane",   m_backFocalPlane);
   addPort("objectPlane",      m_objectPlane);
