@@ -241,6 +241,7 @@ Detector::recalcModel()
   m_width  = m_pxWidth  * m_cols;
   m_height = m_pxHeight * m_rows;
 
+  m_detectorSurface->setAngle(m_flip ? 0 : M_PI);
   m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
   m_processor->surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
   m_processor->surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
@@ -257,6 +258,9 @@ Detector::propertyChanged(
 {
   if (name == "pixelWidth") {
     m_pxWidth = value;
+    recalcModel();
+  } else if (name == "flip") {
+    m_flip = value;
     recalcModel();
   } else if (name == "pixelHeight") {
     m_pxHeight = value;
@@ -290,12 +294,13 @@ Detector::Detector(
 {
   registerProperty("pixelWidth",  m_pxWidth);
   registerProperty("pixelHeight", m_pxHeight);
-  registerProperty("cols",  m_cols);
-  registerProperty("rows",  m_rows);
+  registerProperty("cols",        m_cols);
+  registerProperty("rows",        m_rows);
+  registerProperty("flip",        m_flip);
 
-  m_storage = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
-  m_processor = new DetectorProcessor(m_storage);
-  m_detectorSurface = new TranslatedFrame("detSurf", frame, Vec3::zero());
+  m_storage         = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
+  m_processor       = new DetectorProcessor(m_storage);
+  m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), M_PI);
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_processor);
 
@@ -424,6 +429,11 @@ Detector::renderOpenGL()
 {
   const GLfloat thickness = RZ_DETECTOR_THICKNESS;
 
+  glPushMatrix();
+  
+  if (!m_flip)
+    glRotatef(180, 1, 0, 0);
+
   glTranslatef(0, 0, -thickness / 2);
   
   glPushMatrix();
@@ -437,6 +447,7 @@ Detector::renderOpenGL()
   material("substrate");
   glScalef(m_width + 1e-3, m_height + 1e-3, thickness);
   GLCube(1);
+  glPopMatrix();
   glPopMatrix();
 }
 

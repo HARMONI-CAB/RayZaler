@@ -25,6 +25,7 @@
 
 namespace RZ {
   class ReferenceFrame;
+  class RotatedFrame;
   class RayTransferProcessor;
 
   class DetectorStorage {
@@ -44,7 +45,7 @@ namespace RZ {
       unsigned int m_stride;
 
       void recalculate();
-
+      
     public:
       inline bool
       hit(Real x, Real y, Complex amplitude)
@@ -114,8 +115,8 @@ namespace RZ {
   };
 
   class Detector : public OpticalElement {
-    ReferenceFrame *m_detectorSurface = nullptr;
-    DetectorStorage *m_storage = nullptr; // Owned
+    RotatedFrame         *m_detectorSurface = nullptr;
+    DetectorStorage      *m_storage = nullptr; // Owned
     RayTransferProcessor *m_processor = nullptr;
     
     Real m_pxWidth  = 15e-6;
@@ -124,6 +125,7 @@ namespace RZ {
     Real m_width;
     Real m_height;
 
+    bool m_flip         = false;
     unsigned int m_rows = 512;
     unsigned int m_cols = 512;
 

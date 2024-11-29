@@ -42,10 +42,10 @@ ConicLens::recalcModel()
     m_displacement = (Rc - sqrt(Rc2 - (m_K + 1) * R2)) / (m_K + 1);
   
   // Input focal plane: located at -f minus half the thickness
-  m_inputFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength)* Vec3::eZ());
+  m_frontFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength)* Vec3::eZ());
 
   // Output focal plane: opposite side
-  m_outputFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength) * Vec3::eZ());
+  m_backFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength) * Vec3::eZ());
   
   m_objectPlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
   m_imagePlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
@@ -154,21 +154,21 @@ ConicLens::ConicLens(
   registerProperty("y0",             0.);
   registerProperty("n",            1.5);
 
-  m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
-  m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
+  m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
+  m_outputFrame = new TranslatedFrame("outputFrame", frame, Vec3::zero());
 
-  pushOpticalSurface("inputFace",  m_inputFrame,  m_inputProcessor);
-  pushOpticalSurface("outputFace", m_outputFrame, m_outputProcessor);
+  pushOpticalSurface("inputSurface",  m_inputFrame,  m_inputProcessor);
+  pushOpticalSurface("outputSurface", m_outputFrame, m_outputProcessor);
 
   // Create helper planes. These are exposed as ports
-  m_inputFocalPlane  = new TranslatedFrame("inputFocalPlane", frame, Vec3::zero());
-  m_outputFocalPlane = new TranslatedFrame("outputFocalPlane", frame, Vec3::zero());
+  m_frontFocalPlane  = new TranslatedFrame("frontFocalPlane", frame, Vec3::zero());
+  m_backFocalPlane   = new TranslatedFrame("backFocalPlane", frame, Vec3::zero());
 
   m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
   m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
 
-  addPort("inputFocalPlane",  m_inputFocalPlane);
-  addPort("outputFocalPlane", m_outputFocalPlane);
+  addPort("frontFocalPlane",  m_frontFocalPlane);
+  addPort("backFocalPlane",   m_backFocalPlane);
   addPort("objectPlane",      m_objectPlane);
   addPort("imagePlane",       m_imagePlane);
 
@@ -186,11 +186,11 @@ ConicLens::~ConicLens()
   if (m_outputProcessor != nullptr)
     delete m_outputProcessor;
 
-  if (m_inputFocalPlane != nullptr)
-    delete m_inputFocalPlane;
+  if (m_frontFocalPlane != nullptr)
+    delete m_frontFocalPlane;
   
-  if (m_outputFocalPlane != nullptr)
-    delete m_outputFocalPlane;
+  if (m_backFocalPlane != nullptr)
+    delete m_backFocalPlane;
   
   if (m_objectPlane != nullptr)
     delete m_objectPlane;
