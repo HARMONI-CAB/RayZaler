@@ -656,8 +656,12 @@ MainWindow::doReload()
 
     auto current = m_currSession;
     auto &sessUI = m_sessionToUi[current];
+    
+    if (ui->dofStack->count() > 1)
+      ui->dofStack->removeWidget(ui->dofStack->widget(1));
+    
     finalizeDOFWidget(sessUI);
-
+    
     m_currSession = nullptr;
     refreshCurrentSession();
 
@@ -666,6 +670,9 @@ MainWindow::doReload()
     // Add the up-to-date DOF widget.
     initDOFWidget(sessUI, current);
     
+    ui->dofStack->insertWidget(1, m_sessionToUi[m_currSession].dofWidget);
+    ui->dofStack->setCurrentIndex(1);
+
     m_currSession = current;
     refreshCurrentSession();
   }

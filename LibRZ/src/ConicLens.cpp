@@ -92,8 +92,14 @@ ConicLens::recalcModel()
   m_outputFrame->recalculate();
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, -m_thickness / 2),
-      Vec3(+m_radius, +m_radius, +m_thickness / 2));
+      Vec3(
+        -m_radius,
+        -m_radius,
+        fmin(-m_displacement - m_thickness / 2, -m_thickness / 2)),
+      Vec3(
+        +m_radius,
+        +m_radius,
+        fmax(+m_displacement + m_thickness / 2, +m_thickness / 2)));
 }
 
 bool

@@ -365,6 +365,9 @@ SessionTabWidget::glWidget() const
 void
 SessionTabWidget::updateModel()
 {
+  if (m_selectedElement != nullptr)
+    m_selectedElement->calcBoundingBoxOpenGL();
+
   updateFootprintWindows();
   m_glWidget->update();
 }
@@ -594,9 +597,6 @@ SessionTabWidget::reloadModelFromEditor()
 void
 SessionTabWidget::onModelChanged()
 {
-  if (m_selectedElement != nullptr)
-    m_selectedElement->renderBoundingBoxOpenGL();
-
   updateDetectorWindow();
   updateModel();
 }
