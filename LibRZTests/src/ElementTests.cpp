@@ -60,17 +60,19 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
       printf("  - %10s [type = %d] ", prop.c_str(), val.type());
       REQUIRE(val.type() != UndefinedValue);
 
-      Real asReal, newReal;
-      std::string asString, newString;
-      int64_t asInteger, newInteger;
-      bool asBool, newBool;
+      Real prevReal, asReal, newReal;
+      std::string prevString, asString, newString;
+      int64_t prevInteger, asInteger, newInteger;
+      bool prevBool, asBool, newBool;
 
-      switch (val.type()) {
+      if (element->propertyIsHidden(prop)) {
+        printf("(hidden)\n");
+      } else switch (val.type()) {
         case RealValue:
           if (p != "ConicMirror" && prop == "conic") {
             printf("(skipped)\n");
           } else {
-            asReal = std::get<Real>(val);
+            asReal = prevReal = std::get<Real>(val);
             if (isZero(asReal))
               asReal += 1e-1;
             else
@@ -80,48 +82,43 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
             newReal = element->get(prop);
             printf("(%g -> %g)\n", asReal, newReal);
             REQUIRE(releq(asReal, newReal));
+            REQUIRE(element->set(prop, prevReal));
           }
           
           break;
 
         case IntegerValue:
-          asInteger = std::get<int64_t>(val);
+          asInteger = prevInteger = std::get<int64_t>(val);
           ++asInteger;
           REQUIRE(element->set(prop, asInteger));
           newInteger = element->get(prop);
           printf("%d -> %d\n", asInteger, newInteger);
           REQUIRE(asInteger == newInteger);
+          REQUIRE(element->set(prop, prevInteger));
           break;
 
         case BooleanValue:
           // The optical property is read-only and should not be changed
-          asBool = std::get<bool>(val);
-          if (prop == "optical")
-            REQUIRE(asBool);
-          
+          asBool = prevBool = std::get<bool>(val);
           asBool = !asBool;
 
-          if (prop == "optical")
-            REQUIRE(!element->set(prop, asBool));
-          else
-            REQUIRE(element->set(prop, asBool));
+          REQUIRE(element->set(prop, asBool));
 
           newBool = std::get<bool>(element->get(prop));
           printf("%d -> %d\n", asBool, newBool);
 
-          if (prop == "optical")
-            REQUIRE(newBool);
-          else
-            REQUIRE(newBool == asBool);
+          REQUIRE(newBool == asBool);
+          REQUIRE(element->set(prop, prevBool));
           break;
 
         case StringValue:
-          asString = std::get<std::string>(val);
+          asString = prevString = std::get<std::string>(val);
           asString += "-suffix";
           REQUIRE(element->set(prop, asString));
           newString = std::get<std::string>(element->get(prop));
           printf("(\"%s\" -> \"%s\")\n", asString.c_str(), newString.c_str());
           REQUIRE(newString == asString);
+          REQUIRE(element->set(prop, prevString));
           break;
       }
     }

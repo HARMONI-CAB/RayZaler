@@ -71,23 +71,26 @@ static const char *g_idealFocusLens =
   "path img L1 to imgDet;";
 
 
-struct SpotStatistics {
+struct BeamTestStatistics {
   Real maxRad = 0.0;
   Real rmsRad = 0.0;
   
   Real x0     = 0.0;
   Real y0     = 0.0;
 
-  Real fNum   = 0;
+  Real fNum   = std::numeric_limits<Real>::infinity();
 
   void computeFromSurface(
     OpticalSurface const *fp,
     Vec3 const &chiefRay = -Vec3::eZ());
+
+  void computeFromRayList(
+    std::list<Ray> const &rays,
+    Vec3 const &chiefRay = -Vec3::eZ());
 };
 
-
 void
-SpotStatistics::computeFromSurface(
+BeamTestStatistics::computeFromSurface(
   OpticalSurface const *fp,
   Vec3 const &chiefRay)
 {
@@ -104,21 +107,61 @@ SpotStatistics::computeFromSurface(
   x0 = center.x / N;
   y0 = center.y / N;
 
-  Real corr, c, t;
+  Real corr = 0, c = 0, t;
+  Real currFnum;
 
   for (size_t i = 3; i < locations.size(); i += 3) {
     Real x = locations[i] - x0;
     Real y = locations[i + 1] - y0;
 
-    R2 = x * x + y * y;
-    if (R2 > maxRad) {
-      fNum = .5 / tan(acos(dirVec[i / 3] * chiefRay));
-      maxRad = R2;
-    }
+    R2     = x * x + y * y;
+    maxRad = fmax(R2, maxRad);
+    fNum   = fabsmin(.5 / tan(acos(dirVec[i / 3] * chiefRay)), fNum);
 
-    corr = R2 - c;
-    t = rmsRad + corr;
-    c = (t - rmsRad) - corr;
+    corr   = R2 - c;
+    t      = rmsRad + corr;
+    c      = (t - rmsRad) - corr;
+    rmsRad = t;
+  }
+
+  rmsRad = sqrt(rmsRad / static_cast<Real>(N));
+  maxRad = sqrt(maxRad);
+}
+
+void
+BeamTestStatistics::computeFromRayList(
+  std::list<Ray> const &rays,
+  Vec3 const &chiefRay)
+{
+  Real  R2     = 0;
+  size_t N     =  rays.size();
+
+  Vec3 vCorr, vC, vT;
+  Vec3 center;
+
+  for (auto const &ray : rays) {
+    vCorr  = ray.origin - vC;
+    vT     = center + vCorr;
+    vC     = (vT - center) - vCorr;
+    center = vT;
+  }
+
+  x0 = center.x / N;
+  y0 = center.y / N;
+
+  Real corr = 0, c = 0, t;
+
+  for (auto const &ray : rays) {
+    Real x = ray.origin.x - x0;
+    Real y = ray.origin.y - y0;
+
+    R2     = x * x + y * y;
+    maxRad = fmax(R2, maxRad);
+    fNum   = fabsmin(.5 / tan(acos(ray.direction * chiefRay)), fNum);
+
+    corr   = R2 - c;
+    t      = rmsRad + corr;
+    c      = (t - rmsRad) - corr;
     rmsRad = t;
   }
 
@@ -171,7 +214,7 @@ TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
   REQUIRE(model->traceDefault(rays));
 
   // Do statistics
-  SpotStatistics statistics;
+  BeamTestStatistics statistics;
   statistics.computeFromSurface(fp);
 
   // Okay, things we need: that all rays have passed and that all of them
@@ -240,7 +283,7 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
   REQUIRE(model->traceDefault(rays));
 
   // Do statistics
-  SpotStatistics statistics;
+  BeamTestStatistics statistics;
   statistics.computeFromSurface(fp);
 
   // Now, in theory, the f/# should be f/D = 1/1 = 1. However, we are going to
@@ -253,11 +296,11 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
   Real desiredFNum  = focalLength / diameter;
   Real expectedFNum = (focalLength - dishDepth) / diameter;
   
-  printf("Desired  f/#: %g\n", desiredFNum);
-  printf("Expected f/#: %g\n", expectedFNum);
-  printf("Obtained f/#: %g\n", statistics.fNum);
+  printf("(inf) Parabolic mirror: Desired  f/#: %g\n", desiredFNum);
+  printf("(inf) Parabolic mirror: Expected f/#: %g\n", expectedFNum);
+  printf("(inf) Parabolic mirror: Obtained f/#: %g\n", statistics.fNum);
 
-  REQUIRE(expectedFNum == statistics.fNum);
+  REQUIRE(releq(expectedFNum, statistics.fNum));
 
   delete model;
 }
@@ -300,15 +343,15 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   beamProp.offset          = Vec3::zero();
   beamProp.direction       = -Vec3::eZ();
   beamProp.angularDiameter = 0;
-  beamProp.numRays         = 100;
-  beamProp.shape           = Ring;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Circular;
   beamProp.objectShape     = PointLike;
-  beamProp.random          = false;
+  beamProp.random          = true;
   beamProp.setElementRelative(L1);
   beamProp.collimate();
 
   OMModel::addBeam(rays, beamProp);
-  REQUIRE(rays.size() == beamProp.numRays);
+  REQUIRE(rays.size() == 1000);
 
   model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
   model->setDof("focalLength", focalLength);
@@ -321,16 +364,16 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   Real idealFNum = focalLength / diameter;
 
   // Do statistics
-  SpotStatistics statistics;
+  BeamTestStatistics statistics;
   statistics.computeFromSurface(fp);
-  printf("f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
-  printf("MaxRadius: %g\n", statistics.maxRad);
+  printf("(inf) Ideal lens: f/#: %g (>= ideal %g)\n", fabs(statistics.fNum), idealFNum);
+  printf("(inf) Ideal lens: MaxRadius: %g\n", statistics.maxRad);
 
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(isZero(statistics.maxRad));
-  REQUIRE(releq(fabs(statistics.fNum), idealFNum));
+  REQUIRE(fabs(statistics.fNum) >= idealFNum);
 
   REQUIRE(statistics.maxRad < 5e-4); // Make room for aberrations
 
@@ -401,14 +444,205 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
   Real idealFNum = focalLength / diameter;
 
   // Do statistics
-  SpotStatistics statistics;
+  BeamTestStatistics statistics;
   statistics.computeFromSurface(fp);
-  printf("f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
+  printf("(inf) Positive lens: f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
+  printf("(inf) Positive lens: MaxRadius: %g\n", statistics.maxRad);
 
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(statistics.maxRad < 5e-4); // Make room for aberrations
+
+  delete model;
+}
+
+TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_idealFocusLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto iSurf = surfaces.front();
+  REQUIRE(iSurf != nullptr);
+
+  auto detector = model->lookupOpticalElement("imgDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  auto object = model->lookupReferenceFrame("object");
+  REQUIRE(object != nullptr);
+
+  // Record hits!
+  L1->setRecordHits(true);
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real objDistance = 2 * focalLength;
+  Real diameter    = 0.05;
+
+  Real idealFNum = objDistance / diameter;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = 0;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Point;
+  beamProp.setPlaneRelative(object);
+  beamProp.collimate();
+  beamProp.setObjectFNum(idealFNum);
+  beamProp.objectShape     = RingLike;
+  beamProp.random          = false;
+ 
+  printf("(obj) Ideal lens: aperture angle: %g deg\n", rad2deg(beamProp.angularDiameter));
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1000);
+
+  BeamTestStatistics inputStatistics;
+  inputStatistics.computeFromRayList(rays);
+  printf("(obj) Ideal lens: object radius: %g\n", inputStatistics.maxRad);
+  printf("(obj) Ideal lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
+  
+  printf(
+    "(obj) Ideal lens: object f/#: %g (err = %g)\n",
+    inputStatistics.fNum,
+    inputStatistics.fNum - idealFNum);
+  REQUIRE(releq(inputStatistics.fNum, idealFNum));
+  REQUIRE(isZero(inputStatistics.x0));
+  REQUIRE(isZero(inputStatistics.y0));
+  
+  // Add all other rays
+  beamProp.numRays     = 100;
+  beamProp.objectShape = CircleLike;
+  beamProp.random      = true;
+  
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1100);
+
+  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
+  model->setDof("focalLength", focalLength);
+
+  REQUIRE(model->trace("img", rays));
+  REQUIRE(iSurf->hits.size() == rays.size());
+
+  REQUIRE(fp->hits.size() == rays.size());
+
+
+  // Do statistics on the image
+  BeamTestStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("(obj) Ideal lens: image radius: %g\n", statistics.maxRad);
+  printf("(obj) Ideal lens: image center: %g, %g\n", statistics.x0, statistics.y0);
+  printf("(obj) Ideal lens: image f/#: %g (err = %g)\n", statistics.fNum, statistics.fNum + idealFNum);
+  
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(isZero(statistics.maxRad));
+  REQUIRE(releq(statistics.fNum, -idealFNum));
+
+  delete model;
+}
+
+TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_focusLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 2);
+
+  auto detector = model->lookupOpticalElement("imgDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  auto object = model->lookupReferenceFrame("object");
+  REQUIRE(object != nullptr);
+
+  // Record hits!
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real objDistance = 2 * focalLength;
+  Real diameter    = 0.05;
+
+  Real idealFNum = objDistance / diameter;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = 0;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Point;
+  beamProp.setPlaneRelative(object);
+  beamProp.collimate();
+  beamProp.setObjectFNum(idealFNum);
+  beamProp.objectShape     = RingLike;
+  beamProp.random          = false;
+ 
+  printf("(obj) Positive lens: aperture angle: %g deg\n", rad2deg(beamProp.angularDiameter));
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1000);
+
+  BeamTestStatistics inputStatistics;
+  inputStatistics.computeFromRayList(rays);
+  printf("(obj) Positive lens: object radius: %g\n", inputStatistics.maxRad);
+  printf("(obj) Positive lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
+  
+  printf(
+    "(obj) Positive lens: object f/#: %g (err = %g)\n",
+    inputStatistics.fNum,
+    inputStatistics.fNum - idealFNum);
+  REQUIRE(releq(inputStatistics.fNum, idealFNum));
+  REQUIRE(isZero(inputStatistics.x0));
+  REQUIRE(isZero(inputStatistics.y0));
+  
+  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
+  model->setDof("focalLength", focalLength);
+
+  REQUIRE(model->trace("img", rays));
+  REQUIRE(fp->hits.size() == rays.size());
+
+  // Do statistics on the image
+  BeamTestStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("(obj) Positive lens: image radius: %g\n", statistics.maxRad);
+  printf("(obj) Positive lens: image center: %g, %g\n", statistics.x0, statistics.y0);
+  printf("(obj) Positive lens: image f/#: %g (ideal %g)\n", statistics.fNum, idealFNum);
+  
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(statistics.maxRad < 3e-4); // Room for aberrations
 
   delete model;
 }

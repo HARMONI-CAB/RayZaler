@@ -47,6 +47,13 @@ SkySampler::setDiameter(Real diameter)
 }
 
 void
+SkySampler::setRandom(bool random)
+{
+  m_random = random;
+  m_dirty  = true;
+}
+
+void
 SkySampler::setPath(std::string const &path)
 {
   m_path  = path;
@@ -58,6 +65,8 @@ SkySampler::reconfigure()
 {
   if (m_shape == CircleLike) {
     m_sampler = &m_circularSampler;
+  } else  if (m_shape == RingLike) {
+    m_sampler = &m_ringSampler;
   } else if (m_shape == Extended) {
     m_sampler = &m_mapSampler;
     m_mapSampler.setFromPNG(m_path);
@@ -66,7 +75,7 @@ SkySampler::reconfigure()
   }
   
   if (m_sampler != nullptr) {
-    m_sampler->setRandom(true);
+    m_sampler->setRandom(m_random);
     m_sampler->setRadius(m_diameter / 2);
     m_sampler->sample(m_nRays);
   }

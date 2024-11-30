@@ -84,9 +84,8 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
     qreal vignRate =
         1e2 * static_cast<qreal>(fp->vignetted)
         / static_cast<qreal>(totalRays);
-    qreal corr, c, t;
-    qreal fNum = 0;
-    c = 0;
+    qreal corr = 0, c = 0, t;
+    qreal fNum = std::numeric_limits<qreal>::infinity();
 
     ui->totalRaysLabel->setText(QString::number(totalRays));
     ui->vignettedRaysLabel->setText(
@@ -103,12 +102,9 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
       qreal y = fp->locations[i + 1] - y0;
 
       R2 = x * x + y * y;
-      if (R2 > maxRad) {
-        RZ::Vec3 direction(fp->directions.data() + i);
-        fNum = .5 / tan(acos(direction * chiefRayDirection));
-        maxRad = R2;
-      }
-
+      maxRad = fmax(R2, maxRad);
+      fNum   = RZ::fabsmin(.5 / tan(acos(RZ::Vec3(fp->directions.data() + i) * chiefRayDirection)), fNum);
+      
       corr = R2 - c;
       t = rmsRad + corr;
       c = (t - rmsRad) - corr;

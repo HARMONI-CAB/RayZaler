@@ -29,15 +29,29 @@ PhaseScreenProcessor::setCoef(unsigned int ansi, Real value)
     size_t oldSize = m_poly.size();
     m_poly.resize(ansi + 1);
     m_coef.resize(ansi + 1);
+    m_nonz.resize(ansi + 1);
 
     while (oldSize <= ansi) {
       m_poly[oldSize] = Zernike(oldSize);
       m_coef[oldSize] = 0.;
+      m_nonz[oldSize] = false;
       ++oldSize;
     }
   }
 
   m_coef[ansi] = value;
+  m_nonz[ansi] = !isZero(value, 1e-15);
+
+  m_firstNz = -1;
+  m_lastNz  = -1;
+
+  for (auto i = 0; i < m_poly.size(); ++i) {
+    if (m_nonz[i]) {
+      if (m_firstNz == -1)
+        m_firstNz = i;
+      m_lastNz = i + 1;
+    }
+  }
 }
 
 void
@@ -52,10 +66,10 @@ Real
 PhaseScreenProcessor::Z(Real x, Real y) const
 {
   Real val = 0;
-  unsigned count = m_coef.size();
 
-  for (unsigned i = 0; i < count; ++i)
-    val += m_coef[i] * m_poly[i](x, y);
+  for (int i = m_firstNz; i < m_lastNz; ++i)
+    if (m_nonz[i])
+      val += m_coef[i] * m_poly[i](x, y);
 
   return val;
 }
@@ -64,10 +78,10 @@ Real
 PhaseScreenProcessor::dZdx(Real x, Real y) const
 {
   Real val = 0;
-  unsigned count = m_coef.size();
 
-  for (unsigned i = 0; i < count; ++i)
-    val += m_coef[i] * m_poly[i].gradX(x, y);
+  for (int i = m_firstNz; i < m_lastNz; ++i)
+    if (m_nonz[i])
+      val += m_coef[i] * m_poly[i].gradX(x, y);
 
   return val;
 }
@@ -76,10 +90,10 @@ Real
 PhaseScreenProcessor::dZdy(Real x, Real y) const
 {
   Real val = 0;
-  unsigned count = m_coef.size();
 
-  for (unsigned i = 0; i < count; ++i)
-    val += m_coef[i] * m_poly[i].gradY(x, y);
+  for (int i = m_firstNz; i < m_lastNz; ++i)
+    if (m_nonz[i])
+      val += m_coef[i] * m_poly[i].gradY(x, y);
 
   return val;
 }

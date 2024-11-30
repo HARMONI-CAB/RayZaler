@@ -237,6 +237,16 @@ namespace RZ {
         return it->second.type();
       }
 
+      inline bool
+      propertyIsHidden(std::string const &prop) const
+      {
+        for (auto i = 0; i < m_hidden; ++i)
+          if (prop == m_sortedProperties[i])
+            return true;
+
+        return false;
+      }
+
       // Get hidden parameter number
       inline unsigned
       hidden() const

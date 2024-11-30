@@ -110,6 +110,8 @@ SimulationBeamProperties::deserialize(
       value = RZ::PointLike;
     else if (asString == "CIRCLELIKE")
       value = RZ::CircleLike;
+    else if (asString == "RINGLIKE")
+      value = RZ::RingLike;
     else if (asString == "EXTENDED")
       value = RZ::Extended;
     else {
@@ -194,6 +196,10 @@ SimulationBeamProperties::serialize() const
 
     case RZ::CircleLike:
       object["objectShape"] = "CIRCLELIKE";
+      break;
+
+    case RZ::RingLike:
+      object["objectShape"] = "RINGLIKE";
       break;
 
     case RZ::Extended:

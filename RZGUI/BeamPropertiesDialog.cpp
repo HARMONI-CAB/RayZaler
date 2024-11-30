@@ -188,6 +188,10 @@ BeamPropertiesDialog::parseProperties()
       break;
 
     case 2:
+      m_properties.objectShape = RZ::RingLike;
+      break;
+
+    case 3:
       m_properties.objectShape = RZ::Extended;
       break;
   }
@@ -262,8 +266,12 @@ BeamPropertiesDialog::refreshUi()
       objShapeIndex = 1;
       break;
 
-    case RZ::Extended:
+    case RZ::RingLike:
       objShapeIndex = 2;
+      break;
+
+    case RZ::Extended:
+      objShapeIndex = 3;
       break;
   }
 

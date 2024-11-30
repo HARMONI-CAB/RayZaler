@@ -754,6 +754,11 @@
        <string>Circle source</string>
       </property>
      </item>
+      <item>
+      <property name="text">
+       <string>Ring source</string>
+      </property>
+     </item>
      <item>
       <property name="text">
        <string>Radiance map</string>

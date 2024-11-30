@@ -51,6 +51,18 @@ namespace RZ {
       return fabs(a - b) / fabs(b) < precision;
   }
 
+  static inline Real
+  fabsmin(Real a, Real b)
+  {
+    return fabs(a) < fabs(b) ? a : b;
+  }
+
+  static inline Real
+  fabsmax(Real a, Real b)
+  {
+    return fabs(a) > fabs(b) ? a : b;
+  }
+  
   struct Vec3 {
     union {
       struct {

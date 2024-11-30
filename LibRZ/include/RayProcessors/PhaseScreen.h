@@ -29,6 +29,10 @@ namespace RZ {
       Real m_radius        = .5;
       std::vector<Zernike> m_poly;
       std::vector<Real>    m_coef;
+      std::vector<bool>    m_nonz;
+      int                  m_firstNz = -1;
+      int                  m_lastNz  = -1;
+      
       Real m_muOut         = 1.5;
       Real m_muIn          = 1;
       Real m_IOratio       = 1 / 1.5;

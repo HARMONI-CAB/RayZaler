@@ -52,10 +52,13 @@ CircularSampler::sampleUniform(std::vector<Vec3> &dest)
     return false;
   }
 
-  Real dA = (M_PI * m_R2) / N;
+  Real nR2 = 1;
+  Real nR  = 1;
+
+  Real dA = (M_PI * nR2) / N;
   Real dh = sqrt(dA);
-  Real x0 = -dh * floor(2 * m_R / dh) / 2;
-  Real y0 = -dh * (floor(sqrt((m_R2 - x0 * x0)) / dh * 2) / 2);
+  Real x0 = -dh * floor(2 * nR / dh) / 2;
+  Real y0 = -dh * (floor(sqrt((nR2 - x0 * x0)) / dh * 2) / 2);
   unsigned int i = 0, j = 0;
 
   for (;;) {
@@ -63,10 +66,10 @@ CircularSampler::sampleUniform(std::vector<Vec3> &dest)
 
     if (y > fabs(y0)) {
       x0 += dh;
-      if (x0 > m_R)
+      if (x0 > nR)
         break;
       
-      y0  = -dh * (floor(sqrt((m_R2 - x0 * x0)) / dh - .5) + .5);
+      y0  = -dh * (floor(sqrt((nR2 - x0 * x0)) / dh - .5) + .5);
       y   = y0;
       j   = 0;
     }
@@ -74,8 +77,8 @@ CircularSampler::sampleUniform(std::vector<Vec3> &dest)
     if (i == dest.size())
       dest.resize(i + 1);
     
-    dest[i].x = x0;
-    dest[i].y = y;
+    dest[i].x = x0 * m_R;
+    dest[i].y = y  * m_R;
     dest[i].z = 0;
 
     ++i;

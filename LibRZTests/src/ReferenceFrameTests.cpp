@@ -28,6 +28,56 @@
 
 using namespace RZ;
 
+TEST_CASE("Testing helper functions", THIS_TEST_TAG)
+{
+  REQUIRE( releq(1, 1 + 1e-10, 1e-9));
+  REQUIRE(!releq(1, 1 + 1e-10, 1e-11));
+  REQUIRE( isZero(1e-10));
+  REQUIRE(!isZero(1e-10, 1e-11));
+
+  REQUIRE(releq(fabsmin(+1, +2), +1));
+  REQUIRE(releq(fabsmin(-1, +2), -1));
+  REQUIRE(releq(fabsmin(+1, -2), +1));
+  REQUIRE(releq(fabsmin(-1, -2), -1));
+
+  REQUIRE(releq(fabsmin(+2, +1), +1));
+  REQUIRE(releq(fabsmin(-2, +1), +1));
+  REQUIRE(releq(fabsmin(+2, -1), -1));
+  REQUIRE(releq(fabsmin(-2, -1), -1));
+
+  REQUIRE(releq(fabsmax(+1, +2), +2));
+  REQUIRE(releq(fabsmax(-1, +2), +2));
+  REQUIRE(releq(fabsmax(+1, -2), -2));
+  REQUIRE(releq(fabsmax(-1, -2), -2));
+
+  REQUIRE(releq(fabsmax(+2, +1), +2));
+  REQUIRE(releq(fabsmax(-2, +1), -2));
+  REQUIRE(releq(fabsmax(+2, -1), +2));
+  REQUIRE(releq(fabsmax(-2, -1), -2));
+
+  // Basic quadrant check
+  REQUIRE(releq(rad2deg(0),            0));
+  REQUIRE(releq(fabs(rad2deg(M_PI)), 180));
+  REQUIRE(releq(rad2deg(-M_PI / 2),  -90));
+  REQUIRE(releq(rad2deg(+M_PI / 2),  +90));
+
+  REQUIRE(releq(deg2rad(0),            0));
+  REQUIRE(releq(fabs(deg2rad(180)), M_PI));
+  REQUIRE(releq(deg2rad(-90),  -M_PI / 2));
+  REQUIRE(releq(deg2rad(+90),  +M_PI / 2));
+
+  // Various angular conversion checks
+  for (auto i = 0; i < 1000; ++i) {
+    Real rnd = RZ_URANDSIGN * 0.9999;
+
+    Real deg = rnd * 180;
+    Real rad = rnd * M_PI;
+
+    REQUIRE(releq(deg2rad(deg), rad));
+    REQUIRE(releq(rad2deg(rad), deg));
+  }
+}
+
 TEST_CASE("Testing vector comparison", THIS_TEST_TAG)
 {
   REQUIRE(Vec3::zero() == Vec3(0, 0, 0));

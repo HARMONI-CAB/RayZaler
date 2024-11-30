@@ -131,7 +131,7 @@ namespace RZ {
     std::string objectPath;
 
     // 
-    // fNum = length / D
+    // fNum = length / D This refers to beams that arrive as a circle.
     //
     inline void
     setFNum(Real fNum, FNumReference adjust = BeamDiameter)
@@ -140,6 +140,27 @@ namespace RZ {
         diameter = length / fNum; 
       else
         length   = diameter * fNum;
+    }
+
+    //
+    // For object-like sources sometimes it is interesting to describe the
+    // illuminating cone froma f/#. The relationship between angular diameter
+    // and f/# is given by:
+    //
+    // a = 2 atan (0.5 / f)
+    //
+
+    inline void
+    setObjectFNum(Real fNum)
+    {
+      fNum = std::fabs(fNum);
+      
+      if (std::isinf(fNum)) {
+        objectShape = PointLike;
+      } else {
+        objectShape = CircleLike;
+        angularDiameter = 2 * std::atan(0.5 / fNum);
+      }
     }
 
     inline void

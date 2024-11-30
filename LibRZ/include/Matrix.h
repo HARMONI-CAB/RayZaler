@@ -28,15 +28,17 @@ namespace RZ {
   static inline Real
   deg2rad(Real deg)
   {
-    Real rad = (deg / 180. + 1) * M_PI;
-    return rad - 2 * M_PI * floor(rad / (2 * M_PI)) - M_PI;
+    Real rad = deg / 180. * M_PI;
+    rad -= 2. * M_PI * std::floor((rad + M_PI) * (0.5 / M_PI));
+    return rad;
   }
 
   static inline Real
   rad2deg(Real rad)
   {
-    Real deg = (rad / M_PI + 1) * 180.;
-    return deg - 360. * floor(rad / 360.) - 180.;
+    Real deg = rad / M_PI * 180.;
+    deg -= 360. * std::floor((deg + 180.) * (1. / 360.));
+    return deg;
   }
 
   struct Matrix3;
