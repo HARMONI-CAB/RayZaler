@@ -27,7 +27,6 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
   ${LIBRZ_SRCDIR}/ConicLens.cpp
   ${LIBRZ_SRCDIR}/ConicMirror.cpp
-  ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/DataProduct.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
@@ -113,7 +112,6 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
   ${LIBRZ_INCLUDEDIR}/ConicLens.h
   ${LIBRZ_INCLUDEDIR}/ConicMirror.h
-  ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
@@ -181,7 +179,6 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Circular.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Conic.h
-  ${LIBRZ_INCLUDEDIR}/Surfaces/Spherical.h
   
   ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Map.h
