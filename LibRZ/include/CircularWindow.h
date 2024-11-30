@@ -50,7 +50,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~CircularWindow();
+      virtual ~CircularWindow() override;
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;

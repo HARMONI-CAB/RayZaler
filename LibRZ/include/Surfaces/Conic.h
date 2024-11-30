@@ -24,7 +24,7 @@
 
 namespace RZ {
   class ConicSurface : public SurfaceShape {
-    Real m_radius = 1;
+    Real m_radius  = 1;
     Real m_radius2 = 1;
     Real m_rCurv   = 2;
     Real m_rCurv2  = 2;

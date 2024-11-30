@@ -48,7 +48,8 @@ namespace RZ {
       TripodFrame(
         std::string const &name,
         ReferenceFrame *parent);
-
+      virtual ~TripodFrame() override = default;
+      
       void setLeg(int, Real);
       void setRadius(Real);
       void setAngle(Real);

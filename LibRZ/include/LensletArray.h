@@ -43,6 +43,7 @@ namespace RZ {
       Real m_thickness = 1e-2;
       Real m_width     = 1e-1;
       Real m_height    = 1e-1;
+      Real m_K         = 0;
       unsigned m_rows  = 10;
       unsigned m_cols  = 10;
       Real m_rCurv     = 1;
@@ -62,7 +63,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~LensletArray();
+      virtual ~LensletArray() override;
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;

@@ -78,7 +78,7 @@ namespace RZ {
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
-      virtual ~RayBeamElement();
+      virtual ~RayBeamElement() override;
 
       void clear();
       void setList(std::list<Ray> const &);

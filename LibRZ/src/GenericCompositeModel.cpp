@@ -227,6 +227,10 @@ GenericCompositeModel::~GenericCompositeModel()
 
   for (auto p : m_customFactoryList)
     delete p;
+
+  if (m_ownsRecipe)
+    if (m_recipe != nullptr)
+      delete m_recipe;
 }
 
 std::list<std::string>
@@ -455,6 +459,12 @@ GenericCompositeModel::delayedCreationLoop()
     if (m_completedFrames < ctxCount && m_completedFrames == prevFrames)
       throw std::runtime_error("Some reference frames are self-contained");
   }
+}
+
+void
+GenericCompositeModel::transferRecipeOwnership()
+{
+  m_ownsRecipe = true;
 }
 
 void

@@ -53,7 +53,7 @@ namespace RZ {
       Real m_thickness = 5e-3;
       
       Real m_focalLength;
-      bool m_fromFlen;
+      bool m_fromFlen = false;
       void recalcModel();
 
     protected:
@@ -66,7 +66,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~ConicLens();
+      virtual ~ConicLens() override;
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;

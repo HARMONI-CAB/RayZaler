@@ -34,7 +34,8 @@ namespace RZ {
         std::string const &name,
         ReferenceFrame *parent,
         Vec3 const &distance);
-
+      virtual ~TranslatedFrame() override = default;
+      
       void setDistanceX(Real);
       void setDistanceY(Real);
       void setDistanceZ(Real);

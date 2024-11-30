@@ -25,7 +25,8 @@ RotatedFrame::setAxisX(Real val)
 {
   m_currAxis.x = val;
   
-  parent()->getAxis(m_axisIndex)->x = val;
+  if (parent() != nullptr)
+    parent()->getAxis(m_axisIndex)->x = val;
   m_rotMatrix = Matrix3::rot(m_currAxis.normalized(), m_currAngle);
 }
 
@@ -34,7 +35,8 @@ RotatedFrame::setAxisY(Real val)
 {
   m_currAxis.y = val;
 
-  parent()->getAxis(m_axisIndex)->y = val;
+  if (parent() != nullptr)
+    parent()->getAxis(m_axisIndex)->y = val;
   m_rotMatrix = Matrix3::rot(m_currAxis.normalized(), m_currAngle);
 }
 
@@ -43,7 +45,8 @@ RotatedFrame::setAxisZ(Real val)
 {
   m_currAxis.z = val;
 
-  parent()->getAxis(m_axisIndex)->z = val;
+  if (parent() != nullptr)
+    parent()->getAxis(m_axisIndex)->z = val;
   m_rotMatrix = Matrix3::rot(m_currAxis.normalized(), m_currAngle);
 }
 
@@ -63,7 +66,8 @@ RotatedFrame::setRotation(Vec3 const &axis, Real angle)
   m_rotMatrix = Matrix3::rot(m_currAxis.normalized(), m_currAngle);
 
   // Set displacement vector
-  *parent()->getAxis(m_axisIndex) = m_currAxis;
+  if (parent() != nullptr)
+    *parent()->getAxis(m_axisIndex) = m_currAxis;
 }
 
 RotatedFrame::RotatedFrame(
@@ -85,6 +89,11 @@ RotatedFrame::RotatedFrame(
 void
 RotatedFrame::recalculateFrame()
 {
-  setOrientation(parent()->getOrientation() * m_rotMatrix);
-  setCenter(parent()->getCenter());
+  if (parent() != nullptr) {
+    setOrientation(parent()->getOrientation() * m_rotMatrix);
+    setCenter(parent()->getCenter());
+  } else {
+    setOrientation(m_rotMatrix);
+    setCenter(Vec3::zero());
+  }
 }

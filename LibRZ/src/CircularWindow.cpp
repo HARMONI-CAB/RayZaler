@@ -41,7 +41,8 @@ CircularWindow::recalcModel()
   setBoundingBox(
       Vec3(-m_radius, -m_radius, -m_thickness/2),
       Vec3(+m_radius, +m_radius, +m_thickness/2));
-
+  
+  refreshFrames();
 }
 
 bool

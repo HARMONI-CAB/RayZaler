@@ -140,7 +140,7 @@ namespace RZ {
           std::string const &,
           ReferenceFrame *,
           Element *parent = nullptr);
-        ~Detector();
+        virtual ~Detector() override;
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;

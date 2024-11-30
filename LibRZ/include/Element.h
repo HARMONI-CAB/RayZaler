@@ -267,6 +267,9 @@ namespace RZ {
         return m_visible;
       }
 
+      // Refresh all reference frames depending on parent
+      void refreshFrames();
+      
       // Enumerate ports
       std::set<std::string> ports() const;
 

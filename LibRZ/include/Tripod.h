@@ -55,7 +55,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      virtual ~Tripod();
+      virtual ~Tripod() override;
       virtual void renderOpenGL() override;
   };
 

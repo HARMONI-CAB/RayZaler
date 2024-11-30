@@ -27,7 +27,6 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
   ${LIBRZ_SRCDIR}/ConicLens.cpp
   ${LIBRZ_SRCDIR}/ConicMirror.cpp
-  ${LIBRZ_SRCDIR}/ConvexLens.cpp
   ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/DataProduct.cpp
@@ -49,6 +48,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Obstruction.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
+  ${LIBRZ_SRCDIR}/ParabolicLens.cpp
   ${LIBRZ_SRCDIR}/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/PhaseScreen.cpp
@@ -64,6 +64,8 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RZGLModel.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/SkySampler.cpp
+  ${LIBRZ_SRCDIR}/SphericalLens.cpp
+  ${LIBRZ_SRCDIR}/SphericalMirror.cpp
   ${LIBRZ_SRCDIR}/StlMesh.cpp
   ${LIBRZ_SRCDIR}/SurfaceShape.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
@@ -86,15 +88,12 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/RayProcessors/PassThrough.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/RectangularStop.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/SphericalLens.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
 
   ${LIBRZ_SRCDIR}/Surfaces/Array.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Circular.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Conic.cpp
-  ${LIBRZ_SRCDIR}/Surfaces/Parabolic.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Rectangular.cpp
-  ${LIBRZ_SRCDIR}/Surfaces/Spherical.cpp
 
   ${LIBRZ_SRCDIR}/Samplers/Circular.cpp
   ${LIBRZ_SRCDIR}/Samplers/Map.cpp
@@ -114,7 +113,6 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
   ${LIBRZ_INCLUDEDIR}/ConicLens.h
   ${LIBRZ_INCLUDEDIR}/ConicMirror.h
-  ${LIBRZ_INCLUDEDIR}/ConvexLens.h
   ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
@@ -137,6 +135,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Obstruction.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
+  ${LIBRZ_INCLUDEDIR}/ParabolicLens.h
   ${LIBRZ_INCLUDEDIR}/ParabolicMirror.h
   ${LIBRZ_INCLUDEDIR}/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
@@ -152,6 +151,8 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RZGLModel.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/SkySampler.h
+  ${LIBRZ_INCLUDEDIR}/SphericalLens.h
+  ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
   ${LIBRZ_INCLUDEDIR}/StlMesh.h
   ${LIBRZ_INCLUDEDIR}/SurfaceShape.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
@@ -175,14 +176,11 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/RayProcessors/PassThrough.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/RectangularStop.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/SphericalLens.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
   
   ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Circular.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Conic.h
-  ${LIBRZ_INCLUDEDIR}/Surfaces/Parabolic.h
-  ${LIBRZ_INCLUDEDIR}/Surfaces/Rectangular.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Spherical.h
   
   ${LIBRZ_INCLUDEDIR}/Samplers/Circular.h

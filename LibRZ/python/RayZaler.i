@@ -59,7 +59,8 @@ namespace std {
 #include <ApertureStop.h>
 #include <BlockElement.h>
 #include <CompositeElement.h>
-#include <ConvexLens.h>
+#include <ConicLens.h>
+#include <ConicMirror.h>
 #include <Detector.h>
 #include <ExprTkEvaluator.h>
 #include <FlatMirror.h>
@@ -67,6 +68,7 @@ namespace std {
 #include <LensletArray.h>
 #include <ModelRenderer.h>
 #include <Obstruction.h>
+#include <ParabolicLens.h>
 #include <ParabolicMirror.h>
 #include <ParserContext.h>
 #include <PhaseScreen.h>
@@ -77,6 +79,7 @@ namespace std {
 #include <RotatedFrame.h>
 #include <Singleton.h>
 #include <SkySampler.h>
+#include <SphericalLens.h>
 #include <SphericalMirror.h>
 #include <TranslatedFrame.h>
 #include <Tripod.h>
@@ -112,7 +115,8 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "ApertureStop.h"
 %include "BlockElement.h"
 %include "CompositeElement.h"
-%include "ConvexLens.h"
+%include "ConicLens.h"
+%include "ConicMirror.h"
 %include "Detector.h"
 %include "ExprTkEvaluator.h"
 %include "FlatMirror.h"
@@ -120,6 +124,7 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "LensletArray.h"
 %include "ModelRenderer.h"
 %include "Obstruction.h"
+%include "ParabolicLens.h"
 %include "ParabolicMirror.h"
 %include "ParserContext.h"
 %include "PhaseScreen.h"
@@ -131,6 +136,7 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "RotatedFrame.h"
 %include "Singleton.h"
 %include "SkySampler.h"
+%include "SphericalLens.h"
 %include "SphericalMirror.h"
 %include "TranslatedFrame.h"
 %include "Tripod.h"

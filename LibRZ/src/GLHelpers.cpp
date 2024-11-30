@@ -952,7 +952,17 @@ GLParabolicCap::display()
 //////////////////////////// GLConicCap //////////////////////////////////
 GLConicCap::GLConicCap()
 {
-  m_quadric = gluNewQuadric();
+  m_quadric   = gluNewQuadric();
+  m_convex    = false;
+  m_rCurv     = 1;
+  m_K         = 0;
+  m_radius    = 0.25;
+  m_x0 = m_y0 = 0;
+  m_rHole     = 0;
+  m_sectors   = 64;
+  m_stacks    = 8;
+  m_invertNormals = false;
+  m_dirty     = true;
 }
 
 GLConicCap::~GLConicCap()

@@ -31,6 +31,7 @@ LensletArray::recalcModel()
   m_inputProcessor->setRows(m_rows);
   m_inputProcessor->setCurvatureRadius(m_rCurv);
   m_inputProcessor->setRefractiveIndex(1, m_mu);
+  m_inputProcessor->setConicConstant(m_K);
 
   m_outputProcessor->setWidth(m_width);
   m_outputProcessor->setHeight(m_height);
@@ -38,6 +39,7 @@ LensletArray::recalcModel()
   m_outputProcessor->setRows(m_rows);
   m_outputProcessor->setCurvatureRadius(-m_rCurv);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
+  m_outputProcessor->setConicConstant(m_K);
   
   // Get lenslet radius
   Real radius = m_inputProcessor->lensletRadius();
@@ -67,6 +69,8 @@ LensletArray::recalcModel()
   setBoundingBox(
       Vec3(-m_width / 2, -m_height / 2, -m_thickness / 2),
       Vec3(+m_width / 2, +m_height / 2, +m_thickness / 2));
+
+  refreshFrames();
 }
 
 bool
@@ -76,6 +80,9 @@ LensletArray::propertyChanged(
 {
   if (name == "thickness") {
     m_thickness = value;
+    recalcModel();
+  } else if (name == "conic") {
+    m_K = value;
     recalcModel();
   } else if (name == "width") {
     m_width = value;
@@ -117,6 +124,7 @@ LensletArray::LensletArray(
   m_inputProcessor->setConvex(true);
   m_outputProcessor->setConvex(false);
 
+  registerProperty("conic",        0.0);
   registerProperty("thickness",   1e-2);
   registerProperty("width",       1e-1);
   registerProperty("height",      1e-1);

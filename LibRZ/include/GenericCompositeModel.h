@@ -123,7 +123,8 @@ namespace RZ {
       Recipe                       *m_recipe = nullptr;          // Borrowed
       Element                      *m_parent = nullptr;          // Borrowed
       GenericCompositeModel        *m_parentModel = nullptr;     // Borrowed
-      
+      bool                          m_ownsRecipe = false;
+
       GenericEvaluatorSymbolDict    m_global;
       std::vector<ReferenceFrame *> m_frames;                    // Borrowed (m_model)
       std::vector<Element *>        m_elements;                  // Borrowed (m_model)
@@ -245,7 +246,8 @@ namespace RZ {
       
       // Takes the recipe and constructs elements
       void build(ReferenceFrame *, std::string const &prefix = "");
-
+      void transferRecipeOwnership();
+      
       virtual void notifyDetector(
         std::string const &preferredName,
         Detector *det) = 0;

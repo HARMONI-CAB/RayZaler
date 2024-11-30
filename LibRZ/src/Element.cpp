@@ -74,6 +74,13 @@ Element::refreshProperties()
     propertyChanged(p.first, p.second);
 }
 
+void
+Element::refreshFrames()
+{
+  if (parentFrame() != nullptr)
+    parentFrame()->recalculate();
+}
+
 bool
 Element::addPort(
   std::string const &name,

@@ -249,6 +249,8 @@ Detector::recalcModel()
   setBoundingBox(
     Vec3(-m_width / 2, -m_height/2, 0),
     Vec3(+m_width / 2, +m_height/2, 2 * RZ_DETECTOR_THICKNESS));
+
+  refreshFrames();
 }
 
 bool

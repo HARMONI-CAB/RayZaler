@@ -199,6 +199,8 @@ TopLevelModel::fromFile(
   try {
     tlModel = new TopLevelModel(recipe);
     tlModel->setName(path);
+    tlModel->transferRecipeOwnership();
+    recipe = nullptr;
   } catch (std::runtime_error const &e) {
     exceptionString = e.what();
   }
@@ -209,6 +211,9 @@ done:
 
   delete ctx;
 
+  if (recipe != nullptr)
+    delete recipe;
+  
   if (tlModel == nullptr)
     throw std::runtime_error(exceptionString);
 
@@ -242,6 +247,8 @@ TopLevelModel::fromString(
   try {
     tlModel = new TopLevelModel(recipe);
     tlModel->setName(fileName);
+    tlModel->transferRecipeOwnership();
+    recipe = nullptr;
   } catch (std::runtime_error const &e) {
     exceptionString = e.what();
   }
@@ -249,6 +256,9 @@ TopLevelModel::fromString(
 done:
   delete ctx;
 
+  if (recipe != nullptr)
+    delete recipe;
+  
   if (tlModel == nullptr)
     throw std::runtime_error(exceptionString);
 

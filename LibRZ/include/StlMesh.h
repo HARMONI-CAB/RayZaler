@@ -48,7 +48,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~StlMesh();
+      virtual ~StlMesh() override;
 
       virtual void enterOpenGL() override;
       virtual void renderOpenGL() override;

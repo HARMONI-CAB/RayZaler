@@ -50,6 +50,8 @@ FlatMirror::recalcModel()
   setBoundingBox(
       Vec3(-m_width / 2, -m_height / 2, backPlane),
       Vec3(+m_width / 2, +m_height / 2, frontPlane));
+
+  refreshFrames();
 }
 
 bool

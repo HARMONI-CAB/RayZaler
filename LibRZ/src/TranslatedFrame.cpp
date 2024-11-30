@@ -36,33 +36,46 @@ void
 TranslatedFrame::setDistance(Vec3 const &d)
 {
   m_distance = d;
-  *parent()->getAxis(m_distanceIndex) = d;
+
+  if (parent() != nullptr)
+    *parent()->getAxis(m_distanceIndex) = d;
 }
 
 void
 TranslatedFrame::setDistanceX(Real val)
 {
   m_distance.x = val;
-  parent()->getAxis(m_distanceIndex)->x = val;
+
+  if (parent() != nullptr)
+    parent()->getAxis(m_distanceIndex)->x = val;
 }
 
 void
 TranslatedFrame::setDistanceY(Real val)
 {
   m_distance.y = val;
-  parent()->getAxis(m_distanceIndex)->y = val;
+
+  if (parent() != nullptr)
+    parent()->getAxis(m_distanceIndex)->y = val;
 }
 
 void
 TranslatedFrame::setDistanceZ(Real val)
 {
   m_distance.z = val;
-  parent()->getAxis(m_distanceIndex)->z = val;
+
+  if (parent() != nullptr)
+    parent()->getAxis(m_distanceIndex)->z = val;
 }
 
 void
 TranslatedFrame::recalculateFrame()
 {
-  setOrientation(parent()->getOrientation());
-  setCenter(parent()->getCenter() + parent()->getOrientation() * m_distance);
+  if (parent() != nullptr) {
+    setOrientation(parent()->getOrientation());
+    setCenter(parent()->getCenter() + parent()->getOrientation() * m_distance);
+  } else {
+    setOrientation(Matrix3::eye());
+    setCenter(m_distance);
+  }
 }

@@ -50,7 +50,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      virtual ~TubeElement();
+      virtual ~TubeElement() override;
       virtual void renderOpenGL() override;
   };
 

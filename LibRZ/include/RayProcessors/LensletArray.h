@@ -32,6 +32,7 @@ namespace RZ {
       Real m_IOratio       = 1 / 1.5;
       Real m_convex        = true;
       Real m_center        = .866;
+      Real m_K             = 0;
 
       bool         m_dirty         = true;
 
@@ -49,6 +50,7 @@ namespace RZ {
       void setRefractiveIndex(Real, Real);
       void setConvex(bool);
       void setWidth(Real);
+      void setConicConstant(Real);
       void setHeight(Real);
       void setCols(unsigned);
       void setRows(unsigned);

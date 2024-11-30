@@ -25,8 +25,6 @@
 #include <GLHelpers.h>
 
 namespace RZ {
-  class TranslatedFrame;
-
   class ParabolicMirror : public ConicMirror {
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
@@ -38,7 +36,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~ParabolicMirror();
+      virtual ~ParabolicMirror() override;
   };
 
   class ParabolicMirrorFactory : public ElementFactory {

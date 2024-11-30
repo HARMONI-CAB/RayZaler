@@ -119,7 +119,7 @@ namespace RZ {
       virtual void setRecordHits(bool);
       virtual void clearHits();
 
-      virtual ~OpticalElement();
+      virtual ~OpticalElement() override;
   };
 }
 

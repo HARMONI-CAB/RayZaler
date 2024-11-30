@@ -45,7 +45,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      virtual ~BlockElement();
+      virtual ~BlockElement() override;
       virtual void renderOpenGL() override;
   };
 

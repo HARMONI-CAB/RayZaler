@@ -51,7 +51,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~RectangularStop();
+      virtual ~RectangularStop() override;
 
       virtual void nativeMaterialOpenGL(std::string const &role) override;
       virtual void renderOpenGL() override;

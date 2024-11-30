@@ -99,14 +99,54 @@ ReferenceFrame::addPoint(std::string const &name, Vec3 const &relative)
 void
 ReferenceFrame::addChild(ReferenceFrame *child)
 {
+  if (child->m_parent != nullptr) {
+    throw std::runtime_error(
+      "Reference frame `" + child->name() + "' already has a parent");
+  }
+
+  child->m_parentIndex = m_children.size();
+  child->m_parent      = this;
+
   m_children.push_back(child);
+}
+
+void
+ReferenceFrame::removeChild(ReferenceFrame *child)
+{
+  if (child->m_parent != this)
+    throw std::runtime_error(
+      "Reference frame `" 
+      + child->name()
+      + "' is not owned by `"
+      + child->name()
+      + "`");
+
+  if (child->m_parentIndex < 0 || child->m_parentIndex >= m_children.size()) {
+    throw std::runtime_error(
+      "Reference frame `" 
+      + child->name()
+      + "' has a wrong parent index");
+  }
+
+  if (m_children[child->m_parentIndex] != child) {
+    throw std::runtime_error(
+      "Reference frame `" 
+      + child->name()
+      + "' index points to the wrong node");
+  }
+
+  m_children[child->m_parentIndex] = nullptr;
+  
+  child->m_parentIndex = -1;
+  child->m_parent      = nullptr;
 }
 
 void
 ReferenceFrame::recalculateChildren()
 {
   for (auto p : m_children)
-    p->recalculate();
+    if (p != nullptr)
+      p->recalculate();
 }
 
 const Matrix3 &
@@ -309,7 +349,6 @@ ReferenceFrame::ReferenceFrame(std::string const &name)
 ReferenceFrame::ReferenceFrame(std::string const &name, ReferenceFrame *parent)
 : ReferenceFrame(name)
 {
-  m_parent   = parent;
   if (parent != nullptr)
     m_name = parent->name() + "." + m_name;
   
@@ -318,5 +357,12 @@ ReferenceFrame::ReferenceFrame(std::string const &name, ReferenceFrame *parent)
 
 ReferenceFrame::~ReferenceFrame()
 {
-  
+  for (auto &p : m_children) {
+    if (p != nullptr) {
+      p->m_parent      = nullptr;
+      p->m_parentIndex = -1;
+    }
+  }
+  if (m_parent != nullptr)
+    m_parent->removeChild(this);
 }

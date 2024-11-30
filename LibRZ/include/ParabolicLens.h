@@ -16,36 +16,36 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _RAY_PROCESSORS_SPHERICAL_LENS_H
-#define _RAY_PROCESSORS_SPHERICAL_LENS_H
+#ifndef _PARABOLIC_LENS_H
+#define _PARABOLIC_LENS_H
 
-#include <RayTracingEngine.h>
+#include <ConicLens.h>
+#include <RayProcessors.h>
+#include <GLHelpers.h>
 
 namespace RZ {
-  class ReferenceFrame;
-
-  class SphericalLensProcessor : public RayTransferProcessor {
-      Real m_radius = .5;
-      Real m_rCurv  =  1;
-      Real m_muOut  = 1.5;
-      Real m_muIn   = 1;
-      Real m_IOratio = 1 / 1.5;
-      
-      Real m_center = .866;
-      bool m_convex = true;
-
-      void recalcCurvCenter();
+  class ParabolicLens : public ConicLens {
+    protected:
+      virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      SphericalLensProcessor();
+      ParabolicLens(
+        ElementFactory *,
+        std::string const &,
+        ReferenceFrame *,
+        Element *parent = nullptr);
       
-      void setConvex(bool);
-      void setRadius(Real);
-      void setCurvatureRadius(Real);
-      void setRefractiveIndex(Real , Real);
-      virtual std::string name() const;
-      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+      virtual ~ParabolicLens() override;
+  };
+
+  class ParabolicLensFactory : public ElementFactory {
+    public:
+      virtual std::string name() const override;
+      virtual Element *make(
+        std::string const &name,
+        ReferenceFrame *pFrame,
+        Element *parent = nullptr) override;
   };
 }
 
-#endif // _RAY_PROCESSORS_SPHERICAL_LENS_H
+#endif // _CONVEX_LENS_H

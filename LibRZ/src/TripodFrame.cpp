@@ -110,13 +110,19 @@ TripodFrame::TripodFrame(
   recalculateData();
 
   // Add displacement vector 
-  m_centerIndex = parent->addAxis(name + ".center", m_center);
+  if (parent != nullptr)
+    m_centerIndex = parent->addAxis(name + ".center", m_center);
 }
 
 void
 TripodFrame::recalculateFrame()
 {
-  Matrix3 absOrientation = parent()->getOrientation() * m_R;
-  setOrientation(absOrientation);
-  setCenter(parent()->getCenter() + absOrientation * m_center);
+  if (parent() != nullptr) {
+    Matrix3 absOrientation = parent()->getOrientation() * m_R;
+    setOrientation(absOrientation);
+    setCenter(parent()->getCenter() + absOrientation * m_center);
+  } else {
+    setOrientation(m_R);
+    setCenter(m_R * m_center);
+  }
 }

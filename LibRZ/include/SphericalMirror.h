@@ -37,7 +37,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~SphericalMirror();
+      virtual ~SphericalMirror() override;
   };
 
   class SphericalMirrorFactory : public ElementFactory {

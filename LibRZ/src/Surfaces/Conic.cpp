@@ -37,12 +37,11 @@ ConicSurface::recalcDistribution()
   Real x2, y2, invnorm;
   /* TODO */
 
-  if (m_parabola) {
+  if (m_parabola)
     m_depth = .5 * m_radius2 / m_rCurv;
-  } else {
+  else
     m_depth = (m_rCurv - sqrt(m_rCurv2 - (m_K + 1) * m_radius2)) / (m_K + 1);
-  }
-
+  
   x2 = m_x0 * m_x0;
   y2 = m_y0 * m_y0;
 

@@ -55,7 +55,7 @@ namespace RZ {
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      ~PhaseScreen();
+      virtual ~PhaseScreen() override;
 
       virtual void enterOpenGL() override;
       virtual void nativeMaterialOpenGL(std::string const &role) override;

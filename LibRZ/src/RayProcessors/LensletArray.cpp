@@ -1,8 +1,7 @@
 #include <RayProcessors/LensletArray.h>
-#include <Surfaces/Spherical.h>
 #include <ReferenceFrame.h>
 #include <Surfaces/Array.h>
-#include <Surfaces/Spherical.h>
+#include <Surfaces/Conic.h>
 
 using namespace RZ;
 
@@ -13,7 +12,7 @@ LensletArrayProcessor::LensletArrayProcessor()
 {
   setSurfaceShape(
     new SurfaceArray(
-      new SphericalSurface(1e-2, m_rCurv)));
+      new ConicSurface(1e-2, m_rCurv, m_K)));
 
   recalculateDimensions();
 }
@@ -23,7 +22,7 @@ LensletArrayProcessor::recalculateDimensions()
 {
   if (m_dirty) {
     auto *array   = surfaceShape<SurfaceArray>();
-    auto *lenslet = array->subAperture<SphericalSurface>();
+    auto *lenslet = array->subAperture<ConicSurface>();
 
     Real lensletWidth  = array->subApertureWidth();
     Real lensletHeight = array->subApertureHeight();
@@ -38,6 +37,7 @@ LensletArrayProcessor::recalculateDimensions()
     lenslet->setRadius(radius);
     lenslet->setCurvatureRadius(m_rCurv);
     lenslet->setConvex(m_convex);
+    lenslet->setConicConstant(m_K);
 
     // Cache lenslet radius
     m_lensletRadius = radius;
@@ -89,6 +89,14 @@ void
 LensletArrayProcessor::setCols(unsigned cols)
 {
   surfaceShape<SurfaceArray>()->setCols(cols);
+  m_dirty = true;
+  recalculateDimensions();
+}
+
+void
+LensletArrayProcessor::setConicConstant(Real K)
+{
+  m_K = K;
   m_dirty = true;
   recalculateDimensions();
 }

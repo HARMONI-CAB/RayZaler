@@ -149,5 +149,7 @@ TEST_CASE("Element port access", THIS_TEST_TAG)
       REQUIRE(portObj->typeString() != nullptr);
       printf("[%s]\n", portObj->typeString());
     }
+
+    delete element;
   }
 }

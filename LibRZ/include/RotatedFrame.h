@@ -44,6 +44,8 @@ namespace RZ {
         ReferenceFrame *parent,
         Vec3 const &axis,
         Real angle);
+
+      virtual ~RotatedFrame() override = default;
   };
 }
 

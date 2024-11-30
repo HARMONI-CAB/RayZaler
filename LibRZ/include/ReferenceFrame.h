@@ -56,12 +56,13 @@ namespace RZ{
   //
 
   class ReferenceFrame {
-      std::string m_name;
-      Vec3        m_center;      // Global, calculated
-      Matrix3     m_orientation; // Global, calculated
-      bool        m_calculated = false;
-      ReferenceFrame *m_parent = nullptr;
-      
+      std::string     m_name;
+      Vec3            m_center;      // Global, calculated
+      Matrix3         m_orientation; // Global, calculated
+      bool            m_calculated  = false;
+      ReferenceFrame *m_parent      = nullptr;
+      int             m_parentIndex = -1;
+
       std::vector<NamedVector> m_axes;
       std::vector<NamedVector> m_points;
 
@@ -72,7 +73,7 @@ namespace RZ{
       std::map<std::string, Vec3 *> m_nameToAxisCache;
       std::map<std::string, Vec3 *> m_nameToPointCache;
 
-      std::list<ReferenceFrame *> m_children; // Dependents
+      std::vector<ReferenceFrame *> m_children; // Dependents
 
       void recalculateVectors();
 
@@ -83,7 +84,8 @@ namespace RZ{
       ReferenceFrame(std::string const &, ReferenceFrame *);
 
       void addChild(ReferenceFrame *);
-
+      void removeChild(ReferenceFrame *);
+      
       virtual void recalculateFrame() = 0;
 
       void setCenter(Vec3 const &);
