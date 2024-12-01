@@ -26,7 +26,7 @@ SphericalLens::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  if (name == "conic")
+  if (name == "conic" || name == "frontConic" || name == "backConic")
     return false;
 
   return ConicLens::propertyChanged(name, value);

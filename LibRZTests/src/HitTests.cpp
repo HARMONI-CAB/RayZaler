@@ -70,6 +70,30 @@ static const char *g_idealFocusLens =
   "path bfp L1 to bfpDet;"
   "path img L1 to imgDet;";
 
+static const char *g_asymetricLens = 
+  "dof Kf(-4, 4) = -1;"
+  "dof Kb(-4, 4) = -1;"
+  
+  "dof frontFocalLength(.1, .5) = .2;"
+  "dof backFocalLength(.1, .5)  = .2;"
+
+  "dof D = 5e-2;"
+
+  "ConicLens L1("
+  "  thickness        = 2e-3,"
+  "  frontConic       = Kf,"
+  "  backConic        = Kb,"
+  "  frontFocalLength = frontFocalLength,"
+  "  backFocalLength  = backFocalLength,"
+  "  diameter         = D);"
+
+  "on backFocalPlane of L1 Detector bfpDet;"
+  "on imagePlane of L1 Detector imgDet;"
+  "on objectPlane of L1 port object;"
+
+  "path bfp L1 to bfpDet;"
+  "path img L1 to imgDet;";
+
 
 struct BeamTestStatistics {
   Real maxRad = 0.0;
@@ -174,8 +198,8 @@ TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
   auto model = TopLevelModel::fromString(g_parabolicReflectorCode);
   REQUIRE(model);
 
-  model->setDof("focalLength", 1);
-  model->setDof("D", 1);
+  REQUIRE(model->setDof("focalLength", 1));
+  REQUIRE(model->setDof("D", 1));
 
   auto m1 = model->lookupOpticalElement("M1");
   REQUIRE(m1);
@@ -273,12 +297,12 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
   OMModel::addBeam(rays, beamProp);
   REQUIRE(rays.size() == beamProp.numRays);
   
-  model->setDof("focalLength", focalLength);
+  REQUIRE(model->setDof("focalLength", focalLength));
 
-  model->setDof("D", diameter);
+  REQUIRE(model->setDof("D", diameter));
   Vec3 apertureLocation = aperture->getCenter();
 
-  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
   
   REQUIRE(model->traceDefault(rays));
 
@@ -353,8 +377,8 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   OMModel::addBeam(rays, beamProp);
   REQUIRE(rays.size() == 1000);
 
-  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
-  model->setDof("focalLength", focalLength);
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("focalLength", focalLength));
 
   REQUIRE(model->trace("bfp", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
@@ -431,9 +455,9 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
   OMModel::addBeam(rays, beamProp);
   REQUIRE(rays.size() == beamProp.numRays);
 
-  model->setDof("K", -1);
-  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
-  model->setDof("focalLength", focalLength);
+  REQUIRE(model->setDof("K", -1));
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("focalLength", focalLength));
 
   REQUIRE(model->trace("bfp", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
@@ -535,8 +559,8 @@ TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
   OMModel::addBeam(rays, beamProp);
   REQUIRE(rays.size() == 1100);
 
-  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
-  model->setDof("focalLength", focalLength);
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("focalLength", focalLength));
 
   REQUIRE(model->trace("img", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
@@ -626,8 +650,8 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(isZero(inputStatistics.x0));
   REQUIRE(isZero(inputStatistics.y0));
   
-  model->setDof("D", diameter + 1e-3); // Extra clearance to avoid edge rays
-  model->setDof("focalLength", focalLength);
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("focalLength", focalLength));
 
   REQUIRE(model->trace("img", rays));
   REQUIRE(fp->hits.size() == rays.size());
@@ -637,12 +661,106 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   statistics.computeFromSurface(fp);
   printf("(obj) Positive lens: image radius: %g\n", statistics.maxRad);
   printf("(obj) Positive lens: image center: %g, %g\n", statistics.x0, statistics.y0);
-  printf("(obj) Positive lens: image f/#: %g (ideal %g)\n", statistics.fNum, idealFNum);
+  printf("(obj) Positive lens: image f/#: %g (ideal %g)\n", statistics.fNum, -idealFNum);
   
+  // Require f/# within 2% error
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(statistics.maxRad < 3e-4); // Room for aberrations
+  REQUIRE(releq(statistics.fNum, -idealFNum, 2e-2));
+  
+  delete model;
+}
+
+TEST_CASE("Asymmetric lens: center and focus (object)", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_asymetricLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 2);
+
+  auto detector = model->lookupOpticalElement("imgDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  auto object = model->lookupReferenceFrame("object");
+  REQUIRE(object != nullptr);
+
+  // Record hits!
+  detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real objDistance = 2 * focalLength;
+  Real diameter    = 0.05;
+
+  Real idealFNum = objDistance / diameter;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = 0;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Point;
+  beamProp.setPlaneRelative(object);
+  beamProp.collimate();
+  beamProp.setObjectFNum(idealFNum);
+  beamProp.objectShape     = RingLike;
+  beamProp.random          = false;
+ 
+  printf("(obj) Asymmetric lens: aperture angle: %g deg\n", rad2deg(beamProp.angularDiameter));
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1000);
+
+  BeamTestStatistics inputStatistics;
+  inputStatistics.computeFromRayList(rays);
+  printf("(obj) Asymmetric lens: object radius: %g\n", inputStatistics.maxRad);
+  printf("(obj) Asymmetric lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
+  
+  printf(
+    "(obj) Asymmetric lens: object f/#: %g (err = %g)\n",
+    inputStatistics.fNum,
+    inputStatistics.fNum - idealFNum);
+  REQUIRE(releq(inputStatistics.fNum, idealFNum));
+  REQUIRE(isZero(inputStatistics.x0));
+  REQUIRE(isZero(inputStatistics.y0));
+  
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("frontFocalLength", focalLength));
+  REQUIRE(model->setDof("backFocalLength", 2 * focalLength));
+
+  REQUIRE((Real) L1->get("frontFocalLength") == focalLength);
+  REQUIRE((Real) L1->get("backFocalLength") == 2 * focalLength);
+  
+  REQUIRE(model->trace("img", rays));
+  REQUIRE(fp->hits.size() == rays.size());
+
+  // Do statistics on the image
+  BeamTestStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("(obj) Asymmetric lens: image radius: %g\n", statistics.maxRad);
+  printf("(obj) Asymmetric lens: image center: %g, %g\n", statistics.x0, statistics.y0);
+  printf("(obj) Asymmetric lens: image f/#: %g (ideal %g)\n", statistics.fNum, -2 * idealFNum);
+  
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(statistics.maxRad < 4e-4); // Room for aberrations
+  REQUIRE(releq(statistics.fNum, -2 * idealFNum, 2e-2));
 
   delete model;
 }

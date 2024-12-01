@@ -28,7 +28,7 @@ namespace RZ {
 
   class ConicLens : public OpticalElement {
       GLCappedCylinder        m_cylinder;
-      GLConicCap              m_topCap, m_bottomCap;
+      GLConicCap              m_frontCap, m_backCap;
       ConicLensProcessor     *m_inputProcessor   = nullptr;
       ConicLensProcessor     *m_outputProcessor  = nullptr;
       TranslatedFrame        *m_inputFrame       = nullptr;
@@ -40,20 +40,22 @@ namespace RZ {
       TranslatedFrame        *m_objectPlane      = nullptr;
       TranslatedFrame        *m_imagePlane       = nullptr;
 
-      Real m_radius  = .5;
-      Real m_K       = 0;
-      Real m_rCurv   = 1;
-      Real m_rHole   = 0;
-      Real m_rHole2  = 0;
-      Real m_x0      = 0;
-      Real m_y0      = 0;
+      // Per-surface properties
+      Real m_K[2]           = {0, 0};
+      Real m_focalLength[2] = {5e-2, 5e-2};
+      Real m_rCurv[2]       = {1e-1, 1e-1};
+      bool m_fromFlen[2]    = {false, false};
       
-      Real m_mu      = 1.5;
-      Real m_displacement;
-      Real m_thickness = 5e-3;
+      // Common properties
+      Real m_radius         = 2.5e-2;
+      Real m_x0             = 0;
+      Real m_y0             = 0;
+      Real m_mu             = 1.5;
+      Real m_thickness      = 1e-2;
       
-      Real m_focalLength;
-      bool m_fromFlen = false;
+      // Calculated properties
+      Real m_displacement[2];
+      
       void recalcModel();
 
     protected:

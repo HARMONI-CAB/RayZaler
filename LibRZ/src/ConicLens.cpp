@@ -26,64 +26,64 @@ ConicLens::recalcModel()
 {
   Real R2  = m_radius * m_radius;
 
-  if (m_fromFlen)
-    m_rCurv = 2 * m_focalLength * (m_mu - 1);
-  else
-    m_focalLength = .5 * m_rCurv / (m_mu - 1);
+  Real Rc[2], Rc2[2], sigma[2];
+  bool convex[2];
 
-  Real Rc  = fabs(m_rCurv);
-  Real Rc2 = m_rCurv  * m_rCurv;
-  bool convex = m_rCurv > 0;
-  Real sigma = convex ? 1 : -1;
-  
-  if (isZero(m_K + 1))
-    m_displacement = .5 * R2 / m_rCurv;
-  else
-    m_displacement = (Rc - sqrt(Rc2 - (m_K + 1) * R2)) / (m_K + 1);
-  
+  // Calculate properties of both surfaces.
+  for (auto i = 0; i < 2; ++i) {
+    if (m_fromFlen[i])
+      m_rCurv[i]       = 2 * m_focalLength[i] * (m_mu - 1);
+    else
+      m_focalLength[i] = .5 * m_rCurv[i] / (m_mu - 1);
+
+    Rc[i]     = fabs(m_rCurv[i]);
+    Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
+    convex[i] = m_rCurv[i] > 0;
+    sigma[i]  = convex[i] ? 1 : -1;
+    
+    if (isZero(m_K[i] + 1))
+      m_displacement[i] = .5 * R2 / m_rCurv[i];
+    else
+      m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1); 
+  }
+
   // Input focal plane: located at -f minus half the thickness
-  m_frontFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength)* Vec3::eZ());
-  m_frontFocalPlane->recalculate();
-
-  // Output focal plane: opposite side
-  m_backFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength) * Vec3::eZ());
-  m_backFocalPlane->recalculate();
-
-  m_objectPlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
-  m_objectPlane->recalculate();
-
-  m_imagePlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength) * Vec3::eZ());
-  m_imagePlane->recalculate();
-
-  m_topCap.setRadius(m_radius);
-  m_topCap.setCurvatureRadius(Rc);
-  m_topCap.setConicConstant(m_K);
-  m_topCap.setConvex(!convex);
-  m_topCap.setInvertNormals(true);
-  m_topCap.requestRecalc();
-
-  m_bottomCap.setRadius(m_radius);
-  m_bottomCap.setCurvatureRadius(Rc);
-  m_bottomCap.setConicConstant(m_K);
-  m_bottomCap.setConvex(convex);
-  m_bottomCap.setInvertNormals(false);
-  m_bottomCap.requestRecalc();
-  
-  m_cylinder.setHeight(m_thickness);
-  m_cylinder.setCaps(&m_topCap, &m_bottomCap);
+  m_frontFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength[0])* Vec3::eZ());
+  m_objectPlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength[0]) * Vec3::eZ());
 
   m_inputProcessor->setRadius(m_radius);
-  m_inputProcessor->setCurvatureRadius(Rc);
+  m_inputProcessor->setCurvatureRadius(Rc[0]);
   m_inputProcessor->setRefractiveIndex(1, m_mu);
-  m_inputProcessor->setConicConstant(m_K);
-  m_inputProcessor->setConvex(convex);
+  m_inputProcessor->setConicConstant(m_K[0]);
+  m_inputProcessor->setConvex(convex[0]);
+
+  m_frontCap.setRadius(m_radius);
+  m_frontCap.setCurvatureRadius(Rc[0]);
+  m_frontCap.setConicConstant(m_K[0]);
+  m_frontCap.setConvex(convex[0]);
+  m_frontCap.setInvertNormals(false);
+  m_frontCap.requestRecalc();
+
+  // Output focal plane: opposite side
+  m_backFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength[1]) * Vec3::eZ());
+  m_imagePlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength[1]) * Vec3::eZ());
 
   m_outputProcessor->setRadius(m_radius);
-  m_outputProcessor->setCurvatureRadius(Rc);
+  m_outputProcessor->setCurvatureRadius(Rc[1]);
   m_outputProcessor->setRefractiveIndex(m_mu, 1);
-  m_outputProcessor->setConicConstant(m_K);
-  m_outputProcessor->setConvex(!convex);
+  m_outputProcessor->setConicConstant(m_K[1]);
+  m_outputProcessor->setConvex(!convex[1]);
   
+  m_backCap.setRadius(m_radius);
+  m_backCap.setCurvatureRadius(Rc[1]);
+  m_backCap.setConicConstant(m_K[1]);
+  m_backCap.setConvex(!convex[1]);
+  m_backCap.setInvertNormals(true);
+  m_backCap.requestRecalc();
+  
+  m_cylinder.setHeight(m_thickness);
+  m_cylinder.setRadius(m_radius);
+
   // Intercept surfaces
   m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
   m_inputFrame->recalculate();
@@ -95,11 +95,13 @@ ConicLens::recalcModel()
       Vec3(
         -m_radius,
         -m_radius,
-        fmin(-m_displacement - m_thickness / 2, -m_thickness / 2)),
+        fmin(-m_displacement[1] - m_thickness / 2, -m_thickness / 2)),
       Vec3(
         +m_radius,
         +m_radius,
-        fmax(+m_displacement + m_thickness / 2, +m_thickness / 2)));
+        fmax(+m_displacement[0] + m_thickness / 2, +m_thickness / 2)));
+
+  refreshFrames();
 }
 
 bool
@@ -109,39 +111,46 @@ ConicLens::propertyChanged(
 {
   if (name == "thickness") {
     m_thickness = value;
-    recalcModel();
   } else if (name == "radius") {
     m_radius = value;
-    recalcModel();
   } else if (name == "diameter") {
     m_radius = .5 * static_cast<Real>(value);
-    recalcModel();
   } else if (name == "focalLength") {
-    m_focalLength = static_cast<Real>(value);
-    m_fromFlen = true;
-    recalcModel();
+    return propertyChanged("frontFocalLength", value) 
+        && propertyChanged("backFocalLength", value);
   } else if (name == "curvature") {
-    m_rCurv = value;
-    m_fromFlen = false;
-    recalcModel();
-  } else if (name == "hole") {
-    m_rHole = value;
-    recalcModel();
+    return propertyChanged("frontCurvature", value)
+        && propertyChanged("backCurvature", value);
   } else if (name == "conic") {
-    m_K = value;
-    recalcModel();
+    return propertyChanged("frontConic", value)
+        && propertyChanged("backConic", value);
+  } else if (name == "frontFocalLength") {
+    m_focalLength[0] = static_cast<Real>(value);
+    m_fromFlen[0]    = true;
+  } else if (name == "frontCurvature") {
+    m_rCurv[0]    = value;
+    m_fromFlen[0] = false;
+  } else if (name == "frontConic") {
+    m_K[0] = value;
+  } else if (name == "backFocalLength") {
+    m_focalLength[1] = static_cast<Real>(value);
+    m_fromFlen[1]    = true;
+  } else if (name == "backCurvature") {
+    m_rCurv[1]    = value;
+    m_fromFlen[1] = false;
+  } else if (name == "backConic") {
+    m_K[1] = value;
   } else if (name == "x0") {
     m_x0 = value;
-    recalcModel();
   } else if (name == "y0") {
     m_y0 = value;
-    recalcModel();
   } else if (name == "n") {
     m_mu = value;
-    recalcModel();
   } else {
     return Element::propertyChanged(name, value);
   }
+
+  recalcModel();
 
   return true;
 }
@@ -158,15 +167,24 @@ ConicLens::ConicLens(
   m_inputProcessor->setConvex(true);
   m_outputProcessor->setConvex(false);
 
-  registerProperty("thickness",    1e-2);
-  registerProperty("radius",     2.5e-2);
-  registerProperty("diameter",     5e-2);
-  registerProperty("curvature",   10e-2);
-  registerProperty("focalLength",  5e-2);
-  registerProperty("conic",          0.);
-  registerProperty("x0",             0.);
-  registerProperty("y0",             0.);
-  registerProperty("n",            1.5);
+  registerProperty("thickness",         m_thickness);
+  registerProperty("radius",            m_radius);
+  registerProperty("diameter",          2 * m_radius);
+  registerProperty("x0",                m_x0);
+  registerProperty("y0",                m_y0);
+  registerProperty("n",                 m_mu);
+
+  registerProperty("curvature",         m_rCurv[0]);
+  registerProperty("focalLength",       m_focalLength[0]);
+  registerProperty("conic",             m_K[0]);
+
+  registerProperty("frontCurvature",    m_rCurv[0]);
+  registerProperty("frontFocalLength",  m_focalLength[0]);
+  registerProperty("frontConic",        m_K[0]);
+
+  registerProperty("backCurvature",     m_rCurv[1]);
+  registerProperty("backFocalLength",   m_focalLength[1]);
+  registerProperty("backConic",         m_K[1]);
 
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputFrame", frame, Vec3::zero());
@@ -190,7 +208,6 @@ ConicLens::ConicLens(
   addPort("imagePlane",       m_imagePlane);
 
   m_cylinder.setVisibleCaps(false, false);
-  m_bottomCap.setInvertNormals(true);
 
   refreshProperties();
 }
@@ -231,18 +248,17 @@ ConicLens::nativeMaterialOpenGL(std::string const &role)
 void
 ConicLens::renderOpenGL()
 {
-  material("lens");
-
   glTranslatef(0, 0,  -.5 * m_thickness);
-
-  material("input.lens");
-
-  m_topCap.display();
+  material("output.lens");
+  m_backCap.display();
+  
+  material("lens");
   m_cylinder.display();
 
   glTranslatef(0, 0, m_thickness);
-  material("output.lens");
-  m_bottomCap.display();
+  material("input.lens");
+  m_frontCap.display();
+  
 }
 
 ///////////////////////////////// Factory //////////////////////////////////////

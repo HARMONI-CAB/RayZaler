@@ -42,6 +42,19 @@ TEST_CASE("Element instantiation", THIS_TEST_TAG)
   }
 }
 
+static inline bool
+shouldSkip(std::string const &factory, std::string const &prop)
+{
+  if (prop == "conic" || prop == "frontConic" || prop == "backConic") {
+    if (factory == "ConicMirror" || factory == "ConicLens")
+      return false;
+    else
+      return true;
+  }
+
+  return false;
+}
+
 TEST_CASE("Element property access", THIS_TEST_TAG)
 {
   WorldFrame world("world");
@@ -69,7 +82,7 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
         printf("(hidden)\n");
       } else switch (val.type()) {
         case RealValue:
-          if (p != "ConicMirror" && prop == "conic") {
+          if (shouldSkip(p, prop)) {
             printf("(skipped)\n");
           } else {
             asReal = prevReal = std::get<Real>(val);
