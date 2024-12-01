@@ -38,6 +38,9 @@ ApertureStop::recalcModel()
   setBoundingBox(
     Vec3(-m_width / 2, -m_height/2, 0),
     Vec3(+m_width / 2, +m_height/2, 0));
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool
@@ -50,7 +53,7 @@ ApertureStop::propertyChanged(
     recalcModel();
     return true;
   } else if (name == "diameter") {
-    m_radius = static_cast<Real>(value);
+    m_radius = 0.5 * static_cast<Real>(value);
     recalcModel();
     return true;
   } else if (name == "width") {

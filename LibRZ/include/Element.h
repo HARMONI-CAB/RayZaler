@@ -180,7 +180,8 @@ namespace RZ {
       virtual bool propertyChanged(std::string const &, PropertyValue const &);
 
       void setBoundingBox(Vec3 const &p1, Vec3 const &p2);
-
+      void updatePropertyValue(std::string const &, PropertyValue const &);
+      
       Element(
         ElementFactory *,
         std::string const &,

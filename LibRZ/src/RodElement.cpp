@@ -30,39 +30,36 @@ using namespace RZ;
 void
 RodElement::recalcBoundingBox()
 {
+  m_sides[0]->setDistance(m_cachedLength * Vec3::eZ());
+  m_sides[1]->setDistance(
+        0.5 * m_cachedDiameter * Vec3::eX()
+      + 0.5 * m_cachedLength   * Vec3::eZ());
+  
   setBoundingBox(
     Vec3(-m_cachedDiameter / 2, -m_cachedDiameter / 2, -m_cachedLength/2),
     Vec3(+m_cachedDiameter / 2, +m_cachedDiameter / 2, +m_cachedLength/2));
+
+  updatePropertyValue("diameter", m_cachedDiameter);
+  updatePropertyValue("radius", 0.5 * m_cachedDiameter);
+
+  refreshFrames();
 }
 
 bool
 RodElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
-  Real value = val;
-  bool middleChanged = false;
+  if (name == "length")
+    m_cachedLength = val;
+  else if (name == "radius")
+    m_cachedDiameter = 2. * (Real) val;
+  else if (name == "diameter")
+    m_cachedDiameter = val;
+  else
+    return Element::propertyChanged(name, val);
 
-  if (name == "length") {
-    m_sides[0]->setDistance(value * Vec3::eZ());
-    m_sides[0]->recalculate();
-    m_cachedLength = value;
-    middleChanged = true;
-  } else if (name == "diameter") {
-    m_cachedDiameter = value;
-    middleChanged = true;
-  }
-  
-  if (middleChanged) {
-    m_sides[1]->setDistance(
-        0.5 * m_cachedDiameter * Vec3::eX()
-      + 0.5 * m_cachedLength   * Vec3::eZ());
-    m_sides[1]->recalculate();
-    m_cylinder.setHeight(m_cachedLength);
-    m_cylinder.setRadius(.5 * m_cachedDiameter);
-    recalcBoundingBox();
-    return true;
-  }
+  recalcBoundingBox();
 
-  return Element::propertyChanged(name, val);
+  return true;
 }
 
 void
@@ -117,6 +114,7 @@ RodElement::RodElement(
 {
   registerProperty("length",   ROD_DEFAULT_LENGTH);
   registerProperty("diameter", ROD_DEFAULT_DIAMETER);
+  registerProperty("radius",   0.5 * ROD_DEFAULT_DIAMETER);
 
   m_cachedLength   = ROD_DEFAULT_LENGTH;
   m_cachedDiameter = ROD_DEFAULT_DIAMETER;

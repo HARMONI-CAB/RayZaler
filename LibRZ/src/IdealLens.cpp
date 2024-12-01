@@ -32,20 +32,18 @@ IdealLens::recalcModel()
   m_processor->setFocalLength(m_fLen);
 
   m_frontFocalPlane->setDistance(+m_fLen * Vec3::eZ());
-  m_frontFocalPlane->recalculate();
-
   m_backFocalPlane->setDistance(-m_fLen * Vec3::eZ());
-  m_backFocalPlane->recalculate();
-
   m_objectPlane->setDistance(+2 * m_fLen * Vec3::eZ());
-  m_objectPlane->recalculate();
-
   m_imagePlane->setDistance(-2 * m_fLen * Vec3::eZ());
-  m_imagePlane->recalculate();
   
   setBoundingBox(
       Vec3(-m_radius, -m_radius, 0),
       Vec3(+m_radius, +m_radius, 0));
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
+
+  refreshFrames();
 }
 
 bool

@@ -266,6 +266,17 @@ Element::setBoundingBox(Vec3 const &p1, Vec3 const &p2)
 }
 
 void
+Element::updatePropertyValue(std::string const &name, PropertyValue const &val)
+{
+  auto it = m_properties.find(name);
+
+  if (it == m_properties.end())
+    throw std::runtime_error("Cannot update property `" + name + "': property not found");
+
+  it->second = val;
+}
+
+void
 Element::boundingBox(Vec3 &p1, Vec3 &p2)
 {
   if (m_parentFrame == nullptr) {

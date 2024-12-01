@@ -34,23 +34,21 @@ Tripod::propertyChanged(std::string const &name, PropertyValue const &val)
   if (name == "leg1") {
     m_leg1 = val;
     m_surface->setLeg(0, m_leg1);
-    m_surface->recalculate();
   } else if (name == "leg2") {
     m_leg2 = val;
     m_surface->setLeg(1, m_leg2);
-    m_surface->recalculate();
   } else if (name == "leg3") {
     m_leg3 = val;
     m_surface->setLeg(2, m_leg3);
-    m_surface->recalculate();
   } else if (name == "radius") {
     m_ta_radius = val;
     m_surface->setRadius(m_ta_radius);
-    m_surface->recalculate();
+  } else if (name == "diameter") {
+    m_ta_radius = 0.5 * (Real) val;
+    m_surface->setRadius(m_ta_radius);
   } else if (name == "angle") {
     m_ta_angle  = val;
     m_surface->setAngle(m_ta_angle);
-    m_surface->recalculate();
   } else if (name == "legDiameter") {
     m_legDiameter  = val;
   } else {
@@ -89,6 +87,11 @@ Tripod::recalcLegs()
   m_glLegs[0].setHeight(m_leg1);
   m_glLegs[1].setHeight(m_leg2);
   m_glLegs[2].setHeight(m_leg3);
+
+  updatePropertyValue("radius",   m_ta_radius);
+  updatePropertyValue("diameter", 2 * m_ta_radius);
+  
+  refreshFrames();
 }
 
 void
@@ -120,11 +123,12 @@ Tripod::Tripod(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("leg1",   m_leg1);
-  registerProperty("leg2",   m_leg2);
-  registerProperty("leg3",   m_leg3);
-  registerProperty("radius", m_ta_radius);
-  registerProperty("angle",  m_ta_angle);
+  registerProperty("leg1",        m_leg1);
+  registerProperty("leg2",        m_leg2);
+  registerProperty("leg3",        m_leg3);
+  registerProperty("radius",      m_ta_radius);
+  registerProperty("diameter",    2 * m_ta_radius);
+  registerProperty("angle",       m_ta_angle);
 
   registerProperty("legDiameter", m_legDiameter);
 

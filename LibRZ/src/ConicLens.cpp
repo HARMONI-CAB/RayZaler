@@ -102,6 +102,12 @@ ConicLens::recalcModel()
         fmax(+m_displacement[0] + m_thickness / 2, +m_thickness / 2)));
 
   refreshFrames();
+
+  updatePropertyValue("focalLength", 0.5 * (m_focalLength[0] + m_focalLength[1]));
+  updatePropertyValue("curvature",   0.5 * (m_rCurv[0]       + m_rCurv[1]));
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool

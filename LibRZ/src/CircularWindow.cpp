@@ -42,6 +42,9 @@ CircularWindow::recalcModel()
       Vec3(-m_radius, -m_radius, -m_thickness/2),
       Vec3(+m_radius, +m_radius, +m_thickness/2));
   
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
+
   refreshFrames();
 }
 

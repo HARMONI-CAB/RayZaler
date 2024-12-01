@@ -30,6 +30,9 @@ Obstruction::recalcModel()
   setBoundingBox(
       Vec3(-m_radius, -m_radius, 0),
       Vec3(+m_radius, +m_radius, 0));
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool

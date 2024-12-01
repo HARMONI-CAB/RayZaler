@@ -93,6 +93,12 @@ ConicMirror::recalcModel()
   setBoundingBox(
       Vec3(-m_radius, -m_radius, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
       Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
+
+  updatePropertyValue("focalLength", 0.5 * m_rCurv);
+  updatePropertyValue("curvature",   m_rCurv);
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool

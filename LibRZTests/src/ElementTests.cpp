@@ -140,6 +140,92 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
   }
 }
 
+TEST_CASE("Well known property tests", THIS_TEST_TAG)
+{
+  WorldFrame world("world");
+  
+  for (auto &p : Singleton::instance()->elementFactories()) {
+    auto factory = Singleton::instance()->lookupElementFactory(p);
+    REQUIRE(factory != nullptr);
+
+    auto element = factory->make(p, &world, nullptr);
+    REQUIRE(element != nullptr);
+
+    printf("Testing %s...\n", p.c_str());
+
+    REQUIRE(element->hasProperty("radius")    == element->hasProperty("diameter"));
+    
+    if (element->hasProperty("radius")) {
+      printf("  - Testing for diameter <=> radius equivalence...\n");
+      for (auto i = 0; i < 100; ++i) {
+        Real radius = 1e-2 * RZ_URANDSIGN + 1e-1;
+        auto val = element->get("radius");
+        REQUIRE(val.type() == RealValue);
+        REQUIRE(element->set("radius", radius));
+        val = element->get("diameter");
+        REQUIRE(val.type() != UndefinedValue);
+        REQUIRE(releq((Real) val, 2 * radius));
+      }
+
+      for (auto i = 0; i < 100; ++i) {
+        Real diameter = 1e-2 * RZ_URANDSIGN + 1e-1;
+        auto val = element->get("diameter");
+        REQUIRE(val.type() == RealValue);
+        REQUIRE(element->set("diameter", diameter));
+        val = element->get("radius");
+        REQUIRE(val.type() != UndefinedValue);
+        REQUIRE(releq(val, .5 * diameter));
+      }
+    }
+
+    if (element->hasProperty("focalLength") && element->hasProperty("curvature")) {
+      bool isLens = p.find("Lens") != -1;
+      Real mu;
+
+      // For lenses, the relationship between curvature radius and focal
+      // length is different, as it involves the reffractive index.
+      if (isLens) {
+        auto val = element->get("n");
+
+        REQUIRE(val.type() != UndefinedValue);
+        REQUIRE(val.type() == RealValue);
+
+        mu = (Real) val;
+      }
+
+      printf("  - Testing for focal length <=> curvature radius equivalence...\n");
+      for (auto i = 0; i < 100; ++i) {
+        Real focalLength = 1e-2 * RZ_URANDSIGN + 1e-1;
+        auto val = element->get("focalLength");
+        REQUIRE(val.type() == RealValue);
+        REQUIRE(element->set("focalLength", focalLength));
+        val = element->get("curvature");
+        REQUIRE(val.type() != UndefinedValue);
+
+        if (isLens)
+          REQUIRE(releq(val, 2 * focalLength * (mu - 1)));
+        else
+          REQUIRE(releq(val, 2 * focalLength));
+      }
+
+      for (auto i = 0; i < 100; ++i) {
+        Real curvature = 1e-2 * RZ_URANDSIGN + 1e-1;
+        auto val = element->get("curvature");
+        REQUIRE(val.type() == RealValue);
+        REQUIRE(element->set("curvature", curvature));
+        val = element->get("focalLength");
+        REQUIRE(val.type() != UndefinedValue);
+
+        if (isLens)
+          REQUIRE(releq(val, .5 * curvature / (mu - 1)));
+        else
+          REQUIRE(releq(val, .5 * curvature));
+      }
+    }
+
+    delete element;
+  }
+}
 
 TEST_CASE("Element port access", THIS_TEST_TAG)
 {

@@ -51,6 +51,9 @@ FlatMirror::recalcModel()
       Vec3(-m_width / 2, -m_height / 2, backPlane),
       Vec3(+m_width / 2, +m_height / 2, frontPlane));
 
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
+  
   refreshFrames();
 }
 

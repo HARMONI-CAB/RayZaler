@@ -70,6 +70,9 @@ LensletArray::recalcModel()
       Vec3(-m_width / 2, -m_height / 2, -m_thickness / 2),
       Vec3(+m_width / 2, +m_height / 2, +m_thickness / 2));
 
+  updatePropertyValue("focalLength",  m_f);
+  updatePropertyValue("curvature",    m_rCurv);
+
   refreshFrames();
 }
 
