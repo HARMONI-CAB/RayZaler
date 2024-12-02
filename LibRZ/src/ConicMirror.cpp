@@ -30,6 +30,9 @@ ConicMirror::recalcModel()
   bool convex = m_rCurv < 0;
   Real sigma = convex ? 1 : -1;
   
+  if (m_rHole + m_thickness > m_radius)
+    m_rHole = fmax(0, m_radius - m_thickness);
+
   if (isZero(m_K + 1)) {
     m_displacement = .5 * R2 / m_rCurv;
     m_rHoleHeight  = .5 * m_rHole * m_rHole / m_rCurv;
@@ -70,10 +73,6 @@ ConicMirror::recalcModel()
   m_reflectiveSurfaceFrame->setDistance(apertureZ * Vec3::eZ());
   m_aperturePort->setDistance(apertureZ * Vec3::eZ());
   m_vertexPort->setDistance((m_thickness + backPlaneZ) * Vec3::eZ());
-
-  m_reflectiveSurfaceFrame->recalculate();
-  m_aperturePort->recalculate();
-  m_vertexPort->recalculate();
   
   m_processor->setRadius(m_radius);
   m_processor->setCurvatureRadius(Rc);
@@ -94,11 +93,14 @@ ConicMirror::recalcModel()
       Vec3(-m_radius, -m_radius, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
       Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
 
+  updatePropertyValue("hole",        m_rHole);
   updatePropertyValue("focalLength", 0.5 * m_rCurv);
   updatePropertyValue("curvature",   m_rCurv);
 
   updatePropertyValue("radius",   m_radius);
   updatePropertyValue("diameter", 2 * m_radius);
+
+  refreshFrames();
 }
 
 bool
@@ -106,40 +108,30 @@ ConicMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  if (name == "thickness") {
+  if (name == "thickness")
     m_thickness = value;
-    recalcModel();
-  } else if (name == "vertexRelative") {
+  else if (name == "vertexRelative")
     m_vertexRelative = static_cast<bool>(value);
-    recalcModel();
-  } else if (name == "radius") {
+  else if (name == "radius")
     m_radius = value;
-    recalcModel();
-  } else if (name == "diameter") {
+  else if (name == "diameter")
     m_radius = .5 * static_cast<Real>(value);
-    recalcModel();
-  } else if (name == "focalLength") {
+  else if (name == "focalLength")
     m_rCurv = 2 * static_cast<Real>(value);
-    recalcModel();
-  } else if (name == "curvature") {
+  else if (name == "curvature")
     m_rCurv = value;
-    recalcModel();
-  } else if (name == "hole") {
+  else if (name == "hole")
     m_rHole = value;
-    recalcModel();
-  } else if (name == "conic") {
+  else if (name == "conic")
     m_K = value;
-    recalcModel();
-  } else if (name == "x0") {
+  else if (name == "x0")
     m_x0 = value;
-    recalcModel();
-  } else if (name == "y0") {
+  else if (name == "y0")
     m_y0 = value;
-    recalcModel();
-  } else {
+  else
     return Element::propertyChanged(name, value);
-  }
 
+  recalcModel();
   return true;
 }
 
@@ -151,15 +143,15 @@ ConicMirror::ConicMirror(
 {
   m_processor = new ConicMirrorProcessor;
 
-  registerProperty("thickness",    1e-2);
-  registerProperty("radius",     2.5e-2);
-  registerProperty("diameter",     5e-2);
-  registerProperty("curvature",   10e-2);
-  registerProperty("focalLength",  5e-2);
-  registerProperty("conic",          0.);
-  registerProperty("hole",           0.);
-  registerProperty("x0",             0.);
-  registerProperty("y0",             0.);
+  registerProperty("thickness",      m_thickness);
+  registerProperty("radius",         m_radius);
+  registerProperty("diameter",       2 * m_radius);
+  registerProperty("curvature",      m_rCurv);
+  registerProperty("focalLength",    0.5 * m_rCurv);
+  registerProperty("conic",          m_K);
+  registerProperty("hole",           m_rHole);
+  registerProperty("x0",             m_x0);
+  registerProperty("y0",             m_y0);
   registerProperty("vertexRelative", false);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf",  frame, Vec3::zero());
