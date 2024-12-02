@@ -942,7 +942,7 @@ RZGUIGLWidget::zoomToBox(RZ::Vec3 const &p1, RZ::Vec3 const &p2)
     // Correct zoom
     auto geom = s2 - s1;
     RZ::Real zoom;
-    if (geom.x > geom.y)
+    if (geom.x < geom.y)
       zoom = m_width / (1e-12 + geom.x);
     else
       zoom = m_height / (1e-12 + geom.y);
