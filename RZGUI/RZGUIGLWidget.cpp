@@ -34,7 +34,7 @@
 RZGUIGLWidget::RZGUIGLWidget(QWidget *parent) : QOpenGLWidget(parent)
 {
   setMouseTracking(true);
-
+  setFocusPolicy(Qt::StrongFocus);
 
   m_glLabelText.setFace("gridfont");
 
