@@ -215,7 +215,7 @@ ConicLens::ConicLens(
 
   m_cylinder.setVisibleCaps(false, false);
 
-  refreshProperties();
+  recalcModel();
 }
 
 ConicLens::~ConicLens()
