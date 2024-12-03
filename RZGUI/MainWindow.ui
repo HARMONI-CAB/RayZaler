@@ -759,10 +759,10 @@ color: white;
      <normaloff>:/toolbar/icons/toggle-aperture.svg</normaloff>:/toolbar/icons/toggle-aperture.svg</iconset>
    </property>
    <property name="text">
-    <string>&amp;Show/hide apertures</string>
+    <string>&amp;Show/hide surfaces</string>
    </property>
    <property name="toolTip">
-    <string>Toggle display apertures</string>
+    <string>Toggle display optical surfaces</string>
    </property>
   </action>
   <action name="actionToggleElements">

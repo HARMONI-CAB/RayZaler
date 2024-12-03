@@ -134,6 +134,19 @@ GenericComponentParamEvaluator::assign()
 
     switch (type) {
       case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
+        if (element->get(param).type() == UndefinedValue)
+          throw std::runtime_error(
+            element->name() + " (" + element->factory()->name() + ") has "
+            + "no property named `" + param + "'");
+
+        if (element->get(param).type() != StringValue)
+          throw std::runtime_error(
+              "Property `" 
+              + param 
+              + "' of "
+              + element->name() + " (" + element->factory()->name() + ") must be "
+              + "a literal string");
+
         element->set(param, value);
         break;
 
@@ -182,8 +195,22 @@ GenericComponentParamEvaluator::assign()
       }
     }
   } else {
+    // No evaluator. This is basically a string.
     switch (type) {
       case GENERIC_MODEL_PARAM_TYPE_ELEMENT:
+        if (element->get(param).type() == UndefinedValue)
+          throw std::runtime_error(
+              element->name() + " (" + element->factory()->name() + ") has "
+              + "no property named `" + param + "'");
+
+        if (element->get(param).type() != StringValue)
+          throw std::runtime_error(
+              "Property `" 
+              + param 
+              + "' of "
+              + element->name() + " (" + element->factory()->name() + ") cannot be "
+              + "a literal string");
+        
         element->set(param, assignString);
         break;
 
