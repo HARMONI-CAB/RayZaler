@@ -59,7 +59,6 @@ static const char *g_idealFocusLens =
   "dof D = 5e-2;"
 
   "IdealLens L1("
-  "  thickness   = 2e-3,"
   "  focalLength = focalLength,"
   "  diameter    = D);"
 

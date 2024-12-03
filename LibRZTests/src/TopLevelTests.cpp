@@ -43,6 +43,49 @@ TEST_CASE("Basic element creation", THIS_TEST_TAG)
   delete model;
 }
 
+TEST_CASE("Element property resolution", THIS_TEST_TAG)
+{
+  bool exceptOnExisting = false;
+  try {
+    auto model = TopLevelModel::fromString("BlockElement block (width = 1);");
+    delete model;
+  } catch (std::runtime_error const &e) {
+    exceptOnExisting = true;
+  }
+
+  REQUIRE(!exceptOnExisting);
+
+  bool exceptOnNonExisting = false;
+  try {
+    auto model = TopLevelModel::fromString("BlockElement block (nonExistent = 1);");
+    delete model;
+  } catch (std::runtime_error const &e) {
+    exceptOnNonExisting = true;
+  }
+
+  REQUIRE(exceptOnNonExisting);
+
+  bool exceptOnString = false;
+  try {
+    auto model = TopLevelModel::fromString("BlockElement block (width = \"1\");");
+    delete model;
+  } catch (std::runtime_error const &e) {
+    exceptOnString = true;
+  }
+
+  REQUIRE(exceptOnString);
+
+  bool exceptOnReal = false;
+  try {
+    auto model = TopLevelModel::fromString("StlMesh mesh(file = 3);");
+    delete model;
+  } catch (std::runtime_error const &e) {
+    exceptOnReal = true;
+  }
+
+  REQUIRE(exceptOnReal);
+}
+
 TEST_CASE("DOF + translation", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(
@@ -268,3 +311,4 @@ TEST_CASE("Element rotation and translation", THIS_TEST_TAG)
 
   delete model;
 }
+

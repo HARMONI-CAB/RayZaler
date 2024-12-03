@@ -139,7 +139,7 @@ GenericComponentParamEvaluator::assign()
             element->name() + " (" + element->factory()->name() + ") has "
             + "no property named `" + param + "'");
 
-        if (element->get(param).type() != StringValue)
+        if (element->get(param).type() == StringValue)
           throw std::runtime_error(
               "Property `" 
               + param 
