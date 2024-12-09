@@ -149,6 +149,9 @@ FlatMirror::renderOpenGL()
   
   glPushMatrix();
 
+  if (m_vertexRelative)
+    glTranslatef(0, 0, -m_thickness);
+  
   glScalef(m_a, m_b, 1);
   m_cylinder.display();
 
