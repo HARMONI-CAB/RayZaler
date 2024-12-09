@@ -18,6 +18,7 @@
 
 #include <FlatMirror.h>
 #include <TranslatedFrame.h>
+#include <RotatedFrame.h>
 #include <Surfaces/Circular.h>
 #include <Logger.h>
 
@@ -43,6 +44,7 @@ FlatMirror::recalcModel()
   }
 
   m_reflectiveSurfaceFrame->setDistance(frontPlane * Vec3::eZ());
+  m_baseFrame->setDistance(backPlane * Vec3::eZ());
 
   m_a = .5 * m_width  / m_radius;
   m_b = .5 * m_height / m_radius;
@@ -112,10 +114,13 @@ FlatMirror::FlatMirror(
   registerProperty("vertexRelative", false);
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
+  m_baseFrame              = new TranslatedFrame("basePos", frame, Vec3::zero());
+  m_flipFrame              = new RotatedFrame("base", m_baseFrame, Vec3::eX(), M_PI);
 
   pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
   addPort("vertex", m_reflectiveSurfaceFrame);
-  
+  addPort("base", m_flipFrame);
+
   m_cylinder.setVisibleCaps(true, true);
   
   recalcModel();
@@ -126,8 +131,11 @@ FlatMirror::~FlatMirror()
   if (m_processor != nullptr)
     delete m_processor;
 
-  if (m_vertexFrame != nullptr)
-    delete m_vertexFrame;
+  if (m_baseFrame != nullptr)
+    delete m_baseFrame;
+
+  if (m_flipFrame != nullptr)
+    delete m_flipFrame;
 }
 
 void
