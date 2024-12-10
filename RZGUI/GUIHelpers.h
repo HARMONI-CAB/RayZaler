@@ -117,7 +117,7 @@ wl2uint32_t(qreal w)
 
 void sensibleUnits(qreal &, qreal &, QString &);
 void sensibleUnits(qreal &, QString &);
-QString toSensibleUnits(qreal val);
+QString toSensibleUnits(qreal val, int digits = 3);
 QString asScientific(qreal);
 QString toSuperIndex(QString const &);
 QString timeDeltaToString(struct timeval const &);

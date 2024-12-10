@@ -193,13 +193,20 @@ sensibleUnits(qreal &value, QString &units)
 }
 
 QString
-toSensibleUnits(qreal val)
+toSensibleUnits(qreal val, int digits)
 {
   QString units;
 
   sensibleUnits(val, units);
 
-  return QString::asprintf("%.3g ", val) + units;
+  if (RZ::isZero(val, std::numeric_limits<qreal>::epsilon()))
+    return "0 " + units;
+
+  qreal pos = floor(log10(val));
+  qreal nor = val * pow(10., -pos);
+  qreal adj = round(nor * pow(10., digits - 1)) * pow(10., pos + 1 - digits);
+
+  return QString::number(adj, 'g', digits) + " " + units;
 }
 
 QString

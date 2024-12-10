@@ -60,12 +60,11 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
   qreal maxRad = 0;
   qreal rmsRad = 0;
   qreal R2     = 0;
+
   size_t N     =  fp->locations.size() / 3;
 
-  RZ::Vec3 center = sumPrecise<RZ::Vec3>(asVec3, N);
+  qreal minP[2], maxP[2];
 
-  qreal x0 = center.x / N;
-  qreal y0 = center.y / N;
   size_t totalRays = fp->transmitted + fp->vignetted;
 
   ui->chiefCenterLabel->setText(
@@ -73,14 +72,21 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
         + ", "
         + toSensibleUnits(fp->locations[1]));
 
-  if (totalRays == 0) {
+  if (N <= 1) {
     ui->totalRaysLabel->setText("None");
     ui->vignettedRaysLabel->setText("None");
     ui->estimatedFLabel->setText("N/A");
     ui->centerLabel->setText("N/A");
     ui->maxRadiusLabel->setText("N/A");
     ui->rmsRadiusLabel->setText("N/A");
+    ui->widthLabel->setText("N/A");
+    ui->heightLabel->setText("N/A");
   } else {
+    RZ::Vec3 center = sumPrecise<RZ::Vec3>(asVec3 + 1, N - 1);
+
+    qreal x0 = center.x / static_cast<qreal>(N - 1);
+    qreal y0 = center.y / static_cast<qreal>(N - 1);
+
     qreal vignRate =
         1e2 * static_cast<qreal>(fp->vignetted)
         / static_cast<qreal>(totalRays);
@@ -97,9 +103,18 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
 
     RZ::Vec3 chiefRayDirection(fp->directions.data());
 
+    minP[0] = maxP[0] = fp->locations[3];
+    minP[1] = maxP[1] = fp->locations[4];
+
     for (size_t i = 3; i < fp->locations.size(); i += 3) {
       qreal x = fp->locations[i] - x0;
       qreal y = fp->locations[i + 1] - y0;
+
+      minP[0] = fmin(x, minP[0]);
+      minP[1] = fmin(y, minP[1]);
+
+      maxP[0] = fmax(x, maxP[0]);
+      maxP[1] = fmax(y, maxP[1]);
 
       R2 = x * x + y * y;
       maxRad = fmax(R2, maxRad);
@@ -116,6 +131,9 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
 
     ui->maxRadiusLabel->setText(toSensibleUnits(maxRad));
     ui->rmsRadiusLabel->setText(toSensibleUnits(rmsRad));
+
+    ui->widthLabel->setText(toSensibleUnits(maxP[0] - minP[0]));
+    ui->heightLabel->setText(toSensibleUnits(maxP[1] - minP[1]));
 
     if (fabs(fNum) > 1e14)
       ui->estimatedFLabel->setText("(collimated)");

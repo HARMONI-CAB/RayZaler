@@ -203,15 +203,19 @@ SpotDiagramWindow::transferFootprint(SurfaceFootprint &newFootprint)
   m_footprints.push_back(std::move(newFootprint));
 
   auto &footprint = m_footprints.back();
-
   auto infoWidget = new FootprintInfoWidget(&footprint, this);
-
   ui->verticalLayout->insertWidget(m_infoWidgets.size(), infoWidget);
-
   m_infoWidgets.push_back(infoWidget);
 
+  QColor darkerColor = QColor::fromRgb(footprint.color);
+
+  darkerColor.setHsvF(
+        darkerColor.hsvHueF(),
+        darkerColor.hsvSaturationF(),
+        qBound(0.0f, darkerColor.valueF(), .5f));
+
   RZ::ScatterSet *set = new RZ::ScatterSet(
-        footprint.color,
+        darkerColor.rgb(),
         footprint.locations,
         footprint.label,
         3,                        // Stride is 3 (3D vectors)

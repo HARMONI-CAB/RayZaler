@@ -227,7 +227,7 @@ void
 DataProductWidget::paintGrid(QPainter &p) const
 {
   QPen pen;
-  QColor gridColor    = QColor(128, 128, 128);
+  QColor gridColor    = QColor::fromHsvF(0, 0, 0.75f);
   QPointF topLeft     = px2loc(m_gridTopLeft);
   QPointF bottomRight = px2loc(m_gridBottomRight);
 
