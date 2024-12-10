@@ -107,14 +107,17 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
     minP[1] = maxP[1] = fp->locations[4];
 
     for (size_t i = 3; i < fp->locations.size(); i += 3) {
-      qreal x = fp->locations[i] - x0;
-      qreal y = fp->locations[i + 1] - y0;
+      qreal xAbs = fp->locations[i];
+      qreal yAbs = fp->locations[i + 1];
 
-      minP[0] = fmin(x, minP[0]);
-      minP[1] = fmin(y, minP[1]);
+      qreal x = xAbs - x0;
+      qreal y = yAbs - y0;
 
-      maxP[0] = fmax(x, maxP[0]);
-      maxP[1] = fmax(y, maxP[1]);
+      minP[0] = fmin(xAbs, minP[0]);
+      minP[1] = fmin(yAbs, minP[1]);
+
+      maxP[0] = fmax(xAbs, maxP[0]);
+      maxP[1] = fmax(yAbs, maxP[1]);
 
       R2 = x * x + y * y;
       maxRad = fmax(R2, maxRad);
@@ -125,6 +128,11 @@ FootprintInfoWidget::setFootprint(SurfaceFootprint const *fp)
       c = (t - rmsRad) - corr;
       rmsRad = t;
     }
+
+    ui->bbCenterLabel->setText(
+          toSensibleUnits(.5 * (maxP[0] + minP[0])) +
+          ", " +
+          toSensibleUnits(.5 * (maxP[1] + minP[1])));
 
     rmsRad = sqrt(rmsRad / static_cast<qreal>(N));
     maxRad = sqrt(maxRad);
