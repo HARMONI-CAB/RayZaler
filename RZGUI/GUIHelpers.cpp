@@ -202,7 +202,7 @@ toSensibleUnits(qreal val, int digits)
   if (RZ::isZero(val, std::numeric_limits<qreal>::epsilon()))
     return "0 " + units;
 
-  qreal pos = floor(log10(val));
+  qreal pos = floor(log10(fabs(val)));
   qreal nor = val * pow(10., -pos);
   qreal adj = round(nor * pow(10., digits - 1)) * pow(10., pos + 1 - digits);
 
