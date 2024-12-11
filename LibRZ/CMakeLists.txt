@@ -18,15 +18,7 @@ if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
 endif()
 
 set(LIBRZ_SOURCES
-  ${LIBRZ_SRCDIR}/ApertureStop.cpp
-  ${LIBRZ_SRCDIR}/BenchElement.cpp
-  ${LIBRZ_SRCDIR}/BlockElement.cpp
-  ${LIBRZ_SRCDIR}/Detector.cpp
-  ${LIBRZ_SRCDIR}/FlatMirror.cpp
-  ${LIBRZ_SRCDIR}/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/CompositeElement.cpp
-  ${LIBRZ_SRCDIR}/ConicLens.cpp
-  ${LIBRZ_SRCDIR}/ConicMirror.cpp
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/DataProduct.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
@@ -37,44 +29,56 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/GLRenderEngine.cpp
   ${LIBRZ_SRCDIR}/GLHelpers.cpp
   ${LIBRZ_SRCDIR}/Helpers.cpp
-  ${LIBRZ_SRCDIR}/IdealLens.cpp
   ${LIBRZ_SRCDIR}/IncrementalRotation.cpp
-  ${LIBRZ_SRCDIR}/LensletArray.cpp
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
   ${LIBRZ_SRCDIR}/Logger.cpp
   ${LIBRZ_SRCDIR}/ModelRenderer.cpp
-  ${LIBRZ_SRCDIR}/Obstruction.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
-  ${LIBRZ_SRCDIR}/ParabolicLens.cpp
-  ${LIBRZ_SRCDIR}/ParabolicMirror.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
-  ${LIBRZ_SRCDIR}/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/Random.cpp
-  ${LIBRZ_SRCDIR}/RayBeamElement.cpp
   ${LIBRZ_SRCDIR}/RayProcessors.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
-  ${LIBRZ_SRCDIR}/RectangularStop.cpp
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
-  ${LIBRZ_SRCDIR}/RodElement.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/RZGLModel.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/SkySampler.cpp
-  ${LIBRZ_SRCDIR}/SphericalLens.cpp
-  ${LIBRZ_SRCDIR}/SphericalMirror.cpp
-  ${LIBRZ_SRCDIR}/StlMesh.cpp
   ${LIBRZ_SRCDIR}/SurfaceShape.cpp
   ${LIBRZ_SRCDIR}/TopLevelModel.cpp
-  ${LIBRZ_SRCDIR}/Tripod.cpp
   ${LIBRZ_SRCDIR}/TripodFrame.cpp
   ${LIBRZ_SRCDIR}/TranslatedFrame.cpp
-  ${LIBRZ_SRCDIR}/TubeElement.cpp
   ${LIBRZ_SRCDIR}/WorldFrame.cpp
   ${LIBRZ_SRCDIR}/Zernike.cpp
   
+  ${LIBRZ_SRCDIR}/DataProducts/Scatter.cpp
+  ${LIBRZ_SRCDIR}/DataProducts/ScatterTree.cpp
+
+  ${LIBRZ_SRCDIR}/Elements/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/Elements/BenchElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/BlockElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/CircularWindow.cpp
+  ${LIBRZ_SRCDIR}/Elements/ConicLens.cpp
+  ${LIBRZ_SRCDIR}/Elements/ConicMirror.cpp
+  ${LIBRZ_SRCDIR}/Elements/Detector.cpp
+  ${LIBRZ_SRCDIR}/Elements/FlatMirror.cpp
+  ${LIBRZ_SRCDIR}/Elements/IdealLens.cpp
+  ${LIBRZ_SRCDIR}/Elements/LensletArray.cpp
+  ${LIBRZ_SRCDIR}/Elements/Obstruction.cpp
+  ${LIBRZ_SRCDIR}/Elements/ParabolicLens.cpp
+  ${LIBRZ_SRCDIR}/Elements/ParabolicMirror.cpp
+  ${LIBRZ_SRCDIR}/Elements/PhaseScreen.cpp
+  ${LIBRZ_SRCDIR}/Elements/RayBeamElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/RectangularStop.cpp
+  ${LIBRZ_SRCDIR}/Elements/RodElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/SphericalLens.cpp
+  ${LIBRZ_SRCDIR}/Elements/SphericalMirror.cpp
+  ${LIBRZ_SRCDIR}/Elements/StlMesh.cpp
+  ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
+  ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
+
   ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/RayProcessors/ConicLens.cpp
@@ -98,21 +102,10 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Samplers/Map.cpp
   ${LIBRZ_SRCDIR}/Samplers/Point.cpp
   ${LIBRZ_SRCDIR}/Samplers/Ring.cpp
-  ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp
-  
-  ${LIBRZ_SRCDIR}/DataProducts/Scatter.cpp
-  ${LIBRZ_SRCDIR}/DataProducts/ScatterTree.cpp)
+  ${LIBRZ_SRCDIR}/Samplers/Sampler.cpp)
 
 set(LIBRZ_HEADERS
-  ${LIBRZ_INCLUDEDIR}/ApertureStop.h
-  ${LIBRZ_INCLUDEDIR}/BenchElement.h
-  ${LIBRZ_INCLUDEDIR}/BlockElement.h
-  ${LIBRZ_INCLUDEDIR}/FlatMirror.h
-  ${LIBRZ_INCLUDEDIR}/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
-  ${LIBRZ_INCLUDEDIR}/ConicLens.h
-  ${LIBRZ_INCLUDEDIR}/ConicMirror.h
-  ${LIBRZ_INCLUDEDIR}/Detector.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
@@ -123,44 +116,57 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/GLModel.h
   ${LIBRZ_INCLUDEDIR}/GLRenderEngine.h
   ${LIBRZ_INCLUDEDIR}/Helpers.h
-  ${LIBRZ_INCLUDEDIR}/IdealLens.h
   ${LIBRZ_INCLUDEDIR}/IncrementalRotation.h
-  ${LIBRZ_INCLUDEDIR}/LensletArray.h
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
   ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
-  ${LIBRZ_INCLUDEDIR}/Obstruction.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
-  ${LIBRZ_INCLUDEDIR}/ParabolicLens.h
-  ${LIBRZ_INCLUDEDIR}/ParabolicMirror.h
-  ${LIBRZ_INCLUDEDIR}/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/Random.h
-  ${LIBRZ_INCLUDEDIR}/RayBeamElement.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h
-  ${LIBRZ_INCLUDEDIR}/RectangularStop.h
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
-  ${LIBRZ_INCLUDEDIR}/RodElement.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/RZGLModel.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/SkySampler.h
-  ${LIBRZ_INCLUDEDIR}/SphericalLens.h
-  ${LIBRZ_INCLUDEDIR}/SphericalMirror.h
-  ${LIBRZ_INCLUDEDIR}/StlMesh.h
   ${LIBRZ_INCLUDEDIR}/SurfaceShape.h
   ${LIBRZ_INCLUDEDIR}/TopLevelModel.h
-  ${LIBRZ_INCLUDEDIR}/Tripod.h
   ${LIBRZ_INCLUDEDIR}/TripodFrame.h
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
-  ${LIBRZ_INCLUDEDIR}/TubeElement.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h
   ${LIBRZ_INCLUDEDIR}/Zernike.h
+
+  ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
+  ${LIBRZ_INCLUDEDIR}/DataProducts/ScatterTree.h
+  
+  ${LIBRZ_INCLUDEDIR}/Elements/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/Elements/BenchElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/BlockElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/CircularWindow.h
+  ${LIBRZ_INCLUDEDIR}/Elements/ConicLens.h
+  ${LIBRZ_INCLUDEDIR}/Elements/ConicMirror.h
+  ${LIBRZ_INCLUDEDIR}/Elements/Detector.h
+  ${LIBRZ_INCLUDEDIR}/Elements/FlatMirror.h
+  ${LIBRZ_INCLUDEDIR}/Elements/IdealLens.h
+  ${LIBRZ_INCLUDEDIR}/Elements/LensletArray.h
+  ${LIBRZ_INCLUDEDIR}/Elements/Obstruction.h
+  ${LIBRZ_INCLUDEDIR}/Elements/ParabolicLens.h
+  ${LIBRZ_INCLUDEDIR}/Elements/ParabolicMirror.h
+  ${LIBRZ_INCLUDEDIR}/Elements/PhaseScreen.h
+  ${LIBRZ_INCLUDEDIR}/Elements/RayBeamElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/RectangularStop.h
+  ${LIBRZ_INCLUDEDIR}/Elements/RodElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/SphericalLens.h
+  ${LIBRZ_INCLUDEDIR}/Elements/SphericalMirror.h
+  ${LIBRZ_INCLUDEDIR}/Elements/StlMesh.h
+  ${LIBRZ_INCLUDEDIR}/Elements/stl_reader.h
+  ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
+  ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
 
   ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/RayProcessors/CircularWindow.h
@@ -184,10 +190,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Samplers/Map.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Point.h
   ${LIBRZ_INCLUDEDIR}/Samplers/Ring.h
-  ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h
-  
-  ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
-  ${LIBRZ_INCLUDEDIR}/DataProducts/ScatterTree.h)
+  ${LIBRZ_INCLUDEDIR}/Samplers/Sampler.h)
 
 if(Python_FOUND)
   set(LIBRZ_SOURCES

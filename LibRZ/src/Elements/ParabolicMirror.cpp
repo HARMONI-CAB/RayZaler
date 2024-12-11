@@ -16,49 +16,46 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <SphericalMirror.h>
-#include <TranslatedFrame.h>
+#include <Elements/ParabolicMirror.h>
 
 using namespace RZ;
 
 bool
-SphericalMirror::propertyChanged(
+ParabolicMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  // Proect this property from modification
   if (name == "conic")
     return false;
   
   return ConicMirror::propertyChanged(name, value);
 }
 
-SphericalMirror::SphericalMirror(
+ParabolicMirror::ParabolicMirror(
   ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
   Element *parent) : ConicMirror(factory, name, frame, parent)
 {
-  ConicMirror::propertyChanged("conic", 0.0);
+  ConicMirror::propertyChanged("conic", -1.);
 }
 
-SphericalMirror::~SphericalMirror()
+ParabolicMirror::~ParabolicMirror()
 {
 }
-
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-SphericalMirrorFactory::name() const
+ParabolicMirrorFactory::name() const
 {
-  return "SphericalMirror";
+  return "ParabolicMirror";
 }
 
 Element *
-SphericalMirrorFactory::make(
+ParabolicMirrorFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new SphericalMirror(this, name, pFrame, parent);
+  return new ParabolicMirror(this, name, pFrame, parent);
 }

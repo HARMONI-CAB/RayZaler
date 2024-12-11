@@ -16,47 +16,49 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <SphericalLens.h>
+#include <Elements/SphericalMirror.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;
 
 bool
-SphericalLens::propertyChanged(
+SphericalMirror::propertyChanged(
   std::string const &name,
   PropertyValue const &value)
 {
-  if (name == "conic" || name == "frontConic" || name == "backConic")
+  // Proect this property from modification
+  if (name == "conic")
     return false;
-
-  return ConicLens::propertyChanged(name, value);
+  
+  return ConicMirror::propertyChanged(name, value);
 }
 
-SphericalLens::SphericalLens(
+SphericalMirror::SphericalMirror(
   ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
-  Element *parent) : ConicLens(factory, name, frame, parent)
+  Element *parent) : ConicMirror(factory, name, frame, parent)
 {
-  ConicLens::propertyChanged("conic", 0.);
+  ConicMirror::propertyChanged("conic", 0.0);
 }
 
-SphericalLens::~SphericalLens()
+SphericalMirror::~SphericalMirror()
 {
 }
+
 
 ///////////////////////////////// Factory //////////////////////////////////////
 std::string
-SphericalLensFactory::name() const
+SphericalMirrorFactory::name() const
 {
-  return "SphericalLens";
+  return "SphericalMirror";
 }
 
 Element *
-SphericalLensFactory::make(
+SphericalMirrorFactory::make(
   std::string const &name,
   ReferenceFrame *pFrame,
   Element *parent)
 {
-  return new SphericalLens(this, name, pFrame, parent);
+  return new SphericalMirror(this, name, pFrame, parent);
 }

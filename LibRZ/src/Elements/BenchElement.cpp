@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <BenchElement.h>
+#include <Elements/BenchElement.h>
 #include <TranslatedFrame.h>
 #include <GL/glut.h>
 

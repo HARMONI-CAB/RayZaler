@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayBeamElement.h>
+#include <Elements/RayBeamElement.h>
 
 using namespace RZ;
 

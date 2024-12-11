@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <ConicLens.h>
+#include <Elements/ConicLens.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

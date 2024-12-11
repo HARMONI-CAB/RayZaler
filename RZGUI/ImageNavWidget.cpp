@@ -17,7 +17,7 @@
 //
 
 #include "ImageNavWidget.h"
-#include <Detector.h>
+#include <Elements/Detector.h>
 #include <QPainter>
 #include <QPixmap>
 #include <QImage>

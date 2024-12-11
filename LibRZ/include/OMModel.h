@@ -25,7 +25,7 @@
 #include <Element.h>
 #include <Singleton.h>
 #include <OpticalElement.h>
-#include <Detector.h>
+#include <Elements/Detector.h>
 #include <Random.h>
 #include <SkySampler.h>
 #include <list>

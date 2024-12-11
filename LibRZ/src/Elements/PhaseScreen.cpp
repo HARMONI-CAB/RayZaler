@@ -16,9 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <PhaseScreen.h>
-
-#include <PhaseScreen.h>
+#include <Elements/PhaseScreen.h>
 #include <TranslatedFrame.h>
 #include <Helpers.h>
 #include "inferno.h"

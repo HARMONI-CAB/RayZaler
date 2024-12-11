@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <Detector.h>
+#include <Elements/Detector.h>
 #include <TranslatedFrame.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>

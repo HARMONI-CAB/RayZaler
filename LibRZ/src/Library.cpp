@@ -18,28 +18,7 @@
 
 #include <Singleton.h>
 #include <RayProcessors.h>
-#include <ApertureStop.h>
-#include <BenchElement.h>
-#include <BlockElement.h>
-#include <CircularWindow.h>
-#include <ConicLens.h>
-#include <ConicMirror.h>
-#include <Detector.h>
-#include <FlatMirror.h>
-#include <IdealLens.h>
-#include <LensletArray.h>
-#include <Obstruction.h>
-#include <ParabolicLens.h>
-#include <ParabolicMirror.h>
-#include <PhaseScreen.h>
-#include <RayBeamElement.h>
-#include <RectangularStop.h>
-#include <RodElement.h>
-#include <SphericalLens.h>
-#include <SphericalMirror.h>
-#include <StlMesh.h>
-#include <Tripod.h>
-#include <TubeElement.h>
+#include <Elements/All.h>
 #include <Logger.h>
 
 #include <FT2Facade.h>

@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <IdealLens.h>
+#include <Elements/IdealLens.h>
 #include <RayProcessors/IdealLens.h>
 #include <TranslatedFrame.h>
 

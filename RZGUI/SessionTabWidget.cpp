@@ -27,7 +27,7 @@
 #include "RZGUIGLWidget.h"
 #include "SimulationProgressDialog.h"
 #include "DetectorWindow.h"
-#include <RayBeamElement.h>
+#include <Elements/RayBeamElement.h>
 #include "SourceEditorWindow.h"
 #include "ColorSettings.h"
 #include "SpotDiagramWindow.h"

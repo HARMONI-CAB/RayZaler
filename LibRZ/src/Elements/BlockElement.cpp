@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <BlockElement.h>
+#include <Elements/BlockElement.h>
 #include <TranslatedFrame.h>
 #include <RotatedFrame.h>
 #include <GL/glut.h>

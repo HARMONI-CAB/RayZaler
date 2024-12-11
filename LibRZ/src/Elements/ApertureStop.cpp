@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <ApertureStop.h>
+#include <Elements/ApertureStop.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

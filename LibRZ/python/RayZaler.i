@@ -52,40 +52,23 @@ namespace std {
 #include <Matrix.h>
 #include <Linalg.h>
 #include <GenericCompositeModel.h>
+#include <CompositeElement.h>
 #include <OMModel.h>
 #include <TopLevelModel.h>
 #include <Logger.h>
-
-#include <ApertureStop.h>
-#include <BlockElement.h>
-#include <CompositeElement.h>
-#include <ConicLens.h>
-#include <ConicMirror.h>
-#include <Detector.h>
 #include <ExprTkEvaluator.h>
-#include <FlatMirror.h>
 #include <GLRenderEngine.h>
-#include <LensletArray.h>
 #include <ModelRenderer.h>
-#include <Obstruction.h>
-#include <ParabolicLens.h>
-#include <ParabolicMirror.h>
 #include <ParserContext.h>
-#include <PhaseScreen.h>
-#include <RayBeamElement.h>
 #include <Recipe.h>
-#include <RectangularStop.h>
-#include <RodElement.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>
 #include <SkySampler.h>
-#include <SphericalLens.h>
-#include <SphericalMirror.h>
 #include <TranslatedFrame.h>
-#include <Tripod.h>
 #include <TripodFrame.h>
-#include <TubeElement.h>
 #include <WorldFrame.h>
+
+#include <Elements/All.h>
 
 using namespace RZ;
 PyMODINIT_FUNC PyInit_RZ();
@@ -112,37 +95,42 @@ PyMODINIT_FUNC PyInit_RZ();
 %include "TopLevelModel.h"
 %include "Logger.h"
 
-%include "ApertureStop.h"
-%include "BlockElement.h"
 %include "CompositeElement.h"
-%include "ConicLens.h"
-%include "ConicMirror.h"
-%include "Detector.h"
 %include "ExprTkEvaluator.h"
-%include "FlatMirror.h"
 %include "GLRenderEngine.h"
-%include "LensletArray.h"
 %include "ModelRenderer.h"
-%include "Obstruction.h"
-%include "ParabolicLens.h"
-%include "ParabolicMirror.h"
 %include "ParserContext.h"
-%include "PhaseScreen.h"
-%include "RayBeamElement.h"
 %include "RayTracingEngine.h"
 %include "Recipe.h"
-%include "RectangularStop.h"
-%include "RodElement.h"
 %include "RotatedFrame.h"
 %include "Singleton.h"
 %include "SkySampler.h"
-%include "SphericalLens.h"
-%include "SphericalMirror.h"
 %include "TranslatedFrame.h"
-%include "Tripod.h"
 %include "TripodFrame.h"
-%include "TubeElement.h"
 %include "WorldFrame.h"
+
+%include "Elements/ApertureStop.h"
+%include "Elements/BenchElement.h"
+%include "Elements/BlockElement.h"
+%include "Elements/CircularWindow.h"
+%include "Elements/ConicLens.h"
+%include "Elements/ConicMirror.h"
+%include "Elements/Detector.h"
+%include "Elements/FlatMirror.h"
+%include "Elements/IdealLens.h"
+%include "Elements/LensletArray.h"
+%include "Elements/Obstruction.h"
+%include "Elements/ParabolicLens.h"
+%include "Elements/ParabolicMirror.h"
+%include "Elements/PhaseScreen.h"
+%include "Elements/RayBeamElement.h"
+%include "Elements/RectangularStop.h"
+%include "Elements/RodElement.h"
+%include "Elements/SphericalLens.h"
+%include "Elements/SphericalMirror.h"
+%include "Elements/StlMesh.h"
+%include "Elements/Tripod.h"
+%include "Elements/TubeElement.h"
 
 %pythoncode %{
     EngineError = _pyRayZaler.EngineError

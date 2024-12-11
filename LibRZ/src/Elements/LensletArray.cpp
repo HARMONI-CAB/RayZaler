@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <LensletArray.h>
+#include <Elements/LensletArray.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

@@ -16,31 +16,31 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _SPHERICAL_MIRROR_H
-#define _SPHERICAL_MIRROR_H
+#ifndef _SPHERICAL_LENS_H
+#define _SPHERICAL_LENS_H
 
-#include <ConicMirror.h>
+#include "ConicLens.h"
 #include <RayProcessors.h>
 #include <GLHelpers.h>
 
 namespace RZ {
   class TranslatedFrame;
 
-  class SphericalMirror : public ConicMirror {
+  class SphericalLens : public ConicLens {
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
 
     public:
-      SphericalMirror(
+      SphericalLens(
         ElementFactory *,
         std::string const &,
         ReferenceFrame *,
         Element *parent = nullptr);
       
-      virtual ~SphericalMirror() override;
+      virtual ~SphericalLens() override;
   };
 
-  class SphericalMirrorFactory : public ElementFactory {
+  class SphericalLensFactory : public ElementFactory {
     public:
       virtual std::string name() const override;
       virtual Element *make(
@@ -50,4 +50,4 @@ namespace RZ {
   };
 }
 
-#endif // _SPHERICAL_MIRROR_H
+#endif // _SPHERICAL_LENS_H

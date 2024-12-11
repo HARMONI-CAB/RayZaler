@@ -25,7 +25,7 @@
 #include <QPainter>
 #include "GUIHelpers.h"
 #include <SurfaceShape.h>
-#include <RayBeamElement.h>
+#include <Elements/RayBeamElement.h>
 #include <QKeyEvent>
 
 #define RZGUIGL_MOUSE_ROT_DELTA 2e-1

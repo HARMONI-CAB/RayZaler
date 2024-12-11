@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <TubeElement.h>
+#include <Elements/TubeElement.h>
 #include <TranslatedFrame.h>
 #include <RotatedFrame.h>
 #include <GL/glut.h>

@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <FlatMirror.h>
+#include <Elements/FlatMirror.h>
 #include <TranslatedFrame.h>
 #include <RotatedFrame.h>
 #include <Surfaces/Circular.h>

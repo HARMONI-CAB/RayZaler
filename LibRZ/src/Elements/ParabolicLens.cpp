@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <ParabolicLens.h>
+#include <Elements/ParabolicLens.h>
 
 using namespace RZ;
 

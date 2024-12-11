@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <ConicMirror.h>
+#include <Elements/ConicMirror.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

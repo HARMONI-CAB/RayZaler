@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RectangularStop.h>
+#include <Elements/RectangularStop.h>
 #include <TranslatedFrame.h>
 #include <Surfaces/Rectangular.h>
 

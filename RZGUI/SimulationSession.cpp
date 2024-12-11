@@ -23,7 +23,7 @@
 #include <cstring>
 #include <QTimer>
 #include <QFileInfo>
-#include <RayBeamElement.h>
+#include <Elements/RayBeamElement.h>
 #include <QThread>
 #include <QDir>
 #include "AsyncRayTracer.h"

@@ -18,7 +18,7 @@
 
 #include <OMModel.h>
 #include <Element.h>
-#include <RayBeamElement.h>
+#include <Elements/RayBeamElement.h>
 #include <CPURayTracingEngine.h>
 #include <RotatedFrame.h>
 #include <TranslatedFrame.h>

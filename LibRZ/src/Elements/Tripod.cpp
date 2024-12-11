@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <Tripod.h>
+#include <Elements/Tripod.h>
 #include <TranslatedFrame.h>
 #include <RotatedFrame.h>
 #include <GL/glut.h>

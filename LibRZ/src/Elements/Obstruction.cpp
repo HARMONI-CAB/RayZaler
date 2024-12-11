@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <Obstruction.h>
+#include <Elements/Obstruction.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

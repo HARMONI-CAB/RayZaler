@@ -18,7 +18,7 @@
 
 #include <TopLevelModel.h>
 #include <ExprTkEvaluator.h>
-#include <ApertureStop.h>
+#include <Elements/ApertureStop.h>
 #include <Recipe.h>
 #include <ParserContext.h>
 #include <Helpers.h>

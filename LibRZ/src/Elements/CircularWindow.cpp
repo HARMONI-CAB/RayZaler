@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <CircularWindow.h>
+#include <Elements/CircularWindow.h>
 #include <RayProcessors/CircularWindow.h>
 #include <TranslatedFrame.h>
 
