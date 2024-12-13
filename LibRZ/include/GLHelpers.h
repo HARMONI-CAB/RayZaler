@@ -58,8 +58,12 @@ public:
     }
 
     void use();
+    void leave();
+
     void set(std::string const &, bool) const;
     void set(std::string const &, int) const;
+    void set(std::string const &, unsigned int) const;
+    void set(std::string const &, Vec3 const &) const;
     void set(std::string const &, Real) const;
 };
 

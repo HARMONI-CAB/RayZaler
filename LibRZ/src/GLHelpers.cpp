@@ -49,34 +49,50 @@ GLShader::GLShader(const char *vertexCode, const char *fragCode)
 {
   unsigned int vertex, fragment;
 
-  // Allocate shaders
-  vertex = glCreateShader(GL_VERTEX_SHADER);
-  fragment = glCreateShader(GL_FRAGMENT_SHADER);
-
-  glShaderSource(vertex, 1, &vertexCode, nullptr);
-  glCompileShader(vertex);
-  if (!checkBuildErrors(vertex, "VERTEX"))
-    goto done;
- 
-  glShaderSource(fragment, 1, &fragCode, nullptr);
-  glCompileShader(fragment);
-  if (!checkBuildErrors(fragment, "FRAGMENT"))
-    goto done;
-        
   // Create shader program
   m_id = glCreateProgram();
-  glAttachShader(m_id, vertex);
-  glAttachShader(m_id, fragment);
+
+  // Allocate shaders
+  if (vertexCode != nullptr) {
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vertexCode, nullptr);
+    glCompileShader(vertex);
+    if (!checkBuildErrors(vertex, "VERTEX")) {
+      RZError("Failed to build vertex shader\n");
+      goto done;
+    }
+
+    glAttachShader(m_id, vertex);
+  }
+
+  if (fragCode != nullptr) {
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fragCode, nullptr);
+    glCompileShader(fragment);
+    if (!checkBuildErrors(fragment, "FRAGMENT")) {
+      RZError("Failed to build fragment shader\n");
+      goto done;
+    }
+
+    glAttachShader(m_id, fragment);
+  }
+
   glLinkProgram(m_id);
-  if (!checkBuildErrors(m_id, "PROGRAM"))
+  if (!checkBuildErrors(m_id, "PROGRAM")) {
+    RZError("Failed to link program\n");
     goto done;
+  }
 
   m_initialized = true;
 
 done:
   // delete the shaders as they're linked into our program now and no longer necessary
-  glDeleteShader(vertex);
-  glDeleteShader(fragment);
+
+  if (vertexCode != nullptr)
+    glDeleteShader(vertex);
+
+  if (fragCode != nullptr)
+    glDeleteShader(fragment);
 }
 
 GLShader::~GLShader()
@@ -90,6 +106,32 @@ GLShader::use()
 {
   if (m_initialized)
     glUseProgram(m_id);
+}
+
+void
+GLShader::leave()
+{
+  if (m_initialized)
+    glUseProgram(0);
+}
+
+void
+GLShader::set(std::string const &name, unsigned int value) const
+{
+  if (m_initialized)
+    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+}
+
+void
+GLShader::set(std::string const &name, Vec3 const &value) const
+{
+  if (m_initialized) {
+    glUniform3f(
+      glGetUniformLocation(m_id, name.c_str()),
+      value.x,
+      value.y,
+      value.z);
+  }
 }
 
 void

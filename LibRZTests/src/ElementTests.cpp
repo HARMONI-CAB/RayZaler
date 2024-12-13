@@ -126,7 +126,11 @@ TEST_CASE("Element property access", THIS_TEST_TAG)
 
         case StringValue:
           asString = prevString = std::get<std::string>(val);
-          asString += "-suffix";
+          if (prop != "file")
+            asString += "-suffix";
+          else
+            asString = "/dev/null";
+          
           REQUIRE(element->set(prop, asString));
           newString = std::get<std::string>(element->get(prop));
           printf("(\"%s\" -> \"%s\")\n", asString.c_str(), newString.c_str());

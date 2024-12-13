@@ -25,14 +25,47 @@
 
 namespace RZ {
   class TranslatedFrame;
+ 
+  struct Vertex {
+    float vertexCoords[3];
+    float texCoords[2];
+  };
 
   class Obstruction : public OpticalElement {
       ObstructionProcessor *m_processor;
       GLDisc                m_disc;
       TranslatedFrame      *m_stopSurface = nullptr;
+      std::vector<Real>     m_obstructionMap;
+      GLShader             *m_alphaTestShader = nullptr;
+      GLuint                m_verCoordAttrib = 0;
+      GLuint                m_texCoordAttrib = 0;
+      GLuint                m_textureUniformId = 0;
+      GLuint                m_colorUniformId = 0;
+
+      std::string           m_path;
+      bool                  m_openGlInitilized = false;
+      unsigned int          m_cols   = 0;
+      unsigned int          m_rows   = 0;
+      unsigned int          m_stride = 0;
+
+      Real                  m_halfMapWidth  = 0;
+      Real                  m_halfMapHeight = 0;
       Real m_radius = 1e-2;
 
+      Vertex                m_obsVertices[4];
+      uint16_t              m_obsIndices[12] = {0, 1, 2, 2, 3, 0, 0, 3, 2, 2, 1, 0};
+      std::vector<uint8_t>  m_textureData;
+      GLuint                m_textureId;
+      GLuint                m_vaoId;
+      GLuint                m_vboId;
+      GLuint                m_iboId;
+      bool                  m_texDirty = false;
+
       void recalcModel();
+      void setFromPNG(std::string const &path);
+      void rebuildTexture();
+      void initOpenGLObjects();
+      void uploadAll();
 
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
@@ -48,6 +81,7 @@ namespace RZ {
 
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
+      virtual void enterOpenGL() override;
   };
 
   class ObstructionFactory : public ElementFactory {

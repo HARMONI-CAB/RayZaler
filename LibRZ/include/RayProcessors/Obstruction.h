@@ -25,12 +25,25 @@ namespace RZ {
   class ReferenceFrame;
 
   class ObstructionProcessor : public RayTransferProcessor {
-      Real m_radius = .5;
+      Real                     m_radius = .5;
+      std::vector<Real> const *m_obsMapPtr = nullptr;
+      unsigned int             m_cols   = 0;
+      unsigned int             m_rows   = 0;
+      unsigned int             m_stride = 0;
+      Real                     m_hx  = 0;
+      Real                     m_hy = 0;
 
     public:
       ObstructionProcessor();
       virtual ~ObstructionProcessor() = default;
       void setRadius(Real);
+      void setObstructionMap(
+        Real width,
+        Real height,
+        std::vector<Real> const &map,
+        unsigned int cols,
+        unsigned int rows,
+        unsigned int stride);
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
