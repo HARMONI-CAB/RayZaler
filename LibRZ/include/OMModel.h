@@ -360,9 +360,6 @@ namespace RZ {
       Detector *lookupDetectorOrEx(std::string const &) const;
       const OpticalPath *lookupOpticalPathOrEx(std::string const & = "") const;
 
-      void setFrequency(Real);
-      Real frequency() const;
-
       // Raytracing methods
       bool trace(
         std::string const &path,
