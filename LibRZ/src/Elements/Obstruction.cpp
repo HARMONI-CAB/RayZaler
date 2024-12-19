@@ -45,7 +45,7 @@ static const char *g_texAlphaTest =
   "void main()\n"
   "{\n"
   "  vec4 texel = texture2D(theTexture, interp_texCoord);\n"
-  "  if (texel.a < 0.5)\n"
+  "  if (texel.a > 0.5)\n"
   "    discard;\n"
   "  gl_FragColor = vec4(color, 1.);\n"
   "}\n";
@@ -126,7 +126,7 @@ Obstruction::setFromPNG(std::string const &path)
     for (j = 0; j < cols; ++j) {
       auto pixel = inputMap.get_pixel(j, i);
 
-      m_obstructionMap[j + i * stride] = 1. - pixel / 65535.;
+      m_obstructionMap[j + i * stride] = pixel / 65535.;
     }
   }
 

@@ -49,12 +49,13 @@ ObstructionProcessor::setObstructionMap(
 void
 ObstructionProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
-  uint64_t count = beam.count;
   uint64_t i;
-  Vec3 center  = plane->getCenter();
-  Vec3 tX      = plane->eX();
-  Vec3 tY      = plane->eY();
-  Real Rsq     = m_radius * m_radius;
+  uint64_t count  = beam.count;
+  Vec3 center     = plane->getCenter();
+  Vec3 tX         = plane->eX();
+  Vec3 tY         = plane->eY();
+  Real Rsq        = m_radius * m_radius;
+  auto &state     = randState();
 
   if (m_obsMapPtr != nullptr) {
     std::vector<Real> const &map = *m_obsMapPtr;
@@ -67,8 +68,12 @@ ObstructionProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
       int  pixI   = +floor(coordX / m_hx) + m_cols / 2;
       int  pixJ   = -floor(coordY / m_hy) + m_rows / 2;
 
+      // Obstruction maps are matrices that describe the probability of a
+      // lightray of traversing the surface. White is full probability,
+      // black is zero probability. Gray is somewhere in the middle.
+
       if (pixI >= 0 && pixI < m_cols && pixJ >= 0 && pixJ < m_rows) {
-        if (map[pixI + pixJ * m_stride] > 0.5) {
+        if (map[pixI + pixJ * m_stride] < state.randu()) {
           beam.prune(i);
           continue;
         }

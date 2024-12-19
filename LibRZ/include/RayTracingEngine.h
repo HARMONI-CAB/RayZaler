@@ -25,6 +25,7 @@
 #include <list>
 #include <map>
 #include <sys/time.h>
+#include "Random.h"
 
 #define RZ_SPEED_OF_LIGHT 299792458 // m/s
 #define RZ_WAVELENGTH     555e-9
@@ -209,8 +210,9 @@ namespace RZ {
   class SurfaceShape;
 
   class RayTransferProcessor {
-    SurfaceShape *m_surfaceShape = nullptr;
-    bool          m_reversible = false;
+    SurfaceShape   *m_surfaceShape = nullptr;
+    ExprRandomState m_randState;
+    bool            m_reversible = false;
 
   protected:
     inline void
@@ -277,6 +279,18 @@ namespace RZ {
     reflection(Vec3 const &u, Vec3 const &normal)
     {
       return u - 2 * (u * normal) * normal;
+    }
+
+    inline ExprRandomState const &
+    constRandState() const
+    {
+      return m_randState;
+    }
+
+    inline ExprRandomState &
+    randState() const
+    {
+      return const_cast<ExprRandomState &>(m_randState);
     }
 
     virtual std::string name() const = 0;
