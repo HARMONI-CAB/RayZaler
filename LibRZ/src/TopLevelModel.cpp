@@ -154,7 +154,7 @@ TopLevelModel::allocateEvaluator(
     std::string error = eval->getLastParserError();
     delete eval;
 
-    throw std::runtime_error("Expression error: " + error);
+    throw std::runtime_error("Expression error: " + error + " in expression `" + expr + "` (top level " + givenName() + ")");
   }
 
   return eval;

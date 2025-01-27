@@ -150,6 +150,7 @@ namespace RZ {
       Recipe *m_recipe = nullptr;
       std::string m_buf;
       std::string m_lastToken;
+      std::list<std::set<std::string>> m_includeOnceContexts;
       std::set<std::string>  m_includeOnce;
       std::list<std::string> m_searchPaths;
 
@@ -184,6 +185,8 @@ namespace RZ {
       friend void ::yyerror(ParserContext *ctx, const char *msg);
       friend int  ::yyparse(RZ::ParserContext *ctx);
 
+      void pushIncludeOnce();
+      bool popIncludeOnce();
       
     protected:
       int  tokenType() const;

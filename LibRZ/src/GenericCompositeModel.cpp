@@ -244,6 +244,12 @@ GenericCompositeModel::GenericCompositeModel(
   assert(m_model != nullptr);
 }
 
+std::string
+GenericCompositeModel::givenName() const
+{
+  return m_givenName;
+}
+
 GenericCompositeModel::~GenericCompositeModel()
 {
   for (auto p : m_expressions)
@@ -848,12 +854,14 @@ GenericCompositeModel::createScopedVariables(GenericEvaluatorSymbolDict &global,
   // This are created to abbreviate certain expressions used along the model
   for (auto name : frame->varNames) {
     auto p            = frame->variables.find(name);
+    auto expr         = makeExpression(p->second->expression, &global);
+    
     auto genP         = allocateParam();
 
     genP->value       = 0;
 
     global[name]      = genP;
-    auto expr         = makeExpression(p->second->expression, &global);
+
     expr->type        = GENERIC_MODEL_PARAM_TYPE_VARIABLE;
     expr->description = p->second;
     expr->storage     = genP;

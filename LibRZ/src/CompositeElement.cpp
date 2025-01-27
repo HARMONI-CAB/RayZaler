@@ -62,8 +62,7 @@ CompositeElement::allocateEvaluator(
   if (!eval->compile(expr)) {
     std::string error = eval->getLastParserError();
     delete eval;
-
-    throw std::runtime_error("Expression error: " + error);
+    throw std::runtime_error("Expression error: " + error + " in expression `" + expr + "` (element " + name() + ")`");
   }
 
   return eval;

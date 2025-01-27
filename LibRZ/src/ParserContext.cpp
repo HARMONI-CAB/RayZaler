@@ -540,24 +540,23 @@ ParserContext::script(std::string const &path)
 void
 ParserContext::addImportOnce(std::string const &path)
 {
-  if (m_parentContext != nullptr) {
+  if (m_parentContext == nullptr) {
+    if (alreadyImported(path))
+      return;
+    
+    m_includeOnce.insert(path);
+  } else {
     m_parentContext->addImportOnce(path);
-    return;
   }
-
-  if (alreadyImported(path))
-    return;
-  
-  m_includeOnce.insert(path);
 }
 
 bool
 ParserContext::alreadyImported(std::string const &path) const
 {
-  if (m_parentContext != nullptr)
+  if (m_parentContext == nullptr)
+    return m_includeOnce.find(path) != m_includeOnce.end();
+  else
     return m_parentContext->alreadyImported(path);
-  
-  return m_includeOnce.find(path) != m_includeOnce.end();
 }
 
 void
@@ -623,6 +622,30 @@ ParserContext::pushPort(std::string const &port)
 }
 
 void
+ParserContext::pushIncludeOnce()
+{
+  if (m_parentContext == nullptr)
+    m_includeOnceContexts.push_back(m_includeOnce);
+  else
+    m_parentContext->pushIncludeOnce();
+}
+
+bool
+ParserContext::popIncludeOnce()
+{
+  if (m_parentContext == nullptr) {
+    if (m_includeOnceContexts.empty())
+      return false;
+
+    m_includeOnce = m_includeOnceContexts.back();
+    m_includeOnceContexts.pop_back();
+    return true;
+  } else {
+    return m_parentContext->popIncludeOnce();
+  }
+}
+
+void
 ParserContext::pushElementDefinition(std::string const &name)
 {
   Recipe *recipe = m_recipe->makeCustomElement(name);
@@ -631,6 +654,8 @@ ParserContext::pushElementDefinition(std::string const &name)
     throw std::runtime_error("Element class `" + name + "' redefined");
 
   m_recipe = recipe;
+
+  pushIncludeOnce();
 }
 
 void
@@ -639,6 +664,8 @@ ParserContext::popElementDefinition()
   if (m_rootRecipe == m_recipe)
     throw std::runtime_error("Internal error: attempting to leave root recipe!");
 
+  popIncludeOnce();
+  
   m_recipe = m_recipe->parent();
 }
 

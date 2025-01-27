@@ -225,6 +225,7 @@ namespace RZ {
         Element *parent = nullptr);
       virtual ~GenericCompositeModel();
     
+      std::string givenName() const;
       std::list<std::string> params() const;
       std::list<std::string> dofs() const;
 
