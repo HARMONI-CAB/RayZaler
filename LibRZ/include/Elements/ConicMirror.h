@@ -67,14 +67,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class ConicMirrorFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_OPTICAL_ELEMENT(ConicMirror);
 }
 
 #endif // _CONIC_MIRROR_H

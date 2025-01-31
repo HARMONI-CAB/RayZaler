@@ -40,14 +40,7 @@ namespace RZ {
       virtual ~SphericalMirror() override;
   };
 
-  class SphericalMirrorFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT_FROM(SphericalMirror, ConicMirror);
 }
 
 #endif // _SPHERICAL_MIRROR_H

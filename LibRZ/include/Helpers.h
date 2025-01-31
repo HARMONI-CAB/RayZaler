@@ -29,6 +29,12 @@
 #include <algorithm>
 #include <cctype>
 
+#define _JOIN(a, b) a ## b
+#define JOIN(a, b) _JOIN(a, b)
+
+#define _STRINGFY(a) #a
+#define STRINGFY(a) _STRINGFY(a)
+
 std::string string_vprintf(const char* fmt, va_list ap);
 std::string string_printf(const char* fmt, ...);
 

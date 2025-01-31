@@ -21,6 +21,28 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves")
+{
+  property("thickness",         1e-2,       "Thickness of the lens [m]");
+  property("radius",            2.5e-2,     "Radius of the lens [m]");
+  property("diameter",          2 * 2.5e-2, "Diameter of the lens [m]");
+  property("x0",                0,          "X-axis offset [m]");
+  property("y0",                0,          "Y-axis offset [m]");
+  property("n",                 1.5,        "Refractive index");
+
+  property("curvature",         1e-1,       "Radius of curvature of both surfaces [m]");
+  property("focalLength",       5e-2,       "Focal length of both surfaces [m]");
+  property("conic",             0,          "Conic constant (K) of both surfaces");
+
+  property("frontCurvature",    1e-1,       "Radius of curvature of the front surface [m]");
+  property("frontFocalLength",  5e-2,       "Focal length of the front surface [m]");
+  property("frontConic",        0,          "Conic constant (K) of the front surface");
+
+  property("backCurvature",     1e-1,       "Radius of curvature of the front surface [m]");
+  property("backFocalLength",   5e-2,       "Focal length of the back surface [m]");
+  property("backConic",         0,          "Conic constant (K) of the back surface");
+}
+
 void
 ConicLens::recalcModel()
 {
@@ -173,25 +195,6 @@ ConicLens::ConicLens(
   m_inputProcessor->setConvex(true);
   m_outputProcessor->setConvex(false);
 
-  registerProperty("thickness",         m_thickness);
-  registerProperty("radius",            m_radius);
-  registerProperty("diameter",          2 * m_radius);
-  registerProperty("x0",                m_x0);
-  registerProperty("y0",                m_y0);
-  registerProperty("n",                 m_mu);
-
-  registerProperty("curvature",         m_rCurv[0]);
-  registerProperty("focalLength",       m_focalLength[0]);
-  registerProperty("conic",             m_K[0]);
-
-  registerProperty("frontCurvature",    m_rCurv[0]);
-  registerProperty("frontFocalLength",  m_focalLength[0]);
-  registerProperty("frontConic",        m_K[0]);
-
-  registerProperty("backCurvature",     m_rCurv[1]);
-  registerProperty("backFocalLength",   m_focalLength[1]);
-  registerProperty("backConic",         m_K[1]);
-
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputFrame", frame, Vec3::zero());
 
@@ -265,20 +268,4 @@ ConicLens::renderOpenGL()
   material("input.lens");
   m_frontCap.display();
   
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ConicLensFactory::name() const
-{
-  return "ConicLens";
-}
-
-Element *
-ConicLensFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new ConicLens(this, name, pFrame, parent);
 }

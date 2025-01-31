@@ -25,6 +25,13 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(Obstruction, "Flat obstacle to the passage of light")
+{
+  property("radius",    2.5e-2, "Radius or half-length of the largest obstacle dimension [m]");
+  property("diameter",  5e-2,   "Diameter or length of the lrgest obstacle dimension [m]");
+  property("file",      "",     "Path to the PNG file containing the shape of the obstace");
+}
+
 static const char *g_vertexToTex = 
 "#version 120\n"
 "attribute vec3 verCoord;\n"
@@ -178,10 +185,6 @@ Obstruction::Obstruction(
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_processor = new ObstructionProcessor;
-
-  registerProperty("radius",    2.5e-2);
-  registerProperty("diameter",  5e-2);
-  registerProperty("file",      "");
 
   m_stopSurface = new TranslatedFrame("stopSurf", frame, Vec3::zero());
 
@@ -361,20 +364,4 @@ Obstruction::renderOpenGL()
 
     glPopAttrib();
   }
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ObstructionFactory::name() const
-{
-  return "Obstruction";
-}
-
-Element *
-ObstructionFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new Obstruction(this, name, pFrame, parent);
 }

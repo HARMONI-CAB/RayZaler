@@ -94,7 +94,7 @@ namespace RZ {
       virtual void clearHits() override;
   };
 
-  class CompositeElementFactory : public ElementFactory {
+  class CompositeElementFactory : public OpticalElementFactory {
       Recipe *m_recipe = nullptr;
       GenericCompositeModel *m_owner = nullptr;
       std::string m_name;
@@ -104,7 +104,7 @@ namespace RZ {
         std::string const &,
         Recipe *,
         GenericCompositeModel *owner);
-      virtual std::string name() const override;
+      
       virtual Element *make(
         std::string const &name,
         ReferenceFrame *pFrame,

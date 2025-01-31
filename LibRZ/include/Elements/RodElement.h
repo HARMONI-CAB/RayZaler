@@ -26,7 +26,7 @@
 namespace RZ {
   class TranslatedFrame;
   class RotatedFrame;
-
+  
   class RodElement : public Element {
       TranslatedFrame *m_sides[3];        // Top, middle, bottom
       RotatedFrame    *m_rotatedSides[3]; // Top, middle, bottom
@@ -53,14 +53,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class RodElementFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT(RodElement);
 }
 
 #endif // _RODELEMENT_H

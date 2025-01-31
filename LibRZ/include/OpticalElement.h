@@ -121,6 +121,8 @@ namespace RZ {
 
       virtual ~OpticalElement() override;
   };
+
+  RZ_DECLARE_ABSTRACT_ELEMENT(OpticalElement);
 }
 
 #endif // _OPTICAL_ELEMENT_H

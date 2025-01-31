@@ -33,6 +33,15 @@ using namespace RZ;
 
 #define RZ_DETECTOR_THICKNESS 1e-4
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(Detector, "Generic detector with rectangular pixels")
+{
+  property("pixelWidth",  15e-6, "Horizontal size of the pixel [m]");
+  property("pixelHeight", 15e-6, "Vertical size of the pixel [m]");
+  property("cols",        512,   "Number of pixels in the horizontal direction");
+  property("rows",        512,   "Number of pixels in the vertical direction");
+  property("flip",        false, "Flip detector 180º around the X axis");
+}
+
 DetectorStorage::DetectorStorage(
   unsigned int cols,
   unsigned int rows,
@@ -294,12 +303,6 @@ Detector::Detector(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  registerProperty("pixelWidth",  m_pxWidth);
-  registerProperty("pixelHeight", m_pxHeight);
-  registerProperty("cols",        m_cols);
-  registerProperty("rows",        m_rows);
-  registerProperty("flip",        m_flip);
-
   m_storage         = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
   m_processor       = new DetectorProcessor(m_storage);
   m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), 0);
@@ -451,20 +454,4 @@ Detector::renderOpenGL()
   GLCube(1);
   glPopMatrix();
   glPopMatrix();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-DetectorFactory::name() const
-{
-  return "Detector";
-}
-
-Element *
-DetectorFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new Detector(this, name, pFrame, parent);
 }

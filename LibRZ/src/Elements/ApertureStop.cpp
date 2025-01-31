@@ -21,6 +21,14 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(ApertureStop, "Circular stop in a rectangular frame")
+{
+  property("radius",    2.5e-2, "Aperture radius [m]");
+  property("diameter",  5e-2,   "Aperture diameter [m]");
+  property("width",     7.5e-2, "Width of the stop mask [m]");
+  property("height",    7.5e-2, "Height of the stop mask [m]");
+}
+
 void
 ApertureStop::recalcModel()
 {
@@ -78,11 +86,6 @@ ApertureStop::ApertureStop(
 {
   m_processor = new ApertureStopProcessor;
 
-  registerProperty("radius",    2.5e-2);
-  registerProperty("diameter",  5e-2);
-  registerProperty("width",     7.5e-2);
-  registerProperty("height",    7.5e-2);
-
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   addPort("aperture", m_stopSurface);
@@ -118,20 +121,4 @@ ApertureStop::renderOpenGL()
   
   material("output.surface");
   m_pinHole.display();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ApertureStopFactory::name() const
-{
-  return "ApertureStop";
-}
-
-Element *
-ApertureStopFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new ApertureStop(this, name, pFrame, parent);
 }

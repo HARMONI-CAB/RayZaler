@@ -27,6 +27,14 @@ using namespace RZ;
 #define BLOCK_DEFAULT_WIDTH  1.
 #define BLOCK_DEFAULT_HEIGHT 1.
 
+RZ_DESCRIBE_ELEMENT(BlockElement, "Rectangular prism with adjustable dimensions")
+{
+  property("length",    BLOCK_DEFAULT_LENGTH, "Length of the block [m]");
+  property("width",     BLOCK_DEFAULT_WIDTH,  "Width of the block [m]");
+  property("height",    BLOCK_DEFAULT_HEIGHT, "Height of the block [m]");
+  property("wireFrame", false,                "Represent as wireframe only");
+}
+
 bool
 BlockElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
@@ -134,11 +142,6 @@ BlockElement::BlockElement(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("length",  BLOCK_DEFAULT_LENGTH);
-  registerProperty("width",   BLOCK_DEFAULT_WIDTH);
-  registerProperty("height",  BLOCK_DEFAULT_HEIGHT);
-  registerProperty("wireFrame", 0.);
-  
   m_cachedLength = BLOCK_DEFAULT_LENGTH;
   m_cachedWidth  = BLOCK_DEFAULT_WIDTH;
   m_cachedHeight = BLOCK_DEFAULT_HEIGHT;
@@ -188,20 +191,4 @@ BlockElement::~BlockElement()
     delete m_sides[i];
     delete m_rotatedSides[i];
   }
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-BlockElementFactory::name() const
-{
-  return "BlockElement";
-}
-
-Element *
-BlockElementFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new BlockElement(this, name, pFrame, parent);
 }

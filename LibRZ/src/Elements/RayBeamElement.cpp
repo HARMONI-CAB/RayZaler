@@ -22,6 +22,10 @@ using namespace RZ;
 
 RayColoring RayBeamElement::m_defaultColoring;
 
+RZ_DESCRIBE_ELEMENT(RayBeamElement, "A beam of light composed of several rays")
+{
+}
+
 void
 RayColoring::id2color(uint32_t, GLfloat *rgb) const
 {
@@ -251,20 +255,4 @@ RayBeamElement::renderOpenGL()
 
   glPopAttrib();
   pthread_mutex_unlock(&m_rayMutex);
-}
-
-/////////////////////////////////// Factory ////////////////////////////////////
-std::string
-RayBeamElementFactory::name() const
-{
-  return "RayBeam";
-}
-
-Element *
-RayBeamElementFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new RayBeamElement(this, name, pFrame, parent);
 }

@@ -28,7 +28,7 @@ CompositeElement::registerDof(
   std::string const &name, 
   GenericModelParam *param)
 {
-  registerProperty(name, param->value);
+  registerProperty(name, param->value, "Degree of freedom (" + name + ")");
 }
 
 void
@@ -36,7 +36,7 @@ CompositeElement::registerParam(
   std::string const &name, 
   GenericModelParam *param)
 {
-  registerProperty(name, param->value);
+  registerProperty(name, param->value, "Model parameter (" + name + ")");
 }
 
 void
@@ -62,7 +62,7 @@ CompositeElement::allocateEvaluator(
   if (!eval->compile(expr)) {
     std::string error = eval->getLastParserError();
     delete eval;
-    throw std::runtime_error("Expression error: " + error + " in expression `" + expr + "` (element " + name() + ")`");
+    throw std::runtime_error("Expression error: " + error + " in expression `" + expr + "` (element " + name() + ")");
   }
 
   return eval;
@@ -205,15 +205,10 @@ CompositeElement::~CompositeElement()
 CompositeElementFactory::CompositeElementFactory(
   std::string const &name,
   Recipe *recipe,
-  GenericCompositeModel *owner)
-  : m_name(name), m_recipe(recipe), m_owner(owner)
+  GenericCompositeModel *owner) : OpticalElementFactory(),
+  m_name(name), m_recipe(recipe), m_owner(owner)
 {
-}
-
-std::string
-CompositeElementFactory::name() const
-{
-  return m_name;
+  enterDecls(name, "User-defined composite element");
 }
 
 Element *

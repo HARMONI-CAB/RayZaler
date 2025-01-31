@@ -20,6 +20,11 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ELEMENT_FROM(ParabolicMirror, ConicMirror, "Mirror with parabolic surface")
+{
+  hiddenProperty("conic", -1, "Conic constant of the mirror (overriden)");
+}
+
 bool
 ParabolicMirror::propertyChanged(
   std::string const &name,
@@ -42,20 +47,4 @@ ParabolicMirror::ParabolicMirror(
 
 ParabolicMirror::~ParabolicMirror()
 {
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ParabolicMirrorFactory::name() const
-{
-  return "ParabolicMirror";
-}
-
-Element *
-ParabolicMirrorFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new ParabolicMirror(this, name, pFrame, parent);
 }

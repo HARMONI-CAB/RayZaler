@@ -23,7 +23,7 @@
 #include <RayProcessors.h>
 #include <GLHelpers.h>
 
-namespace RZ {
+namespace RZ { 
   class ParabolicLens : public ConicLens {
     protected:
       virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
@@ -38,14 +38,7 @@ namespace RZ {
       virtual ~ParabolicLens() override;
   };
 
-  class ParabolicLensFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT_FROM(ParabolicLens, ConicLens);
 }
 
 #endif // _CONVEX_LENS_H

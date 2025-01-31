@@ -26,6 +26,13 @@ using namespace RZ;
 #define ROD_DEFAULT_LENGTH   5e-2
 #define ROD_DEFAULT_DIAMETER 3e-3
 
+RZ_DESCRIBE_ELEMENT(TubeElement, "A hollow tube with circular section and open ends")
+{
+  property("length",        5e-2,   "Length of the tube [m]");
+  property("innerDiameter", 1.5e-3, "Inner diameter [m]");
+  property("outerDiameter", 3e-3,   "Outer diameter [m]");
+}
+
 void
 TubeElement::recalcBoundingBox()
 {
@@ -119,10 +126,6 @@ TubeElement::TubeElement(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("length",        m_cachedLength);
-  registerProperty("innerDiameter", m_cachedInnerDiameter);
-  registerProperty("outerDiameter", m_cachedOuterDiameter);
-
   initSides();
 
   addPort("top",    m_sides[0]);
@@ -147,20 +150,4 @@ TubeElement::~TubeElement()
     delete m_sides[i];
     delete m_rotatedSides[i];
   }
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-TubeElementFactory::name() const
-{
-  return "TubeElement";
-}
-
-Element *
-TubeElementFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new TubeElement(this, name, pFrame, parent);
 }

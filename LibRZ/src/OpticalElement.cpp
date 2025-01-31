@@ -20,6 +20,11 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ABSTRACT_ELEMENT(OpticalElement, "Generic optical element")
+{
+  hiddenProperty("optical", true, "The element is optical");
+}
+
 std::vector<Real> &
 OpticalSurface::locations() const
 {
@@ -191,9 +196,6 @@ OpticalElement::OpticalElement(
   Element *parent)
   : Element(factory, name, parentFrame, parent)
 {
-  registerProperty("optical", true);
-
-  ++m_hidden;
 }
 
 OpticalElement::~OpticalElement()

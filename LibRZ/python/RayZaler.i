@@ -26,12 +26,16 @@ static PyObject* g_rzException;
 %include "stdint.i"
 %include "std_vector.i"
 %include "std_list.i"
+%include "std_set.i"
+%include "std_map.i"
 %include "std_string.i"
 %include "std_pair.i"
 %include "numpy.i"
 
 namespace std {
   %template(StringList) list<string>;
+  %template(StringVec)  vector<string>;
+  %template(StringSet)  set<string>;
 }
 
 %init %{
@@ -74,6 +78,10 @@ using namespace RZ;
 PyMODINIT_FUNC PyInit_RZ();
 
 %}
+
+namespace std {
+  %template(PropertyMap) map<string, RZ::PropertyValue>;
+}
 
 %exception {
   try {

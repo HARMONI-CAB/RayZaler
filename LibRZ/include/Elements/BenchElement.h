@@ -25,6 +25,7 @@
 
 namespace RZ {
   class TranslatedFrame;
+
   class BenchElement : public Element {
       TranslatedFrame *m_surfaceFrame = nullptr;
       Real m_cachedHeight             = 0;
@@ -45,14 +46,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class BenchElementFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT(BenchElement);
 }
 
 #endif // _BENCHELEMENT_H

@@ -164,14 +164,7 @@ namespace RZ {
       Real            maxEnergy() const;
   };
 
-  class DetectorFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_OPTICAL_ELEMENT(Detector);
 }
 
 #endif // _DETECTOR_H

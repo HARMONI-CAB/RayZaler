@@ -22,6 +22,13 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(IdealLens, "Ideal (paraxial) lens with null thickness")
+{
+  property("radius",    2.5e-2, "Radius of the lens [m]");
+  property("diameter",    5e-2, "Diameter of the lens [m]");
+  property("focalLength",   1., "Focal length [m]"); 
+}
+
 void
 IdealLens::recalcModel()
 {
@@ -75,10 +82,6 @@ IdealLens::IdealLens(
 {
   m_processor  = new IdealLensProcessor;
 
-  registerProperty("radius",    2.5e-2);
-  registerProperty("diameter",    5e-2);
-  registerProperty("focalLength",   1.);
-  
   m_inputFrame  = new TranslatedFrame("apertureFrame",  frame, Vec3::zero());
 
   pushOpticalSurface("lensSurface",  m_inputFrame,  m_processor);
@@ -136,20 +139,4 @@ IdealLens::renderOpenGL()
 {
   material("lens");
   m_cylinder.display();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-IdealLensFactory::name() const
-{
-  return "IdealLens";
-}
-
-Element *
-IdealLensFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new IdealLens(this, name, pFrame, parent);
 }

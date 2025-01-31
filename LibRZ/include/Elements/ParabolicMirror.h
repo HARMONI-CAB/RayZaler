@@ -39,14 +39,7 @@ namespace RZ {
       virtual ~ParabolicMirror() override;
   };
 
-  class ParabolicMirrorFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT_FROM(ParabolicMirror, ConicMirror);
 }
 
 #endif // _PARABOLIC_MIRROR_H

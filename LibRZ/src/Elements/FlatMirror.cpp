@@ -24,6 +24,16 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(FlatMirror, "Elliptic mirror with a flat surface")
+{
+  property("thickness",       1e-2, "Thickness of the mirror [m]");
+  property("radius",        2.5e-2, "Radius of the mirror [m]");
+  property("diameter",        5e-2, "Diameter of the mirror [m]");
+  property("width",           5e-2, "Width of the mirror [m]");
+  property("height",          5e-2, "Height of the mirror [m]");
+  property("vertexRelative", false, "Positioning is relative to the vertex of the reflective surface");;
+}
+
 void
 FlatMirror::recalcModel()
 {
@@ -106,13 +116,6 @@ FlatMirror::FlatMirror(
 {
   m_processor = new FlatMirrorProcessor;
 
-  registerProperty("thickness",       1e-2);
-  registerProperty("radius",        2.5e-2);
-  registerProperty("diameter",        5e-2);
-  registerProperty("width",           5e-2);
-  registerProperty("height",          5e-2);
-  registerProperty("vertexRelative", false);
-
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
   m_baseFrame              = new TranslatedFrame("basePos", frame, Vec3::zero());
   m_flipFrame              = new RotatedFrame("base", m_baseFrame, Vec3::eX(), M_PI);
@@ -164,20 +167,4 @@ FlatMirror::renderOpenGL()
   m_cylinder.display();
 
   glPopMatrix();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-FlatMirrorFactory::name() const
-{
-  return "FlatMirror";
-}
-
-Element *
-FlatMirrorFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new FlatMirror(this, name, pFrame, parent);
 }

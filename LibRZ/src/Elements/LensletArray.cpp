@@ -21,6 +21,19 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(LensletArray, "Rectangular grid of microlenses")
+{
+  property("conic",        0.0,  "Conic constant (K) of the lens surface");
+  property("thickness",   1e-2,  "Thickness of the microlenses [m]");
+  property("width",       1e-1,  "Horizontal dimension of the array [m]");
+  property("height",      1e-1,  "Vertical dimension of the array [m]");
+  property("cols",          10,  "Number of microlenses in the horizontal direction");
+  property("rows",          10,  "Number of microlenses in the vertical direction");
+  property("curvature",     1.,  "Radius of curvature of the microlenses [m]");
+  property("focalLength", 5e-1,  "Focal length of the microlenses [m]");
+  property("n",            1.5,  "Refractive index of the microlenses");
+}
+
 void
 LensletArray::recalcModel()
 {
@@ -127,16 +140,6 @@ LensletArray::LensletArray(
   m_inputProcessor->setConvex(true);
   m_outputProcessor->setConvex(false);
 
-  registerProperty("conic",        0.0);
-  registerProperty("thickness",   1e-2);
-  registerProperty("width",       1e-1);
-  registerProperty("height",      1e-1);
-  registerProperty("cols",          10);
-  registerProperty("rows",          10);
-  registerProperty("curvature",     1.);
-  registerProperty("focalLength", 11e-3);
-  registerProperty("n",            1.5);
-
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
 
@@ -226,20 +229,4 @@ LensletArray::renderOpenGL()
       glPopMatrix();
     }
   }
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-LensletArrayFactory::name() const
-{
-  return "LensletArray";
-}
-
-Element *
-LensletArrayFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new LensletArray(this, name, pFrame, parent);
 }

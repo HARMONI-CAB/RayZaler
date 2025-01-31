@@ -40,14 +40,7 @@ namespace RZ {
       virtual ~SphericalLens() override;
   };
 
-  class SphericalLensFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT_FROM(SphericalLens, ConicLens);
 }
 
 #endif // _SPHERICAL_LENS_H

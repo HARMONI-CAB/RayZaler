@@ -22,6 +22,14 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(RectangularStop, "Rectangular aperture in a rectangular frame")
+{
+  property("borderWidth",  10e-2, "Horizontal size of the frame [m]");
+  property("borderHeight", 10e-2, "Vertical size of the frame [m]");
+  property("width",       7.5e-2, "Horizontal size of the aperture [m]");
+  property("height",      7.5e-2, "Vertical size of the aperture [m]");
+}
+
 void
 RectangularStop::recalcModel()
 {
@@ -86,12 +94,6 @@ RectangularStop::RectangularStop(
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_processor = new RectangularStopProcessor;
-
-  registerProperty("borderWidth",  10e-2);
-  registerProperty("borderHeight", 10e-2);
-  registerProperty("width",       7.5e-2);
-  registerProperty("height",      7.5e-2);
-
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
@@ -160,20 +162,4 @@ RectangularStop::renderOpenGL()
       m_vRect.display();
     glPopMatrix();
   glPopMatrix();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-RectangularStopFactory::name() const
-{
-  return "RectangularStop";
-}
-
-Element *
-RectangularStopFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new RectangularStop(this, name, pFrame, parent);
 }

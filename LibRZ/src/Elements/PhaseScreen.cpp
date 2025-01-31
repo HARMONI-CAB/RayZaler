@@ -23,6 +23,23 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(PhaseScreen, "Circular phase screen with irregular height described through Zernike polynomials")
+{
+  unsigned int i;
+
+  for (i = 0; i < 60; ++i) {
+    property(
+      string_printf("Z%u", i), 
+      0.,
+      string_printf("Coefficient for polynomial $Z_{%d}$ [m]"));
+  }
+
+  property("radius",    2.5e-2, "Radius of the phase screen [m]");
+  property("diameter",    5e-2, "Diameter of the phase screen [m]");
+  property("ni",            1., "Input refractive index");
+  property("no",           1.5, "Output refractive index");
+}
+
 void
 PhaseScreen::recalcModel()
 {
@@ -121,16 +138,6 @@ PhaseScreen::PhaseScreen(
 {
   m_processor = new PhaseScreenProcessor;
 
-  unsigned int i;
-
-  for (i = 0; i < 60; ++i)
-    registerProperty(string_printf("Z%u", i), 0.);
-  
-  registerProperty("radius",    2.5e-2);
-  registerProperty("diameter",    5e-2);
-  registerProperty("ni",            1.);
-  registerProperty("no",           1.5);
-
   m_tSurface = new TranslatedFrame("interface", frame, Vec3::zero());
 
   pushOpticalSurface("interface", m_tSurface, m_processor);
@@ -217,20 +224,4 @@ PhaseScreen::renderOpenGL()
     glBindTexture(GL_TEXTURE_2D, m_textureId);
     m_skyDiscFront.display();
   glDisable(GL_TEXTURE_2D);
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-PhaseScreenFactory::name() const
-{
-  return "PhaseScreen";
-}
-
-Element *
-PhaseScreenFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new PhaseScreen(this, name, pFrame, parent);
 }

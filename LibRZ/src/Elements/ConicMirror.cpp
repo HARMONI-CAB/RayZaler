@@ -21,6 +21,21 @@
 
 using namespace RZ;
 
+
+RZ_DESCRIBE_OPTICAL_ELEMENT(ConicMirror, "Circular mirror with a surface given by a conic curve")
+{
+  property("thickness",      1e-2,      "Thickness of the mirror [m]");
+  property("radius",         1e-1,      "Radius of the mirror [m]");
+  property("diameter",       2 * 1e-1,  "Diameter of the mirror [m]");
+  property("curvature",      .5,        "Radius of curvature of the mirror [m]");
+  property("focalLength",    0.5 * .5,  "Focal length of the mirror [m]");
+  property("conic",          0,         "Conic constant (K) of the reflective surface");
+  property("hole",           0,         "Radius of the central hole [m]");
+  property("x0",             0,         "X-axis offset [m]");
+  property("y0",             0,         "Y-axis offset [m]");
+  property("vertexRelative", false,     "Positioning is relative to the vertex of the reflective surface");
+}
+
 void
 ConicMirror::recalcModel()
 {
@@ -143,17 +158,6 @@ ConicMirror::ConicMirror(
 {
   m_processor = new ConicMirrorProcessor;
 
-  registerProperty("thickness",      m_thickness);
-  registerProperty("radius",         m_radius);
-  registerProperty("diameter",       2 * m_radius);
-  registerProperty("curvature",      m_rCurv);
-  registerProperty("focalLength",    0.5 * m_rCurv);
-  registerProperty("conic",          m_K);
-  registerProperty("hole",           m_rHole);
-  registerProperty("x0",             m_x0);
-  registerProperty("y0",             m_y0);
-  registerProperty("vertexRelative", false);
-
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf",  frame, Vec3::zero());
   m_aperturePort           = new TranslatedFrame("aperture", frame, Vec3::zero());
   m_vertexPort             = new TranslatedFrame("vertex",   frame, Vec3::zero());
@@ -216,20 +220,4 @@ ConicMirror::renderOpenGL()
 
   glTranslatef(0, 0, dz - sigma * m_rHoleHeight);
   m_hole.display();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ConicMirrorFactory::name() const
-{
-  return "ConicMirror";
-}
-
-Element *
-ConicMirrorFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new ConicMirror(this, name, pFrame, parent);
 }

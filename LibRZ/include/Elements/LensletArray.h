@@ -24,7 +24,7 @@
 #include <GLHelpers.h>
 
 namespace RZ {
-  class TranslatedFrame;
+  class TranslatedFrame;  
 
   class LensletArray : public OpticalElement {
       GLCappedCylinder        m_cylinder;
@@ -69,14 +69,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class LensletArrayFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_OPTICAL_ELEMENT(LensletArray);
 }
 
 #endif // _LENSLET_ARRAY_H

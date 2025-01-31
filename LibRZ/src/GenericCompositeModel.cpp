@@ -113,13 +113,12 @@ GenericComponentParamEvaluator::assign()
 
   // Positional argument. Lazy resolution of its name.
   if (position != -1) {
-    unsigned actualIndex = position + element->hidden();
     auto props = element->sortedProperties();
 
-    if (actualIndex >= props.size())
+    if (position >= props.size())
       throw std::runtime_error("Too many properties passed to element");
     
-    description->parameter = props[actualIndex];
+    description->parameter = props[position];
     position = -1;
   }
 
@@ -365,7 +364,7 @@ GenericCompositeModel::assignEverything()
 void
 GenericCompositeModel::boundingBox(Vec3 &p1, Vec3 &p2)
 {
-  auto beamFactory = Singleton::instance()->lookupElementFactory("RayBeam");
+  auto beamFactory = Singleton::instance()->lookupElementFactory("RayBeamElement");
 
   for (auto el : m_elements)
     if (el->nestedCompositeModel() != nullptr)

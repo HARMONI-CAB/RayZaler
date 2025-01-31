@@ -21,6 +21,13 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ELEMENT_FROM(SphericalLens, ConicLens, "Lens with spherical surface")
+{
+  hiddenProperty("conic",      0, "Conic constant of the lens (overriden)");
+  hiddenProperty("frontConic", 0, "Conic constant of the lens (front face, overriden)");
+  hiddenProperty("backConic",  0, "Conic constant of the lens (back face, overriden)");
+}
+
 bool
 SphericalLens::propertyChanged(
   std::string const &name,
@@ -43,20 +50,4 @@ SphericalLens::SphericalLens(
 
 SphericalLens::~SphericalLens()
 {
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-SphericalLensFactory::name() const
-{
-  return "SphericalLens";
-}
-
-Element *
-SphericalLensFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new SphericalLens(this, name, pFrame, parent);
 }

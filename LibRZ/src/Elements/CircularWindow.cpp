@@ -22,6 +22,14 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_OPTICAL_ELEMENT(CircularWindow, "Circular window with thickness and a refractive index")
+{
+  property("thickness",   1e-2, "Thickness of the window [m]");
+  property("radius",    2.5e-2, "Radius of the window [m]");
+  property("diameter",    5e-2, "Diameter of the window [m]");
+  property("n",            1.5, "Refractive index of the window");
+}
+
 void
 CircularWindow::recalcModel()
 {
@@ -80,11 +88,6 @@ CircularWindow::CircularWindow(
 {
   m_inputProcessor  = new CircularWindowProcessor;
   m_outputProcessor = new CircularWindowProcessor;
-
-  registerProperty("thickness",   1e-2);
-  registerProperty("radius",    2.5e-2);
-  registerProperty("diameter",    5e-2);
-  registerProperty("n",            1.5);
   
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
@@ -128,20 +131,4 @@ CircularWindow::renderOpenGL()
 
   material("lens");
   m_cylinder.display();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-CircularWindowFactory::name() const
-{
-  return "CircularWindow";
-}
-
-Element *
-CircularWindowFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new CircularWindow(this, name, pFrame, parent);
 }

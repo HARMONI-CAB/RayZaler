@@ -28,6 +28,11 @@ using namespace RZ;
 #define BENCH_DEFAULT_LEG_RADIUS   0.15
 #define BENCH_DEFAULT_LEG_SEP      (2 * BENCH_DEFAULT_LEG_RADIUS)
 
+RZ_DESCRIBE_ELEMENT(BenchElement, "An optical bench with four legs")
+{
+  property("height", 0., "Height of the table [m]");
+}
+
 bool
 BenchElement::propertyChanged(std::string const &name, PropertyValue const &val)
 {
@@ -53,8 +58,6 @@ BenchElement::BenchElement(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("height", 0.);
-
   m_cylinder.setVisibleCaps(true, false);
 
   m_surfaceFrame = registerPort(
@@ -129,19 +132,4 @@ BenchElement::renderOpenGL()
 
 BenchElement::~BenchElement()
 {
-}
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-BenchElementFactory::name() const
-{
-  return "BenchElement";
-}
-
-Element *
-BenchElementFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new BenchElement(this, name, pFrame, parent);
 }

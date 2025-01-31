@@ -21,6 +21,11 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ELEMENT_FROM(SphericalMirror, ConicMirror, "Mirror with spherical surface")
+{
+  hiddenProperty("conic", 0, "Conic constant of the mirror (overriden)");
+}
+
 bool
 SphericalMirror::propertyChanged(
   std::string const &name,
@@ -44,21 +49,4 @@ SphericalMirror::SphericalMirror(
 
 SphericalMirror::~SphericalMirror()
 {
-}
-
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-SphericalMirrorFactory::name() const
-{
-  return "SphericalMirror";
-}
-
-Element *
-SphericalMirrorFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new SphericalMirror(this, name, pFrame, parent);
 }

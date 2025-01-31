@@ -59,14 +59,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class TripodFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT(Tripod);
 }
 
 #endif // _TRIPOD_H

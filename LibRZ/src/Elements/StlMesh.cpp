@@ -24,6 +24,12 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ELEMENT(StlMesh, "Arbitrary mesh from a STL file")
+{
+  property("file",  "",   "Path of the STL mesh");
+  property("units", 1e-3, "Physical length of the units of the STL mesh [m]");
+}
+
 void
 StlMesh::tryOpenModel()
 {
@@ -110,7 +116,7 @@ StlMesh::propertyChanged(
   } else if (name == "units") {
     m_units = value;
   } else {
-    return OpticalElement::propertyChanged(name, value);
+    return Element::propertyChanged(name, value);
   }
 
   return true;
@@ -120,10 +126,8 @@ StlMesh::StlMesh(
   ElementFactory *factory,
   std::string const &name,
   ReferenceFrame *frame,
-  Element *parent) : OpticalElement(factory, name, frame, parent)
+  Element *parent) : Element(factory, name, frame, parent)
 {
-  registerProperty("file", "");
-  registerProperty("units", m_units);
 }
 
 StlMesh::~StlMesh()
@@ -154,20 +158,4 @@ StlMesh::renderOpenGL()
   glDisableClientState(GL_NORMAL_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
   glPopAttrib();
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-StlMeshFactory::name() const
-{
-  return "StlMesh";
-}
-
-Element *
-StlMeshFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new StlMesh(this, name, pFrame, parent);
 }

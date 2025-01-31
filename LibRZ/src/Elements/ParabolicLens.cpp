@@ -20,6 +20,13 @@
 
 using namespace RZ;
 
+RZ_DESCRIBE_ELEMENT_FROM(ParabolicLens, ConicLens, "Lens with parabolic surface")
+{
+  hiddenProperty("conic",      -1, "Conic constant of the lens (overriden)");
+  hiddenProperty("frontConic", -1, "Conic constant of the lens (front face, overriden)");
+  hiddenProperty("backConic",  -1, "Conic constant of the lens (back face, overriden)");
+}
+
 bool
 ParabolicLens::propertyChanged(
   std::string const &name,
@@ -42,20 +49,4 @@ ParabolicLens::ParabolicLens(
 
 ParabolicLens::~ParabolicLens()
 {
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-ParabolicLensFactory::name() const
-{
-  return "ParabolicLens";
-}
-
-Element *
-ParabolicLensFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new ParabolicLens(this, name, pFrame, parent);
 }

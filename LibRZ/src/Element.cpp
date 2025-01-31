@@ -35,17 +35,7 @@ Element::Element(
   m_parent      = parent;
   m_parentFrame = pFrame;
 
-  registerProperty("red",       m_red);
-  registerProperty("green",     m_green);
-  registerProperty("blue",      m_blue);
-
-  registerProperty("specRed",   m_specRed);
-  registerProperty("specGreen", m_specGreen);
-  registerProperty("specBlue",  m_specBlue);
-
-  registerProperty("shiny",     m_shiny);
-
-  m_hidden = m_properties.size();
+  registerProperties(factory->metaData());
 }
 
 Element::~Element()
@@ -61,9 +51,31 @@ Element::pushChild(Element *element)
 }
 
 void
-Element::registerProperty(std::string const &name, PropertyValue const &dfl)
+Element::registerProperties(const ElementFactoryMeta *meta)
+{
+  if (meta->parent != nullptr)
+    registerProperties(meta->parent);
+
+  // Register all properties, overwriting the existing ones
+  for (auto &p : meta->properties)
+    m_properties[p.first] = p.second;
+
+  // Append sorted properties to the end
+  m_sortedProperties.insert(
+    m_sortedProperties.end(),
+    meta->sortedProperties.begin(),
+    meta->sortedProperties.end());
+}
+
+void
+Element::registerProperty(
+  std::string const &name,
+  PropertyValue const &dfl,
+  std::string const &desc)
 {
   m_properties[name] = dfl;
+  m_properties[name].setContext(m_className);
+  m_properties[name].setDescription(desc);
   m_sortedProperties.push_back(name);
 }
 
@@ -436,4 +448,99 @@ Element::lookupOpticalPath(std::string const &name) const
 {
   auto model = nestedModel();
   return model != nullptr ? model->lookupOpticalPath(name) : nullptr;
+}
+
+////////////////////////////// ElementFactory //////////////////////////////////
+PropertyValue *
+ElementFactoryMeta::queryProperty(std::string const &name)
+{
+  auto it = properties.find(name);
+
+  if (it != properties.end())
+    return &it->second;
+
+  if (parent != nullptr)
+    return parent->queryProperty(name);
+  
+  return nullptr;
+}
+
+const ElementFactoryMeta *
+ElementFactory::metaData() const
+{
+  return m_metaData;
+}
+
+PropertyValue *
+ElementFactory::queryProperty(std::string const &name)
+{
+  return m_metaData->queryProperty(name);
+}
+
+void
+ElementFactory::enterDecls(std::string const &name, std::string const &desc)
+{
+  ElementFactoryMeta meta;
+
+  meta.name        = name;
+  meta.description = desc;
+  meta.parent      = m_metaData;
+
+  m_meta.push_back(meta);
+  m_metaData = &m_meta.back();
+}
+
+ElementFactory::ElementFactory()
+{
+  enterDecls("Element", "Generic element");
+
+  hiddenProperty("red",       .25,  "Red channel of the solid color of the element [0..1]");
+  hiddenProperty("green",     .25, "Green channel of the solid color of the element [0..1]");
+  hiddenProperty("blue",      .25, "Blue channel of the solid color of the element [0..1]");
+
+  hiddenProperty("specRed",   .25, "Red channel of the specular color of the element [0..1]");
+  hiddenProperty("specGreen", .25, "Green channel of the specular color of the element [0..1]");
+  hiddenProperty("specBlue",  .25, "Blue channel of the specular color of the element [0..1]");
+
+  hiddenProperty("shiny",     64,  "Specular component intensity [0..63]");
+}
+
+std::string
+ElementFactory::name() const
+{
+  return m_metaData->name;
+}
+
+PropertyValue &
+ElementFactory::hiddenProperty(
+  std::string const &name,
+  PropertyValue const &dfl,
+  std::string const &desc)
+{
+  auto *prop = m_metaData->queryProperty(name);
+  if (prop == nullptr) {
+    m_metaData->properties[name] = dfl;
+    prop = &m_metaData->properties[name];
+  }
+
+  prop->setContext(m_metaData->name);
+  prop->setDescription(desc);
+  prop->setHidden(true);
+
+  return *prop;
+}
+
+void
+ElementFactory::property(
+  std::string const &name,
+  PropertyValue const &dfl,
+  std::string const &desc)
+{
+  bool exists = queryProperty(name) != nullptr;
+
+  auto &prop = hiddenProperty(name, dfl, desc);
+  prop.setHidden(false);
+
+  if (!exists)
+    m_metaData->sortedProperties.push_back(name);
 }

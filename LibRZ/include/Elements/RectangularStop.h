@@ -57,14 +57,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class RectangularStopFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_OPTICAL_ELEMENT(RectangularStop);
 }
 
 #endif // _RECTANGULAR_STOP_H

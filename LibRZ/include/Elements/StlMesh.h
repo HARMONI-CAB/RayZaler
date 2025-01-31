@@ -26,7 +26,7 @@
 namespace RZ {
   class TranslatedFrame;
 
-  class StlMesh : public OpticalElement {
+  class StlMesh : public Element {
       std::string m_path;
       std::vector<Real>         m_coords,   m_normals;
       std::vector<unsigned int> m_tris,     m_solids;
@@ -54,14 +54,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class StlMeshFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT(StlMesh);
 }
 
 #endif // _STL_MESH_H

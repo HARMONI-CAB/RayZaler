@@ -27,6 +27,13 @@ using namespace RZ;
 #define ROD_DEFAULT_LENGTH   5e-2
 #define ROD_DEFAULT_DIAMETER 3e-3
 
+RZ_DESCRIBE_ELEMENT(RodElement, "Solid bar with circular section")
+{
+  property("length",   ROD_DEFAULT_LENGTH,         "Length of the rod [m]");
+  property("diameter", ROD_DEFAULT_DIAMETER,       "Diameter of the section [m]");
+  property("radius",   0.5 * ROD_DEFAULT_DIAMETER, "Radius of the section [m]");
+}
+
 void
 RodElement::recalcBoundingBox()
 {
@@ -112,10 +119,6 @@ RodElement::RodElement(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("length",   ROD_DEFAULT_LENGTH);
-  registerProperty("diameter", ROD_DEFAULT_DIAMETER);
-  registerProperty("radius",   0.5 * ROD_DEFAULT_DIAMETER);
-
   m_cachedLength   = ROD_DEFAULT_LENGTH;
   m_cachedDiameter = ROD_DEFAULT_DIAMETER;
 
@@ -143,20 +146,4 @@ RodElement::~RodElement()
     delete m_sides[i];
     delete m_rotatedSides[i];
   }
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-RodElementFactory::name() const
-{
-  return "RodElement";
-}
-
-Element *
-RodElementFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new RodElement(this, name, pFrame, parent);
 }

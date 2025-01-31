@@ -108,6 +108,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/CompositeElement.h
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
+  ${LIBRZ_INCLUDEDIR}/ElementMacros.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/exprtk.hpp
   ${LIBRZ_INCLUDEDIR}/FT2Facade.h

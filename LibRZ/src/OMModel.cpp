@@ -1009,7 +1009,7 @@ OMModel::linkWorld(ReferenceFrame *frame)
 OMModel::OMModel()
 {
   auto sing = Singleton::instance();
-  auto factory = sing->lookupElementFactory("RayBeam");
+  auto factory = sing->lookupElementFactory("RayBeamElement");
 
   registerFrame(m_world = new WorldFrame("world"));
 

@@ -26,6 +26,18 @@ using namespace RZ;
 #define ROD_DEFAULT_LENGTH   5e-2
 #define ROD_DEFAULT_DIAMETER 3e-3
 
+RZ_DESCRIBE_ELEMENT(Tripod, "Flat mount supported by 3 legs with adjustable heights, forming an isosceles triangle")
+{
+  property("leg1",        2e-2,  "Height of the first leg");
+  property("leg2",        2e-2,  "Height of the second leg");
+  property("leg3",        2e-2,  "Height of the third leg");
+  property("radius",      42e-3, "Radius of the circumscribing circle [m]");
+  property("diameter",    84e-3, "Diameter of the circumscribing circle [m]");
+  property("angle",       70,    "Angle of the vertex of the triangle [deg]");
+
+  property("legDiameter", 6e-3, "Diameter of the legs [m]");
+}
+
 bool
 Tripod::propertyChanged(std::string const &name, PropertyValue const &val)
 {
@@ -123,19 +135,8 @@ Tripod::Tripod(
   Element *parent)
   : Element(factory, name, frame, parent)
 {
-  registerProperty("leg1",        m_leg1);
-  registerProperty("leg2",        m_leg2);
-  registerProperty("leg3",        m_leg3);
-  registerProperty("radius",      m_ta_radius);
-  registerProperty("diameter",    2 * m_ta_radius);
-  registerProperty("angle",       m_ta_angle);
-
-  registerProperty("legDiameter", m_legDiameter);
-
   initTripod();
-
   addPort("surface", m_surface);
-
   refreshProperties();
 }
 
@@ -156,20 +157,4 @@ Tripod::~Tripod()
 {
   if (m_surface != nullptr)
     delete m_surface;
-}
-
-///////////////////////////////// Factory //////////////////////////////////////
-std::string
-TripodFactory::name() const
-{
-  return "Tripod";
-}
-
-Element *
-TripodFactory::make(
-  std::string const &name,
-  ReferenceFrame *pFrame,
-  Element *parent)
-{
-  return new Tripod(this, name, pFrame, parent);
 }

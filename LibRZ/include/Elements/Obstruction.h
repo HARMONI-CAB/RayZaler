@@ -84,14 +84,7 @@ namespace RZ {
       virtual void enterOpenGL() override;
   };
 
-  class ObstructionFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_OPTICAL_ELEMENT(Obstruction);
 }
 
 #endif // _OBSTRUCTION_H

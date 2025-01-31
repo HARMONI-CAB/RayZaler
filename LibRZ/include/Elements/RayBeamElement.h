@@ -89,14 +89,7 @@ namespace RZ {
       virtual void renderOpenGL() override;
   };
 
-  class RayBeamElementFactory : public ElementFactory {
-    public:
-      virtual std::string name() const override;
-      virtual Element *make(
-        std::string const &name,
-        ReferenceFrame *pFrame,
-        Element *parent = nullptr) override;
-  };
+  RZ_DECLARE_ELEMENT(RayBeamElement);
 }
 
 #endif // _RAY_BEAM_ELEMENT_H

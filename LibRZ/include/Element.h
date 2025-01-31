@@ -21,6 +21,7 @@
 
 #include "ReferenceFrame.h"
 #include "Helpers.h"
+#include "ElementMacros.h"
 #include <set>
 #include <list>
 #include <map>
@@ -42,6 +43,7 @@ namespace RZ {
   class OpticalElement;
   class Detector;
   class OpticalPath;
+  struct ElementFactoryMeta;
   struct UndefinedProperty {};
 
   enum PropertyValueType {
@@ -58,7 +60,47 @@ namespace RZ {
       // inherit constructors from BasePropertyVariant
       using BasePropertyVariant::BasePropertyVariant;
 
+      std::string m_description;
+      std::string m_context;
+      bool        m_hidden = false;
+
     public:
+      inline void
+      setHidden(bool hidden)
+      {
+        m_hidden = hidden;
+      }
+
+      bool
+      isHidden() const
+      {
+        return m_hidden;
+      }
+
+      inline void
+      setDescription(std::string const &desc)
+      {
+        m_description = desc;
+      }
+
+      inline void
+      setContext(std::string const &ctx)
+      {
+        m_context = ctx;
+      }
+
+      inline std::string
+      description() const
+      {
+        return m_description;
+      }
+
+      inline std::string
+      context() const
+      {
+        return m_context;
+      }
+
       static inline PropertyValue
       undefined()
       {
@@ -96,6 +138,11 @@ namespace RZ {
         
         return T();
       }
+
+      inline int64_t asInteger()    const { return std::get<int64_t>(*this); }
+      inline Real    asReal()       const { return std::get<Real>(*this);    }
+      inline bool    asBool()       const { return std::get<bool>(*this);    }
+      inline std::string asString() const { return std::get<std::string>(*this); }
   };
 
   template<>
@@ -124,6 +171,7 @@ namespace RZ {
   class ElementFactory;
 
   class Element {
+      std::string            m_className;
       std::string            m_name;
       Element               *m_parent      = nullptr;
       ReferenceFrame        *m_parentFrame = nullptr;
@@ -154,15 +202,16 @@ namespace RZ {
       Real m_specBlue  = .25;
       
       void pushChild(Element *);
-      
-    protected:
-      // Non-positional hidden arguments
-      unsigned m_hidden = 0;
+      void registerProperties(const ElementFactoryMeta *meta);
 
+    protected:
       void material(std::string const &role);
-      void registerProperty(std::string const &, PropertyValue const &);
       void refreshProperties();
-      
+      void registerProperty(
+        std::string const &,
+        PropertyValue const &,
+        std::string const &);
+        
       // Takes ownership
       ReferenceFrame *registerPort(std::string const &, ReferenceFrame *);
 
@@ -241,18 +290,12 @@ namespace RZ {
       inline bool
       propertyIsHidden(std::string const &prop) const
       {
-        for (auto i = 0; i < m_hidden; ++i)
-          if (prop == m_sortedProperties[i])
-            return true;
+        auto it = m_properties.find(prop);
 
-        return false;
-      }
+        if (it == m_properties.end())
+          return false;
 
-      // Get hidden parameter number
-      inline unsigned
-      hidden() const
-      {
-        return m_hidden;
+        return it->second.isHidden();
       }
 
       // Get parent frame
@@ -336,13 +379,43 @@ namespace RZ {
       const OpticalPath *lookupOpticalPath(std::string const &name) const;
   };
 
+  struct ElementFactoryMeta {
+    ElementFactoryMeta                  *parent;           // Parent factory meta
+    std::string                          name;             // Name of the element factory
+    std::string                          description;      // Description
+    std::map<std::string, PropertyValue> properties;       // Default properties
+    std::vector<std::string>             sortedProperties; // Properties in addition order
+
+    PropertyValue *queryProperty(std::string const &);
+  };
+
   class ElementFactory {
+      std::list<ElementFactoryMeta> m_meta;
+      ElementFactoryMeta *m_metaData = nullptr;
+
+    protected:
+      void enterDecls(std::string const &, std::string const &);
+      PropertyValue &hiddenProperty(
+        std::string const &,
+        PropertyValue const &,
+        std::string const &);
+      
+      void property(
+        std::string const &,
+        PropertyValue const &,
+        std::string const &);
+
     public:
-      virtual std::string name() const = 0;
+      ElementFactory();
+
       virtual Element *make(
         std::string const &name,
         ReferenceFrame *pFrame,
         Element *parent = nullptr) = 0;
+
+      std::string name() const;
+      const ElementFactoryMeta *metaData() const;
+      PropertyValue *queryProperty(std::string const &);
   };
 }
 
