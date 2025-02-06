@@ -87,6 +87,12 @@ RectangularFlatSurface::area() const
   return m_width * m_height;
 }
 
+std::string
+RectangularFlatSurface::name() const
+{
+  return "RectangularFlat";
+}
+
 void
 RectangularFlatSurface::renderOpenGL()
 {

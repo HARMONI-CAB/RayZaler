@@ -84,6 +84,12 @@ GLModel::setApertureColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 }
 
 void
+GLModel::setApertureColor(Vec3 const &vec)
+{
+  setApertureColor(vec.coords[0], vec.coords[1], vec.coords[2], 1);
+}
+
+void
 GLModel::setApertureColor(const GLfloat *rgba)
 {
   memcpy(m_apertureColor, rgba, 4 * sizeof(GLfloat));
@@ -96,13 +102,13 @@ GLModel::drawElementApertures(const Element *el)
     glPushAttrib(GL_LINE_BIT | GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
-
     glColor4fv(m_apertureColor);
 
-    glLineWidth(2);
     const RZ::OpticalElement *optEl = static_cast<const RZ::OpticalElement *>(el);
     auto &surfaces = optEl->opticalSurfaces();
     
+    glLineWidth(m_thickness);
+
     for (auto &surf : surfaces) {
       RZ::SurfaceShape *ap = surf->processor->surfaceShape();
 
@@ -115,6 +121,12 @@ GLModel::drawElementApertures(const Element *el)
     }
     glPopAttrib();
   }
+}
+
+void
+GLModel::setApertureThickness(unsigned int thickness)
+{
+  m_thickness = thickness;
 }
 
 GLfloat *

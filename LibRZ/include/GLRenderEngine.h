@@ -41,6 +41,7 @@ namespace RZ {
 
     void setScreenGeom(Real width, Real height);
     void setZoom(Real delta);
+    void zoomToBox(ReferenceFrame const &ref, Vec3 const &p1, Vec3 const &p2);
     void setCenter(Real, Real);
     void setRotation(Real, Real, Real, Real);
     void setRotation(Vec3 const &, Real);
@@ -76,10 +77,12 @@ namespace RZ {
       void display();
 
       void setColor(GLfloat, GLfloat, GLfloat);
+      void setColor(Vec3 const &);
       void setColor(const GLfloat *);
       void setGridText(std::string const &);
       void setGridStep(Real step);
       void setGridDivs(unsigned int num);
+      void setThickness(unsigned);
       void highlight(Real, Real);
   };
 
@@ -90,6 +93,7 @@ namespace RZ {
 
   class GLRenderEngine {
       GLModel               *m_model = nullptr; // Borrowed
+      Real                   m_axisZoom = 1.;
       GLCurrentView          m_view;
       GLReferenceFrame       m_glAxes;
       std::list<GLFrameGrid> m_grids;
@@ -107,7 +111,9 @@ namespace RZ {
       
       GLModel *model() const;
 
+      void setAxesZoom(Real);
       void zoom(Real delta);
+      void zoomToBox(ReferenceFrame const &ref, Vec3 const &p1, Vec3 const &p2);
       void incAzEl(Real deltaAz, Real deltaEl);
       void roll(Real delta);
       void move(Real deltaX, Real deltaY);

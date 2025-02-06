@@ -57,10 +57,12 @@ namespace std {
 #include <Linalg.h>
 #include <GenericCompositeModel.h>
 #include <CompositeElement.h>
+#include <RayTracingEngine.h>
 #include <OMModel.h>
 #include <TopLevelModel.h>
 #include <Logger.h>
 #include <ExprTkEvaluator.h>
+#include <GLModel.h>
 #include <GLRenderEngine.h>
 #include <ModelRenderer.h>
 #include <ParserContext.h>
@@ -68,10 +70,11 @@ namespace std {
 #include <RotatedFrame.h>
 #include <Singleton.h>
 #include <SkySampler.h>
+#include <SurfaceShape.h>
 #include <TranslatedFrame.h>
 #include <TripodFrame.h>
 #include <WorldFrame.h>
-
+#include <OpticalElement.h>
 #include <Elements/All.h>
 
 using namespace RZ;
@@ -81,6 +84,8 @@ PyMODINIT_FUNC PyInit_RZ();
 
 namespace std {
   %template(PropertyMap) map<string, RZ::PropertyValue>;
+  %template(OpticSurfList) list<RZ::OpticalSurface *>;
+  %rename(ConstOpticSurfList) list<RZ::OpticalSurface const *>;
 }
 
 %exception {
@@ -102,10 +107,12 @@ namespace std {
 %include "OMModel.h"
 %include "TopLevelModel.h"
 %include "Logger.h"
+%include "SurfaceShape.h"
 
 %include "CompositeElement.h"
 %include "ExprTkEvaluator.h"
 %include "GLRenderEngine.h"
+%include "GLModel.h"
 %include "ModelRenderer.h"
 %include "ParserContext.h"
 %include "RayTracingEngine.h"

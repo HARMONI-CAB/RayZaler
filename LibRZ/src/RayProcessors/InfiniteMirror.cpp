@@ -6,7 +6,7 @@ using namespace RZ;
 std::string
 InfiniteMirrorProcessor::name() const
 {
-  return "InfiniteMirror";
+  return "InfiniteMirrorProcessor";
 }
 
 void

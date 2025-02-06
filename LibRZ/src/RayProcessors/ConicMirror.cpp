@@ -30,7 +30,7 @@ ConicMirrorProcessor::ConicMirrorProcessor()
 std::string
 ConicMirrorProcessor::name() const
 {
-  return "ConicMirror";
+  return "ConicMirrorProcessor";
 }
 
 void

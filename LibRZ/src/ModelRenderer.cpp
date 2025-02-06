@@ -47,6 +47,13 @@ ModelRenderer::ModelRenderer(
 
   view()->setScreenGeom(width, height);
   
+  RZ::IncrementalRotation screenRotation;
+
+  screenRotation.rotateRelative(RZ::Vec3::eX(), -M_PI / 2);
+  screenRotation.rotateRelative(RZ::Vec3::eZ(), -M_PI / 2);
+
+  view()->setScreenRotation(screenRotation);
+
   m_pixels.resize(m_width * m_height);
 
   if (m_ownModel != nullptr)
@@ -69,6 +76,44 @@ ModelRenderer::adjustViewPort()
 }
 
 void
+ModelRenderer::zoomToContents()
+{
+  Vec3 p1 = Vec3::zero();
+  Vec3 p2 = Vec3::zero();
+
+  m_ownModel->omModel()->boundingBox(p1, p2);
+  zoomToBox(*m_ownModel->omModel()->world(), p1, p2);
+}
+
+void
+ModelRenderer::zoomToElement(Element const *element)
+{
+  Vec3 p1 = Vec3::zero();
+  Vec3 p2 = Vec3::zero();
+
+  element->boundingBox(p1, p2);
+  zoomToBox(*m_ownModel->omModel()->world(), p1, p2);
+}
+
+void
+ModelRenderer::setHighlightedBoundingBox(Element *el)
+{
+  m_ownModel->setHighlightedBoundingBox(el);
+}
+
+void
+ModelRenderer::setShowElements(bool show)
+{
+  m_ownModel->setShowElements(show);
+}
+
+void
+ModelRenderer::setShowApertures(bool show)
+{
+  m_ownModel->setShowApertures(show);
+}
+
+void
 ModelRenderer::render()
 {
   if (!OSMesaMakeCurrent(
@@ -78,6 +123,8 @@ ModelRenderer::render()
     m_width,
     m_height))
     throw std::runtime_error("Cannot create off-screen rendering context");
+  
+  OSMesaPixelStore(OSMESA_Y_UP, false);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -133,7 +180,7 @@ ModelRenderer::savePNG(const char *path)
   png_rows  = reinterpret_cast<png_byte **>(malloc(m_height * sizeof(png_byte *)));
 
   for (auto i = 0; i < m_height; i++)
-    png_rows[m_height - i - 1] = png_bytes + i * m_width * format_nchannels;
+    png_rows[i] = png_bytes + i * m_width * format_nchannels;
 
   png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (png == nullptr) {

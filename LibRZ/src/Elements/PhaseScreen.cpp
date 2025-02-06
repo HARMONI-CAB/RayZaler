@@ -31,7 +31,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(PhaseScreen, "Circular phase screen with irregular h
     property(
       string_printf("Z%u", i), 
       0.,
-      string_printf("Coefficient for polynomial $Z_{%d}$ [m]"));
+      string_printf("Coefficient for polynomial $Z_{%d}$ [m]", i));
   }
 
   property("radius",    2.5e-2, "Radius of the phase screen [m]");

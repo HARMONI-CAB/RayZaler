@@ -32,6 +32,7 @@
 using namespace RZ;
 
 #define RZ_DETECTOR_THICKNESS 1e-4
+#define RZ_DETECTOR_SUBS_GAP  1e-3
 
 RZ_DESCRIBE_OPTICAL_ELEMENT(Detector, "Generic detector with rectangular pixels")
 {
@@ -255,9 +256,12 @@ Detector::recalcModel()
   m_processor->surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
   m_processor->surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
 
+  Real bbWidth  = m_width  + RZ_DETECTOR_SUBS_GAP;
+  Real bbHeight = m_height + RZ_DETECTOR_SUBS_GAP;
+
   setBoundingBox(
-    Vec3(-m_width / 2, -m_height/2, 0),
-    Vec3(+m_width / 2, +m_height/2, 2 * RZ_DETECTOR_THICKNESS));
+    Vec3(-bbWidth / 2, -bbHeight/2, 0),
+    Vec3(+bbWidth / 2, +bbHeight/2, 2 * RZ_DETECTOR_THICKNESS));
 
   refreshFrames();
 }
@@ -450,7 +454,10 @@ Detector::renderOpenGL()
   glTranslatef(0, 0, -thickness);
   glPushMatrix();
   material("substrate");
-  glScalef(m_width + 1e-3, m_height + 1e-3, thickness);
+  glScalef(
+    m_width + RZ_DETECTOR_SUBS_GAP,
+    m_height + RZ_DETECTOR_SUBS_GAP,
+    thickness);
   GLCube(1);
   glPopMatrix();
   glPopMatrix();

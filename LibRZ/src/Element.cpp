@@ -227,6 +227,15 @@ Element::set(std::string const &name, PropertyValue const &val)
   return true;
 }
 
+void
+Element::setDefaults()
+{
+  auto *meta = factory()->metaData();
+
+  for (auto &p : meta->properties)
+    set(p.first, p.second);
+}
+
 PropertyValue
 Element::get(std::string const &name) const
 {
@@ -289,7 +298,7 @@ Element::updatePropertyValue(std::string const &name, PropertyValue const &val)
 }
 
 void
-Element::boundingBox(Vec3 &p1, Vec3 &p2)
+Element::boundingBox(Vec3 &p1, Vec3 &p2) const
 {
   if (m_parentFrame == nullptr) {
     p1 = m_bb1;
@@ -305,7 +314,11 @@ Element::boundingBox(Vec3 &p1, Vec3 &p2)
         whichY ? m_bb1.y : m_bb2.y,
         whichZ ? m_bb1.z : m_bb2.z);
       Vec3 abs = m_parentFrame->fromRelative(p);
-      expandBox(p1, p2, abs);
+      
+      if (i == 0)
+        p1 = p2 = abs;
+      else
+        expandBox(p1, p2, abs);
     }
   }
 }
@@ -502,7 +515,7 @@ ElementFactory::ElementFactory()
   hiddenProperty("specGreen", .25, "Green channel of the specular color of the element [0..1]");
   hiddenProperty("specBlue",  .25, "Blue channel of the specular color of the element [0..1]");
 
-  hiddenProperty("shiny",     64,  "Specular component intensity [0..63]");
+  hiddenProperty("shiny",     63,  "Specular component intensity [0..127]");
 }
 
 std::string
@@ -521,6 +534,8 @@ ElementFactory::hiddenProperty(
   if (prop == nullptr) {
     m_metaData->properties[name] = dfl;
     prop = &m_metaData->properties[name];
+  } else {
+    *prop = dfl;
   }
 
   prop->setContext(m_metaData->name);

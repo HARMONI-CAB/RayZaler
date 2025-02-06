@@ -30,7 +30,7 @@ IdealLensProcessor::IdealLensProcessor()
 std::string
 IdealLensProcessor::name() const
 {
-  return "IdealLens";
+  return "IdealLensProcessor";
 }
 
 void

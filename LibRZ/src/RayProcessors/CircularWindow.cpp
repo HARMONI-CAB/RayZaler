@@ -12,7 +12,7 @@ CircularWindowProcessor::CircularWindowProcessor()
 std::string
 CircularWindowProcessor::name() const
 {
-  return "CircularWindow";
+  return "CircularWindowProcessor";
 }
 
 void

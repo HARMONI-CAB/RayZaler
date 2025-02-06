@@ -59,6 +59,11 @@ namespace RZ {
       }
       
       void render();
+      void zoomToContents();
+      void zoomToElement(Element const *);
+      void setHighlightedBoundingBox(Element *);
+      void setShowElements(bool);
+      void setShowApertures(bool);
       bool savePNG(const char *path);
       const uint32_t *pixels() const;
 

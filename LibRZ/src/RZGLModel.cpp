@@ -28,6 +28,10 @@ RZGLModel::displayModel(OMModel *model)
   for (auto p : model->elementList()) {
     if (m_showElements) {
       pushElementMatrix(p);
+      
+      if (p == m_bbElement)
+        p->renderBoundingBoxOpenGL();
+      
       p->renderOpenGL();
       popElementMatrix();
     }
@@ -70,4 +74,13 @@ void
 RZGLModel::setShowElements(bool show)
 {
   m_showElements = show;
+}
+
+void
+RZGLModel::setHighlightedBoundingBox(Element *element)
+{
+  m_bbElement = element;
+
+  if (element != nullptr)
+    element->calcBoundingBoxOpenGL();
 }

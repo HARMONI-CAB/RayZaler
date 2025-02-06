@@ -55,6 +55,12 @@ GLHelperGrid::setColor(GLfloat r, GLfloat g, GLfloat b)
 }
 
 void
+GLHelperGrid::setColor(Vec3 const &vec)
+{
+  setColor(vec.coords[0], vec.coords[1], vec.coords[2]);
+}
+
+void
 GLHelperGrid::setColor(const GLfloat *color)
 {
   setColor(color[0], color[1], color[2]);
@@ -91,6 +97,14 @@ GLHelperGrid::setGridDivs(unsigned int num)
     m_xyFineGrid.setStepsX(num);
     m_xyFineGrid.setStepsY(num);
   }
+}
+
+void
+GLHelperGrid::setThickness(unsigned thickness)
+{
+  m_xyFineGrid.setThickness(thickness);
+  m_xyMediumGrid.setThickness(thickness);
+  m_xyCoarseGrid.setThickness(thickness);
 }
 
 void
@@ -194,7 +208,7 @@ GLCurrentView::configureViewPort(unsigned int width, unsigned int height) const
     0);
     
   aspect = static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
-  glOrtho(-2, 2, -2 / aspect, 2 / aspect, -20 * zoomLevel, 20 * zoomLevel);
+  glOrtho(-2, +2, -2 / aspect, +2 / aspect, -20 * zoomLevel, 20 * zoomLevel);
 
   // Phase 3: Configure normals
   glMatrixMode (GL_MODELVIEW);
@@ -308,7 +322,6 @@ GLCurrentView::frameToWorld(
   Matrix3 screenMatrix = currRot.matrix();
 
   auto pt = frame.fromRelative(vec);
-
   auto world = screenMatrix * pt;
 
   wX = world.x;
@@ -343,10 +356,16 @@ GLRenderEngine::drawGrids()
   for (auto &grid : m_grids) {
     m_model->pushReferenceFrameMatrix(grid.frame);
     grid.grid.display();
-    glScalef(1. / zoom, 1. / zoom, 1. / zoom);
+    glScalef(m_axisZoom / zoom, m_axisZoom / zoom, m_axisZoom / zoom);
     m_glAxes.display();
     glPopMatrix();
   }
+}
+
+void
+GLRenderEngine::setAxesZoom(Real zoom)
+{
+  m_axisZoom = zoom;
 }
 
 GLFrameGrid *
@@ -422,6 +441,64 @@ void
 GLRenderEngine::zoom(Real delta)
 {
   m_view.zoom(delta);
+}
+
+void
+GLCurrentView::zoomToBox(
+  ReferenceFrame const &ref,
+  Vec3 const &p1,
+  Vec3 const &p2)
+{
+  RZ::Real sX = 0, sY = 0;
+  RZ::Vec3 center = .5 * (p1 + p2);
+
+  RZ::Matrix3 rotation =
+      RZ::Matrix3::rot(RZ::Vec3::eX(), +.25 * M_PI) *
+      RZ::Matrix3::rot(RZ::Vec3::eY(), -.25 * M_PI);
+
+  setRotation(rotation);
+  frameToScreen(sX, sY, ref, center);
+
+  // Calculate screen bounding box
+  RZ::Vec3 s1, s2;
+
+  for (auto i = 0; i < 8; ++i) {
+    RZ::Real cornerX, cornerY;
+    bool whichX = (i & 1) != 0;
+    bool whichY = (i & 2) != 0;
+    bool whichZ = (i & 4) != 0;
+
+    RZ::Vec3 p = RZ::Vec3(
+      whichX ? p1.x : p2.x,
+      whichY ? p1.y : p2.y,
+      whichZ ? p1.z : p2.z);
+
+    frameToScreen(cornerX, cornerY, ref, p);
+
+    RZ::Vec3 s(cornerX, cornerY, 0);
+
+    if (i == 0)
+      s1 = s2 = s;
+    else
+      expandBox(s1, s2, s);
+  }
+
+  // Correct zoom
+  auto geom = s2 - s1;
+  setZoom(fmin(width / (1e-12 + geom.x), height / (1e-12 + geom.y)));
+
+  // Center
+  frameToScreen(sX, sY, ref, center);
+  setCenter(-(sX - width / 2), -(sY - height / 2));
+}
+
+void
+GLRenderEngine::zoomToBox(
+  ReferenceFrame const &ref,
+  Vec3 const &p1,
+  Vec3 const &p2)
+{
+  m_view.zoomToBox(ref, p1, p2);
 }
 
 void

@@ -338,12 +338,13 @@ namespace RZ {
       std::list<std::string> opticalPaths() const;
       std::list<std::string> elementHierarchy(std::string const &pfx = "") const;
       std::list<std::string> opticalElementHierarchy(std::string const &pfx = "") const;
+      void boundingBox(Vec3 &, Vec3 &) const;
 
       // Convenience methods (fast enumeration)
       std::list<Element *> const &elementList() const;
       std::list<Element *> allElements() const;
       std::list<OpticalElement *> allOpticalElements() const;
-
+      
       // Lookup methods
       ReferenceFrame *lookupReferenceFrame(std::string const &) const;
       Element *resolveElement(std::string const &) const;

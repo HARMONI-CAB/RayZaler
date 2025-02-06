@@ -109,6 +109,15 @@ namespace RZ {
         return m_recordHits;
       }
       
+      static inline OpticalElement *
+      fromElement(Element *element)
+      {
+        if (element->hasProperty("optical"))
+          return static_cast<OpticalElement *>(element);
+
+        return nullptr;
+      }
+      
       virtual OpticalPath opticalPath(std::string const &name = "") const;
       OpticalPath plug(OpticalElement *, std::string const &name = "") const;
       const std::list<const OpticalSurface *> &opticalSurfaces() const;

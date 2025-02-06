@@ -76,6 +76,8 @@ Tripod::propertyChanged(std::string const &name, PropertyValue const &val)
 void
 Tripod::recalcLegs()
 {
+  Real legR = .5 * m_legDiameter;
+
   // Representation. 
   m_p[0] = Vec3(
       + m_ta_radius * sin(deg2rad(.5 * m_ta_angle)),
@@ -92,9 +94,9 @@ Tripod::recalcLegs()
       -m_ta_radius,
       0);
 
-  m_glLegs[0].setRadius(.5 * m_legDiameter);
-  m_glLegs[1].setRadius(.5 * m_legDiameter);
-  m_glLegs[2].setRadius(.5 * m_legDiameter);
+  m_glLegs[0].setRadius(legR);
+  m_glLegs[1].setRadius(legR);
+  m_glLegs[2].setRadius(legR);
 
   m_glLegs[0].setHeight(m_leg1);
   m_glLegs[1].setHeight(m_leg2);
@@ -104,6 +106,12 @@ Tripod::recalcLegs()
   updatePropertyValue("diameter", 2 * m_ta_radius);
   
   refreshFrames();
+
+  Real maxH = fmax(m_leg1, fmax(m_leg2, m_leg3));
+
+  setBoundingBox(
+    Vec3(m_p[1].x - legR, m_p[2].y - legR, 0),
+    Vec3(m_p[0].x + legR, m_p[1].y + legR, maxH));
 }
 
 void

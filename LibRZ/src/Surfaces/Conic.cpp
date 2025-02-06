@@ -436,6 +436,12 @@ ConicSurface::area() const
   throw std::runtime_error("Surface area of a general conic not yet implemented");
 }
 
+std::string
+ConicSurface::name() const
+{
+  return "Conic(" + std::to_string(m_K) + ")";
+}
+
 void
 ConicSurface::renderOpenGL()
 {

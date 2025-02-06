@@ -47,6 +47,9 @@ StlMesh::tryOpenModel()
 
   actualPath = model == nullptr ? m_path : model->resolveFilePath(m_path);
 
+  Vec3 p1, p2;
+  bool first = true;
+
   try {
     stl_reader::ReadStlFile(
       actualPath.c_str(),
@@ -79,6 +82,14 @@ StlMesh::tryOpenModel()
         const Real *coord = &m_coords[3 * c];
         Real *vNorm       = &m_vnormals[3 * n];
         Real *vCoord      = &m_vertices[3 * n];
+        auto p            = Vec3(coord) * m_units;
+
+        if (first) {
+          first = false;
+          p1 = p2 = p;
+        } else {
+          expandBox(p1, p2, p);
+        }
 
         memcpy(vNorm,  normal, 3 * sizeof (Real));
         memcpy(vCoord, coord, 3 * sizeof (Real));
@@ -92,6 +103,7 @@ StlMesh::tryOpenModel()
     m_normals.clear();
     m_solids.clear();
 
+    setBoundingBox(p1, p2);
     m_haveMesh = true;
   } catch (std::exception& e) {
     RZError(
@@ -149,10 +161,12 @@ StlMesh::renderOpenGL()
 
   if (m_haveMesh) {
     material("main");
+    glPushMatrix();
     glScalef(m_units, m_units, m_units);
     glVertexPointer(3, GL_DOUBLE,   3 * sizeof(Real), m_vertices.data());
     glNormalPointer(GL_DOUBLE,      3 * sizeof(Real), m_vnormals.data());
     glDrawElements(GL_TRIANGLES, m_tris.size(), GL_UNSIGNED_INT, m_tris.data());
+    glPopMatrix();
   }
 
   glDisableClientState(GL_NORMAL_ARRAY);

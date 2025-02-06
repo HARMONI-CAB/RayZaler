@@ -37,8 +37,8 @@ void
 TubeElement::recalcBoundingBox()
 {
   setBoundingBox(
-    Vec3(-m_cachedOuterDiameter / 2, -m_cachedOuterDiameter / 2, -m_cachedLength/2),
-    Vec3(+m_cachedOuterDiameter / 2, +m_cachedOuterDiameter / 2, +m_cachedLength/2));
+    Vec3(-m_cachedOuterDiameter / 2, -m_cachedOuterDiameter / 2, 0),
+    Vec3(+m_cachedOuterDiameter / 2, +m_cachedOuterDiameter / 2, m_cachedLength));
 }
 
 bool
@@ -95,7 +95,7 @@ TubeElement::initSides()
       std::string(names[i]) + "_rotation",
       parentFrame(),
       Vec3(rotations[i][1], rotations[i][2], rotations[i][3]),
-      rotations[i][0]);
+      deg2rad(rotations[i][0]));
   
   m_sides[0] = new TranslatedFrame(
       "top",
@@ -105,8 +105,8 @@ TubeElement::initSides()
   m_sides[1] = new TranslatedFrame(
       "middle",
       m_rotatedSides[1],
-        0.5 * m_cachedOuterDiameter * Vec3::eX()
-      + 0.5 * m_cachedLength   * Vec3::eZ());
+        0.5 * m_cachedOuterDiameter * Vec3::eZ()
+      + 0.5 * m_cachedLength   * Vec3::eX());
 
   m_sides[2] = new TranslatedFrame(
       "bottom",

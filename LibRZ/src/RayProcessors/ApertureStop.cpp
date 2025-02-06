@@ -32,7 +32,7 @@ ApertureStopProcessor::ApertureStopProcessor()
 std::string
 ApertureStopProcessor::name() const
 {
-  return "ApertureStop";
+  return "ApertureStopProcessor";
 }
 
 void

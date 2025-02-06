@@ -30,7 +30,7 @@ using namespace RZ;
 
 RZ_DESCRIBE_ELEMENT(BenchElement, "An optical bench with four legs")
 {
-  property("height", 0., "Height of the table [m]");
+  property("height", 1, "Height of the table [m]");
 }
 
 bool
@@ -45,6 +45,11 @@ BenchElement::propertyChanged(std::string const &name, PropertyValue const &val)
 
     m_surfaceFrame->setDistance(height * Vec3::eZ());
     m_surfaceFrame->recalculate();
+
+    setBoundingBox(
+      Vec3(-BENCH_DEFAULT_WIDTH / 2, -BENCH_DEFAULT_DEPTH / 2, 0),
+      Vec3(+BENCH_DEFAULT_WIDTH / 2, +BENCH_DEFAULT_DEPTH / 2, m_cachedHeight));
+
     return true;
   }
 
@@ -113,7 +118,7 @@ BenchElement::renderOpenGL()
   glPushMatrix();
   glTranslatef(0, 0, m_cachedHeight - BENCH_DEFAULT_TABLE_HEIGHT / 2);
   glScalef(BENCH_DEFAULT_WIDTH, BENCH_DEFAULT_DEPTH, BENCH_DEFAULT_TABLE_HEIGHT);
-  // glutSolidCube(1);
+  GLCube(1);
   glPopMatrix();
 
   // Draw the legs

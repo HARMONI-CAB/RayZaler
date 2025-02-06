@@ -209,6 +209,12 @@ CircularFlatSurface::area() const
   return M_PI * m_radius2;
 }
 
+std::string
+CircularFlatSurface::name() const
+{
+  return "CircularFlat";
+}
+
 void
 CircularFlatSurface::setObstruction(bool obs)
 {

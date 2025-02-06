@@ -139,6 +139,15 @@ SurfaceArray::area() const
   return m_width * m_height;
 }
 
+std::string
+SurfaceArray::name() const
+{
+  return "Array(" + 
+    m_subAperture->name() + ", " + 
+    std::to_string(m_cols) + ", " + 
+    std::to_string(m_rows) + ")";
+}
+
 void
 SurfaceArray::renderOpenGL()
 {

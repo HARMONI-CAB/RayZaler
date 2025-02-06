@@ -43,8 +43,8 @@ RodElement::recalcBoundingBox()
       + 0.5 * m_cachedLength   * Vec3::eZ());
   
   setBoundingBox(
-    Vec3(-m_cachedDiameter / 2, -m_cachedDiameter / 2, -m_cachedLength/2),
-    Vec3(+m_cachedDiameter / 2, +m_cachedDiameter / 2, +m_cachedLength/2));
+    Vec3(-m_cachedDiameter / 2, -m_cachedDiameter / 2, 0),
+    Vec3(+m_cachedDiameter / 2, +m_cachedDiameter / 2, m_cachedLength));
 
   updatePropertyValue("diameter", m_cachedDiameter);
   updatePropertyValue("radius", 0.5 * m_cachedDiameter);
@@ -87,7 +87,7 @@ RodElement::initSides()
       std::string(names[i]) + "_rotation",
       parentFrame(),
       Vec3(rotations[i][1], rotations[i][2], rotations[i][3]),
-      rotations[i][0]);
+      deg2rad(rotations[i][0]));
   
   m_sides[0] = new TranslatedFrame(
       "top",
@@ -97,8 +97,8 @@ RodElement::initSides()
   m_sides[1] = new TranslatedFrame(
       "middle",
       m_rotatedSides[1],
-        0.5 * m_cachedDiameter * Vec3::eX()
-      + 0.5 * m_cachedLength   * Vec3::eZ());
+        0.5 * m_cachedDiameter * Vec3::eZ()
+      + 0.5 * m_cachedLength   * Vec3::eX());
 
   m_sides[2] = new TranslatedFrame(
       "bottom",

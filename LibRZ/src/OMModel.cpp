@@ -634,7 +634,7 @@ OMModel::elementHierarchy(std::string const &pfx) const
 std::list<std::string>
 OMModel::opticalElementHierarchy(std::string const &pfx) const
 {
-std::list<std::string> keys;
+  std::list<std::string> keys;
 
   for (auto p : m_nameToElement) {
     std::string name = pfx + p.first;
@@ -648,6 +648,18 @@ std::list<std::string> keys;
   }
   
   return keys;
+}
+
+void
+OMModel::boundingBox(Vec3 &p1, Vec3 &p2) const
+{
+  auto beamFactory = Singleton::instance()->lookupElementFactory("RayBeamElement");
+
+  for (auto el : m_elements)
+    if (el->nestedModel() != nullptr)
+      el->nestedModel()->boundingBox(p1, p2);
+    else if (el->factory() != beamFactory)
+      el->boundingBox(p1, p2);
 }
 
 std::list<std::string>

@@ -14,7 +14,7 @@ ObstructionProcessor::ObstructionProcessor()
 std::string
 ObstructionProcessor::name() const
 {
-  return "Obstruction";
+  return "ObstructionProcessor";
 }
 
 void

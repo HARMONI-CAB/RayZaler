@@ -30,6 +30,7 @@ namespace RZ {
       OMModel *m_model = nullptr; // Borrowed
       bool     m_showApertures = false;
       bool     m_showElements = true;
+      Element *m_bbElement = nullptr;
 
       void displayModel(OMModel *);
 
@@ -38,6 +39,13 @@ namespace RZ {
       void pushOptoMechanicalModel(OMModel *);
       void setShowApertures(bool);
       void setShowElements(bool);
+      void setHighlightedBoundingBox(Element *);
+
+      inline OMModel *
+      omModel() const
+      {
+        return m_model;
+      }
   };
 }
 

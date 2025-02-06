@@ -38,7 +38,8 @@ namespace RZ {
       GLModelEventListener *m_listener = nullptr;
       GLfloat                m_refMatrix[16];
       GLfloat                m_apertureColor[4] = {0, 0, 1, 1};
-      
+      unsigned int           m_thickness = 3;
+
     protected:
       void tick();
       void drawElementApertures(const Element *);
@@ -54,6 +55,8 @@ namespace RZ {
       
       void setApertureColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a);
       void setApertureColor(const GLfloat *rgb);
+      void setApertureColor(Vec3 const &);
+      void setApertureThickness(unsigned int);
 
       void setEventListener(GLModelEventListener *listener);
       virtual void configureLighting();

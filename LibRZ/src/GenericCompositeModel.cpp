@@ -361,18 +361,6 @@ GenericCompositeModel::assignEverything()
     p->assign();
 }
 
-void
-GenericCompositeModel::boundingBox(Vec3 &p1, Vec3 &p2)
-{
-  auto beamFactory = Singleton::instance()->lookupElementFactory("RayBeamElement");
-
-  for (auto el : m_elements)
-    if (el->nestedCompositeModel() != nullptr)
-      el->nestedCompositeModel()->boundingBox(p1, p2);
-    else if (el->factory() != beamFactory)
-      el->boundingBox(p1, p2);
-}
-
 bool
 GenericCompositeModel::loadScript(std::string const &path)
 {

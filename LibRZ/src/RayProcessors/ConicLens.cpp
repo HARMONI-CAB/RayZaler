@@ -30,7 +30,7 @@ ConicLensProcessor::ConicLensProcessor()
 std::string
 ConicLensProcessor::name() const
 {
-  return "ConicLens";
+  return "ConicLensProcessor";
 }
 
 void

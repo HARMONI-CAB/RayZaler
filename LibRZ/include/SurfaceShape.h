@@ -49,7 +49,7 @@ namespace RZ {
       }
 
       virtual Real area() const = 0;
-
+      virtual std::string name() const = 0;
       virtual bool intercept(
         Vec3 &hit,
         Vec3 &normal,

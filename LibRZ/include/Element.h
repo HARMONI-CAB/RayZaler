@@ -243,7 +243,7 @@ namespace RZ {
       inline Real red() const { return m_red; }
       inline Real green() const { return m_green; }
       inline Real blue() const { return m_blue; }
-
+      
       ElementFactory *
       factory() const
       {
@@ -346,7 +346,8 @@ namespace RZ {
 
       // Set properties
       bool set(std::string const &, PropertyValue const &);
-      
+      void setDefaults();
+
       // Get properties
       PropertyValue get(std::string const &) const;
       template <class T>
@@ -359,7 +360,7 @@ namespace RZ {
       // Representation methods
       void setSelected(bool);
       void setVisible(bool);
-      void boundingBox(Vec3 &p1, Vec3 &p2);
+      void boundingBox(Vec3 &p1, Vec3 &p2) const;
       
       // Representation interface
       virtual void enterOpenGL();

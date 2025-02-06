@@ -15,7 +15,7 @@ RectangularStopProcessor::RectangularStopProcessor()
 std::string
 RectangularStopProcessor::name() const
 {
-  return "RectangularStop";
+  return "RectangularStopProcessor";
 }
 
 void

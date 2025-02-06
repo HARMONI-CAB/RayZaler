@@ -5,7 +5,7 @@ using namespace RZ;
 std::string
 PassThroughProcessor::name() const
 {
-  return "PassThrough";
+  return "PassThroughProcessor";
 }
 
 void

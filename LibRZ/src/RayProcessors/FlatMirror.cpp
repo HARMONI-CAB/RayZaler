@@ -12,7 +12,7 @@ FlatMirrorProcessor::FlatMirrorProcessor()
 std::string
 FlatMirrorProcessor::name() const
 {
-  return "FlatMirror";
+  return "FlatMirrorProcessor";
 }
 
 void

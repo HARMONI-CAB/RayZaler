@@ -72,7 +72,9 @@ RZ_FACTORY_METHOD(elType, make)(                                               \
   ReferenceFrame *pFrame,                                                      \
   Element *parent)                                                             \
 {                                                                              \
-  return new elType(this, name, pFrame, parent);                               \
+  auto instance = new elType(this, name, pFrame, parent);                      \
+  instance->setDefaults();                                                     \
+  return instance;                                                             \
 }                                                                              \
 RZ_DESCRIBE_ABSTRACT_ELEMENT_FROM(elType, fromType, desc)
 

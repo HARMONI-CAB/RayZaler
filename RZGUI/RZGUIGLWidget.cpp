@@ -768,7 +768,12 @@ RZGUIGLWidget::initializeGL()
 void
 RZGUIGLWidget::configureViewPort()
 {
+  m_view.setScreenGeom(m_width, m_height);
   m_view.configureViewPort(m_width, m_height);
+  
+  if (m_zoomToBoxPending)
+    zoomToBox(m_lastP1, m_lastP2);
+  
   m_newViewPort = false;
 }
 
@@ -777,11 +782,6 @@ RZGUIGLWidget::resizeGL(int w, int h)
 {
   m_width  = w;
   m_height = h;
-
-  m_view.setScreenGeom(w, h);
-
-  if (m_zoomToBoxPending)
-    zoomToBox(m_lastP1, m_lastP2);
 
   configureViewPort();
 }
@@ -908,51 +908,7 @@ RZGUIGLWidget::zoomToBox(RZ::Vec3 const &p1, RZ::Vec3 const &p2)
   if (m_width == 0 || m_height == 0 || m_model == nullptr) {
     m_zoomToBoxPending = true;
   } else {
-    RZ::Real sX, sY;
-    RZ::Vec3 center = .5 * (m_lastP1 + m_lastP2);
-
-    RZ::Matrix3 rotation =
-        RZ::Matrix3::rot(RZ::Vec3::eX(), +.25 * M_PI) *
-        RZ::Matrix3::rot(RZ::Vec3::eY(), -.25 * M_PI);
-
-    m_view.setRotation(rotation);
-
-    m_view.frameToScreen(sX, sY, *m_model->world(), center);
-    RZ::Vec3 s1(sX, sY, 0);
-    RZ::Vec3 s2(sX, sY, 0);
-
-    for (auto i = 0; i < 8; ++i) {
-      RZ::Real cornerX, cornerY;
-      bool whichX = (i & 1) != 0;
-      bool whichY = (i & 2) != 0;
-      bool whichZ = (i & 4) != 0;
-
-      RZ::Vec3 p = RZ::Vec3(
-        whichX ? m_lastP1.x : m_lastP2.x,
-        whichY ? m_lastP1.y : m_lastP2.y,
-        whichZ ? m_lastP1.z : m_lastP2.z);
-
-      m_view.frameToScreen(cornerX, cornerY, *m_model->world(), p);
-
-      RZ::Vec3 s(cornerX, cornerY, 0);
-
-      expandBox(s1, s2, s);
-    }
-
-    // Correct zoom
-    auto geom = s2 - s1;
-    RZ::Real zoom;
-    if (geom.x < geom.y)
-      zoom = m_width / (1e-12 + geom.x);
-    else
-      zoom = m_height / (1e-12 + geom.y);
-
-    m_view.zoomLevel = zoom;
-
-    // Center
-    m_view.frameToScreen(sX, sY, *m_model->world(), center);
-    m_view.setCenter(-2 * (sX - m_width / 2), -2 * (sY - m_height / 2));
-
+    m_view.zoomToBox(*m_model->world(), m_lastP1, m_lastP2);
     display();
     m_zoomToBoxPending = false;
   }

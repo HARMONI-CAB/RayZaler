@@ -112,6 +112,7 @@ namespace RZ {
       Vec3 const &origin) const override;
 
     virtual Real area() const override;
+    virtual std::string name() const override;
     
     virtual void generatePoints(
         const ReferenceFrame *,
