@@ -36,6 +36,11 @@ RZ_DESCRIBE_ELEMENT(TubeElement, "A hollow tube with circular section and open e
 void
 TubeElement::recalcBoundingBox()
 {
+  m_sides[0]->setDistance(m_cachedLength * Vec3::eZ());
+  m_sides[1]->setDistance(
+        0.5 * m_cachedOuterDiameter * Vec3::eZ()
+      + 0.5 * m_cachedLength   * Vec3::eX());
+  
   setBoundingBox(
     Vec3(-m_cachedOuterDiameter / 2, -m_cachedOuterDiameter / 2, 0),
     Vec3(+m_cachedOuterDiameter / 2, +m_cachedOuterDiameter / 2, m_cachedLength));
@@ -62,9 +67,7 @@ TubeElement::propertyChanged(std::string const &name, PropertyValue const &val)
   }
   
   if (middleChanged) {
-    m_sides[1]->setDistance(
-        0.5 * m_cachedOuterDiameter * Vec3::eX()
-      + 0.5 * m_cachedLength   * Vec3::eZ());
+    m_sides[1]->setDistance(0.5 * m_cachedLength   * Vec3::eX());
     m_sides[1]->recalculate();
   }
 
@@ -105,8 +108,7 @@ TubeElement::initSides()
   m_sides[1] = new TranslatedFrame(
       "middle",
       m_rotatedSides[1],
-        0.5 * m_cachedOuterDiameter * Vec3::eZ()
-      + 0.5 * m_cachedLength   * Vec3::eX());
+      0.5 * m_cachedOuterDiameter * Vec3::eZ() + 0.5 * m_cachedLength * Vec3::eX());
 
   m_sides[2] = new TranslatedFrame(
       "bottom",

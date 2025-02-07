@@ -29,9 +29,9 @@ using namespace RZ;
 
 RZ_DESCRIBE_ELEMENT(BlockElement, "Rectangular prism with adjustable dimensions")
 {
-  property("length",    BLOCK_DEFAULT_LENGTH, "Length of the block [m]");
-  property("width",     BLOCK_DEFAULT_WIDTH,  "Width of the block [m]");
-  property("height",    BLOCK_DEFAULT_HEIGHT, "Height of the block [m]");
+  property("length",    BLOCK_DEFAULT_LENGTH, "Length (X dimension) of the block [m]");
+  property("width",     BLOCK_DEFAULT_WIDTH,  "Width (Y dimension) of the block [m]");
+  property("height",    BLOCK_DEFAULT_HEIGHT, "Height (Z dimension) of the block [m]");
   property("wireFrame", false,                "Represent as wireframe only");
 }
 

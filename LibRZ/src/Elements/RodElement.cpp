@@ -39,8 +39,8 @@ RodElement::recalcBoundingBox()
 {
   m_sides[0]->setDistance(m_cachedLength * Vec3::eZ());
   m_sides[1]->setDistance(
-        0.5 * m_cachedDiameter * Vec3::eX()
-      + 0.5 * m_cachedLength   * Vec3::eZ());
+        0.5 * m_cachedDiameter * Vec3::eZ()
+      + 0.5 * m_cachedLength   * Vec3::eX());
   
   setBoundingBox(
     Vec3(-m_cachedDiameter / 2, -m_cachedDiameter / 2, 0),
@@ -97,12 +97,12 @@ RodElement::initSides()
   m_sides[1] = new TranslatedFrame(
       "middle",
       m_rotatedSides[1],
-        0.5 * m_cachedDiameter * Vec3::eZ()
-      + 0.5 * m_cachedLength   * Vec3::eX());
+      0.5 * m_cachedDiameter * Vec3::eZ() + 0.5 * m_cachedLength * Vec3::eX());
 
   m_sides[2] = new TranslatedFrame(
       "bottom",
-      m_rotatedSides[2], 0 * Vec3::eZ());
+      m_rotatedSides[2],
+      0 * Vec3::eZ());
 
   m_cylinder.setHeight(m_cachedLength);
   m_cylinder.setRadius(.5 * m_cachedDiameter);
