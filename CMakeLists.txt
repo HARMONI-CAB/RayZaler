@@ -18,12 +18,12 @@ if(WIN32)
   message(STATUS "Getting SWIG: ...DONE")
 endif()
 
+include(python)
+include(FindNumPy)
+
 # The library code is in src
 add_subdirectory(lib/Catch2)
 add_subdirectory(LibRZ)
 add_subdirectory(LibRZTests)
 add_subdirectory(RZViewer)
 add_subdirectory(RZGUI)
-
-include(python)
-include(FindNumPy)
