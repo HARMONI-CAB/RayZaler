@@ -15,6 +15,7 @@ target_include_directories(pyRayZaler
   PRIVATE
   ../include
   ${Python3_INCLUDE_DIRS}
+  /usr/lib/python3/dist-packages/numpy/core/include
   )
 set_property(TARGET pyRayZaler PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
 
