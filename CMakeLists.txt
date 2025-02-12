@@ -9,8 +9,8 @@ project(
   LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-include(FindPNG++)
 
+include(FindPNG++)
 
 if(WIN32)
   message(STATUS "Getting SWIG: ...")

@@ -21,8 +21,11 @@ In order to build RayZaler, you will need to install the following packages (alo
 If you are in a Debian-based system, you can install all these dependencies by pasting the following command in the terminal.
 
 ```bash
-$ sudo apt install gcc git bison libpng++-dev python3.11 swig4.0 python3-numpy qt6-base-dev qt6-base-dev-tools libqt6opengl6-dev libosmesa6-dev libfreetype-dev
+$ sudo apt update
+$ sudo apt install gcc git bison libpng++-dev python3 swig4.0 python3-numpy qt6-base-dev qt6-base-dev-tools libqt6opengl6-dev libosmesa6-dev libfreetype-dev
 ```
+
+**Note:** in some systems (e.g. Ubuntu) `swig4.0` is named `swig`. 
 
 ## Downloading the code
 You can download the latest changes in RayZaler with:

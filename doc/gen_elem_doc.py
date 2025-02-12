@@ -23,6 +23,7 @@
 import RayZaler as RZ
 import numpy as np
 import matplotlib.pyplot as plt
+import os.path
 import pathlib
 import sys
 import PIL
@@ -38,6 +39,7 @@ DEFAULT_ELEM   = 'elem'
 IMAGE_RFOLDER  = '../img'
 IMAGE_FOLDER   = 'doxygen/img'
 DOC_FOLDER     = 'elements'
+DESC_FOLDER    = 'descriptions'
 
 def typeToName(typeId):
     if typeId == RZ.UndefinedValue:
@@ -165,10 +167,13 @@ class DocScene:
 
   @staticmethod
   def blend(front: np.ndarray, back: np.ndarray, t: float = 0.25) -> np.ndarray:
-    #mask = front[:, :, 3] / 255.
+    mask = front[:, :, 3] / 255.
     img = np.zeros(front.shape, dtype = front.dtype)
-    for i in range(4):
-        img[:, :, i] = t * front[:, :, i] + (1 - t) * back[:, :, i]
+    for i in range(3):
+      img[:, :, i] = t * front[:, :, i] + (1 - t) * back[:, :, i]
+
+    img[:, :, 3] = t * mask * front[:, :, 3] + (1 - t * mask) * back[:, :, 3]
+
     return img
 
   def renderSampleElement(self, opacity: float = 1) -> np.ndarray:
@@ -247,6 +252,7 @@ def genDocForElement(elName: str):
   docPath   = fr'{DOC_FOLDER}/{elName}.md'
   thumbPath = fr'{IMAGE_RFOLDER}/element-{elName}-thumbnail.png'
   imgPath   = fr'{IMAGE_RFOLDER}/element-{elName}.png'
+  descPath  = fr'{DESC_FOLDER}/{elName}.md'
 
   factory   = RZ.Singleton.instance().lookupElementFactory(elName)
   meta      = factory.metaData()
@@ -269,17 +275,12 @@ def genDocForElement(elName: str):
   docText  += f'</center>'
   docText  += f'<br /><br />\n'
 
-  # Embed port enumeration
-  ports       = element.ports()
-  if len(ports) > 0:
-    docText += f'### Reference frames\n'
-    for portName in ports:
-      thumbPath = fr'{IMAGE_RFOLDER}/port-{elName}-{portName}-thumb.png'
-      imgPath   = fr'{IMAGE_RFOLDER}/port-{elName}-{portName}.png'
-      docText  += f'<a href="{imgPath}"><img src="{thumbPath}" border="0" /></a> '
-
+  # Check if additional details exist
+  if os.path.exists(descPath):
+    docText += '### Details\n'
+    docText += open(descPath, 'r').read()
     docText += '\n'
-
+  
   # Property table
   docText   += f'### Properties\n'
   docText   += '<table>\n'
@@ -308,7 +309,7 @@ def genDocForElement(elName: str):
         desc  = desc[:index]
       
       count    += 1
-      currText += f'<tr><td><div style="font-family: var(--font-family-monospace)">{prop}</div></td><td bgcolor="white">{desc}</td><td>{valToString(trueVal)}</td><td>{units}</td></tr>\n'
+      currText += f'<tr><td><div style="font-family: var(--font-family-monospace)">{prop}</div></td><td>{desc}</td><td>{valToString(trueVal)}</td><td>{units}</td></tr>\n'
     
     # There is a non-zero amount of properties, document these
     if count > 0:
@@ -317,6 +318,17 @@ def genDocForElement(elName: str):
     meta = meta.parent
 
   docText += '</table>\n'
+
+  # Embed port enumeration
+  ports       = element.ports()
+  if len(ports) > 0:
+    docText += f'### Reference frames\n'
+    for portName in ports:
+      thumbPath = fr'{IMAGE_RFOLDER}/port-{elName}-{portName}-thumb.png'
+      imgPath   = fr'{IMAGE_RFOLDER}/port-{elName}-{portName}.png'
+      docText  += f'<a href="{imgPath}"><img src="{thumbPath}" border="0" /></a> '
+
+    docText += '\n'
 
   # For optical elements, give details on the optical path
   if isOptical:
