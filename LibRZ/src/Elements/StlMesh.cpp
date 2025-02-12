@@ -16,7 +16,6 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <GL/glew.h>
 #include <Elements/StlMesh.h>
 #include <Elements/stl_reader.h>
 #include <Logger.h>
