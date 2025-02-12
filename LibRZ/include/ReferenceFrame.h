@@ -25,6 +25,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <cstdint>
 
 #define RZ_REF_FRAME_WORLD_ID          0x0
 #define RZ_REF_FRAME_ROTATION_ID    0x1000
