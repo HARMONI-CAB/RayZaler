@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(LIBRZ_LIBDIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 
 find_package(BISON REQUIRED)
-find_package(Python REQUIRED OPTIONAL_COMPONENTS Development)
+find_package(Python REQUIRED OPTIONAL_COMPONENTS Development NumPy)
 find_package(Freetype REQUIRED)
 find_package(NumPy REQUIRED)
 
