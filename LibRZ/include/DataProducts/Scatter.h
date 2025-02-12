@@ -24,6 +24,7 @@
 #include <list>
 #include <Vector.h>
 #include <vector>
+#include <cstdint>
 
 namespace RZ {
   class  ScatterTree;
