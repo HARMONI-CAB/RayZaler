@@ -11,6 +11,7 @@ set(LIBRZ_LIBDIR "${CMAKE_CURRENT_BINARY_DIR}" PARENT_SCOPE)
 find_package(BISON REQUIRED)
 find_package(Python REQUIRED OPTIONAL_COMPONENTS Development)
 find_package(Freetype REQUIRED)
+find_package(NumPy REQUIRED)
 
 # Make sure CMAKE_INSTALL_LIBDIR is defined for all systems
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
