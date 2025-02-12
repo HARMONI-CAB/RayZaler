@@ -1,3 +1,5 @@
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
 find_package(Catch2 CONFIG REQUIRED)
 include(CTest)
 include(Catch) # contains some cmake macros that will help with 
