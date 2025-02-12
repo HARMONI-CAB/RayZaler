@@ -28,6 +28,7 @@
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 
 #define _JOIN(a, b) a ## b
 #define JOIN(a, b) _JOIN(a, b)
