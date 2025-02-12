@@ -1,5 +1,6 @@
 find_package(OpenGL REQUIRED)
 find_package(OSMesa REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS NumPy Development)
 
 set_property(SOURCE RayZaler.i PROPERTY CPLUSPLUS ON)
 set_property(SOURCE RayZaler.i PROPERTY SWIG_MODULE_NAME RayZaler)
