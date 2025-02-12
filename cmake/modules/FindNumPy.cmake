@@ -41,7 +41,7 @@
 
 # Finding NumPy involves calling the Python interpreter
 if(NumPy_FIND_REQUIRED)
-    find_package(Python3 REQUIRED OPTIONAL_COMPONENTS Development NumPy)
+    find_package(Python3 REQUIRED COMPONENTS Development NumPy)
 else()
     find_package(Python3 OPTIONAL_COMPONENTS Development NumPy)
 endif()
