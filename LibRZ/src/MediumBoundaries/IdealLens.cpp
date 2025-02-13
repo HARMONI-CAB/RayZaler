@@ -47,7 +47,7 @@ IdealLensBoundary::setFocalLength(Real fLen)
 }
 
 void
-IdealLensBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+IdealLensBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

@@ -36,7 +36,7 @@ namespace RZ {
       void setHeight(Real);
       void setRefractiveIndex(Real , Real);
       virtual std::string name() const override;
-      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

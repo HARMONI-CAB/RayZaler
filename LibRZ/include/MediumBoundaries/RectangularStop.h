@@ -33,7 +33,7 @@ namespace RZ {
       void setWidth(Real);
       void setHeight(Real);
       virtual std::string name() const;
-      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

@@ -65,7 +65,7 @@ ObstructionBoundary::setObstructionMap(
 }
 
 void
-ObstructionBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+ObstructionBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t i;
   uint64_t count  = beam.count;

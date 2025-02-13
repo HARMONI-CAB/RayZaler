@@ -27,10 +27,10 @@ namespace RZ {
   class TranslatedFrame;
 
   class ConicMirror : public OpticalElement {
-      GLCappedCylinder m_cylinder;
-      GLCappedCylinder m_hole;
-      GLConicCap   m_cap, m_rearCap;
-      ConicMirrorBoundary *m_boundary;
+      ConicMirrorBoundary *m_boundary = nullptr;
+      GLCappedCylinder     m_cylinder;
+      GLCappedCylinder     m_hole;
+      GLConicCap       m_cap, m_rearCap;
       TranslatedFrame *m_reflectiveSurfaceFrame  = nullptr;
       TranslatedFrame *m_aperturePort            = nullptr;
       TranslatedFrame *m_vertexPort              = nullptr;

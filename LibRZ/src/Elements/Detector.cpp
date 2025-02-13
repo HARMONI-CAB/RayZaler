@@ -220,7 +220,7 @@ DetectorBoundary::name() const
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+DetectorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

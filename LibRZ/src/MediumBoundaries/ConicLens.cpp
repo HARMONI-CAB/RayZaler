@@ -82,7 +82,7 @@ ConicLensBoundary::setConvex(bool convex)
 }
 
 void
-ConicLensBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+ConicLensBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

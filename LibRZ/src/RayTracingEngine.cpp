@@ -408,7 +408,7 @@ RayTracingEngine::transfer()
   auto aperture = m_currentSurface->boundary->surfaceShape();
   auto count = m_beam->count;
 
-  m_currentSurface->boundary->process(*m_beam, m_currentFrame);
+  m_currentSurface->boundary->transfer(*m_beam, m_currentFrame);
 
   propagatePhase();
 

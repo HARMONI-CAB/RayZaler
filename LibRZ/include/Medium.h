@@ -114,7 +114,7 @@ namespace RZ {
     }
 
     virtual std::string name() const = 0;
-    virtual void process(RayBeam &, const ReferenceFrame *) const = 0;
+    virtual void transfer(RayBeam &, const ReferenceFrame *) const = 0;
     virtual ~MediumBoundary();
   };
 }

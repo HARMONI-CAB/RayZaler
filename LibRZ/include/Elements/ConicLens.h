@@ -29,13 +29,13 @@ namespace RZ {
   class ConicLens : public OpticalElement {
       GLCappedCylinder        m_cylinder;
       GLConicCap              m_frontCap, m_backCap;
-      ConicLensBoundary     *m_inputBoundary   = nullptr;
-      ConicLensBoundary     *m_outputBoundary  = nullptr;
+      ConicLensBoundary      *m_inputBoundary    = nullptr;
+      ConicLensBoundary      *m_outputBoundary   = nullptr;
       TranslatedFrame        *m_inputFrame       = nullptr;
       TranslatedFrame        *m_outputFrame      = nullptr;
 
       TranslatedFrame        *m_frontFocalPlane  = nullptr;
-      TranslatedFrame        *m_backFocalPlane = nullptr;
+      TranslatedFrame        *m_backFocalPlane   = nullptr;
 
       TranslatedFrame        *m_objectPlane      = nullptr;
       TranslatedFrame        *m_imagePlane       = nullptr;

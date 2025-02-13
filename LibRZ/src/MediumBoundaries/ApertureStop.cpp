@@ -44,7 +44,7 @@ ApertureStopBoundary::setRadius(Real R)
 }
 
 void
-ApertureStopBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+ApertureStopBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

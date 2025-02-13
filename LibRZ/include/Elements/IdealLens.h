@@ -29,11 +29,11 @@ namespace RZ {
 
   class IdealLens : public OpticalElement {
       GLCappedCylinder    m_cylinder;
-      IdealLensBoundary *m_boundary  = nullptr;
-      TranslatedFrame    *m_inputFrame = nullptr;
+      IdealLensBoundary  *m_boundary         = nullptr;
+      TranslatedFrame    *m_inputFrame       = nullptr;
       
       TranslatedFrame    *m_frontFocalPlane  = nullptr;
-      TranslatedFrame    *m_backFocalPlane = nullptr;
+      TranslatedFrame    *m_backFocalPlane   = nullptr;
 
       TranslatedFrame    *m_objectPlane      = nullptr;
       TranslatedFrame    *m_imagePlane       = nullptr;

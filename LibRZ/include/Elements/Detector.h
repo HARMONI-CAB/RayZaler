@@ -110,7 +110,7 @@ namespace RZ {
       DetectorBoundary(DetectorStorage *storage);
       virtual ~DetectorBoundary() = default;
       virtual std::string name() const;
-      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 
   class Detector : public OpticalElement {

@@ -55,7 +55,7 @@ namespace RZ {
       void setCols(unsigned);
       void setRows(unsigned);
       virtual std::string name() const override;
-      virtual void process(RayBeam &beam, const ReferenceFrame *) const;
+      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

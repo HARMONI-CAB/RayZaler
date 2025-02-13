@@ -82,7 +82,7 @@ ConicMirrorBoundary::setConvex(bool convex)
 }
 
 void
-ConicMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+ConicMirrorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
 

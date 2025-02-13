@@ -49,7 +49,7 @@ CircularWindowBoundary::setRefractiveIndex(Real in, Real out)
 }
 
 void
-CircularWindowBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+CircularWindowBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

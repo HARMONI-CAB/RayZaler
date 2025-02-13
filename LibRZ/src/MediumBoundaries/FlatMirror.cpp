@@ -50,7 +50,7 @@ FlatMirrorBoundary::setEccentricity(Real ecc)
 }
 
 void
-FlatMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+FlatMirrorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

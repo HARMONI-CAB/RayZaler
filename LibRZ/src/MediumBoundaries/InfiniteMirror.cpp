@@ -28,7 +28,7 @@ InfiniteMirrorBoundary::name() const
 }
 
 void
-InfiniteMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+InfiniteMirrorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = 3 * beam.count;
   uint64_t i;

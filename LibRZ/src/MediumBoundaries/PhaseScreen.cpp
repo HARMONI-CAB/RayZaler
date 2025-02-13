@@ -117,7 +117,7 @@ PhaseScreenBoundary::dZdy(Real x, Real y) const
 }
 
 void
-PhaseScreenBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+PhaseScreenBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

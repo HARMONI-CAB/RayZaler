@@ -29,10 +29,10 @@ namespace RZ {
 
   class CircularWindow : public OpticalElement {
       GLCappedCylinder         m_cylinder;
-      CircularWindowBoundary *m_inputBoundary   = nullptr;
-      CircularWindowBoundary *m_outputBoundary  = nullptr;
-      TranslatedFrame         *m_inputFrame       = nullptr;
-      TranslatedFrame         *m_outputFrame      = nullptr;
+      CircularWindowBoundary  *m_inputBoundary  = nullptr;
+      CircularWindowBoundary  *m_outputBoundary = nullptr;
+      TranslatedFrame         *m_inputFrame     = nullptr;
+      TranslatedFrame         *m_outputFrame    = nullptr;
 
       Real m_thickness = 1e-2;
       Real m_radius    = 1e-2;

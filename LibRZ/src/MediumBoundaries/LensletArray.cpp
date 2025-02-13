@@ -136,7 +136,7 @@ LensletArrayBoundary::setRows(unsigned rows)
 }
 
 void
-LensletArrayBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
+LensletArrayBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   Vec3 normal;
