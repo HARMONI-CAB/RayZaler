@@ -73,11 +73,11 @@ ConicLens::recalcModel()
   m_frontFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength[0])* Vec3::eZ());
   m_objectPlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength[0]) * Vec3::eZ());
 
-  m_inputProcessor->setRadius(m_radius);
-  m_inputProcessor->setCurvatureRadius(Rc[0]);
-  m_inputProcessor->setRefractiveIndex(1, m_mu);
-  m_inputProcessor->setConicConstant(m_K[0]);
-  m_inputProcessor->setConvex(convex[0]);
+  m_inputBoundary->setRadius(m_radius);
+  m_inputBoundary->setCurvatureRadius(Rc[0]);
+  m_inputBoundary->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setConicConstant(m_K[0]);
+  m_inputBoundary->setConvex(convex[0]);
 
   m_frontCap.setRadius(m_radius);
   m_frontCap.setCurvatureRadius(Rc[0]);
@@ -90,11 +90,11 @@ ConicLens::recalcModel()
   m_backFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength[1]) * Vec3::eZ());
   m_imagePlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength[1]) * Vec3::eZ());
 
-  m_outputProcessor->setRadius(m_radius);
-  m_outputProcessor->setCurvatureRadius(Rc[1]);
-  m_outputProcessor->setRefractiveIndex(m_mu, 1);
-  m_outputProcessor->setConicConstant(m_K[1]);
-  m_outputProcessor->setConvex(!convex[1]);
+  m_outputBoundary->setRadius(m_radius);
+  m_outputBoundary->setCurvatureRadius(Rc[1]);
+  m_outputBoundary->setRefractiveIndex(m_mu, 1);
+  m_outputBoundary->setConicConstant(m_K[1]);
+  m_outputBoundary->setConvex(!convex[1]);
   
   m_backCap.setRadius(m_radius);
   m_backCap.setCurvatureRadius(Rc[1]);
@@ -189,17 +189,17 @@ ConicLens::ConicLens(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_inputProcessor  = new ConicLensProcessor;
-  m_outputProcessor = new ConicLensProcessor;
+  m_inputBoundary  = new ConicLensBoundary;
+  m_outputBoundary = new ConicLensBoundary;
 
-  m_inputProcessor->setConvex(true);
-  m_outputProcessor->setConvex(false);
+  m_inputBoundary->setConvex(true);
+  m_outputBoundary->setConvex(false);
 
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputFrame", frame, Vec3::zero());
 
-  pushOpticalSurface("inputSurface",  m_inputFrame,  m_inputProcessor);
-  pushOpticalSurface("outputSurface", m_outputFrame, m_outputProcessor);
+  pushOpticalSurface("inputSurface",  m_inputFrame,  m_inputBoundary);
+  pushOpticalSurface("outputSurface", m_outputFrame, m_outputBoundary);
 
   // Create helper planes. These are exposed as ports
   m_frontFocalPlane  = new TranslatedFrame("frontFocalPlane", frame, Vec3::zero());
@@ -223,11 +223,11 @@ ConicLens::ConicLens(
 
 ConicLens::~ConicLens()
 {
-  if (m_inputProcessor != nullptr)
-    delete m_inputProcessor;
+  if (m_inputBoundary != nullptr)
+    delete m_inputBoundary;
 
-  if (m_outputProcessor != nullptr)
-    delete m_outputProcessor;
+  if (m_outputBoundary != nullptr)
+    delete m_outputBoundary;
 
   if (m_frontFocalPlane != nullptr)
     delete m_frontFocalPlane;

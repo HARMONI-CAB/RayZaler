@@ -42,8 +42,8 @@ FlatMirror::recalcModel()
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
-  m_processor->setRadius(m_radius);
-  m_processor->setEccentricity(m_ecc);
+  m_boundary->setRadius(m_radius);
+  m_boundary->setEccentricity(m_ecc);
 
   if (m_vertexRelative) {
     backPlane  = -m_thickness;
@@ -114,13 +114,13 @@ FlatMirror::FlatMirror(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new FlatMirrorProcessor;
+  m_boundary = new FlatMirrorBoundary;
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf", frame, Vec3::zero());
   m_baseFrame              = new TranslatedFrame("basePos", frame, Vec3::zero());
   m_flipFrame              = new RotatedFrame("base", m_baseFrame, Vec3::eX(), M_PI);
 
-  pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
+  pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_boundary);
   addPort("vertex", m_reflectiveSurfaceFrame);
   addPort("base", m_flipFrame);
 
@@ -131,8 +131,8 @@ FlatMirror::FlatMirror(
 
 FlatMirror::~FlatMirror()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 
   if (m_baseFrame != nullptr)
     delete m_baseFrame;

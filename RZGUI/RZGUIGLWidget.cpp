@@ -228,7 +228,7 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
     auto &surfaces = optEl->opticalSurfaces();
     
     for (auto &surf : surfaces) {
-      RZ::SurfaceShape *ap = surf->processor->surfaceShape();
+      RZ::SurfaceShape *ap = surf->boundary->surfaceShape();
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);

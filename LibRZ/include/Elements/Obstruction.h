@@ -32,7 +32,7 @@ namespace RZ {
   };
 
   class Obstruction : public OpticalElement {
-      ObstructionProcessor *m_processor;
+      ObstructionBoundary *m_boundary;
       GLDisc                m_disc;
       TranslatedFrame      *m_stopSurface = nullptr;
       std::vector<Real>     m_obstructionMap;

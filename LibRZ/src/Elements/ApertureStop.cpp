@@ -38,7 +38,7 @@ ApertureStop::recalcModel()
   if (m_width < 2 * m_radius)
     m_width = 2 * m_radius;
 
-  m_processor->setRadius(m_radius);
+  m_boundary->setRadius(m_radius);
   m_pinHole.setRadius(m_radius);
   m_pinHole.setHeight(m_height);
   m_pinHole.setWidth(m_width);
@@ -84,20 +84,20 @@ ApertureStop::ApertureStop(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new ApertureStopProcessor;
+  m_boundary = new ApertureStopBoundary;
 
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
   addPort("aperture", m_stopSurface);
-  pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
+  pushOpticalSurface("stopSurf", m_stopSurface, m_boundary);
 
   recalcModel();
 }
 
 ApertureStop::~ApertureStop()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 }
 
 void

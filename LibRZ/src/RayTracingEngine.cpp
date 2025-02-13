@@ -349,7 +349,7 @@ RayTracingEngine::trace()
   cast(
     m_currentFrame->getCenter(),
     m_currentFrame->eZ(),
-    m_currentSurface->processor->reversible());
+    m_currentSurface->boundary->reversible());
 
   m_raysDirty = true;
   m_notificationPendig = false;
@@ -405,10 +405,10 @@ RayTracingEngine::transfer()
     m_currStage,
     m_numStages);
   
-  auto aperture = m_currentSurface->processor->surfaceShape();
+  auto aperture = m_currentSurface->boundary->surfaceShape();
   auto count = m_beam->count;
 
-  m_currentSurface->processor->process(*m_beam, m_currentFrame);
+  m_currentSurface->boundary->process(*m_beam, m_currentFrame);
 
   propagatePhase();
 

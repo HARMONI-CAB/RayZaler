@@ -89,11 +89,11 @@ ConicMirror::recalcModel()
   m_aperturePort->setDistance(apertureZ * Vec3::eZ());
   m_vertexPort->setDistance((m_thickness + backPlaneZ) * Vec3::eZ());
   
-  m_processor->setRadius(m_radius);
-  m_processor->setCurvatureRadius(Rc);
-  m_processor->setConicConstant(m_K);
-  m_processor->setConvex(convex);
-  m_processor->setCenterOffset(m_x0, m_y0);
+  m_boundary->setRadius(m_radius);
+  m_boundary->setCurvatureRadius(Rc);
+  m_boundary->setConicConstant(m_K);
+  m_boundary->setConvex(convex);
+  m_boundary->setCenterOffset(m_x0, m_y0);
 
   m_cap.setHoleRadius(m_rHole);
   m_rearCap.setHoleRadius(m_rHole);
@@ -102,7 +102,7 @@ ConicMirror::recalcModel()
   m_hole.setInvertNormals(true);
   m_hole.setHeight(m_thickness);
   m_hole.setVisibleCaps(false, false);
-  m_processor->setHoleRadius(m_rHole);
+  m_boundary->setHoleRadius(m_rHole);
 
   setBoundingBox(
       Vec3(-m_radius, -m_radius, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
@@ -156,13 +156,13 @@ ConicMirror::ConicMirror(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new ConicMirrorProcessor;
+  m_boundary = new ConicMirrorBoundary;
 
   m_reflectiveSurfaceFrame = new TranslatedFrame("refSurf",  frame, Vec3::zero());
   m_aperturePort           = new TranslatedFrame("aperture", frame, Vec3::zero());
   m_vertexPort             = new TranslatedFrame("vertex",   frame, Vec3::zero());
 
-  pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_processor);
+  pushOpticalSurface("refSurf", m_reflectiveSurfaceFrame, m_boundary);
   addPort("aperture", m_aperturePort);
   addPort("vertex",   m_vertexPort);
 
@@ -176,8 +176,8 @@ ConicMirror::ConicMirror(
 
 ConicMirror::~ConicMirror()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 
   if (m_aperturePort != nullptr)
     delete m_aperturePort;

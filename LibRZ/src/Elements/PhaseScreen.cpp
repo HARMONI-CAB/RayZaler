@@ -43,8 +43,8 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(PhaseScreen, "Circular phase screen with irregular h
 void
 PhaseScreen::recalcModel()
 {
-  m_processor->setRadius(m_radius);
-  m_processor->setRefractiveIndex(m_muIn, m_muOut);
+  m_boundary->setRadius(m_radius);
+  m_boundary->setRefractiveIndex(m_muIn, m_muOut);
 
   m_skyDiscFront.setRadius(m_radius);
   m_skyDiscBack.setRadius(m_radius);
@@ -68,7 +68,7 @@ PhaseScreen::recalcTexture()
     Real alpha = (i & 0xff) / 255. * 2 * M_PI;
     Real x     = rho * cos(alpha);
     Real y     = rho * sin(alpha);
-    Real v     = fabs(m_processor->Z(x, y));
+    Real v     = fabs(m_boundary->Z(x, y));
     if (v > max)
       max = v;
   }
@@ -79,7 +79,7 @@ PhaseScreen::recalcTexture()
       Real alpha    = (i & 0xff) / 255. * 2 * M_PI;
       Real x        = rho * cos(alpha);
       Real y        = rho * sin(alpha);
-      Real v        = fabs(m_processor->Z(x, y));
+      Real v        = fabs(m_boundary->Z(x, y));
       uint8_t index = v * 255 / max;
 
       m_textureData[3 * i + 0] = 255 * g_inferno[index][0];
@@ -118,8 +118,8 @@ PhaseScreen::propertyChanged(
     recalcModel();
   } else if (sscanf(name.c_str(), "Z%u", &zCoef) == 1) {
     Real asReal = value;
-    if (!releq(m_processor->coef(zCoef), asReal)) {
-      m_processor->setCoef(zCoef, asReal);
+    if (!releq(m_boundary->coef(zCoef), asReal)) {
+      m_boundary->setCoef(zCoef, asReal);
       recalcTexture();
     }
   } else {
@@ -136,11 +136,11 @@ PhaseScreen::PhaseScreen(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new PhaseScreenProcessor;
+  m_boundary = new PhaseScreenBoundary;
 
   m_tSurface = new TranslatedFrame("interface", frame, Vec3::zero());
 
-  pushOpticalSurface("interface", m_tSurface, m_processor);
+  pushOpticalSurface("interface", m_tSurface, m_boundary);
   addPort("aperture", m_tSurface);
 
   m_textureData.resize(3 * 256 * 256);
@@ -179,8 +179,8 @@ PhaseScreen::uploadTexture()
 
 PhaseScreen::~PhaseScreen()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 }
 
 void

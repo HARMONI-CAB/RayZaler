@@ -29,7 +29,7 @@ namespace RZ {
 
   class FlatMirror : public OpticalElement {
       GLCappedCylinder m_cylinder;
-      FlatMirrorProcessor *m_processor;
+      FlatMirrorBoundary *m_boundary;
       TranslatedFrame *m_reflectiveSurfaceFrame = nullptr;
       RotatedFrame    *m_flipFrame = nullptr;
       TranslatedFrame *m_baseFrame = nullptr;

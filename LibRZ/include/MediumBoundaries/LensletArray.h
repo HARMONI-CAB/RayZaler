@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class LensletArrayProcessor : public MediumBoundary {
+  class LensletArrayBoundary : public MediumBoundary {
       Real m_lensletRadius;
       Real m_rCurv         = 1;
       Real m_muOut         = 1.5;
@@ -45,7 +45,7 @@ namespace RZ {
         return m_lensletRadius;
       }
 
-      LensletArrayProcessor();
+      LensletArrayBoundary();
       void setCurvatureRadius(Real);
       void setRefractiveIndex(Real, Real);
       void setConvex(bool);

@@ -25,7 +25,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class InfiniteMirrorProcessor : public MediumBoundary {
+  class InfiniteMirrorBoundary : public MediumBoundary {
   public:
     virtual std::string name() const;
     virtual void process(RayBeam &beam, const ReferenceFrame *) const;

@@ -27,7 +27,7 @@ namespace RZ {
   class TranslatedFrame;
 
   class PhaseScreen : public OpticalElement {
-      PhaseScreenProcessor *m_processor;
+      PhaseScreenBoundary *m_boundary;
       GLDisc    m_skyDiscFront;
       GLDisc    m_skyDiscBack;
 

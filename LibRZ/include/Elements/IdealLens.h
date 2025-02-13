@@ -25,11 +25,11 @@
 
 namespace RZ {
   class TranslatedFrame;
-  class IdealLensProcessor;
+  class IdealLensBoundary;
 
   class IdealLens : public OpticalElement {
       GLCappedCylinder    m_cylinder;
-      IdealLensProcessor *m_processor  = nullptr;
+      IdealLensBoundary *m_boundary  = nullptr;
       TranslatedFrame    *m_inputFrame = nullptr;
       
       TranslatedFrame    *m_frontFocalPlane  = nullptr;

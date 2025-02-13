@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ConicMirrorProcessor : public MediumBoundary {
+  class ConicMirrorBoundary : public MediumBoundary {
       Real m_radius  = .5;
       Real m_K       = 0;
       Real m_rCurv   = 1;
@@ -35,8 +35,8 @@ namespace RZ {
       bool m_convex  = false;
 
     public:
-      ConicMirrorProcessor();
-      virtual ~ConicMirrorProcessor() = default;
+      ConicMirrorBoundary();
+      virtual ~ConicMirrorBoundary() = default;
       void setRadius(Real);
       void setCenterOffset(Real, Real);
 

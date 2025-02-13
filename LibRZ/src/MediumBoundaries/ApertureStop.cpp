@@ -23,20 +23,20 @@
 
 using namespace RZ;
 
-ApertureStopProcessor::ApertureStopProcessor()
+ApertureStopBoundary::ApertureStopBoundary()
 {
   setReversible(true);
   setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
-ApertureStopProcessor::name() const
+ApertureStopBoundary::name() const
 {
-  return "ApertureStopProcessor";
+  return "ApertureStopBoundary";
 }
 
 void
-ApertureStopProcessor::setRadius(Real R)
+ApertureStopBoundary::setRadius(Real R)
 {
   surfaceShape<CircularFlatSurface>()->setRadius(R);
   
@@ -44,7 +44,7 @@ ApertureStopProcessor::setRadius(Real R)
 }
 
 void
-ApertureStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+ApertureStopBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

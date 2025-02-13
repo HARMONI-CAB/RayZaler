@@ -24,14 +24,14 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class CircularWindowProcessor : public MediumBoundary {
+  class CircularWindowBoundary : public MediumBoundary {
       Real m_radius = .5;
       Real m_muOut  = 1.5;
       Real m_muIn   = 1;
       Real m_IOratio = 1 / 1.5;
 
     public:
-      CircularWindowProcessor();
+      CircularWindowBoundary();
       
       void setRadius(Real);
       void setRefractiveIndex(Real , Real);

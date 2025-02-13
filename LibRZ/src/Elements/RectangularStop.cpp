@@ -39,8 +39,8 @@ RectangularStop::recalcModel()
   if (m_borderHeight < m_height)
     m_borderHeight = 1.1 * m_height;
 
-  m_processor->setWidth(m_width);
-  m_processor->setHeight(m_height);
+  m_boundary->setWidth(m_width);
+  m_boundary->setHeight(m_height);
 
   Real fullWidth  = m_width + m_borderWidth;
   Real fullHeight = m_height + m_borderHeight;
@@ -93,10 +93,10 @@ RectangularStop::RectangularStop(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new RectangularStopProcessor;
+  m_boundary = new RectangularStopBoundary;
   m_stopSurface = new TranslatedFrame("refSurf", frame, Vec3::zero());
 
-  pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
+  pushOpticalSurface("stopSurf", m_stopSurface, m_boundary);
   addPort("aperture", m_stopSurface);
   
   recalcModel();
@@ -104,8 +104,8 @@ RectangularStop::RectangularStop(
 
 RectangularStop::~RectangularStop()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 }
 
 void

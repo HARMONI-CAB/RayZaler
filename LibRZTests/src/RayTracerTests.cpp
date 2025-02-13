@@ -48,14 +48,14 @@ TEST_CASE("Pushing rays to raytracer", THIS_TEST_TAG)
 
 TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
 {
-  MediumBoundary *processor = Singleton::instance()->lookupMediumBoundary("PassThroughProcessor");
+  MediumBoundary *boundary = Singleton::instance()->lookupMediumBoundary("PassThroughBoundary");
   WorldFrame world("world");
   OpticalSurface surf;
 
-  REQUIRE(processor != nullptr);
+  REQUIRE(boundary != nullptr);
 
   surf.frame = &world;
-  surf.processor = processor;
+  surf.boundary = boundary;
 
   for (auto i = 0; i < 100; ++i) {
     CPURayTracingEngine engine;
@@ -97,15 +97,15 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
 
 TEST_CASE("Ensuring that all rays are intercepted in the destination plane", THIS_TEST_TAG)
 {
-  MediumBoundary *processor = Singleton::instance()->lookupMediumBoundary("PassThroughProcessor");
+  MediumBoundary *boundary = Singleton::instance()->lookupMediumBoundary("PassThroughBoundary");
   WorldFrame world("world");
   RotatedFrame frame("detector", &world, Vec3::eZ(), 0);
   OpticalSurface surf;
 
-  REQUIRE(processor != nullptr);
+  REQUIRE(boundary != nullptr);
 
   surf.frame = &frame;
-  surf.processor = processor;
+  surf.boundary = boundary;
 
   for (auto i = 0; i < 100; ++i) {
     CPURayTracingEngine engine;

@@ -21,13 +21,13 @@
 using namespace RZ;
 
 std::string
-PassThroughProcessor::name() const
+PassThroughBoundary::name() const
 {
-  return "PassThroughProcessor";
+  return "PassThroughBoundary";
 }
 
 void
-PassThroughProcessor::process(RayBeam &beam, const ReferenceFrame *) const
+PassThroughBoundary::process(RayBeam &beam, const ReferenceFrame *) const
 {
   // No processing
 }

@@ -25,12 +25,12 @@
 
 namespace RZ {
   class TranslatedFrame;
-  class CircularWindowProcessor;
+  class CircularWindowBoundary;
 
   class CircularWindow : public OpticalElement {
       GLCappedCylinder         m_cylinder;
-      CircularWindowProcessor *m_inputProcessor   = nullptr;
-      CircularWindowProcessor *m_outputProcessor  = nullptr;
+      CircularWindowBoundary *m_inputBoundary   = nullptr;
+      CircularWindowBoundary *m_outputBoundary  = nullptr;
       TranslatedFrame         *m_inputFrame       = nullptr;
       TranslatedFrame         *m_outputFrame      = nullptr;
 

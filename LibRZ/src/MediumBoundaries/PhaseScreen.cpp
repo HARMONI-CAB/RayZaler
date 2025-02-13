@@ -22,26 +22,26 @@
 
 using namespace RZ;
 
-PhaseScreenProcessor::PhaseScreenProcessor()
+PhaseScreenBoundary::PhaseScreenBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
-PhaseScreenProcessor::name() const
+PhaseScreenBoundary::name() const
 {
-  return "PhaseScreenProcessor";
+  return "PhaseScreenBoundary";
 }
 
 void
-PhaseScreenProcessor::setRadius(Real R)
+PhaseScreenBoundary::setRadius(Real R)
 {
   m_radius = R;
   surfaceShape<CircularFlatSurface>()->setRadius(R);
 }
 
 void
-PhaseScreenProcessor::setCoef(unsigned int ansi, Real value)
+PhaseScreenBoundary::setCoef(unsigned int ansi, Real value)
 {
   if (ansi >= m_poly.size()) {
     size_t oldSize = m_poly.size();
@@ -73,7 +73,7 @@ PhaseScreenProcessor::setCoef(unsigned int ansi, Real value)
 }
 
 void
-PhaseScreenProcessor::setRefractiveIndex(Real in, Real out)
+PhaseScreenBoundary::setRefractiveIndex(Real in, Real out)
 {
   m_muIn    = in;
   m_muOut   = out;
@@ -81,7 +81,7 @@ PhaseScreenProcessor::setRefractiveIndex(Real in, Real out)
 }
 
 Real
-PhaseScreenProcessor::Z(Real x, Real y) const
+PhaseScreenBoundary::Z(Real x, Real y) const
 {
   Real val = 0;
 
@@ -93,7 +93,7 @@ PhaseScreenProcessor::Z(Real x, Real y) const
 }
 
 Real
-PhaseScreenProcessor::dZdx(Real x, Real y) const
+PhaseScreenBoundary::dZdx(Real x, Real y) const
 {
   Real val = 0;
 
@@ -105,7 +105,7 @@ PhaseScreenProcessor::dZdx(Real x, Real y) const
 }
 
 Real
-PhaseScreenProcessor::dZdy(Real x, Real y) const
+PhaseScreenBoundary::dZdy(Real x, Real y) const
 {
   Real val = 0;
 
@@ -117,7 +117,7 @@ PhaseScreenProcessor::dZdy(Real x, Real y) const
 }
 
 void
-PhaseScreenProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+PhaseScreenBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

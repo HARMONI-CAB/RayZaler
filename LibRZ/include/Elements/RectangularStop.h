@@ -27,7 +27,7 @@ namespace RZ {
   class TranslatedFrame;
 
   class RectangularStop : public OpticalElement {
-      RectangularStopProcessor *m_processor;
+      RectangularStopBoundary *m_boundary;
       GLRectangle m_vRect, m_hRect;
       TranslatedFrame *m_stopSurface = nullptr;
       

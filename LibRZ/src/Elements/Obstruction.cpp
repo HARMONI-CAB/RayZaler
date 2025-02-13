@@ -62,7 +62,7 @@ Obstruction::recalcModel()
 {
   GLfloat fRadius = static_cast<GLfloat>(m_radius);
 
-  m_processor->setRadius(m_radius);
+  m_boundary->setRadius(m_radius);
   m_disc.setRadius(m_radius);
 
   if (m_cols > 0 && m_rows > 0) {
@@ -70,7 +70,7 @@ Obstruction::recalcModel()
     m_halfMapHeight = m_rows / fmax(m_cols, m_rows) * m_radius;
   }
 
-  m_processor->setObstructionMap(
+  m_boundary->setObstructionMap(
     2 * m_halfMapWidth,
     2 * m_halfMapHeight,
     m_obstructionMap,
@@ -184,19 +184,19 @@ Obstruction::Obstruction(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor = new ObstructionProcessor;
+  m_boundary = new ObstructionBoundary;
 
   m_stopSurface = new TranslatedFrame("stopSurf", frame, Vec3::zero());
 
-  pushOpticalSurface("stopSurf", m_stopSurface, m_processor);
+  pushOpticalSurface("stopSurf", m_stopSurface, m_boundary);
 
   recalcModel();
 }
 
 Obstruction::~Obstruction()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 
   if (m_alphaTestShader != nullptr)
     delete m_alphaTestShader;

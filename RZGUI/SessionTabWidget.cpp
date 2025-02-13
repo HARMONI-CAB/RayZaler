@@ -442,7 +442,7 @@ SessionTabWidget::updateFootprintWindows()
     if (surf == nullptr)
       continue;
 
-    fp.second->setEdges(surf->processor->surfaceShape()->edges());
+    fp.second->setEdges(surf->boundary->surfaceShape()->edges());
   }
 }
 
@@ -492,7 +492,7 @@ SessionTabWidget::openNewFootprintWindow(std::string const &fullName)
       queue.pop_front();
     }
 
-    window->setEdges(surf->processor->surfaceShape()->edges());
+    window->setEdges(surf->boundary->surfaceShape()->edges());
 
     // Trigger recalc of the new footprints
     window->updateView();

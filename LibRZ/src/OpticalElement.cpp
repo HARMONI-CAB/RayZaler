@@ -154,7 +154,7 @@ OpticalElement::pushOpticalSurface(
 
   surface.name      = name;
   surface.frame     = frame;
-  surface.processor = proc;
+  surface.boundary = proc;
   surface.parent    = this;
 
   m_surfaces.push_back(surface);

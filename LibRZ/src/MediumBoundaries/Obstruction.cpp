@@ -22,7 +22,7 @@
 
 using namespace RZ;
 
-ObstructionProcessor::ObstructionProcessor()
+ObstructionBoundary::ObstructionBoundary()
 {
   setReversible(true);
   setSurfaceShape(new CircularFlatSurface(m_radius));
@@ -30,20 +30,20 @@ ObstructionProcessor::ObstructionProcessor()
 }
 
 std::string
-ObstructionProcessor::name() const
+ObstructionBoundary::name() const
 {
-  return "ObstructionProcessor";
+  return "ObstructionBoundary";
 }
 
 void
-ObstructionProcessor::setRadius(Real R)
+ObstructionBoundary::setRadius(Real R)
 {
   surfaceShape<CircularFlatSurface>()->setRadius(R);
   m_radius = R;
 }
 
 void
-ObstructionProcessor::setObstructionMap(
+ObstructionBoundary::setObstructionMap(
   Real width,
   Real height,
   std::vector<Real> const &map,
@@ -65,7 +65,7 @@ ObstructionProcessor::setObstructionMap(
 }
 
 void
-ObstructionProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+ObstructionBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t i;
   uint64_t count  = beam.count;

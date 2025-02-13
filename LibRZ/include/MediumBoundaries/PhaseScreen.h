@@ -25,7 +25,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class PhaseScreenProcessor : public MediumBoundary {
+  class PhaseScreenBoundary : public MediumBoundary {
       Real m_radius        = .5;
       std::vector<Zernike> m_poly;
       std::vector<Real>    m_coef;
@@ -41,7 +41,7 @@ namespace RZ {
       Real dZdy(Real x, Real y) const;
 
     public:
-      PhaseScreenProcessor();
+      PhaseScreenBoundary();
       
       inline Real
       coef(unsigned int ansi) const

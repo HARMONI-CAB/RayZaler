@@ -34,8 +34,8 @@ IdealLens::recalcModel()
   m_cylinder.setHeight(0);
   m_cylinder.setRadius(m_radius);
 
-  m_processor->setRadius(m_radius);
-  m_processor->setFocalLength(m_fLen);
+  m_boundary->setRadius(m_radius);
+  m_boundary->setFocalLength(m_fLen);
 
   m_frontFocalPlane->setDistance(+m_fLen * Vec3::eZ());
   m_backFocalPlane->setDistance(-m_fLen * Vec3::eZ());
@@ -79,11 +79,11 @@ IdealLens::IdealLens(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_processor  = new IdealLensProcessor;
+  m_boundary  = new IdealLensBoundary;
 
   m_inputFrame  = new TranslatedFrame("apertureFrame",  frame, Vec3::zero());
 
-  pushOpticalSurface("lensSurface",  m_inputFrame,  m_processor);
+  pushOpticalSurface("lensSurface",  m_inputFrame,  m_boundary);
 
   addPort("aperture", m_inputFrame);
   
@@ -105,8 +105,8 @@ IdealLens::IdealLens(
 
 IdealLens::~IdealLens()
 {
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 
   if (m_frontFocalPlane != nullptr)
     delete m_frontFocalPlane;

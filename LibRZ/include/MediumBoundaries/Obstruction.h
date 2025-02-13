@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ObstructionProcessor : public MediumBoundary {
+  class ObstructionBoundary : public MediumBoundary {
       Real                     m_radius = .5;
       std::vector<Real> const *m_obsMapPtr = nullptr;
       unsigned int             m_cols   = 0;
@@ -34,8 +34,8 @@ namespace RZ {
       Real                     m_hy = 0;
 
     public:
-      ObstructionProcessor();
-      virtual ~ObstructionProcessor() = default;
+      ObstructionBoundary();
+      virtual ~ObstructionBoundary() = default;
       void setRadius(Real);
       void setObstructionMap(
         Real width,

@@ -103,12 +103,12 @@ namespace RZ {
       const Complex  *amplitude() const;
   };
 
-  class DetectorProcessor : public MediumBoundary {
+  class DetectorBoundary : public MediumBoundary {
       DetectorStorage *m_storage; // Borrowed
 
     public:
-      DetectorProcessor(DetectorStorage *storage);
-      virtual ~DetectorProcessor() = default;
+      DetectorBoundary(DetectorStorage *storage);
+      virtual ~DetectorBoundary() = default;
       virtual std::string name() const;
       virtual void process(RayBeam &beam, const ReferenceFrame *) const;
   };
@@ -116,7 +116,7 @@ namespace RZ {
   class Detector : public OpticalElement {
     RotatedFrame         *m_detectorSurface = nullptr;
     DetectorStorage      *m_storage = nullptr; // Owned
-    MediumBoundary *m_processor = nullptr;
+    MediumBoundary *m_boundary = nullptr;
     
     Real m_pxWidth  = 15e-6;
     Real m_pxHeight = 15e-6;

@@ -27,7 +27,7 @@ namespace RZ {
   class TranslatedFrame;
 
   class ApertureStop : public OpticalElement {
-      ApertureStopProcessor *m_processor;
+      ApertureStopBoundary *m_boundary;
       GLPinHole m_pinHole;
       TranslatedFrame *m_stopSurface = nullptr;
       Real m_radius = 1e-2;

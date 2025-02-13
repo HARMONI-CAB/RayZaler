@@ -22,19 +22,19 @@
 
 using namespace RZ;
 
-FlatMirrorProcessor::FlatMirrorProcessor()
+FlatMirrorBoundary::FlatMirrorBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
-FlatMirrorProcessor::name() const
+FlatMirrorBoundary::name() const
 {
-  return "FlatMirrorProcessor";
+  return "FlatMirrorBoundary";
 }
 
 void
-FlatMirrorProcessor::setRadius(Real R)
+FlatMirrorBoundary::setRadius(Real R)
 {
   surfaceShape<CircularFlatSurface>()->setRadius(R);
 
@@ -42,7 +42,7 @@ FlatMirrorProcessor::setRadius(Real R)
 }
 
 void
-FlatMirrorProcessor::setEccentricity(Real ecc)
+FlatMirrorBoundary::setEccentricity(Real ecc)
 {
   surfaceShape<CircularFlatSurface>()->setEccentricity(ecc);
 
@@ -50,7 +50,7 @@ FlatMirrorProcessor::setEccentricity(Real ecc)
 }
 
 void
-FlatMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+FlatMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

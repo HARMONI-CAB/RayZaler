@@ -35,11 +35,11 @@ CircularWindow::recalcModel()
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
 
-  m_inputProcessor->setRadius(m_radius);
-  m_inputProcessor->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setRadius(m_radius);
+  m_inputBoundary->setRefractiveIndex(1, m_mu);
 
-  m_outputProcessor->setRadius(m_radius);
-  m_outputProcessor->setRefractiveIndex(m_mu, 1);
+  m_outputBoundary->setRadius(m_radius);
+  m_outputBoundary->setRefractiveIndex(m_mu, 1);
 
   // Intercept surfaces
   m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
@@ -85,14 +85,14 @@ CircularWindow::CircularWindow(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_inputProcessor  = new CircularWindowProcessor;
-  m_outputProcessor = new CircularWindowProcessor;
+  m_inputBoundary  = new CircularWindowBoundary;
+  m_outputBoundary = new CircularWindowBoundary;
   
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
 
-  pushOpticalSurface("inputFace",  m_inputFrame,  m_inputProcessor);
-  pushOpticalSurface("outputFace", m_outputFrame, m_outputProcessor);
+  pushOpticalSurface("inputFace",  m_inputFrame,  m_inputBoundary);
+  pushOpticalSurface("outputFace", m_outputFrame, m_outputBoundary);
 
   addPort("inputPort", m_inputFrame);
   addPort("outputPort", m_outputFrame);
@@ -104,11 +104,11 @@ CircularWindow::CircularWindow(
 
 CircularWindow::~CircularWindow()
 {
-  if (m_inputProcessor != nullptr)
-    delete m_inputProcessor;
+  if (m_inputBoundary != nullptr)
+    delete m_inputBoundary;
 
-  if (m_outputProcessor != nullptr)
-    delete m_outputProcessor;
+  if (m_outputBoundary != nullptr)
+    delete m_outputBoundary;
 }
 
 void

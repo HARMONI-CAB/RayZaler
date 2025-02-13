@@ -212,15 +212,15 @@ done:
 
 /////////////////////////////// Detector storage ///////////////////////////////
 std::string
-DetectorProcessor::name() const
+DetectorBoundary::name() const
 {
-  return "DetectorProcessor";
+  return "DetectorBoundary";
 }
 
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+DetectorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
@@ -238,7 +238,7 @@ DetectorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
   }
 }
 
-DetectorProcessor::DetectorProcessor(DetectorStorage *storage)
+DetectorBoundary::DetectorBoundary(DetectorStorage *storage)
 {
   m_storage = storage;
   setSurfaceShape(new RectangularFlatSurface());
@@ -253,8 +253,8 @@ Detector::recalcModel()
 
   m_detectorSurface->setAngle(m_flip ? 0 : M_PI);
   m_storage->setPixelDimensions(m_pxWidth, m_pxHeight);
-  m_processor->surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
-  m_processor->surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
+  m_boundary->surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
+  m_boundary->surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
 
   Real bbWidth  = m_width  + RZ_DETECTOR_SUBS_GAP;
   Real bbHeight = m_height + RZ_DETECTOR_SUBS_GAP;
@@ -308,10 +308,10 @@ Detector::Detector(
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_storage         = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
-  m_processor       = new DetectorProcessor(m_storage);
+  m_boundary       = new DetectorBoundary(m_storage);
   m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), 0);
 
-  pushOpticalSurface("detSurf", m_detectorSurface, m_processor);
+  pushOpticalSurface("detSurf", m_detectorSurface, m_boundary);
 
   refreshProperties();
   recalcModel();
@@ -322,8 +322,8 @@ Detector::~Detector()
   if (m_storage != nullptr)
     delete m_storage;
 
-  if (m_processor != nullptr)
-    delete m_processor;
+  if (m_boundary != nullptr)
+    delete m_boundary;
 
 }
 

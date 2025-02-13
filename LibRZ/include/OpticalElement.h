@@ -33,7 +33,7 @@ namespace RZ {
   struct OpticalSurface {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
-    const MediumBoundary *processor = nullptr;
+    const MediumBoundary *boundary = nullptr;
     OpticalElement             *parent    = nullptr;
 
     std::map<uint32_t, RayBeamStatistics> statistics;

@@ -26,7 +26,7 @@ using namespace RZ;
 // In the lenslet array we basically have an array of partially overlapped
 // convex surfaces.
 
-LensletArrayProcessor::LensletArrayProcessor()
+LensletArrayBoundary::LensletArrayBoundary()
 {
   setSurfaceShape(
     new SurfaceArray(
@@ -36,7 +36,7 @@ LensletArrayProcessor::LensletArrayProcessor()
 }
 
 void
-LensletArrayProcessor::recalculateDimensions()
+LensletArrayBoundary::recalculateDimensions()
 {
   if (m_dirty) {
     auto *array   = surfaceShape<SurfaceArray>();
@@ -65,7 +65,7 @@ LensletArrayProcessor::recalculateDimensions()
 }
 
 void
-LensletArrayProcessor::setCurvatureRadius(Real rCurv)
+LensletArrayBoundary::setCurvatureRadius(Real rCurv)
 {
   m_rCurv = rCurv;
   m_dirty = true;
@@ -73,7 +73,7 @@ LensletArrayProcessor::setCurvatureRadius(Real rCurv)
 }
 
 void
-LensletArrayProcessor::setRefractiveIndex(Real in, Real out)
+LensletArrayBoundary::setRefractiveIndex(Real in, Real out)
 {
   m_muIn  = in;
   m_muOut = out;
@@ -82,13 +82,13 @@ LensletArrayProcessor::setRefractiveIndex(Real in, Real out)
 }
       
 std::string
-LensletArrayProcessor::name() const
+LensletArrayBoundary::name() const
 {
-  return "LensletArrayProcessor";
+  return "LensletArrayBoundary";
 }
 
 void
-LensletArrayProcessor::setWidth(Real width)
+LensletArrayBoundary::setWidth(Real width)
 {
   surfaceShape<SurfaceArray>()->setWidth(width);
   m_dirty = true;
@@ -96,7 +96,7 @@ LensletArrayProcessor::setWidth(Real width)
 }
 
 void
-LensletArrayProcessor::setHeight(Real height)
+LensletArrayBoundary::setHeight(Real height)
 {
   surfaceShape<SurfaceArray>()->setHeight(height);
   m_dirty  = true;
@@ -104,7 +104,7 @@ LensletArrayProcessor::setHeight(Real height)
 }
 
 void
-LensletArrayProcessor::setCols(unsigned cols)
+LensletArrayBoundary::setCols(unsigned cols)
 {
   surfaceShape<SurfaceArray>()->setCols(cols);
   m_dirty = true;
@@ -112,7 +112,7 @@ LensletArrayProcessor::setCols(unsigned cols)
 }
 
 void
-LensletArrayProcessor::setConicConstant(Real K)
+LensletArrayBoundary::setConicConstant(Real K)
 {
   m_K = K;
   m_dirty = true;
@@ -120,7 +120,7 @@ LensletArrayProcessor::setConicConstant(Real K)
 }
 
 void
-LensletArrayProcessor::setConvex(bool convex)
+LensletArrayBoundary::setConvex(bool convex)
 {
   m_convex = convex;
   m_dirty = true;
@@ -128,7 +128,7 @@ LensletArrayProcessor::setConvex(bool convex)
 }
 
 void
-LensletArrayProcessor::setRows(unsigned rows)
+LensletArrayBoundary::setRows(unsigned rows)
 {
   surfaceShape<SurfaceArray>()->setRows(rows);
   m_dirty = true;
@@ -136,7 +136,7 @@ LensletArrayProcessor::setRows(unsigned rows)
 }
 
 void
-LensletArrayProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+LensletArrayBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   Vec3 normal;

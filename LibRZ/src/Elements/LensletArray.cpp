@@ -38,24 +38,24 @@ void
 LensletArray::recalcModel()
 {
   // Update processors
-  m_inputProcessor->setWidth(m_width);
-  m_inputProcessor->setHeight(m_height);
-  m_inputProcessor->setCols(m_cols);
-  m_inputProcessor->setRows(m_rows);
-  m_inputProcessor->setCurvatureRadius(m_rCurv);
-  m_inputProcessor->setRefractiveIndex(1, m_mu);
-  m_inputProcessor->setConicConstant(m_K);
+  m_inputBoundary->setWidth(m_width);
+  m_inputBoundary->setHeight(m_height);
+  m_inputBoundary->setCols(m_cols);
+  m_inputBoundary->setRows(m_rows);
+  m_inputBoundary->setCurvatureRadius(m_rCurv);
+  m_inputBoundary->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setConicConstant(m_K);
 
-  m_outputProcessor->setWidth(m_width);
-  m_outputProcessor->setHeight(m_height);
-  m_outputProcessor->setCols(m_cols);
-  m_outputProcessor->setRows(m_rows);
-  m_outputProcessor->setCurvatureRadius(-m_rCurv);
-  m_outputProcessor->setRefractiveIndex(m_mu, 1);
-  m_outputProcessor->setConicConstant(m_K);
+  m_outputBoundary->setWidth(m_width);
+  m_outputBoundary->setHeight(m_height);
+  m_outputBoundary->setCols(m_cols);
+  m_outputBoundary->setRows(m_rows);
+  m_outputBoundary->setCurvatureRadius(-m_rCurv);
+  m_outputBoundary->setRefractiveIndex(m_mu, 1);
+  m_outputBoundary->setConicConstant(m_K);
   
   // Get lenslet radius
-  Real radius = m_inputProcessor->lensletRadius();
+  Real radius = m_inputBoundary->lensletRadius();
 
   m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
   m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
@@ -134,17 +134,17 @@ LensletArray::LensletArray(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_inputProcessor  = new LensletArrayProcessor;
-  m_outputProcessor = new LensletArrayProcessor;
+  m_inputBoundary  = new LensletArrayBoundary;
+  m_outputBoundary = new LensletArrayBoundary;
 
-  m_inputProcessor->setConvex(true);
-  m_outputProcessor->setConvex(false);
+  m_inputBoundary->setConvex(true);
+  m_outputBoundary->setConvex(false);
 
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
 
-  pushOpticalSurface("inputFace",  m_inputFrame,  m_inputProcessor);
-  pushOpticalSurface("outputFace", m_outputFrame, m_outputProcessor);
+  pushOpticalSurface("inputFace",  m_inputFrame,  m_inputBoundary);
+  pushOpticalSurface("outputFace", m_outputFrame, m_outputBoundary);
 
   // Create helper planes. These are exposed as ports
   m_inputFocalPlane  = new TranslatedFrame("inputFocalPlane", frame, Vec3::zero());
@@ -165,11 +165,11 @@ LensletArray::LensletArray(
 
 LensletArray::~LensletArray()
 {
-  if (m_inputProcessor != nullptr)
-    delete m_inputProcessor;
+  if (m_inputBoundary != nullptr)
+    delete m_inputBoundary;
 
-  if (m_outputProcessor != nullptr)
-    delete m_outputProcessor;
+  if (m_outputBoundary != nullptr)
+    delete m_outputBoundary;
 
   if (m_inputFocalPlane != nullptr)
     delete m_inputFocalPlane;

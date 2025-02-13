@@ -109,7 +109,7 @@ GLModel::drawElementApertures(const Element *el)
     glLineWidth(m_thickness);
 
     for (auto &surf : surfaces) {
-      RZ::SurfaceShape *ap = surf->processor->surfaceShape();
+      RZ::SurfaceShape *ap = surf->boundary->surfaceShape();
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);

@@ -29,8 +29,8 @@ namespace RZ {
   class LensletArray : public OpticalElement {
       GLCappedCylinder        m_cylinder;
       GLSphericalCap          m_cap;
-      LensletArrayProcessor  *m_inputProcessor   = nullptr;
-      LensletArrayProcessor  *m_outputProcessor  = nullptr;
+      LensletArrayBoundary  *m_inputBoundary   = nullptr;
+      LensletArrayBoundary  *m_outputBoundary  = nullptr;
       TranslatedFrame        *m_inputFrame       = nullptr;
       TranslatedFrame        *m_outputFrame      = nullptr;
 

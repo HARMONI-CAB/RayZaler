@@ -24,12 +24,12 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class FlatMirrorProcessor : public MediumBoundary {
+  class FlatMirrorBoundary : public MediumBoundary {
       Real m_radius         = .5;
       Real m_ecc            = 0;
 
     public:
-      FlatMirrorProcessor();
+      FlatMirrorBoundary();
       void setRadius(Real);
       void setEccentricity(Real ecc);
       virtual std::string name() const;

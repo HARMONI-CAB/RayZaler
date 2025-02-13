@@ -24,12 +24,12 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class RectangularStopProcessor : public MediumBoundary {
+  class RectangularStopBoundary : public MediumBoundary {
       Real m_width  = .1;
       Real m_height = .1;
 
     public:
-      RectangularStopProcessor();
+      RectangularStopBoundary();
       void setWidth(Real);
       void setHeight(Real);
       virtual std::string name() const;

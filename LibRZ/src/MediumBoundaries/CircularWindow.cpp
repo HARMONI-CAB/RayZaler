@@ -22,26 +22,26 @@
 
 using namespace RZ;
 
-CircularWindowProcessor::CircularWindowProcessor()
+CircularWindowBoundary::CircularWindowBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
-CircularWindowProcessor::name() const
+CircularWindowBoundary::name() const
 {
-  return "CircularWindowProcessor";
+  return "CircularWindowBoundary";
 }
 
 void
-CircularWindowProcessor::setRadius(Real R)
+CircularWindowBoundary::setRadius(Real R)
 {
   m_radius = R;
   surfaceShape<CircularFlatSurface>()->setRadius(R);
 }
 
 void
-CircularWindowProcessor::setRefractiveIndex(Real in, Real out)
+CircularWindowBoundary::setRefractiveIndex(Real in, Real out)
 {
   m_muIn  = in;
   m_muOut = out;
@@ -49,7 +49,7 @@ CircularWindowProcessor::setRefractiveIndex(Real in, Real out)
 }
 
 void
-CircularWindowProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+CircularWindowBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

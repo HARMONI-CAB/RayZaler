@@ -24,12 +24,12 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class IdealLensProcessor : public MediumBoundary {
+  class IdealLensBoundary : public MediumBoundary {
       Real m_radius = .5;
       Real m_fLen   = 1;
 
     public:
-      IdealLensProcessor();
+      IdealLensBoundary();
       
       void setRadius(Real);
       void setFocalLength(Real);

@@ -22,13 +22,13 @@
 using namespace RZ;
 
 std::string
-InfiniteMirrorProcessor::name() const
+InfiniteMirrorBoundary::name() const
 {
-  return "InfiniteMirrorProcessor";
+  return "InfiniteMirrorBoundary";
 }
 
 void
-InfiniteMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+InfiniteMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = 3 * beam.count;
   uint64_t i;

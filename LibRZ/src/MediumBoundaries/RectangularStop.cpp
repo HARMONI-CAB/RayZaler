@@ -22,7 +22,7 @@
 
 using namespace RZ;
 
-RectangularStopProcessor::RectangularStopProcessor()
+RectangularStopBoundary::RectangularStopBoundary()
 {
   setSurfaceShape(new RectangularFlatSurface());
 
@@ -31,27 +31,27 @@ RectangularStopProcessor::RectangularStopProcessor()
 }
 
 std::string
-RectangularStopProcessor::name() const
+RectangularStopBoundary::name() const
 {
-  return "RectangularStopProcessor";
+  return "RectangularStopBoundary";
 }
 
 void
-RectangularStopProcessor::setWidth(Real width)
+RectangularStopBoundary::setWidth(Real width)
 {
   m_width = width;
   surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
 }
 
 void
-RectangularStopProcessor::setHeight(Real height)
+RectangularStopBoundary::setHeight(Real height)
 {
   m_height = height;
   surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
 }
 
 void
-RectangularStopProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+RectangularStopBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

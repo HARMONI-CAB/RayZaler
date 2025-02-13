@@ -22,26 +22,26 @@
 
 using namespace RZ;
 
-ConicLensProcessor::ConicLensProcessor()
+ConicLensBoundary::ConicLensBoundary()
 {
   setSurfaceShape(new ConicSurface(m_radius, m_rCurv, m_K));
 }
 
 std::string
-ConicLensProcessor::name() const
+ConicLensBoundary::name() const
 {
-  return "ConicLensProcessor";
+  return "ConicLensBoundary";
 }
 
 void
-ConicLensProcessor::setRadius(Real R)
+ConicLensBoundary::setRadius(Real R)
 {
   m_radius = R;
   surfaceShape<ConicSurface>()->setRadius(R);
 }
 
 void
-ConicLensProcessor::setCurvatureRadius(Real Rc)
+ConicLensBoundary::setCurvatureRadius(Real Rc)
 {
   m_rCurv = Rc;
   surfaceShape<ConicSurface>()->setCurvatureRadius(Rc);
@@ -49,14 +49,14 @@ ConicLensProcessor::setCurvatureRadius(Real Rc)
 
 
 void
-ConicLensProcessor::setConicConstant(Real K)
+ConicLensBoundary::setConicConstant(Real K)
 {
   m_K = K;
   surfaceShape<ConicSurface>()->setConicConstant(K);
 }
 
 void
-ConicLensProcessor::setCenterOffset(Real x, Real y)
+ConicLensBoundary::setCenterOffset(Real x, Real y)
 {
   m_x0 = x;
   m_y0 = y;
@@ -65,7 +65,7 @@ ConicLensProcessor::setCenterOffset(Real x, Real y)
 }
 
 void
-ConicLensProcessor::setRefractiveIndex(Real in, Real out)
+ConicLensBoundary::setRefractiveIndex(Real in, Real out)
 {
   m_muIn    = in;
   m_muOut   = out;
@@ -73,7 +73,7 @@ ConicLensProcessor::setRefractiveIndex(Real in, Real out)
 }
 
 void
-ConicLensProcessor::setConvex(bool convex)
+ConicLensBoundary::setConvex(bool convex)
 {
   if (convex != m_convex) {
     m_convex = convex;
@@ -82,7 +82,7 @@ ConicLensProcessor::setConvex(bool convex)
 }
 
 void
-ConicLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+ConicLensBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;

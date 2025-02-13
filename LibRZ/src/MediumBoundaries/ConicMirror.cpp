@@ -22,33 +22,33 @@
 
 using namespace RZ;
 
-ConicMirrorProcessor::ConicMirrorProcessor()
+ConicMirrorBoundary::ConicMirrorBoundary()
 {
   setSurfaceShape(new ConicSurface(m_radius, m_rCurv, m_K));
 }
 
 std::string
-ConicMirrorProcessor::name() const
+ConicMirrorBoundary::name() const
 {
-  return "ConicMirrorProcessor";
+  return "ConicMirrorBoundary";
 }
 
 void
-ConicMirrorProcessor::setRadius(Real R)
+ConicMirrorBoundary::setRadius(Real R)
 {
   m_radius = R;
   surfaceShape<ConicSurface>()->setRadius(R);
 }
 
 void
-ConicMirrorProcessor::setCurvatureRadius(Real Rc)
+ConicMirrorBoundary::setCurvatureRadius(Real Rc)
 {
   m_rCurv = Rc;
   surfaceShape<ConicSurface>()->setCurvatureRadius(Rc);
 }
 
 void
-ConicMirrorProcessor::setHoleRadius(Real Rh)
+ConicMirrorBoundary::setHoleRadius(Real Rh)
 {
   m_rHole  = Rh;
   m_rHole2 = Rh * Rh;
@@ -57,14 +57,14 @@ ConicMirrorProcessor::setHoleRadius(Real Rh)
 
 
 void
-ConicMirrorProcessor::setConicConstant(Real K)
+ConicMirrorBoundary::setConicConstant(Real K)
 {
   m_K = K;
   surfaceShape<ConicSurface>()->setConicConstant(K);
 }
 
 void
-ConicMirrorProcessor::setCenterOffset(Real x, Real y)
+ConicMirrorBoundary::setCenterOffset(Real x, Real y)
 {
   m_x0 = x;
   m_y0 = y;
@@ -73,7 +73,7 @@ ConicMirrorProcessor::setCenterOffset(Real x, Real y)
 }
 
 void
-ConicMirrorProcessor::setConvex(bool convex)
+ConicMirrorBoundary::setConvex(bool convex)
 {
   if (convex != m_convex) {
     m_convex = convex;
@@ -82,7 +82,7 @@ ConicMirrorProcessor::setConvex(bool convex)
 }
 
 void
-ConicMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+ConicMirrorBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
 

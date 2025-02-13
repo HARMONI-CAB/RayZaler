@@ -30,7 +30,7 @@ namespace RZ {
       GLCappedCylinder m_cylinder;
       GLCappedCylinder m_hole;
       GLConicCap   m_cap, m_rearCap;
-      ConicMirrorProcessor *m_processor;
+      ConicMirrorBoundary *m_boundary;
       TranslatedFrame *m_reflectiveSurfaceFrame  = nullptr;
       TranslatedFrame *m_aperturePort            = nullptr;
       TranslatedFrame *m_vertexPort              = nullptr;

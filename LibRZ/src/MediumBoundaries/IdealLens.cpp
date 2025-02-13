@@ -22,32 +22,32 @@
 
 using namespace RZ;
 
-IdealLensProcessor::IdealLensProcessor()
+IdealLensBoundary::IdealLensBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(m_radius));
 }
 
 std::string
-IdealLensProcessor::name() const
+IdealLensBoundary::name() const
 {
-  return "IdealLensProcessor";
+  return "IdealLensBoundary";
 }
 
 void
-IdealLensProcessor::setRadius(Real R)
+IdealLensBoundary::setRadius(Real R)
 {
   m_radius = R;
   surfaceShape<CircularFlatSurface>()->setRadius(R);
 }
 
 void
-IdealLensProcessor::setFocalLength(Real fLen)
+IdealLensBoundary::setFocalLength(Real fLen)
 {
   m_fLen = fLen;
 }
 
 void
-IdealLensProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+IdealLensBoundary::process(RayBeam &beam, const ReferenceFrame *plane) const
 {
   uint64_t count = beam.count;
   uint64_t i;
