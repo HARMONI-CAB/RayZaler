@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayProcessors/ApertureStop.h>
+#include <MediumBoundaries/ApertureStop.h>
 #include <Surfaces/Circular.h>
 
 #include <ReferenceFrame.h>

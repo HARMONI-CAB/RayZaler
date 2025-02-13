@@ -20,7 +20,7 @@
 #define _RECTANGULAR_STOP_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/RectangularStop.h>
 #include <GLHelpers.h>
 
 namespace RZ {

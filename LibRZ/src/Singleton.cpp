@@ -18,7 +18,7 @@
 
 #include <Singleton.h>
 #include <Element.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries.h>
 #include <Logger.h>
 #include <FT2Facade.h>
 

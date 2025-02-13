@@ -20,7 +20,7 @@
 #define _CONIC_LENS_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/ConicLens.h>
 #include <GLHelpers.h>
 
 namespace RZ {

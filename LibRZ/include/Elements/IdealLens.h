@@ -20,7 +20,7 @@
 #define _IDEAL_LENS_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/IdealLens.h>
 #include <GLHelpers.h>
 
 namespace RZ {

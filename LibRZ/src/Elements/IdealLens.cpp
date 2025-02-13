@@ -17,7 +17,6 @@
 //
 
 #include <Elements/IdealLens.h>
-#include <RayProcessors/IdealLens.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

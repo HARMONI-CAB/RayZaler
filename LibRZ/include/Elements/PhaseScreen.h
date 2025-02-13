@@ -20,9 +20,8 @@
 #define _PHASE_SCREEN_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/PhaseScreen.h>
 #include <GLHelpers.h>
-
 
 namespace RZ {
   class TranslatedFrame;

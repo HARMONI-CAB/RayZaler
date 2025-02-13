@@ -16,23 +16,28 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _RAYPROCESSORS_H
-#define _RAYPROCESSORS_H
+#include <MediumBoundaries/InfiniteMirror.h>
+#include <ReferenceFrame.h>
 
-#include "RayProcessors/ApertureStop.h"
-#include "RayProcessors/ConicLens.h"
-#include "RayProcessors/ConicMirror.h"
-#include "RayProcessors/FlatMirror.h"
-#include "RayProcessors/InfiniteMirror.h"
-#include "RayProcessors/LensletArray.h"
-#include "RayProcessors/Obstruction.h"
-#include "RayProcessors/PassThrough.h"
-#include "RayProcessors/PhaseScreen.h"
-#include "RayProcessors/RectangularStop.h"
-#include "RayProcessors/SquareFlatSurface.h"
+using namespace RZ;
 
-namespace RZ {
-  void registerRayProcessors();
+std::string
+InfiniteMirrorProcessor::name() const
+{
+  return "InfiniteMirrorProcessor";
 }
 
-#endif // _RAYPROCESSORS_H
+void
+InfiniteMirrorProcessor::process(RayBeam &beam, const ReferenceFrame *plane) const
+{
+  uint64_t count = 3 * beam.count;
+  uint64_t i;
+  Vec3 normal = plane->eZ();
+
+  for (i = 0; i < count; ++i) {
+    beam.interceptDone(i);
+    reflection(
+        Vec3(beam.directions + 3 * i), 
+        normal).copyToArray(beam.directions + 3 * i);
+  }
+}

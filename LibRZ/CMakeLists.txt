@@ -34,12 +34,13 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
   ${LIBRZ_SRCDIR}/Logger.cpp
+  ${LIBRZ_SRCDIR}/Medium.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries.cpp
   ${LIBRZ_SRCDIR}/ModelRenderer.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/Random.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
@@ -80,19 +81,19 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
 
-  ${LIBRZ_SRCDIR}/RayProcessors/ApertureStop.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/CircularWindow.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/ConicLens.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/ConicMirror.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/FlatMirror.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/IdealLens.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/InfiniteMirror.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/LensletArray.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/Obstruction.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/PassThrough.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/PhaseScreen.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/RectangularStop.cpp
-  ${LIBRZ_SRCDIR}/RayProcessors/SquareFlatSurface.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/CircularWindow.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/ConicLens.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/ConicMirror.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/FlatMirror.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/IdealLens.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/InfiniteMirror.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/LensletArray.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/Obstruction.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/PassThrough.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/PhaseScreen.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularStop.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/SquareFlatSurface.cpp
 
   ${LIBRZ_SRCDIR}/Surfaces/Array.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Circular.cpp
@@ -122,12 +123,13 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
+  ${LIBRZ_INCLUDEDIR}/Medium.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries.h
   ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/Random.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
@@ -170,19 +172,19 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
 
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/ApertureStop.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/CircularWindow.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/ConicLens.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/ConicMirror.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/FlatMirror.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/IdealLens.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/InfiniteMirror.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/LensletArray.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/Obstruction.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/PassThrough.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/PhaseScreen.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/RectangularStop.h
-  ${LIBRZ_INCLUDEDIR}/RayProcessors/SquareFlatSurface.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/CircularWindow.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicLens.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicMirror.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/FlatMirror.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/IdealLens.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/InfiniteMirror.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/LensletArray.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/Obstruction.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PassThrough.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PhaseScreen.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularStop.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/SquareFlatSurface.h
   
   ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Circular.h

@@ -21,7 +21,6 @@
 #include <Element.h>
 #include <OpticalElement.h>
 #include <SurfaceShape.h>
-#include <RayProcessors.h>
 
 using namespace RZ;
 

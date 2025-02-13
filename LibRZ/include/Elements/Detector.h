@@ -20,7 +20,6 @@
 #define _DETECTOR_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
 #include <vector>
 
 namespace RZ {

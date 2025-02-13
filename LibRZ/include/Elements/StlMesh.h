@@ -20,7 +20,6 @@
 #define _STL_MESH_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
 #include <GLHelpers.h>
 
 namespace RZ {

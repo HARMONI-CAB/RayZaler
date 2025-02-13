@@ -170,13 +170,6 @@ RayBeam::~RayBeam()
   deallocate();
 }
 
-/////////////////////////////// RayTransferProcessor ///////////////////////////
-RayTransferProcessor::~RayTransferProcessor()
-{
-  if (m_surfaceShape != nullptr)
-    delete m_surfaceShape;
-}
-
 //////////////////////////// RayTracingProcessListener /////////////////////////
 void
 RayTracingProcessListener::stageProgress(

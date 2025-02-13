@@ -20,7 +20,7 @@
 #define _CONIC_MIRROR_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/ConicMirror.h>
 #include <GLHelpers.h>
 
 namespace RZ {

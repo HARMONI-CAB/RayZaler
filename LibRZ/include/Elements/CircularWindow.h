@@ -20,7 +20,7 @@
 #define _CIRCULAR_WINDOW_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/CircularWindow.h>
 #include <GLHelpers.h>
 
 namespace RZ {

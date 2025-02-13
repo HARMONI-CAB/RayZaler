@@ -20,7 +20,7 @@
 #define _FLAT_MIRROR_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/FlatMirror.h>
 #include <GLHelpers.h>
 
 namespace RZ {

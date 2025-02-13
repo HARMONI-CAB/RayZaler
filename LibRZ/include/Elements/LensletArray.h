@@ -20,7 +20,7 @@
 #define _LENSLET_ARRAY_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/LensletArray.h>
 #include <GLHelpers.h>
 
 namespace RZ {

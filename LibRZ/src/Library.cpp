@@ -17,7 +17,7 @@
 //
 
 #include <Singleton.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries.h>
 #include <Elements/All.h>
 #include <Logger.h>
 
@@ -63,7 +63,7 @@ RZ::RZInit()
   Singleton::instance()->registerElementFactory(new TripodFactory);
   Singleton::instance()->registerElementFactory(new TubeElementFactory);
 
-  registerRayProcessors();
+  registerMediumBoundaries();
 
 #ifdef PYTHON_SCRIPT_SUPPORT
   ScriptLoader *loader = ScriptLoader::instance();

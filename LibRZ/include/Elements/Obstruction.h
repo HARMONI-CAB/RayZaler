@@ -20,7 +20,7 @@
 #define _OBSTRUCTION_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/Obstruction.h>
 #include <GLHelpers.h>
 
 namespace RZ {

@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayProcessors/ConicLens.h>
+#include <MediumBoundaries/ConicLens.h>
 #include <Surfaces/Conic.h>
 #include <ReferenceFrame.h>
 

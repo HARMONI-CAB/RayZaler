@@ -20,8 +20,6 @@
 #define _SPHERICAL_LENS_H
 
 #include "ConicLens.h"
-#include <RayProcessors.h>
-#include <GLHelpers.h>
 
 namespace RZ {
   class TranslatedFrame;

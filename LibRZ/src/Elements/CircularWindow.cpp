@@ -17,7 +17,6 @@
 //
 
 #include <Elements/CircularWindow.h>
-#include <RayProcessors/CircularWindow.h>
 #include <TranslatedFrame.h>
 
 using namespace RZ;

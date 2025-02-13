@@ -16,12 +16,9 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayProcessors.h>
-#include <Singleton.h>
+#include <MediumBoundaries/SquareFlatSurface.h>
+#include <ReferenceFrame.h>
 
-void
-RZ::registerRayProcessors()
-{
-  Singleton::instance()->registerRayTransferProcessor(new PassThroughProcessor);
-  Singleton::instance()->registerRayTransferProcessor(new InfiniteMirrorProcessor);
-}
+using namespace RZ;
+
+// TODO: To implement when designing coatings, etc

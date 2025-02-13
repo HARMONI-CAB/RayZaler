@@ -16,29 +16,14 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _SPHERICAL_MIRROR_H
-#define _SPHERICAL_MIRROR_H
+#include <Medium.h>
+#include <SurfaceShape.h>
 
-#include "ConicMirror.h"
+using namespace RZ;
 
-namespace RZ {
-  class TranslatedFrame;
-
-  class SphericalMirror : public ConicMirror {
-    protected:
-      virtual bool propertyChanged(std::string const &, PropertyValue const &) override;
-
-    public:
-      SphericalMirror(
-        ElementFactory *,
-        std::string const &,
-        ReferenceFrame *,
-        Element *parent = nullptr);
-      
-      virtual ~SphericalMirror() override;
-  };
-
-  RZ_DECLARE_ELEMENT_FROM(SphericalMirror, ConicMirror);
+/////////////////////////////// RayTransferProcessor ///////////////////////////
+RayTransferProcessor::~RayTransferProcessor()
+{
+  if (m_surfaceShape != nullptr)
+    delete m_surfaceShape;
 }
-
-#endif // _SPHERICAL_MIRROR_H

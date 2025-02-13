@@ -25,10 +25,7 @@
 #include <list>
 #include <map>
 #include <sys/time.h>
-#include "Random.h"
-
-#define RZ_SPEED_OF_LIGHT 299792458 // m/s
-#define RZ_WAVELENGTH     555e-9
+#include "Medium.h"
 
 namespace RZ {
   class ReferenceFrame;
@@ -205,97 +202,6 @@ namespace RZ {
 
     RayBeam(uint64_t);
     ~RayBeam();
-  };
-
-  class SurfaceShape;
-
-  class RayTransferProcessor {
-    SurfaceShape   *m_surfaceShape = nullptr;
-    ExprRandomState m_randState;
-    bool            m_reversible = false;
-
-  protected:
-    inline void
-    setSurfaceShape(SurfaceShape *ap)
-    {
-      m_surfaceShape = ap;
-    }
-
-    inline void
-    setReversible(bool rev)
-    {
-      m_reversible = rev;
-    }
-
-  public:
-    inline bool
-    reversible() const
-    {
-      return m_reversible;
-    }
-    
-    inline SurfaceShape *
-    surfaceShape() const
-    {
-      return m_surfaceShape;
-    }
-
-    template <class T>
-    inline T *
-    surfaceShape()
-    {
-      return static_cast<T *>(surfaceShape());
-    }
-    
-    template <class T>
-    inline T const *
-    surfaceShape() const
-    {
-      return static_cast<const T *>(surfaceShape());
-    }
-
-    static inline void
-    snell(Vec3 &u, Vec3 const &normal, Real muIORatio)
-    {
-      Vec3 nXu = muIORatio * normal.cross(u);
-      u        = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
-    }
-
-    static inline Vec3
-    snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
-    {
-      Vec3 nXu = muIORatio * normal.cross(u);
-
-      return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
-    }
-
-    static inline void
-    reflection(Vec3 &u, Vec3 const &normal)
-    {
-      u -= 2 * (u * normal) * normal;
-    }
-
-    static inline Vec3
-    reflection(Vec3 const &u, Vec3 const &normal)
-    {
-      return u - 2 * (u * normal) * normal;
-    }
-
-    inline ExprRandomState const &
-    constRandState() const
-    {
-      return m_randState;
-    }
-
-    inline ExprRandomState &
-    randState() const
-    {
-      return const_cast<ExprRandomState &>(m_randState);
-    }
-
-    virtual std::string name() const = 0;
-    virtual void process(RayBeam &, const ReferenceFrame *) const = 0;
-    virtual ~RayTransferProcessor();
   };
 
   enum RayTracingStageProgressType {

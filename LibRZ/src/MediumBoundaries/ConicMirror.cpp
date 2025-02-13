@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayProcessors/ConicMirror.h>
+#include <MediumBoundaries/ConicMirror.h>
 #include <Surfaces/Conic.h>
 #include <ReferenceFrame.h>
 

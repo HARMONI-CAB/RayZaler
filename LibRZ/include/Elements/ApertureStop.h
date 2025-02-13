@@ -20,7 +20,7 @@
 #define _APERTURE_STOP_H
 
 #include <OpticalElement.h>
-#include <RayProcessors.h>
+#include <MediumBoundaries/ApertureStop.h>
 #include <GLHelpers.h>
 
 namespace RZ {

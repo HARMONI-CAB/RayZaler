@@ -16,7 +16,7 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <RayProcessors/IdealLens.h>
+#include <MediumBoundaries/IdealLens.h>
 #include <Surfaces/Circular.h>
 #include <ReferenceFrame.h>
 

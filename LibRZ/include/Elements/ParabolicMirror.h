@@ -19,10 +19,7 @@
 #ifndef _PARABOLIC_MIRROR_H
 #define _PARABOLIC_MIRROR_H
 
-#include <OpticalElement.h>
 #include "ConicMirror.h"
-#include <RayProcessors.h>
-#include <GLHelpers.h>
 
 namespace RZ {
   class ParabolicMirror : public ConicMirror {
