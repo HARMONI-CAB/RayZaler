@@ -25,7 +25,7 @@
 namespace RZ {
   class ReferenceFrame;
   class RotatedFrame;
-  class RayTransferProcessor;
+  class MediumBoundary;
 
   class DetectorStorage {
       std::vector<uint32_t> m_photons;
@@ -103,7 +103,7 @@ namespace RZ {
       const Complex  *amplitude() const;
   };
 
-  class DetectorProcessor : public RayTransferProcessor {
+  class DetectorProcessor : public MediumBoundary {
       DetectorStorage *m_storage; // Borrowed
 
     public:
@@ -116,7 +116,7 @@ namespace RZ {
   class Detector : public OpticalElement {
     RotatedFrame         *m_detectorSurface = nullptr;
     DetectorStorage      *m_storage = nullptr; // Owned
-    RayTransferProcessor *m_processor = nullptr;
+    MediumBoundary *m_processor = nullptr;
     
     Real m_pxWidth  = 15e-6;
     Real m_pxHeight = 15e-6;

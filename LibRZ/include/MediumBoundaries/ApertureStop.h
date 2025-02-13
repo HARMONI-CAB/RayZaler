@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ApertureStopProcessor : public RayTransferProcessor {
+  class ApertureStopProcessor : public MediumBoundary {
       Real m_radius = .5;
 
     public:

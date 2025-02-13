@@ -48,7 +48,7 @@ TEST_CASE("Pushing rays to raytracer", THIS_TEST_TAG)
 
 TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
 {
-  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThroughProcessor");
+  MediumBoundary *processor = Singleton::instance()->lookupMediumBoundary("PassThroughProcessor");
   WorldFrame world("world");
   OpticalSurface surf;
 
@@ -97,7 +97,7 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
 
 TEST_CASE("Ensuring that all rays are intercepted in the destination plane", THIS_TEST_TAG)
 {
-  RayTransferProcessor *processor = Singleton::instance()->lookupRayTransferProcessor("PassThroughProcessor");
+  MediumBoundary *processor = Singleton::instance()->lookupMediumBoundary("PassThroughProcessor");
   WorldFrame world("world");
   RotatedFrame frame("detector", &world, Vec3::eZ(), 0);
   OpticalSurface surf;

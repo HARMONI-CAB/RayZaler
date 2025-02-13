@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class LensletArrayProcessor : public RayTransferProcessor {
+  class LensletArrayProcessor : public MediumBoundary {
       Real m_lensletRadius;
       Real m_rCurv         = 1;
       Real m_muOut         = 1.5;

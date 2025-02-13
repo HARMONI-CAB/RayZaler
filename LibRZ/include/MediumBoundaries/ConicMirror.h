@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ConicMirrorProcessor : public RayTransferProcessor {
+  class ConicMirrorProcessor : public MediumBoundary {
       Real m_radius  = .5;
       Real m_K       = 0;
       Real m_rCurv   = 1;

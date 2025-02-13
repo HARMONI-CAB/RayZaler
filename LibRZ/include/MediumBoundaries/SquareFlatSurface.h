@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class SquareFlatSurfaceProcessor: public RayTransferProcessor {
+  class SquareFlatSurfaceProcessor: public MediumBoundary {
       Real m_width  = .1;
       Real m_height = .1;
       Real m_muOut  = 1.5;

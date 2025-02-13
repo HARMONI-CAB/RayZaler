@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class RectangularStopProcessor : public RayTransferProcessor {
+  class RectangularStopProcessor : public MediumBoundary {
       Real m_width  = .1;
       Real m_height = .1;
 

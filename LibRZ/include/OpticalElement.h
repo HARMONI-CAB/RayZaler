@@ -26,14 +26,14 @@
 #include <RayTracingEngine.h>
 
 namespace RZ {
-  class RayTransferProcessor;
+  class MediumBoundary;
   class OpticalElement;
   
 
   struct OpticalSurface {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
-    const RayTransferProcessor *processor = nullptr;
+    const MediumBoundary *processor = nullptr;
     OpticalElement             *parent    = nullptr;
 
     std::map<uint32_t, RayBeamStatistics> statistics;
@@ -95,7 +95,7 @@ namespace RZ {
       void pushOpticalSurface(
         std::string,
         ReferenceFrame *,
-        const RayTransferProcessor *);
+        const MediumBoundary *);
       OpticalElement(
         ElementFactory *,
         std::string const &,

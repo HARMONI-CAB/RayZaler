@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class CircularWindowProcessor : public RayTransferProcessor {
+  class CircularWindowProcessor : public MediumBoundary {
       Real m_radius = .5;
       Real m_muOut  = 1.5;
       Real m_muIn   = 1;

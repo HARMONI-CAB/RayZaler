@@ -25,7 +25,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class PhaseScreenProcessor : public RayTransferProcessor {
+  class PhaseScreenProcessor : public MediumBoundary {
       Real m_radius        = .5;
       std::vector<Zernike> m_poly;
       std::vector<Real>    m_coef;

@@ -21,8 +21,8 @@
 
 using namespace RZ;
 
-/////////////////////////////// RayTransferProcessor ///////////////////////////
-RayTransferProcessor::~RayTransferProcessor()
+/////////////////////////////// MediumBoundary ///////////////////////////
+MediumBoundary::~MediumBoundary()
 {
   if (m_surfaceShape != nullptr)
     delete m_surfaceShape;

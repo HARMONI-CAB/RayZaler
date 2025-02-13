@@ -29,7 +29,7 @@ namespace RZ {
   class ReferenceFrame;
   struct RayBeam;
 
-  class RayTransferProcessor {
+  class MediumBoundary {
     SurfaceShape   *m_surfaceShape = nullptr;
     ExprRandomState m_randState;
     bool            m_reversible = false;
@@ -115,7 +115,7 @@ namespace RZ {
 
     virtual std::string name() const = 0;
     virtual void process(RayBeam &, const ReferenceFrame *) const = 0;
-    virtual ~RayTransferProcessor();
+    virtual ~MediumBoundary();
   };
 }
 

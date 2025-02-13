@@ -22,6 +22,6 @@
 void
 RZ::registerMediumBoundaries()
 {
-  Singleton::instance()->registerRayTransferProcessor(new PassThroughProcessor);
-  Singleton::instance()->registerRayTransferProcessor(new InfiniteMirrorProcessor);
+  Singleton::instance()->registerMediumBoundary(new PassThroughProcessor);
+  Singleton::instance()->registerMediumBoundary(new InfiniteMirrorProcessor);
 }

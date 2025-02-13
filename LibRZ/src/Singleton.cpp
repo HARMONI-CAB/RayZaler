@@ -77,23 +77,23 @@ Singleton::elementFactories() const
 }
 
 bool
-Singleton::registerRayTransferProcessor(RayTransferProcessor *proc)
+Singleton::registerMediumBoundary(MediumBoundary *proc)
 {
   std::string name = proc->name();
 
-  if (m_rayTransferProcessors.find(name) != m_rayTransferProcessors.end())
+  if (m_MediumBoundarys.find(name) != m_MediumBoundarys.end())
     return false;
 
-  m_rayTransferProcessors.emplace(name, proc);
+  m_MediumBoundarys.emplace(name, proc);
 
   return true;
 }
 
-RayTransferProcessor *
-Singleton::lookupRayTransferProcessor(std::string const &name) const
+MediumBoundary *
+Singleton::lookupMediumBoundary(std::string const &name) const
 {
-  auto it = m_rayTransferProcessors.find(name);
-  if (it == m_rayTransferProcessors.end())
+  auto it = m_MediumBoundarys.find(name);
+  if (it == m_MediumBoundarys.end())
     return nullptr;
 
   return it->second;
@@ -111,5 +111,5 @@ Singleton::logInitMessage()
   RZInfo("LibRZ core loaded (proto 0.1)\n");
   RZInfo("Global library: %d element factories, %d ray processors\n",
     m_elementFactories.size(),
-    m_rayTransferProcessors.size());
+    m_MediumBoundarys.size());
 }

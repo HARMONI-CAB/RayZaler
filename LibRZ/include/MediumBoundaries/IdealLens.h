@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class IdealLensProcessor : public RayTransferProcessor {
+  class IdealLensProcessor : public MediumBoundary {
       Real m_radius = .5;
       Real m_fLen   = 1;
 

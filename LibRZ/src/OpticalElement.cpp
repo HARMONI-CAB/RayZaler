@@ -145,7 +145,7 @@ void
 OpticalElement::pushOpticalSurface(
   std::string name,
   ReferenceFrame *frame,
-  const RayTransferProcessor *proc)
+  const MediumBoundary *proc)
 {
   OpticalSurface surface;
 

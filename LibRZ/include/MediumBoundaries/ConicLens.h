@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ConicLensProcessor : public RayTransferProcessor {
+  class ConicLensProcessor : public MediumBoundary {
       Real m_radius  = 0.5;
       Real m_K       = 0;
       Real m_rCurv   = 1;

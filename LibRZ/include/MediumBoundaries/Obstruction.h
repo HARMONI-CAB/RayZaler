@@ -24,7 +24,7 @@
 namespace RZ {
   class ReferenceFrame;
 
-  class ObstructionProcessor : public RayTransferProcessor {
+  class ObstructionProcessor : public MediumBoundary {
       Real                     m_radius = .5;
       std::vector<Real> const *m_obsMapPtr = nullptr;
       unsigned int             m_cols   = 0;
