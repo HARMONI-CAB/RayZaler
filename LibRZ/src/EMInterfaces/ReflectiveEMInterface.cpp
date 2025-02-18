@@ -16,30 +16,35 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _RAY_PROCESSORS_CONIC_LENS_H
-#define _RAY_PROCESSORS_CONIC_LENS_H
-
+#include <EMInterfaces/ReflectiveEMInterface.h>
 #include <RayTracingEngine.h>
 
-namespace RZ {
-  class ReferenceFrame;
+using namespace RZ;
 
-  class ConicLensBoundary : public MediumBoundary {
-      bool m_convex  = false;
-
-    public:
-      ConicLensBoundary();
-      virtual ~ConicLensBoundary() = default;
-      void setRadius(Real);
-      void setCenterOffset(Real, Real);
-
-      void setCurvatureRadius(Real);
-      void setConicConstant(Real);
-      void setRefractiveIndex(Real , Real);
-      void setConvex(bool);
-
-      virtual std::string name() const;
-  };
+std::string
+ReflectiveEMInterface::name() const
+{
+  return "ReflectiveEMInterface";
 }
 
-#endif // _RAY_PROCESSORS_CONIC_MIRROR_H
+void
+ReflectiveEMInterface::transmit(RayBeam &beam)
+{
+  uint64_t count = beam.count;
+  uint64_t i;
+
+  blockLight(beam); // Prune rays according to transmission
+
+  for (i = 0; i < count; ++i)
+    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+      reflection(
+        Vec3(beam.directions + 3 * i),
+        Vec3(beam.normals    + 3 * i)).copyToArray(beam.directions + 3 * i);
+    }
+}
+
+ReflectiveEMInterface::~ReflectiveEMInterface()
+{
+
+}
+

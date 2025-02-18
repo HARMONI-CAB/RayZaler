@@ -16,14 +16,18 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <Medium.h>
-#include <SurfaceShape.h>
+#ifndef _EM_INTERFACES_DUMMY_H
+#define _EM_INTERFACES_DUMMY_H
 
-using namespace RZ;
+#include <EMInterface.h>
 
-/////////////////////////////// MediumBoundary ///////////////////////////
-MediumBoundary::~MediumBoundary()
-{
-  if (m_surfaceShape != nullptr)
-    delete m_surfaceShape;
+namespace RZ {
+  class DummyEMInterface : public EMInterface {
+    public:
+      virtual std::string name() const override;
+      virtual void transmit(RayBeam &beam) override;
+      virtual ~DummyEMInterface() override;
+  };
 }
+
+#endif // _EM_INTERFACES_DUMMY_H

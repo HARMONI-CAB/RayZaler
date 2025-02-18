@@ -27,14 +27,11 @@ namespace RZ {
   class LensletArrayBoundary : public MediumBoundary {
       Real m_lensletRadius;
       Real m_rCurv         = 1;
-      Real m_muOut         = 1.5;
-      Real m_muIn          = 1;
-      Real m_IOratio       = 1 / 1.5;
       Real m_convex        = true;
       Real m_center        = .866;
       Real m_K             = 0;
 
-      bool         m_dirty         = true;
+      bool m_dirty         = true;
 
       void recalculateDimensions();
 
@@ -55,7 +52,6 @@ namespace RZ {
       void setCols(unsigned);
       void setRows(unsigned);
       virtual std::string name() const override;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

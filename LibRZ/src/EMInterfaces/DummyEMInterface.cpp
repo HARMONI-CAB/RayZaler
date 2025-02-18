@@ -16,30 +16,24 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _RAY_PROCESSORS_CONIC_LENS_H
-#define _RAY_PROCESSORS_CONIC_LENS_H
-
+#include <EMInterfaces/DummyEMInterface.h>
 #include <RayTracingEngine.h>
 
-namespace RZ {
-  class ReferenceFrame;
+using namespace RZ;
 
-  class ConicLensBoundary : public MediumBoundary {
-      bool m_convex  = false;
-
-    public:
-      ConicLensBoundary();
-      virtual ~ConicLensBoundary() = default;
-      void setRadius(Real);
-      void setCenterOffset(Real, Real);
-
-      void setCurvatureRadius(Real);
-      void setConicConstant(Real);
-      void setRefractiveIndex(Real , Real);
-      void setConvex(bool);
-
-      virtual std::string name() const;
-  };
+std::string
+DummyEMInterface::name() const
+{
+  return "DummyEMInterface";
 }
 
-#endif // _RAY_PROCESSORS_CONIC_MIRROR_H
+void
+DummyEMInterface::transmit(RayBeam &beam)
+{
+  blockLight(beam);
+}
+
+DummyEMInterface::~DummyEMInterface()
+{
+
+}

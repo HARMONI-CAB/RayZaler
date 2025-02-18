@@ -59,6 +59,9 @@ RectangularFlatSurface::intercept(
   Real halfW  = .5 * m_width;
   Real halfH  = .5 * m_height;
 
+  deltaT = 0;
+  n      = Vec3::eZ();
+  
   return fabs(coord.x) < halfW && fabs(coord.y) < halfH;
 }
 

@@ -91,8 +91,46 @@ RayBeam::clearStatistics()
 }
 
 void
+RayBeam::toRelative(const ReferenceFrame *plane)
+{
+  for (uint64_t i = 0; i < this->count; ++i) {
+    if (hasRay(i)) {
+      plane->toRelative(
+        Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
+
+      plane->toRelative(
+        Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
+
+      plane->toRelativeVec(
+        Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+    }
+  }
+}
+
+void
+RayBeam::fromRelative(const ReferenceFrame *plane)
+{
+  for (uint64_t i = 0; i < this->count; ++i) {
+    // hadRay (and not hasRay). This is important: we may want to display
+    // the rays that have been pruned in the previous step.
+    if (hadRay(i)) {
+      plane->fromRelative(
+        Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
+
+      plane->fromRelative(
+        Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
+
+      plane->fromRelativeVec(
+        Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+    }
+  }
+}
+
+void
 RayBeam::interceptDone(uint64_t index)
 {
+  intercept(index);
+
   if (hitSaveSurface != nullptr) {
     Ray ray;
     if (extractPartialRay(ray, index, false))
@@ -103,9 +141,9 @@ RayBeam::interceptDone(uint64_t index)
 void
 RayBeam::allocate(uint64_t count)
 {
-  size_t oldMaskLen = (this->count + 63) >> 6;
   size_t maskLen = (count + 63) >> 6;
   size_t prev = this->count;
+  size_t prevMaskLen = (this->count + 63) >> 6;
 
   if (prev == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
@@ -115,31 +153,42 @@ RayBeam::allocate(uint64_t count)
     this->amplitude     = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
+    this->refNdx        = allocBuffer<Real>(count);
     this->wavelengths   = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
     this->prevMask      = allocBuffer<uint64_t>(maskLen);
+    this->intMask       = allocBuffer<uint64_t>(maskLen);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     this->allocation    = count;
   } else if (count >= this->count) {
-    this->origins       = allocBuffer<Real>(3 * count, prev, this->origins);
-    this->directions    = allocBuffer<Real>(3 * count, prev, this->directions);
-    this->normals       = allocBuffer<Real>(3 * count, prev, this->normals);
-    this->destinations  = allocBuffer<Real>(3 * count, prev, this->destinations);
+    this->origins       = allocBuffer<Real>(3 * count, 3 * prev, this->origins);
+    this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
+    this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
+    this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
     this->amplitude     = allocBuffer<Complex>(count, prev, this->amplitude);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
+    this->refNdx        = allocBuffer<Real>(count, prev, this->refNdx);
     this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
-    this->mask          = allocBuffer<uint64_t>(maskLen, prev, this->mask);
-    this->prevMask      = allocBuffer<uint64_t>(maskLen, prev, this->prevMask);
-    this->chiefMask     = allocBuffer<uint64_t>(maskLen, prev, this->chiefMask);
+    this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
+    this->prevMask      = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->prevMask);
+    this->intMask       = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->intMask);
+    this->chiefMask     = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->chiefMask);
     this->allocation    = count;
   } else {
     throw std::runtime_error("Cannot shrink ray list");
   }
 
-  memset(this->chiefMask + oldMaskLen, 0, (maskLen - oldMaskLen) * sizeof(uint64_t));
+  memset(
+    this->chiefMask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+  
+  for (int64_t i = this->count; i < count; ++i)
+    this->refNdx[i] = 1.;
+
   this->count = count;
 }
 
@@ -282,7 +331,8 @@ RayTracingEngine::toBeam()
     m_beam->cumOptLengths[i] = p->cumOptLength;
     m_beam->ids[i]           = p->id;
     m_beam->wavelengths[i]   = p->wavelength;
-    
+    m_beam->refNdx[i]        = p->refNdx;
+
     if (p->chief)
       m_beam->setChiefRay(i);
     

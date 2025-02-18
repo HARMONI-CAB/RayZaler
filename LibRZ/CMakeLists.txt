@@ -23,6 +23,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/CPURayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/DataProduct.cpp
   ${LIBRZ_SRCDIR}/Element.cpp
+  ${LIBRZ_SRCDIR}/EMInterface.cpp
   ${LIBRZ_SRCDIR}/ExprTkEvaluator.cpp
   ${LIBRZ_SRCDIR}/FT2Facade.cpp
   ${LIBRZ_SRCDIR}/GenericCompositeModel.cpp
@@ -34,7 +35,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Library.cpp
   ${LIBRZ_SRCDIR}/Linalg.cpp
   ${LIBRZ_SRCDIR}/Logger.cpp
-  ${LIBRZ_SRCDIR}/Medium.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundary.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries.cpp
   ${LIBRZ_SRCDIR}/ModelRenderer.cpp
   ${LIBRZ_SRCDIR}/OMModel.cpp
@@ -81,6 +82,12 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
 
+  ${LIBRZ_SRCDIR}/EMInterfaces/DielectricEMInterface.cpp
+  ${LIBRZ_SRCDIR}/EMInterfaces/DummyEMInterface.cpp
+  ${LIBRZ_SRCDIR}/EMInterfaces/ParaxialEMInterface.cpp
+  ${LIBRZ_SRCDIR}/EMInterfaces/ParaxialZernikeEMInterface.cpp
+  ${LIBRZ_SRCDIR}/EMInterfaces/ReflectiveEMInterface.cpp
+
   ${LIBRZ_SRCDIR}/MediumBoundaries/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/ConicLens.cpp
@@ -111,6 +118,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/CPURayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/Element.h
   ${LIBRZ_INCLUDEDIR}/ElementMacros.h
+  ${LIBRZ_INCLUDEDIR}/EMInterface.h
   ${LIBRZ_INCLUDEDIR}/ExprTkEvaluator.h
   ${LIBRZ_INCLUDEDIR}/exprtk.hpp
   ${LIBRZ_INCLUDEDIR}/FT2Facade.h
@@ -123,7 +131,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
-  ${LIBRZ_INCLUDEDIR}/Medium.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundary.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries.h
   ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
   ${LIBRZ_INCLUDEDIR}/OMModel.h
@@ -171,6 +179,12 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/stl_reader.h
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
+
+  ${LIBRZ_INCLUDEDIR}/EMInterfaces/DielectricEMInterface.h
+  ${LIBRZ_INCLUDEDIR}/EMInterfaces/DummyEMInterface.h
+  ${LIBRZ_INCLUDEDIR}/EMInterfaces/ParaxialEMInterface.h
+  ${LIBRZ_INCLUDEDIR}/EMInterfaces/ParaxialZernikeEMInterface.h
+  ${LIBRZ_INCLUDEDIR}/EMInterfaces/ReflectiveEMInterface.h
 
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/CircularWindow.h

@@ -27,8 +27,8 @@ namespace RZ {
 
   class InfiniteMirrorBoundary : public MediumBoundary {
   public:
+    InfiniteMirrorBoundary();
     virtual std::string name() const;
-    virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

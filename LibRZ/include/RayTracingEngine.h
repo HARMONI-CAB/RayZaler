@@ -25,7 +25,7 @@
 #include <list>
 #include <map>
 #include <sys/time.h>
-#include "Medium.h"
+#include "MediumBoundary.h"
 
 namespace RZ {
   class ReferenceFrame;
@@ -44,6 +44,7 @@ namespace RZ {
     bool chief = false;
 
     RZ::Real wavelength = RZ_WAVELENGTH;
+    RZ::Real refNdx     = 1.; // Refractive index of the medium
 
     // Defined by the user
     uint32_t id = 0;
@@ -76,33 +77,29 @@ namespace RZ {
     Complex *amplitude  = nullptr;
     Real *lengths       = nullptr;
     Real *cumOptLengths = nullptr;
-    Real *normals       = nullptr; // Surface normals of the depart surface
+    Real *normals       = nullptr; // Surface normals of the boundary surface
     Real *wavelengths   = nullptr;
+    Real *refNdx        = nullptr;
+
     uint32_t *ids       = nullptr;
 
-    Real n              = 1.;
     uint64_t *mask      = nullptr;
+    uint64_t *intMask   = nullptr;
     uint64_t *prevMask  = nullptr;
     uint64_t *chiefMask = nullptr;
 
     const OpticalSurface *hitSaveSurface = nullptr;
-    
-    inline void
-    setRefractiveIndex(Real newN)
-    {
-      n = newN;
-    }
-
-    inline void
-    setVacuum()
-    {
-      setRefractiveIndex(1.);
-    }
 
     inline bool
     isChief(uint64_t index) const
     {
       return (chiefMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
+    }
+
+    inline bool
+    isIntercepted(uint64_t index) const
+    {
+      return (intMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
     }
 
     inline bool
@@ -116,6 +113,13 @@ namespace RZ {
     {
       if (!isChief(c) && hasRay(c))
         mask[c >> 6] |= 1ull << (c & 63);
+    }
+
+    inline void
+    intercept(uint64_t c)
+    {
+      if (hasRay(c))
+        intMask[c >> 6] |= 1ull << (c & 63);
     }
 
     inline bool
@@ -153,10 +157,11 @@ namespace RZ {
         return false;
 
       dest.origin.setFromArray(origins + 3 * index);
-      Vec3 diff = Vec3(destinations + 3 * index) - dest.origin;
-      dest.length = diff.norm();
-      dest.chief  = isChief(index);
+      Vec3 diff       = Vec3(destinations + 3 * index) - dest.origin;
+      dest.length     = diff.norm();
+      dest.chief      = isChief(index);
       dest.wavelength = wavelengths[index];
+      dest.refNdx     = refNdx[index];
 
       if (isZero(dest.length))
         return false;
@@ -199,6 +204,19 @@ namespace RZ {
     void clearMask();
     void computeStatistics();
     void clearStatistics();
+
+    //
+    // toRelative and fromRelative only act on:
+    //
+    // - origins
+    // - destinations
+    // - directions
+    //
+    // we leave normals untouched, as we only care about them during
+    // EMInterface calculations
+    //
+    void toRelative(const ReferenceFrame *plane);
+    void fromRelative(const ReferenceFrame *plane);
 
     RayBeam(uint64_t);
     ~RayBeam();

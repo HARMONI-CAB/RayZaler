@@ -16,8 +16,8 @@
 //  <http://www.gnu.org/licenses/>
 //
 
+#include <EMInterfaces/DielectricEMInterface.h>
 #include <MediumBoundaries/LensletArray.h>
-#include <ReferenceFrame.h>
 #include <Surfaces/Array.h>
 #include <Surfaces/Conic.h>
 
@@ -32,6 +32,7 @@ LensletArrayBoundary::LensletArrayBoundary()
     new SurfaceArray(
       new ConicSurface(1e-2, m_rCurv, m_K)));
 
+  setEMInterface(new DielectricEMInterface);
   recalculateDimensions();
 }
 
@@ -50,7 +51,6 @@ LensletArrayBoundary::recalculateDimensions()
 
     // Calculate curvature center
     m_center = sqrt(m_rCurv * m_rCurv - radius * radius);
-    m_IOratio = m_muIn / m_muOut;
 
     lenslet->setRadius(radius);
     lenslet->setCurvatureRadius(m_rCurv);
@@ -75,10 +75,7 @@ LensletArrayBoundary::setCurvatureRadius(Real rCurv)
 void
 LensletArrayBoundary::setRefractiveIndex(Real in, Real out)
 {
-  m_muIn  = in;
-  m_muOut = out;
-  m_dirty = true;
-  recalculateDimensions();
+  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
 }
       
 std::string
@@ -133,35 +130,4 @@ LensletArrayBoundary::setRows(unsigned rows)
   surfaceShape<SurfaceArray>()->setRows(rows);
   m_dirty = true;
   recalculateDimensions();
-}
-
-void
-LensletArrayBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
-{
-  uint64_t count = beam.count;
-  Vec3 normal;
-  uint64_t i;
-  
-  for (i = 0; i < count; ++i) {
-    Vec3 origin = plane->toRelative(Vec3(beam.origins + 3 * i));
-    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
-    Real dt     = 0;
-
-    if (surfaceShape()->intercept(coord, normal, dt, origin)) {
-      beam.lengths[i]       += dt;
-      beam.cumOptLengths[i] += beam.n * dt;
-      plane->fromRelative(coord).copyToArray(beam.destinations + 3 * i);
-      beam.interceptDone(i);
-      
-      snell(
-        Vec3(beam.directions + 3 * i), 
-        plane->fromRelativeVec(normal),
-        m_IOratio).copyToArray(beam.directions + 3 * i);
-    } else {
-      // Outside lens
-      beam.prune(i);
-    }
-  }
-
-  beam.n = m_muIn;
 }

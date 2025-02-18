@@ -16,8 +16,8 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _MEDIUM_H
-#define _MEDIUM_H
+#ifndef _MEDIUM_BOUNDARY_H
+#define _MEDIUM_BOUNDARY_H
 
 #include "Random.h"
 
@@ -25,14 +25,17 @@
 #define RZ_WAVELENGTH     555e-9
 
 namespace RZ {
-  class  SurfaceShape;
+  class SurfaceShape;
   class ReferenceFrame;
+  class EMInterface;
+
   struct RayBeam;
 
   class MediumBoundary {
-    SurfaceShape   *m_surfaceShape = nullptr;
-    ExprRandomState m_randState;
-    bool            m_reversible = false;
+    SurfaceShape   *m_surfaceShape  = nullptr;
+    EMInterface    *m_emInterface   = nullptr;
+    bool            m_reversible    = false;
+    bool            m_complementary = false;
 
   protected:
     inline void
@@ -42,9 +45,21 @@ namespace RZ {
     }
 
     inline void
+    setEMInterface(EMInterface *em)
+    {
+      m_emInterface = em;
+    }
+
+    inline void
     setReversible(bool rev)
     {
       m_reversible = rev;
+    }
+
+    inline void
+    setComplementary(bool comp)
+    {
+      m_complementary = comp;
     }
 
   public:
@@ -52,6 +67,12 @@ namespace RZ {
     reversible() const
     {
       return m_reversible;
+    }
+    
+    inline bool
+    isComplementary() const
+    {
+      return m_complementary;
     }
     
     inline SurfaceShape *
@@ -74,50 +95,31 @@ namespace RZ {
       return static_cast<const T *>(surfaceShape());
     }
 
-    static inline void
-    snell(Vec3 &u, Vec3 const &normal, Real muIORatio)
+    inline EMInterface *
+    emInterface() const
     {
-      Vec3 nXu = muIORatio * normal.cross(u);
-      u        = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+      return m_emInterface;
     }
 
-    static inline Vec3
-    snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
+    template <class T>
+    inline T *
+    emInterface()
     {
-      Vec3 nXu = muIORatio * normal.cross(u);
-
-      return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+      return static_cast<T *>(emInterface());
     }
-
-    static inline void
-    reflection(Vec3 &u, Vec3 const &normal)
+    
+    template <class T>
+    inline T const *
+    emInterface() const
     {
-      u -= 2 * (u * normal) * normal;
-    }
-
-    static inline Vec3
-    reflection(Vec3 const &u, Vec3 const &normal)
-    {
-      return u - 2 * (u * normal) * normal;
-    }
-
-    inline ExprRandomState const &
-    constRandState() const
-    {
-      return m_randState;
-    }
-
-    inline ExprRandomState &
-    randState() const
-    {
-      return const_cast<ExprRandomState &>(m_randState);
+      return static_cast<const T *>(emInterface());
     }
 
     virtual std::string name() const = 0;
-    virtual void transfer(RayBeam &, const ReferenceFrame *) const = 0;
+    virtual void transfer(RayBeam &, const ReferenceFrame *) const;
     virtual ~MediumBoundary();
   };
 }
 
-#endif // _MEDIUM_H
+#endif // _MEDIUM_BOUNDARY_H
 

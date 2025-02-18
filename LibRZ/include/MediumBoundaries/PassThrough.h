@@ -26,7 +26,6 @@ namespace RZ {
   class PassThroughBoundary : public MediumBoundary {
   public:
     virtual std::string name() const;
-    virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

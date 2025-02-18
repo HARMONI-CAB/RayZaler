@@ -160,7 +160,8 @@ CircularFlatSurface::intercept(
   Vec3 const &) const
 { 
   deltaT = 0.;
-
+  n      = Vec3::eZ();
+  
   return coord.x * coord.x / m_a2 + coord.y * coord.y / m_b2 < m_radius2;
 }
 

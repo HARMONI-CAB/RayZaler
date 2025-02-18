@@ -16,18 +16,23 @@
 //  <http://www.gnu.org/licenses/>
 //
 
+#include <EMInterfaces/ReflectiveEMInterface.h>
 #include <MediumBoundaries/RectangularStop.h>
-#include <ReferenceFrame.h>
 #include <Surfaces/Rectangular.h>
 
 using namespace RZ;
 
 RectangularStopBoundary::RectangularStopBoundary()
 {
+  setComplementary(true);
+
   setSurfaceShape(new RectangularFlatSurface());
 
-  surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
-  surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
+  surfaceShape<RectangularFlatSurface>()->setHeight(.1);
+  surfaceShape<RectangularFlatSurface>()->setWidth(.1);
+  
+  setEMInterface(new ReflectiveEMInterface);
+  emInterface<ReflectiveEMInterface>()->setTransmission(0);
 }
 
 std::string
@@ -39,34 +44,11 @@ RectangularStopBoundary::name() const
 void
 RectangularStopBoundary::setWidth(Real width)
 {
-  m_width = width;
-  surfaceShape<RectangularFlatSurface>()->setWidth(m_width);
+  surfaceShape<RectangularFlatSurface>()->setWidth(width);
 }
 
 void
 RectangularStopBoundary::setHeight(Real height)
 {
-  m_height = height;
-  surfaceShape<RectangularFlatSurface>()->setHeight(m_height);
-}
-
-void
-RectangularStopBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
-{
-  uint64_t count = beam.count;
-  uint64_t i;
-  Vec3 center  = plane->getCenter();
-  Vec3 tX      = plane->eX();
-  Vec3 tY      = plane->eY();
-  Real halfW   = .5 * m_width;
-  Real halfH   = .5 * m_height;
-
-  for (i = 0; i < count; ++i) {
-    Vec3 coord  = Vec3(beam.destinations + 3 * i) - plane->getCenter();
-    Real coordX = coord * tX;
-    Real coordY = coord * tY;
-
-    if (fabs(coordX) >= halfW || fabs(coordY) >= halfH)
-      beam.prune(i);
-  }
+  surfaceShape<RectangularFlatSurface>()->setHeight(height);
 }

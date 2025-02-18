@@ -17,31 +17,48 @@
 //
 
 #include <EMInterfaces/ParaxialEMInterface.h>
-#include <MediumBoundaries/IdealLens.h>
-#include <Surfaces/Circular.h>
+#include <RayTracingEngine.h>
 
 using namespace RZ;
 
-IdealLensBoundary::IdealLensBoundary()
-{
-  setSurfaceShape(new CircularFlatSurface(.5));
-  setEMInterface(new ParaxialEMInterface);
-}
-
 std::string
-IdealLensBoundary::name() const
+ParaxialEMInterface::name() const
 {
-  return "IdealLensBoundary";
+  return "ParaxialEMInterface";
 }
 
 void
-IdealLensBoundary::setRadius(Real R)
+ParaxialEMInterface::setFocalLength(Real fLen)
 {
-  surfaceShape<CircularFlatSurface>()->setRadius(R);
+  m_fLen = fLen;
 }
 
 void
-IdealLensBoundary::setFocalLength(Real fLen)
+ParaxialEMInterface::transmit(RayBeam &beam)
 {
-  emInterface<ParaxialEMInterface>()->setFocalLength(fLen);
+  uint64_t count = beam.count;
+  uint64_t i;
+
+  blockLight(beam); // Prune rays according to transmission
+
+
+  for (i = 0; i < count; ++i) {
+    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+      Vec3 coord(beam.destinations + 3 * i);
+      Vec3 inDir(beam.directions + 3 * i);
+
+      Real tanRho = sqrt(1 - inDir.x * inDir.x - inDir.y * inDir.y);
+      Real tanX   = inDir.x / tanRho;
+      Real tanY   = inDir.y / tanRho;
+
+      Vec3 dest(m_fLen * tanX, m_fLen * tanY, -m_fLen);
+      (dest - coord).normalized().copyToArray(beam.directions + 3 * i);
+    }
+  }
 }
+
+ParaxialEMInterface::~ParaxialEMInterface()
+{
+
+}
+

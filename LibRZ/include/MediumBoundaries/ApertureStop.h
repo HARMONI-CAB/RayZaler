@@ -25,13 +25,10 @@ namespace RZ {
   class ReferenceFrame;
 
   class ApertureStopBoundary : public MediumBoundary {
-      Real m_radius = .5;
-
     public:
       ApertureStopBoundary();
       void setRadius(Real);
       virtual std::string name() const;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

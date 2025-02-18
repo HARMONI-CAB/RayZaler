@@ -25,13 +25,6 @@ namespace RZ {
   class ReferenceFrame;
 
   class ConicMirrorBoundary : public MediumBoundary {
-      Real m_radius  = .5;
-      Real m_K       = 0;
-      Real m_rCurv   = 1;
-      Real m_rHole   = 0;
-      Real m_rHole2  = 0;
-      Real m_x0      = 0;
-      Real m_y0      = 0;
       bool m_convex  = false;
 
     public:
@@ -46,7 +39,6 @@ namespace RZ {
       void setConvex(bool);
 
       virtual std::string name() const;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

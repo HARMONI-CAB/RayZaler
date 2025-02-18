@@ -25,15 +25,11 @@ namespace RZ {
   class ReferenceFrame;
 
   class RectangularStopBoundary : public MediumBoundary {
-      Real m_width  = .1;
-      Real m_height = .1;
-
     public:
       RectangularStopBoundary();
       void setWidth(Real);
       void setHeight(Real);
       virtual std::string name() const;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 

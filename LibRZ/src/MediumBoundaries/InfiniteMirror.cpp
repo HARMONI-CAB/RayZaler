@@ -17,27 +17,17 @@
 //
 
 #include <MediumBoundaries/InfiniteMirror.h>
-#include <ReferenceFrame.h>
+#include <EMInterfaces/ReflectiveEMInterface.h>
 
 using namespace RZ;
+
+InfiniteMirrorBoundary::InfiniteMirrorBoundary()
+{
+  setEMInterface(new ReflectiveEMInterface);
+}
 
 std::string
 InfiniteMirrorBoundary::name() const
 {
   return "InfiniteMirrorBoundary";
-}
-
-void
-InfiniteMirrorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
-{
-  uint64_t count = 3 * beam.count;
-  uint64_t i;
-  Vec3 normal = plane->eZ();
-
-  for (i = 0; i < count; ++i) {
-    beam.interceptDone(i);
-    reflection(
-        Vec3(beam.directions + 3 * i), 
-        normal).copyToArray(beam.directions + 3 * i);
-  }
 }

@@ -34,7 +34,7 @@ OpticalSurface::locations() const
     locationArray.resize(expectedSize);
 
     for (size_t i = 0; i < hits.size(); ++i)
-      frame->toRelative(hits[i].origin).copyToArray(locationArray.data() + 3 * i);
+      hits[i].origin.copyToArray(locationArray.data() + 3 * i);
   }
 
   return locationArray;
@@ -49,7 +49,7 @@ OpticalSurface::directions() const
     directionArray.resize(expectedSize);
 
     for (size_t i = 0; i < hits.size(); ++i)
-      frame->toRelativeVec(hits[i].direction).copyToArray(directionArray.data() + 3 * i);
+      hits[i].direction.copyToArray(directionArray.data() + 3 * i);
   }
 
   return directionArray;

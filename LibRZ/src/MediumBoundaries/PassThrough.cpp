@@ -25,10 +25,3 @@ PassThroughBoundary::name() const
 {
   return "PassThroughBoundary";
 }
-
-void
-PassThroughBoundary::transfer(RayBeam &beam, const ReferenceFrame *) const
-{
-  // No processing
-}
-

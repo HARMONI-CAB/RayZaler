@@ -16,15 +16,16 @@
 //  <http://www.gnu.org/licenses/>
 //
 
+#include <EMInterfaces/ReflectiveEMInterface.h>
 #include <MediumBoundaries/FlatMirror.h>
 #include <Surfaces/Circular.h>
-#include <ReferenceFrame.h>
 
 using namespace RZ;
 
 FlatMirrorBoundary::FlatMirrorBoundary()
 {
-  setSurfaceShape(new CircularFlatSurface(m_radius));
+  setSurfaceShape(new CircularFlatSurface(.5));
+  setEMInterface(new ReflectiveEMInterface);
 }
 
 std::string
@@ -37,40 +38,10 @@ void
 FlatMirrorBoundary::setRadius(Real R)
 {
   surfaceShape<CircularFlatSurface>()->setRadius(R);
-
-  m_radius = R;
 }
 
 void
 FlatMirrorBoundary::setEccentricity(Real ecc)
 {
   surfaceShape<CircularFlatSurface>()->setEccentricity(ecc);
-
-  m_ecc = ecc;
-}
-
-void
-FlatMirrorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
-{
-  uint64_t count = beam.count;
-  uint64_t i;
-  Vec3 normal = plane->eZ();
-  
-  for (i = 0; i < count; ++i) {
-    if (!beam.hasRay(i))
-      continue;
-    
-    // Check intercept
-    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
-
-    if (surfaceShape()->intercept(coord)) {
-      beam.interceptDone(i);
-      reflection(
-        Vec3(beam.directions + 3 * i), 
-        normal).copyToArray(beam.directions + 3 * i);
-    } else {
-      // Outside mirror
-      beam.prune(i);
-    }
-  }
 }

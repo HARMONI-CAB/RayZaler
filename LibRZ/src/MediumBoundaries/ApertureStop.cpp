@@ -17,6 +17,7 @@
 //
 
 #include <MediumBoundaries/ApertureStop.h>
+#include <EMInterfaces/ReflectiveEMInterface.h>
 #include <Surfaces/Circular.h>
 
 #include <ReferenceFrame.h>
@@ -26,7 +27,12 @@ using namespace RZ;
 ApertureStopBoundary::ApertureStopBoundary()
 {
   setReversible(true);
-  setSurfaceShape(new CircularFlatSurface(m_radius));
+  setComplementary(true); // Everything except this shape.
+
+  setSurfaceShape(new CircularFlatSurface(.5));
+  setEMInterface(new ReflectiveEMInterface);
+
+  emInterface()->setTransmission(0); // Opaque
 }
 
 std::string
@@ -39,22 +45,4 @@ void
 ApertureStopBoundary::setRadius(Real R)
 {
   surfaceShape<CircularFlatSurface>()->setRadius(R);
-  
-  m_radius = R;
-}
-
-void
-ApertureStopBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
-{
-  uint64_t count = beam.count;
-  uint64_t i;
-
-  for (i = 0; i < count; ++i) {
-    Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
-
-    if (!surfaceShape()->intercept(coord))
-      beam.prune(i);
-    else
-      beam.interceptDone(i);
-  }
 }

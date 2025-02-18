@@ -25,13 +25,6 @@ namespace RZ {
   class ReferenceFrame;
 
   class ObstructionBoundary : public MediumBoundary {
-      Real                     m_radius = .5;
-      std::vector<Real> const *m_obsMapPtr = nullptr;
-      unsigned int             m_cols   = 0;
-      unsigned int             m_rows   = 0;
-      unsigned int             m_stride = 0;
-      Real                     m_hx  = 0;
-      Real                     m_hy = 0;
 
     public:
       ObstructionBoundary();
@@ -45,7 +38,6 @@ namespace RZ {
         unsigned int rows,
         unsigned int stride);
       virtual std::string name() const;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
   };
 }
 
