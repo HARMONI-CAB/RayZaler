@@ -19,6 +19,7 @@
 #include <Singleton.h>
 #include <Element.h>
 #include <MediumBoundaries.h>
+#include <RayTracingHeuristic.h>
 #include <Logger.h>
 #include <FT2Facade.h>
 
@@ -81,10 +82,10 @@ Singleton::registerMediumBoundary(MediumBoundary *proc)
 {
   std::string name = proc->name();
 
-  if (m_MediumBoundarys.find(name) != m_MediumBoundarys.end())
+  if (m_mediumBoundaries.find(name) != m_mediumBoundaries.end())
     return false;
 
-  m_MediumBoundarys.emplace(name, proc);
+  m_mediumBoundaries.emplace(name, proc);
 
   return true;
 }
@@ -92,12 +93,47 @@ Singleton::registerMediumBoundary(MediumBoundary *proc)
 MediumBoundary *
 Singleton::lookupMediumBoundary(std::string const &name) const
 {
-  auto it = m_MediumBoundarys.find(name);
-  if (it == m_MediumBoundarys.end())
+  auto it = m_mediumBoundaries.find(name);
+  if (it == m_mediumBoundaries.end())
     return nullptr;
 
   return it->second;
 }
+
+bool
+Singleton::registerRayTracingHeuristicFactory(RayTracingHeuristicFactory *fac)
+{
+  std::string name = fac->name();
+
+  if (m_rayTracingHeuristicFactories.find(name) != m_rayTracingHeuristicFactories.end())
+    return false;
+
+  m_rayTracingHeuristicFactories.emplace(name, fac);
+
+  return true;
+}
+
+RayTracingHeuristicFactory *
+Singleton::lookupRayTracingHeuristicFactory(std::string const &name) const
+{
+  auto it = m_rayTracingHeuristicFactories.find(name);
+  if (it == m_rayTracingHeuristicFactories.end())
+    return nullptr;
+
+  return it->second;
+}
+
+std::list<std::string>
+Singleton::rayTracingHeuristicFactories() const
+{
+  std::list<std::string> list;
+
+  for (auto &p : m_rayTracingHeuristicFactories)
+    list.push_back(p.first);
+
+  return list;
+}
+
 
 FT2Facade *
 Singleton::freetype() const
@@ -109,7 +145,7 @@ void
 Singleton::logInitMessage()
 {
   RZInfo("LibRZ core loaded (proto 0.1)\n");
-  RZInfo("Global library: %d element factories, %d ray processors\n",
+  RZInfo("Global library: %d elements, %d tracing heuristics\n",
     m_elementFactories.size(),
-    m_MediumBoundarys.size());
+    m_rayTracingHeuristicFactories.size());
 }

@@ -43,6 +43,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/Random.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
+  ${LIBRZ_SRCDIR}/RayTracingHeuristic.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
@@ -102,6 +103,8 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularStop.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/SquareFlatSurface.cpp
 
+  ${LIBRZ_SRCDIR}/RayTracingHeuristics/Dummy.cpp
+
   ${LIBRZ_SRCDIR}/Surfaces/Array.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Circular.cpp
   ${LIBRZ_SRCDIR}/Surfaces/Conic.cpp
@@ -139,6 +142,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/Random.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
+  ${LIBRZ_INCLUDEDIR}/RayTracingHeuristic.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
@@ -156,6 +160,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
   ${LIBRZ_INCLUDEDIR}/DataProducts/ScatterTree.h
   
+  ${LIBRZ_INCLUDEDIR}/Elements/All.h
   ${LIBRZ_INCLUDEDIR}/Elements/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/Elements/BenchElement.h
   ${LIBRZ_INCLUDEDIR}/Elements/BlockElement.h
@@ -200,6 +205,9 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularStop.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/SquareFlatSurface.h
   
+  ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/All.h
+  ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/Dummy.h
+
   ${LIBRZ_INCLUDEDIR}/Surfaces/Array.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Circular.h
   ${LIBRZ_INCLUDEDIR}/Surfaces/Conic.h

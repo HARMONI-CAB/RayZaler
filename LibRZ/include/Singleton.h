@@ -27,11 +27,14 @@ namespace RZ
 {
   class ElementFactory;
   class MediumBoundary;
+  class RayTracingHeuristicFactory;
+
   class FT2Facade;
 
   class Singleton {
-      std::map<std::string, ElementFactory *>       m_elementFactories;
-      std::map<std::string, MediumBoundary *> m_MediumBoundarys;
+      std::map<std::string, ElementFactory *>             m_elementFactories;
+      std::map<std::string, MediumBoundary *>             m_mediumBoundaries;
+      std::map<std::string, RayTracingHeuristicFactory *> m_rayTracingHeuristicFactories;
       FT2Facade *m_freeType = nullptr;
 
       static Singleton *m_currInstance;
@@ -41,12 +44,18 @@ namespace RZ
     public:
       static Singleton *instance();
       bool registerElementFactory(ElementFactory *);
-      bool registerMediumBoundary(MediumBoundary *);
-
       ElementFactory *lookupElementFactory(std::string const &) const;
       std::list<std::string> elementFactories() const;
-      
+
+
+      bool registerMediumBoundary(MediumBoundary *);
       MediumBoundary *lookupMediumBoundary(std::string const &) const;
+
+      bool registerRayTracingHeuristicFactory(RayTracingHeuristicFactory *);
+      RayTracingHeuristicFactory *lookupRayTracingHeuristicFactory(std::string const &) const;
+      std::list<std::string> rayTracingHeuristicFactories() const;
+
+      
       FT2Facade *freetype() const;
 
       void logInitMessage();

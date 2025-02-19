@@ -19,6 +19,7 @@
 #include <Singleton.h>
 #include <MediumBoundaries.h>
 #include <Elements/All.h>
+#include <RayTracingHeuristics/All.h>
 #include <Logger.h>
 
 #include <FT2Facade.h>
@@ -40,29 +41,34 @@ RZ::RZInit()
 
   Singleton *singleton = Singleton::instance();
 
-  Singleton::instance()->registerElementFactory(new ApertureStopFactory);
-  Singleton::instance()->registerElementFactory(new BenchElementFactory);
-  Singleton::instance()->registerElementFactory(new BlockElementFactory);
-  Singleton::instance()->registerElementFactory(new CircularWindowFactory);
-  Singleton::instance()->registerElementFactory(new ConicLensFactory);
-  Singleton::instance()->registerElementFactory(new ConicMirrorFactory);
-  Singleton::instance()->registerElementFactory(new DetectorFactory);
-  Singleton::instance()->registerElementFactory(new IdealLensFactory);
-  Singleton::instance()->registerElementFactory(new FlatMirrorFactory);
-  Singleton::instance()->registerElementFactory(new LensletArrayFactory);
-  Singleton::instance()->registerElementFactory(new ObstructionFactory);
-  Singleton::instance()->registerElementFactory(new ParabolicLensFactory);
-  Singleton::instance()->registerElementFactory(new ParabolicMirrorFactory);
-  Singleton::instance()->registerElementFactory(new PhaseScreenFactory);
-  Singleton::instance()->registerElementFactory(new RayBeamElementFactory);
-  Singleton::instance()->registerElementFactory(new RectangularStopFactory);
-  Singleton::instance()->registerElementFactory(new RodElementFactory);
-  Singleton::instance()->registerElementFactory(new SphericalLensFactory);
-  Singleton::instance()->registerElementFactory(new SphericalMirrorFactory);
-  Singleton::instance()->registerElementFactory(new StlMeshFactory);
-  Singleton::instance()->registerElementFactory(new TripodFactory);
-  Singleton::instance()->registerElementFactory(new TubeElementFactory);
+  // Element factories
+  singleton->registerElementFactory(new ApertureStopFactory);
+  singleton->registerElementFactory(new BenchElementFactory);
+  singleton->registerElementFactory(new BlockElementFactory);
+  singleton->registerElementFactory(new CircularWindowFactory);
+  singleton->registerElementFactory(new ConicLensFactory);
+  singleton->registerElementFactory(new ConicMirrorFactory);
+  singleton->registerElementFactory(new DetectorFactory);
+  singleton->registerElementFactory(new IdealLensFactory);
+  singleton->registerElementFactory(new FlatMirrorFactory);
+  singleton->registerElementFactory(new LensletArrayFactory);
+  singleton->registerElementFactory(new ObstructionFactory);
+  singleton->registerElementFactory(new ParabolicLensFactory);
+  singleton->registerElementFactory(new ParabolicMirrorFactory);
+  singleton->registerElementFactory(new PhaseScreenFactory);
+  singleton->registerElementFactory(new RayBeamElementFactory);
+  singleton->registerElementFactory(new RectangularStopFactory);
+  singleton->registerElementFactory(new RodElementFactory);
+  singleton->registerElementFactory(new SphericalLensFactory);
+  singleton->registerElementFactory(new SphericalMirrorFactory);
+  singleton->registerElementFactory(new StlMeshFactory);
+  singleton->registerElementFactory(new TripodFactory);
+  singleton->registerElementFactory(new TubeElementFactory);
 
+  // Ray tracing heuristics for non-sequential mode
+  singleton->registerRayTracingHeuristicFactory(new DummyHeuristicFactory);
+
+  // Static medium boundaries
   registerMediumBoundaries();
 
 #ifdef PYTHON_SCRIPT_SUPPORT
@@ -75,5 +81,5 @@ RZ::RZInit()
 
   // Initialize FreeType
     
-  Singleton::instance()->logInitMessage();
+  singleton->logInitMessage();
 }
