@@ -16,44 +16,13 @@
 //  <http://www.gnu.org/licenses/>
 //
 
+#ifndef _EM_INTERFACES_ALL_H
+#define _EM_INTERFACES_ALL_H
 
-#include <RayTracingHeuristic.h>
+#include "DielectricEMInterface.h"
+#include "DummyEMInterface.h"
+#include "ParaxialEMInterface.h"
+#include "ParaxialZernikeEMInterface.h"
+#include "ReflectiveEMInterface.h"
 
-using namespace RZ;
-
-OMModel *
-RayTracingHeuristic::model() const
-{
-  return m_model;
-}
-
-std::list<OpticalSurface *> &
-RayTracingHeuristic::visibleList()
-{
-  return m_visible;
-}
-
-std::list<OpticalSurface *> const &
-RayTracingHeuristic::visibleList() const
-{
-  return m_visible;
-}
-
-RayTracingHeuristic::RayTracingHeuristic(
-  RayTracingHeuristicFactory *factory,
-  OMModel *model)
-{
-  m_model   = model;
-  m_factory = factory;
-}
-
-RayTracingHeuristicFactory *
-RayTracingHeuristic::factory() const
-{
-  return m_factory;
-}
-
-RayTracingHeuristic::~RayTracingHeuristic()
-{
-
-}
+#endif // _EM_INTERFACES_ALL_H

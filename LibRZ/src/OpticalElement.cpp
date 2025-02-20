@@ -141,6 +141,17 @@ OpticalElement::opticalSurfaces() const
   return m_internalPath.m_sequence;
 }
 
+std::list<OpticalSurface *>
+OpticalElement::opticalSurfaces()
+{
+  std::list<OpticalSurface *> list;
+
+  for (auto &p : m_surfaces)
+    list.push_back(&p);
+
+  return list;
+}
+
 void
 OpticalElement::pushOpticalSurface(
   std::string name,

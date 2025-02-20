@@ -29,6 +29,7 @@ namespace RZ {
     Real m_rCurv   = 2;
     Real m_rCurv2  = 2;
     Real m_rHole   = 0;
+    Real m_rHole2  = 0;
     Real m_K = 0;
     
     Real m_x0 = 0;

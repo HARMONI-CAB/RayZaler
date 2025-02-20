@@ -96,9 +96,10 @@ ConicSurface::setConicConstant(Real K)
 }
 
 void
-ConicSurface::setHoleRadius(Real Rc)
+ConicSurface::setHoleRadius(Real Rhole)
 {
-  m_rHole = Rc;
+  m_rHole  = Rhole;
+  m_rHole2 = Rhole * Rhole;
 
   recalcDistribution();
   recalcGL();
@@ -383,6 +384,7 @@ ConicSurface::intercept(
   Real DK1   = D * K1;         // D(K + 1) = DK + D
   Real RDKD  = m_rCurv - DK1;  // R - D(K + 1) = R - DK - D
   Real sigma = m_convex ? 1 : -1;
+  Real rho2;
 
   Real A     = a * a + b * b + K1 * c * c;
   Real B     = 2 * (a * x0 + b * y0 + K1 * c * z0 + sigma * c * RDKD);
@@ -409,7 +411,9 @@ ConicSurface::intercept(
   x = intercept.x - m_x0;
   y = intercept.y - m_y0;
 
-  if (x * x + y * y >= m_radius2)
+  rho2 = x * x + y * y;
+
+  if (rho2 >= m_radius2 || rho2 < m_rHole2)
     return false;
 
   normal = Vec3(

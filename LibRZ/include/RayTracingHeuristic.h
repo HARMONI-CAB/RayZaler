@@ -25,20 +25,20 @@
 namespace RZ {
   class OMModel;
   class RayBeam;
-  class OpticalElement;
+  class OpticalSurface;
   class RayTracingHeuristicFactory;
 
   class RayTracingHeuristic {
       OMModel                    *m_model = nullptr;
-      std::list<OpticalElement *> m_visible;
+      std::list<OpticalSurface *> m_visible;
       RayTracingHeuristicFactory *m_factory = nullptr;
 
     protected:
       OMModel *model() const;
-      std::list<OpticalElement *> &visibleList();
+      std::list<OpticalSurface *> &visibleList();
 
     public:
-      std::list<OpticalElement *> const &visibleList() const;
+      std::list<OpticalSurface *> const &visibleList() const;
 
       RayTracingHeuristic(RayTracingHeuristicFactory *, OMModel *model);
       RayTracingHeuristicFactory *factory() const;

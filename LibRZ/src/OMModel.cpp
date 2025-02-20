@@ -29,6 +29,7 @@
 #include <Samplers/Ring.h>
 #include <Samplers/Point.h>
 #include <Samplers/Map.h>
+#include <Simulation.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
@@ -768,76 +769,16 @@ OMModel::trace(
         const struct timeval *startTime,
         bool clearIntermediate)
 {
-  CPURayTracingEngine tracer;
-  struct timeval tv;
-  unsigned int n, stages;
-  const OpticalPath *path = lookupOpticalPathOrEx(pathName);
-  bool prev = false;
+  TracingProperties properties;
 
-  if (clearIntermediate)
-    m_intermediateRays.clear();
+  properties.path           = pathName;
+  properties.pRays          = &rays;
+  properties.beamElement    = updateBeamElement ? m_beam : nullptr;
+  properties.clearDetectors = clear;
+  properties.startTime      = startTime;
+  properties.clearPrevious  = clearIntermediate;
 
-  tracer.setListener(listener);
-
-  gettimeofday(&tv, nullptr);
-
-  m_randState.setSeed(tv.tv_sec + tv.tv_usec / 1000);
-
-  // Clear all detectors
-  if (clear)
-    for (auto p : m_nameToDetector)
-      p.second->clear();
-
-  tracer.pushRays(rays);
-
-  stages = path->m_sequence.size();
-  n      = 0;
-
-  if (startTime != nullptr)
-    tracer.setStartTime(*startTime);
-  else
-    tracer.tick();
-
-  for (auto p : path->m_sequence) {
-    ++n;
-    
-    tracer.setCurrentSurface(p);
-    tracer.trace();
-
-    // Check if tracer was cancelled at this point
-    if (listener != nullptr && listener->cancelled())
-      return false;
-
-    // - Amplitudes are up-to date now
-    tracer.transfer();
-
-    if (updateBeamElement) {
-      auto rays = tracer.getRays(true);
-
-      m_intermediateRays.insert(
-        m_intermediateRays.end(),
-        rays.begin(),
-        rays.end());
-    }
-    
-    //
-    // And finally, the destination points are the new origin points
-    //
-    tracer.updateOrigins();
-
-    if (tracer.cancelled())
-      return false;
-
-    prev = true;
-  }
-
-  // TODO: make beam thread-safe
-  if (updateBeamElement)
-    m_beam->setList(m_intermediateRays);
-
-  m_lastTick = tracer.lastTick();
-
-  return true;
+  return m_sim->trace(properties);
 }
 
 bool
@@ -854,7 +795,7 @@ OMModel::traceDefault(
 struct timeval
 OMModel::lastTracerTick() const
 {
-  return m_lastTick;
+  return m_sim->lastTick();
 }
 
 bool
@@ -1027,6 +968,8 @@ OMModel::OMModel()
 
   m_beam = static_cast<RayBeamElement *>(factory->make("beam", m_world));
   registerElement(m_beam);
+
+  m_sim = new Simulation(this);
 }
 
 OMModel::~OMModel()
@@ -1036,6 +979,9 @@ OMModel::~OMModel()
 
   for (auto element : m_elements)
     delete element;
+
+  if (m_sim != nullptr)
+    delete m_sim;
 }
 
 void

@@ -48,6 +48,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/ReferenceFrame.cpp
   ${LIBRZ_SRCDIR}/RotatedFrame.cpp
   ${LIBRZ_SRCDIR}/RZGLModel.cpp
+  ${LIBRZ_SRCDIR}/Simulation.cpp
   ${LIBRZ_SRCDIR}/Singleton.cpp
   ${LIBRZ_SRCDIR}/SkySampler.cpp
   ${LIBRZ_SRCDIR}/SurfaceShape.cpp
@@ -147,6 +148,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/ReferenceFrame.h
   ${LIBRZ_INCLUDEDIR}/RotatedFrame.h
   ${LIBRZ_INCLUDEDIR}/RZGLModel.h
+  ${LIBRZ_INCLUDEDIR}/Simulation.h
   ${LIBRZ_INCLUDEDIR}/Singleton.h
   ${LIBRZ_INCLUDEDIR}/SkySampler.h
   ${LIBRZ_INCLUDEDIR}/SurfaceShape.h

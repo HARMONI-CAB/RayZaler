@@ -28,7 +28,6 @@
 
 using namespace RZ;
 
-
 template<typename T>
 static T *
 allocBuffer(uint64_t count, uint64_t prev = 0, T *existing = nullptr)
@@ -207,6 +206,8 @@ RayBeam::deallocate()
   freeBuffer(mask);
   freeBuffer(prevMask);
   freeBuffer(chiefMask);
+
+  this->count = 0;
 }
 
 RayBeam::RayBeam(uint64_t count)
@@ -264,6 +265,12 @@ void
 RayTracingEngine::clear()
 {
   m_rays.clear();
+
+  if (m_beam != nullptr) {
+    delete m_beam;
+    m_beam = nullptr;
+  }
+  
   m_beamDirty = true;
 }
 

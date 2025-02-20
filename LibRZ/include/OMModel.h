@@ -41,6 +41,7 @@
 namespace RZ {
   class OMModel;
   class GenericCompositeModel;
+  class Simulation;
   
   //
   // An Opto-Mechanical model consists of:
@@ -67,6 +68,7 @@ namespace RZ {
     ExpressionEvaluator *evaluator = nullptr;
     std::list<std::string> change_list;
   };
+
 
   struct ReferenceFrameContext {
     OMModel *m_model = nullptr;
@@ -216,11 +218,7 @@ namespace RZ {
       
       // Convenience elements
       RayBeamElement *m_beam = nullptr;
-      std::list<Ray>  m_intermediateRays;
-      struct timeval  m_lastTick;
-
-      // Random state for Diffraction calculations
-      ExprRandomState m_randState;
+      Simulation     *m_sim  = nullptr;
 
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);

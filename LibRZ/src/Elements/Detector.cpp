@@ -225,7 +225,6 @@ DetectorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
   uint64_t count = beam.count;
   uint64_t i;
   
-
   for (i = 0; i < count; ++i) {
     // Check intercept
     if (beam.hasRay(i)) {
@@ -308,7 +307,7 @@ Detector::Detector(
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
   m_storage         = new DetectorStorage(m_rows, m_cols, m_pxWidth, m_pxHeight);
-  m_boundary       = new DetectorBoundary(m_storage);
+  m_boundary        = new DetectorBoundary(m_storage);
   m_detectorSurface = new RotatedFrame("detSurf", frame, Vec3::eX(), 0);
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_boundary);

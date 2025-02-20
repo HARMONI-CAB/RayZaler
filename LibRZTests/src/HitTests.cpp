@@ -47,8 +47,8 @@ static const char *g_focusLens =
   "  focalLength = focalLength,"
   "  diameter    = D);"
 
-  "on backFocalPlane of L1 Detector bfpDet;"
-  "on imagePlane of L1 Detector imgDet;"
+  "on backFocalPlane of L1 Detector bfpDet(flip = true);"
+  "on imagePlane of L1 Detector imgDet(flip = true);"
   "on objectPlane of L1 port object;"
 
   "path bfp L1 to bfpDet;"
@@ -62,8 +62,8 @@ static const char *g_idealFocusLens =
   "  focalLength = focalLength,"
   "  diameter    = D);"
 
-  "on backFocalPlane of L1 Detector bfpDet;"
-  "on imagePlane of L1 Detector imgDet;"
+  "on backFocalPlane of L1 Detector bfpDet(flip = true);"
+  "on imagePlane of L1 Detector imgDet(flip = true);"
   "on objectPlane of L1 port object;"
 
   "path bfp L1 to bfpDet;"
@@ -86,8 +86,8 @@ static const char *g_asymetricLens =
   "  backFocalLength  = backFocalLength,"
   "  diameter         = D);"
 
-  "on backFocalPlane of L1 Detector bfpDet;"
-  "on imagePlane of L1 Detector imgDet;"
+  "on backFocalPlane of L1 Detector bfpDet(flip = true);"
+  "on imagePlane of L1 Detector imgDet(flip = true);"
   "on objectPlane of L1 port object;"
 
   "path bfp L1 to bfpDet;"
@@ -307,7 +307,9 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
 
   // Do statistics
   BeamTestStatistics statistics;
-  statistics.computeFromSurface(fp);
+
+  // Inverted, because there was a mirror
+  statistics.computeFromSurface(fp, -beamProp.direction);
 
   // Now, in theory, the f/# should be f/D = 1/1 = 1. However, we are going to
   // get a smaller number. Why? Because the focal length is measured
@@ -386,9 +388,10 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
 
   Real idealFNum = focalLength / diameter;
 
-  // Do statistics
+  // Do statistics. Not inverted, because they are lenses.
   BeamTestStatistics statistics;
-  statistics.computeFromSurface(fp);
+  statistics.computeFromSurface(fp, beamProp.direction);
+
   printf("(inf) Ideal lens: f/#: %g (>= ideal %g)\n", fabs(statistics.fNum), idealFNum);
   printf("(inf) Ideal lens: MaxRadius: %g\n", statistics.maxRad);
 
@@ -466,9 +469,9 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
 
   Real idealFNum = focalLength / diameter;
 
-  // Do statistics
+  // Do statistics. Not inverted, because they are lenses
   BeamTestStatistics statistics;
-  statistics.computeFromSurface(fp);
+  statistics.computeFromSurface(fp, beamProp.direction);
   printf("(inf) Positive lens: f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
   printf("(inf) Positive lens: MaxRadius: %g\n", statistics.maxRad);
 
@@ -538,7 +541,8 @@ TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(rays.size() == 1000);
 
   BeamTestStatistics inputStatistics;
-  inputStatistics.computeFromRayList(rays);
+  inputStatistics.computeFromRayList(rays, beamProp.direction);
+
   printf("(obj) Ideal lens: object radius: %g\n", inputStatistics.maxRad);
   printf("(obj) Ideal lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
   
@@ -572,13 +576,13 @@ TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
   statistics.computeFromSurface(fp);
   printf("(obj) Ideal lens: image radius: %g\n", statistics.maxRad);
   printf("(obj) Ideal lens: image center: %g, %g\n", statistics.x0, statistics.y0);
-  printf("(obj) Ideal lens: image f/#: %g (err = %g)\n", statistics.fNum, statistics.fNum + idealFNum);
+  printf("(obj) Ideal lens: image f/#: %g (err = %g)\n", statistics.fNum, statistics.fNum - idealFNum);
   
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(isZero(statistics.maxRad));
-  REQUIRE(releq(statistics.fNum, -idealFNum));
+  REQUIRE(releq(statistics.fNum, idealFNum));
 
   delete model;
 }
@@ -637,7 +641,7 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(rays.size() == 1000);
 
   BeamTestStatistics inputStatistics;
-  inputStatistics.computeFromRayList(rays);
+  inputStatistics.computeFromRayList(rays, beamProp.direction);
   printf("(obj) Positive lens: object radius: %g\n", inputStatistics.maxRad);
   printf("(obj) Positive lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
   
@@ -660,14 +664,14 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   statistics.computeFromSurface(fp);
   printf("(obj) Positive lens: image radius: %g\n", statistics.maxRad);
   printf("(obj) Positive lens: image center: %g, %g\n", statistics.x0, statistics.y0);
-  printf("(obj) Positive lens: image f/#: %g (ideal %g)\n", statistics.fNum, -idealFNum);
+  printf("(obj) Positive lens: image f/#: %g (ideal %g)\n", statistics.fNum, idealFNum);
   
   // Require f/# within 2% error
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(statistics.maxRad < 3e-4); // Room for aberrations
-  REQUIRE(releq(statistics.fNum, -idealFNum, 2e-2));
+  REQUIRE(releq(statistics.fNum, idealFNum, 2e-2));
   
   delete model;
 }
@@ -726,7 +730,7 @@ TEST_CASE("Asymmetric lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(rays.size() == 1000);
 
   BeamTestStatistics inputStatistics;
-  inputStatistics.computeFromRayList(rays);
+  inputStatistics.computeFromRayList(rays, beamProp.direction);
   printf("(obj) Asymmetric lens: object radius: %g\n", inputStatistics.maxRad);
   printf("(obj) Asymmetric lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
   
@@ -753,13 +757,13 @@ TEST_CASE("Asymmetric lens: center and focus (object)", THIS_TEST_TAG)
   statistics.computeFromSurface(fp);
   printf("(obj) Asymmetric lens: image radius: %g\n", statistics.maxRad);
   printf("(obj) Asymmetric lens: image center: %g, %g\n", statistics.x0, statistics.y0);
-  printf("(obj) Asymmetric lens: image f/#: %g (ideal %g)\n", statistics.fNum, -2 * idealFNum);
+  printf("(obj) Asymmetric lens: image f/#: %g (ideal %g)\n", statistics.fNum, 2 * idealFNum);
   
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
   REQUIRE(statistics.maxRad < 4e-4); // Room for aberrations
-  REQUIRE(releq(statistics.fNum, -2 * idealFNum, 2e-2));
+  REQUIRE(releq(statistics.fNum, 2 * idealFNum, 2e-2));
 
   delete model;
 }

@@ -33,7 +33,7 @@ namespace RZ {
   struct OpticalSurface {
     std::string                 name;
     const ReferenceFrame       *frame     = nullptr;
-    const MediumBoundary *boundary = nullptr;
+    const MediumBoundary       *boundary  = nullptr;
     OpticalElement             *parent    = nullptr;
 
     std::map<uint32_t, RayBeamStatistics> statistics;
@@ -120,7 +120,9 @@ namespace RZ {
       
       virtual OpticalPath opticalPath(std::string const &name = "") const;
       OpticalPath plug(OpticalElement *, std::string const &name = "") const;
+      
       const std::list<const OpticalSurface *> &opticalSurfaces() const;
+      std::list<OpticalSurface *>              opticalSurfaces();
 
       const std::vector<Real> &hits(std::string const &name = "") const;
       const std::vector<Real> &directions(std::string const &name = "") const;

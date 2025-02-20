@@ -76,6 +76,9 @@ namespace std {
 #include <WorldFrame.h>
 #include <OpticalElement.h>
 #include <Elements/All.h>
+#include <RayTracingHeuristics/All.h>
+#include <EMInterfaces/All.h>
+#include <Simulation.h>
 
 using namespace RZ;
 PyMODINIT_FUNC PyInit_RZ();
@@ -101,6 +104,7 @@ namespace std {
 %include "Matrix.h"
 %include "Linalg.h"
 %include "ReferenceFrame.h"
+%include "EMInterface.h"
 %include "Element.h"
 %include "OpticalElement.h"
 %include "GenericCompositeModel.h"
@@ -113,11 +117,14 @@ namespace std {
 %include "ExprTkEvaluator.h"
 %include "GLRenderEngine.h"
 %include "GLModel.h"
+%include "MediumBoundary.h"
 %include "ModelRenderer.h"
 %include "ParserContext.h"
 %include "RayTracingEngine.h"
+
 %include "Recipe.h"
 %include "RotatedFrame.h"
+%include "Simulation.h"
 %include "Singleton.h"
 %include "SkySampler.h"
 %include "TranslatedFrame.h"
@@ -146,6 +153,14 @@ namespace std {
 %include "Elements/StlMesh.h"
 %include "Elements/Tripod.h"
 %include "Elements/TubeElement.h"
+
+%include "RayTracingHeuristics/Dummy.h"
+
+%include "EMInterfaces/DielectricEMInterface.h"
+%include "EMInterfaces/DummyEMInterface.h"
+%include "EMInterfaces/ParaxialEMInterface.h"
+%include "EMInterfaces/ParaxialZernikeEMInterface.h"
+%include "EMInterfaces/ReflectiveEMInterface.h"
 
 %pythoncode %{
     EngineError = _pyRayZaler.EngineError

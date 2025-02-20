@@ -26,9 +26,10 @@ DummyHeuristic::DummyHeuristic(
   RayTracingHeuristicFactory *factory,
   OMModel *model) : RayTracingHeuristic(factory, model)
 {
-  auto const &all = model->allOpticalElements();
-
-  visibleList().assign(all.begin(), all.end());
+  for (auto &element : model->allOpticalElements()) {
+    auto const &all = element->opticalSurfaces();
+    visibleList().insert(visibleList().end(), all.begin(), all.end());
+  }
 }
 
 void
@@ -46,7 +47,7 @@ DummyHeuristic::~DummyHeuristic()
 std::string
 DummyHeuristicFactory::name() const
 {
-  return "DummyHeuristic";
+  return "dummy";
 }
 
 
