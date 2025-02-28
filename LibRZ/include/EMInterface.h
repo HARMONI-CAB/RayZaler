@@ -20,10 +20,10 @@
 #define _EM_INTERFACE_H
 
 #include <string>
+#include "RayBeam.h"
 #include "Random.h"
 
 namespace RZ {
-  class RayBeam;
   class ReferenceFrame;
 
   //
@@ -85,7 +85,13 @@ namespace RZ {
         return const_cast<ExprRandomState &>(m_randState);
       }
 
-      void blockLight(RayBeam &);
+      static inline bool
+      mustTransmitRay(const RayBeam *beam, uint64_t i)
+      {
+        return beam->hasRay(i) && beam->isIntercepted(i);
+      }
+
+      void blockLight(RayBeamSlice const &slice);
 
     public:
       void setTransmission(Real);
@@ -98,7 +104,7 @@ namespace RZ {
         unsigned int stride);
 
       virtual std::string name() const = 0;
-      virtual void transmit(RayBeam &beam) = 0;
+      virtual void transmit(RayBeamSlice const &beam) = 0;
       virtual ~EMInterface();
   };
 }

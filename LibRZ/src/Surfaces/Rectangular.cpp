@@ -53,14 +53,19 @@ bool
 RectangularFlatSurface::intercept(
   Vec3 &coord,
   Vec3 &n,
-  Real &deltaT,
-  Vec3 const &origin) const
+  Real &dt,
+  Vec3 const &origin,
+  Vec3 const &direction) const
 {
   Real halfW  = .5 * m_width;
   Real halfH  = .5 * m_height;
 
-  deltaT = 0;
-  n      = Vec3::eZ();
+  if (isZero(direction.z))
+    return false;
+
+  dt    = -origin.z / direction.z;
+  coord = origin + dt * direction;
+  n     = Vec3::eZ();
   
   return fabs(coord.x) < halfW && fabs(coord.y) < halfH;
 }

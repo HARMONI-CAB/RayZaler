@@ -42,6 +42,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/OpticalElement.cpp
   ${LIBRZ_SRCDIR}/ParserContext.cpp
   ${LIBRZ_SRCDIR}/Random.cpp
+  ${LIBRZ_SRCDIR}/RayBeam.cpp
   ${LIBRZ_SRCDIR}/RayTracingEngine.cpp
   ${LIBRZ_SRCDIR}/RayTracingHeuristic.cpp
   ${LIBRZ_SRCDIR}/Recipe.cpp
@@ -142,6 +143,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/OpticalElement.h
   ${LIBRZ_INCLUDEDIR}/ParserContext.h
   ${LIBRZ_INCLUDEDIR}/Random.h
+  ${LIBRZ_INCLUDEDIR}/RayBeam.h
   ${LIBRZ_INCLUDEDIR}/RayTracingEngine.h
   ${LIBRZ_INCLUDEDIR}/RayTracingHeuristic.h
   ${LIBRZ_INCLUDEDIR}/Recipe.h

@@ -363,13 +363,9 @@ ConicSurface::intercept(
   Vec3 &intercept,
   Vec3 &normal,
   Real &deltaT,
-  Vec3 const &Ot) const
+  Vec3 const &Ot,
+  Vec3 const &ut) const
 {
-  Vec3 ut = (intercept - Ot).normalized();
-
-  if (Ot.z < 0)
-    return false;
-
   Real x0 = Ot.x;
   Real y0 = Ot.y;
   Real z0 = Ot.z;
@@ -395,19 +391,17 @@ ConicSurface::intercept(
 
   if (fabs(A) <= std::numeric_limits<Real>::epsilon()) {
     // Case Bt + C = 0. There is only one solution in this case.
-    t = -C / B;
+    deltaT = -C / B;
   } else if (Delta >= 0) {
-    t = .5 * (-B - sigma * sqrt(Delta)) / A;
+    deltaT = .5 * (-B - sigma * sqrt(Delta)) / A;
   } else {
     return false;
   }
 
-  deltaT = t;
-  
   // Vignetting test is performed only after computing the intersection with
   // the paraboloid.
   Real x, y;
-  intercept = Ot + t * ut;
+  intercept = Ot + deltaT * ut;
   x = intercept.x - m_x0;
   y = intercept.y - m_y0;
 

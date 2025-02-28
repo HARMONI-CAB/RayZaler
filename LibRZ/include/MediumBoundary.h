@@ -30,6 +30,7 @@ namespace RZ {
   class EMInterface;
 
   struct RayBeam;
+  struct RayBeamSlice;
 
   class MediumBoundary {
     SurfaceShape   *m_surfaceShape  = nullptr;
@@ -61,6 +62,7 @@ namespace RZ {
     {
       m_complementary = comp;
     }
+
 
   public:
     inline bool
@@ -116,7 +118,10 @@ namespace RZ {
     }
 
     virtual std::string name() const = 0;
-    virtual void transfer(RayBeam &, const ReferenceFrame *) const;
+    
+    virtual void cast(RayBeam &) const;
+    virtual void transmit(RayBeamSlice const &) const;
+
     virtual ~MediumBoundary();
   };
 }

@@ -35,9 +35,9 @@ namespace RZ {
 
     protected:
       OMModel *model() const;
-      std::list<OpticalSurface *> &visibleList();
 
     public:
+      std::list<OpticalSurface *> &visibleList();
       std::list<OpticalSurface *> const &visibleList() const;
 
       RayTracingHeuristic(RayTracingHeuristicFactory *, OMModel *model);

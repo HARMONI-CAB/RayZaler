@@ -68,7 +68,8 @@ namespace RZ {
       Vec3 &hit,
       Vec3 &normal,
       Real &tIgnore,
-      Vec3 const &origin) const override;
+      Vec3 const &origin,
+      Vec3 const &direction) const override;
     
     virtual Real area() const override;
     virtual std::string name() const override;

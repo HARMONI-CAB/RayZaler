@@ -103,6 +103,10 @@ struct BeamTestStatistics {
 
   Real fNum   = std::numeric_limits<Real>::infinity();
 
+  uint64_t intercepted = 0;
+  uint64_t vignetted   = 0;
+  uint64_t pruned      = 0;
+
   void computeFromSurface(
     OpticalSurface const *fp,
     Vec3 const &chiefRay = -Vec3::eZ());
@@ -117,10 +121,10 @@ BeamTestStatistics::computeFromSurface(
   OpticalSurface const *fp,
   Vec3 const &chiefRay)
 {
-  Real R2     = 0;
+  Real R2         = 0;
   auto locations  = fp->locations();
   auto directions = fp->directions();
-  size_t N     =  locations.size() / 3;
+  size_t N        = locations.size() / 3;
 
   const Vec3 *locVec = reinterpret_cast<const Vec3 *>(locations.data());
   const Vec3 *dirVec = reinterpret_cast<const Vec3 *>(directions.data());
@@ -133,6 +137,7 @@ BeamTestStatistics::computeFromSurface(
   Real corr = 0, c = 0, t;
   Real currFnum;
 
+  
   for (size_t i = 3; i < locations.size(); i += 3) {
     Real x = locations[i] - x0;
     Real y = locations[i + 1] - y0;
@@ -149,6 +154,14 @@ BeamTestStatistics::computeFromSurface(
 
   rmsRad = sqrt(rmsRad / static_cast<Real>(N));
   maxRad = sqrt(maxRad);
+
+  vignetted = intercepted = pruned = 0;
+
+  for (auto &p : fp->statistics) {
+    intercepted += p.second.intercepted;
+    vignetted   += p.second.vignetted;
+    pruned      += p.second.pruned;
+  }
 }
 
 void
@@ -242,6 +255,10 @@ TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
 
   // Okay, things we need: that all rays have passed and that all of them
   // are perfectly focused
+
+  REQUIRE(statistics.pruned      == 0);
+  REQUIRE(statistics.vignetted   == 0);
+  REQUIRE(statistics.intercepted == rays.size());
   REQUIRE(fp->hits.size() == rays.size());
   REQUIRE(isZero(statistics.x0));
   REQUIRE(isZero(statistics.y0));
@@ -308,8 +325,7 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
   // Do statistics
   BeamTestStatistics statistics;
 
-  // Inverted, because there was a mirror
-  statistics.computeFromSurface(fp, -beamProp.direction);
+  statistics.computeFromSurface(fp);
 
   // Now, in theory, the f/# should be f/D = 1/1 = 1. However, we are going to
   // get a smaller number. Why? Because the focal length is measured
@@ -388,9 +404,8 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
 
   Real idealFNum = focalLength / diameter;
 
-  // Do statistics. Not inverted, because they are lenses.
   BeamTestStatistics statistics;
-  statistics.computeFromSurface(fp, beamProp.direction);
+  statistics.computeFromSurface(fp);
 
   printf("(inf) Ideal lens: f/#: %g (>= ideal %g)\n", fabs(statistics.fNum), idealFNum);
   printf("(inf) Ideal lens: MaxRadius: %g\n", statistics.maxRad);
@@ -469,9 +484,9 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
 
   Real idealFNum = focalLength / diameter;
 
-  // Do statistics. Not inverted, because they are lenses
   BeamTestStatistics statistics;
-  statistics.computeFromSurface(fp, beamProp.direction);
+  statistics.computeFromSurface(fp);
+
   printf("(inf) Positive lens: f/#: %g (ideal %g)\n", fabs(statistics.fNum), idealFNum);
   printf("(inf) Positive lens: MaxRadius: %g\n", statistics.maxRad);
 

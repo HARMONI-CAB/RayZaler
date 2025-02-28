@@ -76,11 +76,15 @@ TEST_CASE("Ensuring plane intercept works for canonical cases", THIS_TEST_TAG)
       engine.pushRay(source, direction);
     }
 
-    engine.setCurrentSurface(&surf);
-    engine.trace();
+    engine.castTo(&surf);
+
     REQUIRE(engine.beam()->count == BEAM_SIZE);
     
-    engine.transfer();
+    RayBeamSlice slice(engine.beam());
+    for (auto i = slice.start; i < slice.end; ++i)
+      REQUIRE(slice.beam->isIntercepted(i));
+    
+    engine.transmitThrough(&surf);
 
     auto outputRays = engine.getRays();
     REQUIRE(outputRays.size() == BEAM_SIZE);
@@ -128,11 +132,11 @@ TEST_CASE("Ensuring that all rays are intercepted in the destination plane", THI
       engine.pushRay(source, direction.normalized());
     }
 
-    engine.setCurrentSurface(&surf);
-    engine.trace();
+    engine.castTo(&surf);
+
     REQUIRE(engine.beam()->count == BEAM_SIZE);
     
-    engine.transfer();
+    engine.transmitThrough(&surf);
 
     auto outputRays = engine.getRays();
     REQUIRE(outputRays.size() == BEAM_SIZE);
@@ -146,4 +150,3 @@ TEST_CASE("Ensuring that all rays are intercepted in the destination plane", THI
     }
   }
 }
-

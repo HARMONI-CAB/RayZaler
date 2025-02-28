@@ -34,25 +34,22 @@ ParaxialEMInterface::setFocalLength(Real fLen)
 }
 
 void
-ParaxialEMInterface::transmit(RayBeam &beam)
+ParaxialEMInterface::transmit(RayBeamSlice const &slice)
 {
-  uint64_t count = beam.count;
-  uint64_t i;
+  blockLight(slice); // Prune rays according to transmission
 
-  blockLight(beam); // Prune rays according to transmission
-
-
-  for (i = 0; i < count; ++i) {
-    if (beam.hasRay(i) && beam.isIntercepted(i)) {
-      Vec3 coord(beam.destinations + 3 * i);
-      Vec3 inDir(beam.directions + 3 * i);
+  auto beam = slice.beam;
+  for (auto i = slice.start; i < slice.end; ++i) {
+    if (mustTransmitRay(slice.beam, i)) {
+      Vec3 coord(beam->destinations + 3 * i);
+      Vec3 inDir(beam->directions + 3 * i);
 
       Real tanRho = sqrt(1 - inDir.x * inDir.x - inDir.y * inDir.y);
       Real tanX   = inDir.x / tanRho;
       Real tanY   = inDir.y / tanRho;
 
       Vec3 dest(m_fLen * tanX, m_fLen * tanY, -m_fLen);
-      (dest - coord).normalized().copyToArray(beam.directions + 3 * i);
+      (dest - coord).normalized().copyToArray(beam->directions + 3 * i);
     }
   }
 }

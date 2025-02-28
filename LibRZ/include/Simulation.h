@@ -25,6 +25,7 @@
 
 namespace RZ {
   class RayBeamElement;
+  class RayTracingHeuristic;
   class OMModel;
 
   enum TracingType {
@@ -49,11 +50,15 @@ namespace RZ {
   class Simulation {
       OMModel          *m_model  = nullptr;
       RayTracingEngine *m_engine = nullptr;
+      RayBeam          *m_NSBeam = nullptr;
+      uint64_t          m_transferredRays = 0;
       std::list<Ray>    m_intermediateRays;
+      RayTracingHeuristic *m_heuristic = nullptr;
       struct timeval    m_lastTick;
 
       bool traceSequential(TracingProperties const &);
       bool traceNonSequential(TracingProperties const &);
+      void initNSBeam();
 
     public:
       Simulation(OMModel *model, std::string const &engine = "cpu");

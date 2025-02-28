@@ -28,198 +28,6 @@
 
 using namespace RZ;
 
-template<typename T>
-static T *
-allocBuffer(uint64_t count, uint64_t prev = 0, T *existing = nullptr)
-{
-  if (count == 0)
-    return nullptr;
-  
-  T *result = static_cast<T *>(realloc(existing, count * sizeof(T)));
-
-  if (result == nullptr)
-    throw std::bad_alloc();
-
-  memset(result + prev, 0, (count - prev) * sizeof(T));
-  
-  return result;
-}
-
-template<typename T>
-void
-freeBuffer(T *&buf)
-{
-  if (buf != nullptr) {
-    free(buf);
-    buf = nullptr;
-  }
-}
-
-template static Real *allocBuffer<Real>(uint64_t, uint64_t, Real *);
-template static void  freeBuffer<Real>(Real *&);
-
-template static uint64_t *allocBuffer<uint64_t>(uint64_t, uint64_t, uint64_t *);
-template static void freeBuffer<uint64_t>(uint64_t *&);
-
-void
-RayBeam::clearMask()
-{
-  memset(mask, 0, ((count + 63) >> 6) << 3);
-  memset(prevMask, 0, ((count + 63) >> 6) << 3);
-}
-
-void
-RayBeam::computeStatistics()
-{
-  uint64_t i;
-
-  for (i = 0; i < this->count; ++i) {
-    if (hadRay(i) && !isChief(i)) {
-      if (hasRay(i))
-        ++statistics[ids[i]].intercepted;
-      else
-        ++statistics[ids[i]].pruned;
-    }
-  }
-}
-
-void
-RayBeam::clearStatistics()
-{
-  this->statistics.clear();
-}
-
-void
-RayBeam::toRelative(const ReferenceFrame *plane)
-{
-  for (uint64_t i = 0; i < this->count; ++i) {
-    if (hasRay(i)) {
-      plane->toRelative(
-        Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
-
-      plane->toRelative(
-        Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
-
-      plane->toRelativeVec(
-        Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
-    }
-  }
-}
-
-void
-RayBeam::fromRelative(const ReferenceFrame *plane)
-{
-  for (uint64_t i = 0; i < this->count; ++i) {
-    // hadRay (and not hasRay). This is important: we may want to display
-    // the rays that have been pruned in the previous step.
-    if (hadRay(i)) {
-      plane->fromRelative(
-        Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
-
-      plane->fromRelative(
-        Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
-
-      plane->fromRelativeVec(
-        Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
-    }
-  }
-}
-
-void
-RayBeam::interceptDone(uint64_t index)
-{
-  intercept(index);
-
-  if (hitSaveSurface != nullptr) {
-    Ray ray;
-    if (extractPartialRay(ray, index, false))
-      hitSaveSurface->hits.push_back(ray);
-  }
-}
-
-void
-RayBeam::allocate(uint64_t count)
-{
-  size_t maskLen = (count + 63) >> 6;
-  size_t prev = this->count;
-  size_t prevMaskLen = (this->count + 63) >> 6;
-
-  if (prev == 0) {
-    this->origins       = allocBuffer<Real>(3 * count);
-    this->directions    = allocBuffer<Real>(3 * count);
-    this->normals       = allocBuffer<Real>(3 * count);
-    this->destinations  = allocBuffer<Real>(3 * count);
-    this->amplitude     = allocBuffer<Complex>(count);
-    this->lengths       = allocBuffer<Real>(count);
-    this->cumOptLengths = allocBuffer<Real>(count);
-    this->refNdx        = allocBuffer<Real>(count);
-    this->wavelengths   = allocBuffer<Real>(count);
-    this->ids           = allocBuffer<uint32_t>(count);
-    this->mask          = allocBuffer<uint64_t>(maskLen);
-    this->prevMask      = allocBuffer<uint64_t>(maskLen);
-    this->intMask       = allocBuffer<uint64_t>(maskLen);
-    this->chiefMask     = allocBuffer<uint64_t>(maskLen);
-    this->allocation    = count;
-  } else if (count >= this->count) {
-    this->origins       = allocBuffer<Real>(3 * count, 3 * prev, this->origins);
-    this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
-    this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
-    this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
-    this->amplitude     = allocBuffer<Complex>(count, prev, this->amplitude);
-    this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
-    this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
-    this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
-    this->refNdx        = allocBuffer<Real>(count, prev, this->refNdx);
-    this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
-    this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
-    this->prevMask      = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->prevMask);
-    this->intMask       = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->intMask);
-    this->chiefMask     = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->chiefMask);
-    this->allocation    = count;
-  } else {
-    throw std::runtime_error("Cannot shrink ray list");
-  }
-
-  memset(
-    this->chiefMask + prevMaskLen,
-    0,
-    (maskLen - prevMaskLen) * sizeof(uint64_t));
-  
-  for (int64_t i = this->count; i < count; ++i)
-    this->refNdx[i] = 1.;
-
-  this->count = count;
-}
-
-void
-RayBeam::deallocate()
-{
-  freeBuffer(origins);
-  freeBuffer(directions);
-  freeBuffer(destinations);
-  freeBuffer(normals);
-  freeBuffer(lengths);
-  freeBuffer(wavelengths);
-  freeBuffer(cumOptLengths);
-  freeBuffer(amplitude);
-  freeBuffer(ids);
-  freeBuffer(mask);
-  freeBuffer(prevMask);
-  freeBuffer(chiefMask);
-
-  this->count = 0;
-}
-
-RayBeam::RayBeam(uint64_t count)
-{
-  allocate(count);
-}
-
-RayBeam::~RayBeam()
-{
-  deallocate();
-}
-
 //////////////////////////// RayTracingProcessListener /////////////////////////
 void
 RayTracingProcessListener::stageProgress(
@@ -332,6 +140,7 @@ RayTracingEngine::toBeam()
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
     p->origin.copyToArray(m_beam->origins + 3 * i);
+    p->origin.copyToArray(m_beam->destinations + 3 * i);
     p->direction.copyToArray(m_beam->directions + 3 * i);
 
     m_beam->lengths[i]       = p->length;
@@ -352,124 +161,60 @@ RayTracingEngine::toBeam()
 void
 RayTracingEngine::toRays(bool keepPruned)
 {
-  uint64_t i;
-  Ray ray;
-
   m_rays.clear();
 
-  for (i = 0; i < m_beam->count; ++i) {
-    if (m_beam->extractRay(ray, i, keepPruned))
-      m_rays.push_back(ray);
-  }
+  m_beam->extractRays(m_rays, OriginPOV | ExtractAll);
 
   m_raysDirty = false;
 }
 
-// Set the current surface. This also notifies the state.
 void
-RayTracingEngine::setCurrentSurface(
-  const OpticalSurface *surf,
-  unsigned int i,
-  unsigned int total)
+RayTracingEngine::castTo(const OpticalSurface *surface, RayBeam *beam)
 {
-  if (m_beamDirty)
-    toBeam();
-  
-  m_currentSurface = surf;
-  m_currentFrame   = surf == nullptr ? nullptr : surf->frame;
-
-  m_currStage      = i;
-  m_numStages      = total;
-
-  m_beam->clearStatistics();
-  m_beam->hitSaveSurface = 
-    (surf->parent != nullptr && surf->parent->recordHits())
-    ? surf
-    : nullptr;
-
-  if (surf != nullptr) {
-    surf->clearCache();
-    if (total > 0)
-      stageProgress(PROGRESS_TYPE_TRACE, surf->name, i, total);
+  if (beam == nullptr) {
+    beam = ensureMainBeam();
+    beam->toRelative(surface->frame);
+    m_raysDirty = true;
   }
-}
 
-void
-RayTracingEngine::trace()
-{
-  if (m_beam == nullptr)
-    m_beam = new RayBeam(m_rays.size());
+  // Update progress
+  stageProgress(PROGRESS_TYPE_TRACE, m_stageName, m_currStage, m_numStages);
 
-  if (m_beamDirty)
-    toBeam();
+  beam->uninterceptAll();
 
-  cast(
-    m_currentFrame->getCenter(),
-    m_currentFrame->eZ(),
-    m_currentSurface->boundary->reversible());
+  cast(surface, beam);
 
-  m_raysDirty = true;
   m_notificationPendig = false;
 }
 
 void
-RayTracingEngine::propagatePhase()
+RayTracingEngine::transmitThrough(const OpticalSurface *surface)
 {
-  auto count = m_beam->count;
-  Real K;
-  for (auto i = 0; i < count; ++i) {
-    if (m_beam->hasRay(i)) {
-      K = 2 * M_PI / m_beam->wavelengths[i];
-      m_beam->amplitude[i] *= std::exp(Complex(0, K * m_beam->cumOptLengths[i]));
-    }
-  }
+  assert(m_beam != nullptr);
+  assert(m_beam->nonSeq == (surface == nullptr));
+  
+  stageProgress(PROGRESS_TYPE_TRANSFER, m_stageName, m_currStage, m_numStages);
+
+  transmit(surface, m_beam);
+
+  if (surface != nullptr)
+    m_beam->fromRelative(surface->frame);
+  else
+    m_beam->fromSurfaceRelative();
+
+  m_raysDirty = true;
 }
 
 void
-RayTracingEngine::updateNormals()
+RayTracingEngine::transmitThroughIntercepted()
 {
-  memcpy(m_beam->normals, m_currNormals.data(), 3 * m_beam->count * sizeof(Real));
-  m_dA = m_currdA;
+  transmitThrough(nullptr);
 }
 
 void
 RayTracingEngine::updateOrigins()
 {
-  m_beam->computeStatistics();
-
-  memcpy(m_beam->origins, m_beam->destinations, 3 * m_beam->count * sizeof(Real));
-  memcpy(m_beam->prevMask, m_beam->mask, ((m_beam->count + 63) >> 6) << 3);
-
-  if (m_beam->hitSaveSurface != nullptr) {
-    auto surf = const_cast<OpticalSurface *>(m_beam->hitSaveSurface);
-
-    for (auto &p : m_beam->statistics)
-      surf->statistics[p.first] += p.second;
-  }
-
-  m_beam->clearStatistics();
-}
-
-void
-RayTracingEngine::transfer()
-{
-  if (m_currentSurface == nullptr)
-    throw std::runtime_error("Cannot transfer: optical surface not defined");
-  
-  stageProgress(
-    PROGRESS_TYPE_TRANSFER,
-    m_currentSurface->name,
-    m_currStage,
-    m_numStages);
-  
-  auto aperture = m_currentSurface->boundary->surfaceShape();
-  auto count = m_beam->count;
-
-  m_currentSurface->boundary->transfer(*m_beam, m_currentFrame);
-
-  propagatePhase();
-
-  m_raysDirty = true;
+  m_beam->updateOrigins();
 }
 
 std::list<Ray> const &
@@ -482,9 +227,30 @@ RayTracingEngine::getRays(bool keepPruned)
 }
 
 RayBeam *
-RayTracingEngine::makeBeam()
+RayTracingEngine::makeBeam(bool nonSeq)
 {
-  return new RayBeam(m_rays.size());
+  return new RayBeam(m_rays.size(), nonSeq);
+}
+
+RayBeam *
+RayTracingEngine::ensureMainBeam()
+{
+  if (m_beam == nullptr || m_beamDirty)
+    toBeam();
+
+  return m_beam;
+}
+
+void
+RayTracingEngine::setMainBeam(RayBeam *original)
+{
+  if (m_beam != nullptr)
+    delete m_beam;
+  
+  m_beam = original;
+
+  m_raysDirty = true;
+  m_beamDirty = false;
 }
 
 void

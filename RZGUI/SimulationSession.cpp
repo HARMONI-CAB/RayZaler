@@ -667,7 +667,7 @@ SimulationState::extractFootprintsFromSurface(
         auto sit = surf->statistics.find(currId);
         // We artificall
         if (sit != surf->statistics.end()) {
-          fp.vignetted   = sit->second.pruned;
+          fp.vignetted   = sit->second.vignetted;
           fp.transmitted = sit->second.intercepted;
         }
 

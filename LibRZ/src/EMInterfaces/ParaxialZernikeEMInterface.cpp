@@ -111,18 +111,17 @@ ParaxialZernikeEMInterface::dZdy(Real x, Real y) const
 }
 
 void
-ParaxialZernikeEMInterface::transmit(RayBeam &beam)
+ParaxialZernikeEMInterface::transmit(RayBeamSlice const &slice)
 {
-  uint64_t count = beam.count;
-  uint64_t i;
   Real Rinv    = 1. / m_radius;
   Real Rsq     = m_radius * m_radius;
 
-  blockLight(beam); // Prune rays according to transmission
+  blockLight(slice); // Prune rays according to transmission
 
-  for (i = 0; i < count; ++i) {
-    if (beam.hasRay(i) && beam.isIntercepted(i)) {
-      Vec3 coord(beam.destinations + 3 * i);
+  auto beam = slice.beam;
+  for (auto i = slice.start; i < slice.end; ++i) {
+    if (mustTransmitRay(slice.beam, i)) {
+      Vec3 coord(beam->destinations + 3 * i);
 
       //  In the capture surface
       if (coord.x * coord.x + coord.y * coord.y < Rsq) {
@@ -168,12 +167,12 @@ ParaxialZernikeEMInterface::transmit(RayBeam &beam)
 
         // And apply Snell again
         snell(
-          Vec3(beam.directions + 3 * i),
+          Vec3(beam->directions + 3 * i),
           Vec3(tiltNormal),
-          m_IOratio).copyToArray(beam.directions + 3 * i);
+          m_IOratio).copyToArray(beam->directions + 3 * i);
       
         // This ray has entered a new medium. Mark accordingly.
-        beam.refNdx[i] = m_muOut;
+        beam->refNdx[i] = m_muOut;
       }
     }
   }

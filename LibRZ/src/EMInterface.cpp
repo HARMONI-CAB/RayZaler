@@ -18,6 +18,7 @@
 
 #include <EMInterface.h>
 #include <RayTracingEngine.h>
+#include <OpticalElement.h>
 
 using namespace RZ;
 
@@ -66,43 +67,42 @@ EMInterface::setTransmission(
 }
 
 void
-EMInterface::blockLight(RayBeam &beam)
+EMInterface::blockLight(RayBeamSlice const &slice)
 {
-  uint64_t i;
-  uint64_t count  = beam.count;
+  auto beam       = slice.beam;
   auto &state     = randState();
 
   // Block light by means of transmission map
   if (m_txMap != nullptr) {
     std::vector<Real> const &map = *m_txMap;
 
-    for (i = 0; i < count; ++i) {
-      if (beam.isIntercepted(i)) { 
-        Real coordX = beam.destinations[3 * i + 0];
-        Real coordY = beam.destinations[3 * i + 1];
+    for (auto i = slice.start; i < slice.end; ++i) {
+      if (mustTransmitRay(beam, i)) { 
+        Real coordX = beam->destinations[3 * i + 0];
+        Real coordY = beam->destinations[3 * i + 1];
 
         int  pixI   = +floor(coordX / m_hx) + m_cols / 2;
         int  pixJ   = -floor(coordY / m_hy) + m_rows / 2;
 
         if (pixI >= 0 && pixI < m_cols && pixJ >= 0 && pixJ < m_rows)
           if (map[pixI + pixJ * m_stride] < state.randu())
-            beam.prune(i);
+            beam->prune(i);
       }
     }
   } else {
     if (!m_fullyTransparent) {
       if (m_fullyOpaque) {
         // Fully opaque. Block all intercepted rays unconditionally
-        for (i = 0; i < count; ++i)
-          if (beam.isIntercepted(i))
-            beam.prune(i);
+        for (auto i = slice.start; i < slice.end; ++i)
+          if (mustTransmitRay(beam, i))
+            beam->prune(i);
       } else {
         // Partially opaque. Block rays according to its transmission probability.
         Real tx = m_transmission;
-        for (i = 0; i < count; ++i)
-          if (beam.isIntercepted(i))
+        for (auto i = slice.start; i < slice.end; ++i)
+          if (mustTransmitRay(beam, i))
             if (tx < state.randu())
-              beam.prune(i);
+              beam->prune(i);
       }
     }
   }

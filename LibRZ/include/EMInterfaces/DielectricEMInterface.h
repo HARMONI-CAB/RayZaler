@@ -31,7 +31,7 @@ namespace RZ {
       void setRefractiveIndex(Real , Real);
       
       virtual std::string name() const override;
-      virtual void transmit(RayBeam &beam) override;
+      virtual void transmit(RayBeamSlice const &beam) override;
       virtual ~DielectricEMInterface() override;
   };
 }

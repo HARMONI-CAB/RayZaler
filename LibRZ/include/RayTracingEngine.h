@@ -19,208 +19,14 @@
 #ifndef _RAYTRACING_ENGINE_H
 #define _RAYTRACING_ENGINE_H
 
-#include <stdint.h>
-#include <Vector.h>
-#include <vector>
-#include <list>
-#include <map>
 #include <sys/time.h>
-#include "MediumBoundary.h"
+#include <cassert>
+
+#include "RayBeam.h"
 
 namespace RZ {
   class ReferenceFrame;
   class OpticalSurface;
-
-  struct Ray {
-    // Defined by input
-    Vec3 origin;
-    Vec3 direction;
-
-    // Incremented by tracer
-    Real length = 0;
-    Real cumOptLength = 0;
-
-    // Defines whether the ray is susceptible to vignetting
-    bool chief = false;
-
-    RZ::Real wavelength = RZ_WAVELENGTH;
-    RZ::Real refNdx     = 1.; // Refractive index of the medium
-
-    // Defined by the user
-    uint32_t id = 0;
-  };
-
-  class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
-
-  struct RayBeamStatistics {
-    uint64_t intercepted = 0;
-    uint64_t pruned      = 0;
-
-    inline RayBeamStatistics &
-    operator +=(RayBeamStatistics const &existing)
-    {
-      intercepted += existing.intercepted;
-      pruned      += existing.pruned;
-      return *this;
-    }
-  };
-
-  struct RayBeam {
-    uint64_t count       = 0;
-    uint64_t allocation  = 0;
-    
-    std::map<uint32_t, RayBeamStatistics> statistics;
-
-    Real *origins       = nullptr;
-    Real *directions    = nullptr;
-    Real *destinations  = nullptr;
-    Complex *amplitude  = nullptr;
-    Real *lengths       = nullptr;
-    Real *cumOptLengths = nullptr;
-    Real *normals       = nullptr; // Surface normals of the boundary surface
-    Real *wavelengths   = nullptr;
-    Real *refNdx        = nullptr;
-
-    uint32_t *ids       = nullptr;
-
-    uint64_t *mask      = nullptr;
-    uint64_t *intMask   = nullptr;
-    uint64_t *prevMask  = nullptr;
-    uint64_t *chiefMask = nullptr;
-
-    const OpticalSurface *hitSaveSurface = nullptr;
-
-    inline bool
-    isChief(uint64_t index) const
-    {
-      return (chiefMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
-    }
-
-    inline bool
-    isIntercepted(uint64_t index) const
-    {
-      return (intMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
-    }
-
-    inline bool
-    hasRay(uint64_t index) const
-    {
-      return (~mask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
-    }
-
-    inline void
-    prune(uint64_t c)
-    {
-      if (!isChief(c) && hasRay(c))
-        mask[c >> 6] |= 1ull << (c & 63);
-    }
-
-    inline void
-    intercept(uint64_t c)
-    {
-      if (hasRay(c))
-        intMask[c >> 6] |= 1ull << (c & 63);
-    }
-
-    inline bool
-    setChiefRay(uint64_t c)
-    {
-      if (!hasRay(c))
-        return false;
-
-      chiefMask[c >> 6] |= 1ull << (c & 63);
-      return true;
-    }
-
-    inline bool
-    unsetsetChiefRay(uint64_t c)
-    {
-      if (!hasRay(c))
-        return false;
-
-      chiefMask[c >> 6] &= ~(1ull << (c & 63));
-      return true;
-    }
-
-    inline bool
-    hadRay(uint64_t index) const
-    {
-      return (~prevMask[index >> 6] & (1ull << (index & 63))) >> (index & 63);
-    }
-
-    inline bool
-    extractRay(Ray &dest, uint64_t index, bool keepPruned = false) const
-    {
-      bool haveIt = keepPruned ? hadRay(index) : hasRay(index);
-      
-      if (!haveIt || lengths[index] < 0)
-        return false;
-
-      dest.origin.setFromArray(origins + 3 * index);
-      Vec3 diff       = Vec3(destinations + 3 * index) - dest.origin;
-      dest.length     = diff.norm();
-      dest.chief      = isChief(index);
-      dest.wavelength = wavelengths[index];
-      dest.refNdx     = refNdx[index];
-
-      if (isZero(dest.length))
-        return false;
-
-      dest.direction = diff / dest.length;
-      dest.id = ids[index];
-      // dest.direction.setFromArray(directions + 3 * index);
-      
-      dest.cumOptLength = cumOptLengths[index];
-
-      return true;
-    }
-
-    inline bool
-    extractPartialRay(Ray &dest, uint64_t index, bool keepPruned = false) const
-    {
-      bool haveIt = keepPruned ? hadRay(index) : hasRay(index);
-      
-      if (!haveIt)
-        return false;
-
-      dest.id = ids[index];
-      dest.origin.setFromArray(destinations + 3 * index);
-      dest.direction.setFromArray(directions + 3 * index);
-      dest.wavelength = wavelengths[index];
-
-      if (lengths[index] < 0)
-        dest.direction = -dest.direction;
-      
-      dest.chief = isChief(index);
-      dest.cumOptLength = cumOptLengths[index];
-
-      return true;
-    }
-
-    virtual void interceptDone(uint64_t index);
-    virtual void allocate(uint64_t);
-    virtual void deallocate();
-    
-    void clearMask();
-    void computeStatistics();
-    void clearStatistics();
-
-    //
-    // toRelative and fromRelative only act on:
-    //
-    // - origins
-    // - destinations
-    // - directions
-    //
-    // we leave normals untouched, as we only care about them during
-    // EMInterface calculations
-    //
-    void toRelative(const ReferenceFrame *plane);
-    void fromRelative(const ReferenceFrame *plane);
-
-    RayBeam(uint64_t);
-    ~RayBeam();
-  };
 
   enum RayTracingStageProgressType {
     PROGRESS_TYPE_TRACE,     // Tracing rays to capture surface
@@ -244,17 +50,15 @@ namespace RZ {
 
   class RayTracingEngine {
       std::list<Ray> m_rays;
-      bool m_raysDirty = false;
-      std::vector<Real> m_currNormals;
-      Real m_dA = 1.;     // Area element of the departure surface
-      Real m_currdA = 1.; // Area element of the current surface
+      bool           m_raysDirty = false;
+      
       RayBeam *m_beam = nullptr;
-      bool m_beamDirty = true;
-      bool m_notificationPendig = false;
-      const ReferenceFrame *m_currentFrame = nullptr;
-      const OpticalSurface *m_currentSurface = nullptr;
-      unsigned int m_numStages = 0;
-      unsigned int m_currStage = 0;
+      bool     m_beamDirty = true;
+      bool     m_notificationPendig = false;
+
+      std::string m_stageName;
+      size_t      m_currStage = 0;
+      size_t      m_numStages = 0;
 
       void toBeam();  // From m_rays to beam->origins and beam->directions
       void toRays(bool keepPruned = false);  // From beam->destinations and beam->directions to rays
@@ -264,8 +68,9 @@ namespace RZ {
       struct timeval m_start;
 
     protected:
-      virtual RayBeam *makeBeam();
-      virtual void cast(Point3 const &center,  Vec3 const &normal, bool reversible) = 0;
+      virtual void cast(const OpticalSurface *, RayBeam *) = 0;
+      virtual void transmit(const OpticalSurface *, RayBeam *) = 0;
+
       void rayProgress(uint64_t num, uint64_t total);
 
     public:
@@ -274,6 +79,17 @@ namespace RZ {
       {
         return m_beam;
       }
+
+      inline void
+      setCurrentStage(std::string const &name, size_t current, size_t num)
+      {
+        m_stageName = name;
+        m_currStage = current;
+        m_numStages = num;
+      }
+
+      virtual RayBeam *makeBeam(bool nonSeq = false);
+      RayBeam *ensureMainBeam();
 
       RayTracingEngine();
       virtual ~RayTracingEngine();
@@ -285,6 +101,9 @@ namespace RZ {
       // This clears all the rays
       void clear();
 
+      // This sets a beam that was initialized from somewhere else
+      void setMainBeam(RayBeam *);
+
       // This adds a new ray to the list
       void pushRay(
         Point3 const &origin,
@@ -293,28 +112,17 @@ namespace RZ {
         uint32_t id = 0);
       void pushRays(std::list<Ray> const &);
       
-      // Set the current surface. This also notifies the state.
-      void setCurrentSurface(
-        const OpticalSurface *surf,
-        unsigned i = 0,
-        unsigned total = 0);
-
       // Intersect with this surface. It needs to check if the beam is up to
       // date, and recreated it with toBeam() if necessary.
       // Then, it will call to cast() and compute beam->destinations and lengths
-      void trace();
-
-      // Update normals of the current beams
-      void updateNormals();
+      void castTo(const OpticalSurface *, RayBeam *beam = nullptr);
       
       // Refresh ray origins
       void updateOrigins();
 
-      // Integrate phase for regular Snell
-      void propagatePhase();
-
       // Clear m_ray, process the beam and extract unpruned rays
-      void transfer();
+      void transmitThrough(const OpticalSurface *surface);
+      void transmitThroughIntercepted(); // Equivalent to transmitThrough(nullptr)
 
       // Clear m_ray, process the beam, set random targets 
       // Return the output rays, after transfer

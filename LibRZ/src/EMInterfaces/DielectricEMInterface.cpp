@@ -36,26 +36,24 @@ DielectricEMInterface::setRefractiveIndex(Real in, Real out)
 }
 
 void
-DielectricEMInterface::transmit(RayBeam &beam)
+DielectricEMInterface::transmit(RayBeamSlice const &slice)
 {
-  uint64_t count = beam.count;
-  uint64_t i;
-
-  blockLight(beam); // Prune rays according to transmission
+  blockLight(slice); // Prune rays according to transmission
 
   //
   // TODO: TEST FOR SPECULAR REFLECTION AND REFRACTION FROM THE OPPOSITE SURFACE
   //
 
-  for (i = 0; i < count; ++i) {
-    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+  auto beam = slice.beam;
+  for (auto i = slice.start; i < slice.end; ++i) {
+    if (mustTransmitRay(slice.beam, i)) {
       snell(
-        Vec3(beam.directions + 3 * i),
-        Vec3(beam.normals    + 3 * i),
-        m_IOratio).copyToArray(beam.directions + 3 * i);
+        Vec3(beam->directions + 3 * i),
+        Vec3(beam->normals    + 3 * i),
+        m_IOratio).copyToArray(beam->directions + 3 * i);
       
       // This ray has entered a new medium. Mark accordingly.
-      beam.refNdx[i] = m_muOut;
+      beam->refNdx[i] = m_muOut;
     }
   }
 }
@@ -64,4 +62,3 @@ DielectricEMInterface::~DielectricEMInterface()
 {
 
 }
-

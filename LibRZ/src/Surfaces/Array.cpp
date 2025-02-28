@@ -84,15 +84,24 @@ SurfaceArray::setRows(unsigned rows)
 
 bool
 SurfaceArray::intercept(
-  Vec3 &coord,
+  Vec3 &destination,
   Vec3 &n,
   Real &deltaT,
-  Vec3 const &origin) const
+  Vec3 const &origin,
+  Vec3 const &direction) const
 {
   Vec3 relOrg, relCrd;
   Real halfW  = .5 * m_width;
   Real halfH  = .5 * m_height;
+  Real t;
 
+  if (isZero(direction.z))
+    return false;
+
+  t = -origin.z / direction.z;
+  
+  Vec3 coord = origin + t * direction;
+  
   if (fabs(coord.x) < halfW && fabs(coord.y) < halfH) {
     // Determine which lenslet this ray belongs to
     unsigned col = floor((coord.x + halfW) / m_subApertureWidth);
@@ -110,11 +119,11 @@ SurfaceArray::intercept(
     relOrg.x -= lensOX;
     relOrg.y -= lensOY;
 
-    if (subAperture()->intercept(relCrd, n, deltaT, relOrg)) {
+    if (subAperture()->intercept(relCrd, n, deltaT, relOrg, direction)) {
       // Readjust center
-      coord     = relCrd;
-      coord.x  += lensOX;
-      coord.y  += lensOY;
+      destination     = relCrd;
+      destination.x  += lensOX;
+      destination.y  += lensOY;
       return true;
     }
   }

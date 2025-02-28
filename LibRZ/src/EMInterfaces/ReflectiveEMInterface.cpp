@@ -28,23 +28,19 @@ ReflectiveEMInterface::name() const
 }
 
 void
-ReflectiveEMInterface::transmit(RayBeam &beam)
+ReflectiveEMInterface::transmit(RayBeamSlice const &slice)
 {
-  uint64_t count = beam.count;
-  uint64_t i;
+  blockLight(slice); // Prune rays according to transmission
 
-  blockLight(beam); // Prune rays according to transmission
-
-  for (i = 0; i < count; ++i)
-    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+  auto beam = slice.beam;
+  for (auto i = slice.start; i < slice.end; ++i)
+    if (mustTransmitRay(slice.beam, i))
       reflection(
-        Vec3(beam.directions + 3 * i),
-        Vec3(beam.normals    + 3 * i)).copyToArray(beam.directions + 3 * i);
-    }
+        Vec3(beam->directions + 3 * i),
+        Vec3(beam->normals    + 3 * i)).copyToArray(beam->directions + 3 * i);
 }
 
 ReflectiveEMInterface::~ReflectiveEMInterface()
 {
 
 }
-

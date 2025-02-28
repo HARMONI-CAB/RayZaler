@@ -66,6 +66,7 @@ namespace std {
 #include <GLRenderEngine.h>
 #include <ModelRenderer.h>
 #include <ParserContext.h>
+#include <RayBeam.h>
 #include <Recipe.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>
@@ -120,6 +121,7 @@ namespace std {
 %include "MediumBoundary.h"
 %include "ModelRenderer.h"
 %include "ParserContext.h"
+%include "RayBeam.h"
 %include "RayTracingEngine.h"
 
 %include "Recipe.h"

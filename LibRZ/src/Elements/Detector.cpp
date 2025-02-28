@@ -220,20 +220,21 @@ DetectorBoundary::name() const
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorBoundary::transfer(RayBeam &beam, const ReferenceFrame *plane) const
+DetectorBoundary::cast(RayBeam &beam) const
 {
   uint64_t count = beam.count;
   uint64_t i;
   
+  MediumBoundary::cast(beam);
+  // At this point, the amplitude phasor is already updated.
+
   for (i = 0; i < count; ++i) {
     // Check intercept
-    if (beam.hasRay(i)) {
-      Vec3 coord  = plane->toRelative(Vec3(beam.destinations + 3 * i));
-      if (!beam.isChief(i) && !m_storage->hit(coord.x, coord.y, beam.amplitude[i]))
-        beam.prune(i);
-      else
-        beam.interceptDone(i);
-    }
+    if (beam.hasRay(i) && beam.isIntercepted(i))
+      m_storage->hit(
+        beam.destinations[3 * i + 0], 
+        beam.destinations[3 * i + 1], 
+        beam.amplitude[i]);
   }
 }
 
