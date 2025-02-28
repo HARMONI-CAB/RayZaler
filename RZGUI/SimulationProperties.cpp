@@ -344,8 +344,8 @@ SimulationProperties::serialize() const
 #define SERIALIZE(what) object[#what] = what
   SERIALIZE(Ni);
   SERIALIZE(Nj);
-  SERIALIZE(detector);
   SERIALIZE(path);
+  SERIALIZE(nonSeq);
   SERIALIZE(saveArtifacts);
   SERIALIZE(clearDetector);
   SERIALIZE(overwrite);
@@ -450,11 +450,11 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(beams);
   DESERIALIZE(Ni);
   DESERIALIZE(Nj);
-  DESERIALIZE(detector);
   DESERIALIZE(path);
   DESERIALIZE(dofs);
   DESERIALIZE(footprints);
 
+  DESERIALIZE(nonSeq);
   DESERIALIZE(saveArtifacts);
   DESERIALIZE(clearDetector);
   DESERIALIZE(overwrite);
@@ -515,9 +515,9 @@ SimulationProperties::SimulationProperties(const SimulationProperties &prop)
   Nj            = prop.Nj;
   beams         = prop.beams;
   footprints    = prop.footprints;
-  detector      = prop.detector;
   path          = prop.path;
   dofs          = prop.dofs;
+  nonSeq        = prop.nonSeq;
   saveArtifacts = prop.saveArtifacts;
   saveCSV       = prop.saveCSV;
   clearDetector = prop.clearDetector;
@@ -535,9 +535,9 @@ SimulationProperties::SimulationProperties(SimulationProperties &&prop)
   std::swap(Nj            , prop.Nj);
   std::swap(beams         , prop.beams);
   std::swap(footprints    , prop.footprints);
-  std::swap(detector      , prop.detector);
   std::swap(path          , prop.path);
   std::swap(dofs          , prop.dofs);
+  std::swap(nonSeq        , prop.nonSeq);
   std::swap(saveArtifacts , prop.saveArtifacts);
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);
@@ -557,9 +557,9 @@ SimulationProperties::operator=(const SimulationProperties &prop)
   Nj            = prop.Nj;
   beams         = prop.beams;
   footprints    = prop.footprints;
-  detector      = prop.detector;
   path          = prop.path;
   dofs          = prop.dofs;
+  nonSeq        = prop.nonSeq;
   saveArtifacts = prop.saveArtifacts;
   saveCSV       = prop.saveCSV;
   clearDetector = prop.clearDetector;
@@ -580,9 +580,9 @@ SimulationProperties::operator=(SimulationProperties &&prop)
   std::swap(Nj            , prop.Nj);
   std::swap(beams         , prop.beams);
   std::swap(footprints    , prop.footprints);
-  std::swap(detector      , prop.detector);
   std::swap(path          , prop.path);
   std::swap(dofs          , prop.dofs);
+  std::swap(nonSeq        , prop.nonSeq);
   std::swap(saveArtifacts , prop.saveArtifacts);
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);

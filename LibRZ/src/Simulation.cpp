@@ -137,6 +137,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
   do {
     m_transferredRays = 0;
     
+    // Non sequential beams are all-pruned by default
     auto nsBeam   = m_engine->makeBeam(true);
     
     //
@@ -147,9 +148,13 @@ Simulation::traceNonSequential(TracingProperties const &props)
     m_heuristic->updateVisibility(*m_engine->beam());
     auto candidates = m_heuristic->visibleList();
 
+    printf("Propagation: main beam %p, NS beam %p\n", m_engine->beam(), nsBeam);
+    
     // Build the non-sequential beam
     size_t n = 0;
     for (auto surface : candidates) {
+      assert(surface != nullptr);
+
       m_engine->setCurrentStage(surface->name, n, candidates.size());
 
       // Convert this beam to relative and store it in tempBeam
@@ -180,6 +185,8 @@ Simulation::traceNonSequential(TracingProperties const &props)
           OriginPOV 
         | BeamIsSurfaceRelative
         | ExtractIntercepted);
+    
+    printf("Total: %d\n\n", m_transferredRays);
     
     // Transmit through all these surfaces
     m_engine->transmitThroughIntercepted();

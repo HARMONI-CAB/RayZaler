@@ -771,7 +771,29 @@ OMModel::trace(
 {
   TracingProperties properties;
 
+  properties.type           = Sequential;
   properties.path           = pathName;
+  properties.pRays          = &rays;
+  properties.beamElement    = updateBeamElement ? m_beam : nullptr;
+  properties.clearDetectors = clear;
+  properties.startTime      = startTime;
+  properties.clearPrevious  = clearIntermediate;
+
+  return m_sim->trace(properties);
+}
+
+bool
+OMModel::traceNonSequential(
+        std::list<Ray> const &rays,
+        bool updateBeamElement,
+        RayTracingProcessListener *listener,
+        bool clear,
+        const struct timeval *startTime,
+        bool clearIntermediate)
+{
+  TracingProperties properties;
+
+  properties.type           = NonSequential;
   properties.pRays          = &rays;
   properties.beamElement    = updateBeamElement ? m_beam : nullptr;
   properties.clearDetectors = clear;

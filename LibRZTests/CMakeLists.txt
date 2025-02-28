@@ -11,11 +11,15 @@ set(CMAKE_CXX_STANDARD 17)
 # These tests can use the Catch2-provided main
 add_executable(
   RZTests
+  include/Common.h
+
+  src/Common.cpp
   src/ReferenceFrameTests.cpp
   src/RayTracerTests.cpp
   src/ElementTests.cpp
   src/TopLevelTests.cpp
-  src/HitTests.cpp)
+  src/HitTests.cpp
+  src/SimulationTests.cpp)
 
 target_link_directories(RZTests PRIVATE ${LIBRZ_LIBDIR})
 
@@ -23,6 +27,7 @@ target_compile_options(RZTests PRIVATE ${LIBRZ_CFLAGS})
 target_include_directories(
   RZTests
   PRIVATE ../LibRZ/include
+  include
   ${OPENGL_INCLUDE_DIRS}
   ${OSMesa_INCLUDE_DIRS})
 

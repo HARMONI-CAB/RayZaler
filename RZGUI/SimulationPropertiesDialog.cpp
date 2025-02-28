@@ -171,11 +171,16 @@ SimulationPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->nonSeqCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->simTypeCombo,
         SIGNAL(activated(int)),
         this,
         SLOT(onDataChanged()));
-
 
   connect(
         ui->saveCheck,
@@ -277,8 +282,8 @@ SimulationPropertiesDialog::refreshUi()
   ui->steps1Spin->setEnabled(m_properties.type != SIM_TYPE_ONE_SHOT);
   ui->steps2Spin->setEnabled(m_properties.type == SIM_TYPE_2D_SWEEP);
 
-  ui->pathCombo->setEnabled(ui->pathCombo->count() > 0);
-  ui->detectorCombo->setEnabled(ui->detectorCombo->count() > 0);
+  ui->pathCombo->setEnabled(
+    ui->pathCombo->count() > 0 && !ui->nonSeqCheck->isChecked());
 
   ui->saveCheck->setEnabled(ui->detectorSaveCombo->count());
   if (!ui->saveCheck->isEnabled())
@@ -300,7 +305,6 @@ void
 SimulationPropertiesDialog::applyProperties(bool setEdited)
 {
   ui->pathCombo->clear();
-  ui->detectorCombo->clear();
   ui->detectorSaveCombo->clear();
   ui->opticalElementCombo->clear();
 
@@ -310,6 +314,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->steps1Spin,            setValue(m_properties.Ni));
   BLOCKSIG(ui->steps2Spin,            setValue(m_properties.Nj));
 
+  BLOCKSIG(ui->nonSeqCheck,           setChecked(m_properties.nonSeq));
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
   BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
@@ -342,18 +347,11 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
 
     if (dets.size() > 0) {
       // Add detectors
-      ui->detectorCombo->addItem("(Path's default)", "");
       ui->detectorSaveCombo->addItem("(Path's default)", "");
       for (auto det : dets) {
         QString name = QString::fromStdString(det);
-        ui->detectorCombo->addItem(name, name);
         ui->detectorSaveCombo->addItem(name, name);
       }
-
-      index = ui->detectorCombo->findData(m_properties.detector);
-      if (index == -1)
-        index = 0;
-      BLOCKSIG(ui->detectorCombo, setCurrentIndex(index));
 
       index = ui->detectorSaveCombo->findData(m_properties.saveDetector);
       if (index == -1)
@@ -415,6 +413,8 @@ SimulationPropertiesDialog::parseProperties()
       break;
   }
 
+  m_properties.nonSeq        = ui->nonSeqCheck->isChecked();
+
   // Artifact generation
   m_properties.saveArtifacts = ui->saveCheck->isChecked();
   m_properties.saveCSV       = ui->saveCSVCheck->isChecked();
@@ -433,11 +433,6 @@ SimulationPropertiesDialog::parseProperties()
     m_properties.path       = ui->pathCombo->currentData().value<QString>();
   else
     m_properties.path       = "";
-
-  if (ui->detectorCombo->currentIndex() != -1)
-    m_properties.detector   = ui->detectorCombo->currentData().value<QString>();
-  else
-    m_properties.detector   = "";
 
   m_properties.dofs.clear();
 

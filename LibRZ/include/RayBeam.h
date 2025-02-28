@@ -45,7 +45,8 @@ namespace RZ {
 
     // Defines whether the ray is susceptible to vignetting
     bool chief = false;
-
+    bool intercepted = false;
+    
     RZ::Real wavelength = RZ_WAVELENGTH;
     RZ::Real refNdx     = 1.; // Refractive index of the medium
 
@@ -59,7 +60,7 @@ namespace RZ {
     uint64_t intercepted = 0;
     uint64_t vignetted   = 0;
     uint64_t pruned      = 0;
-    
+
     inline RayBeamStatistics &
     operator +=(RayBeamStatistics const &existing)
     {

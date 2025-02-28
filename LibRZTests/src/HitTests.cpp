@@ -22,6 +22,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <TopLevelModel.h>
 
+#include <Common.h>
+
 using namespace RZ;
 
 static const char *g_parabolicReflectorCode = 
@@ -93,117 +95,6 @@ static const char *g_asymetricLens =
   "path bfp L1 to bfpDet;"
   "path img L1 to imgDet;";
 
-
-struct BeamTestStatistics {
-  Real maxRad = 0.0;
-  Real rmsRad = 0.0;
-  
-  Real x0     = 0.0;
-  Real y0     = 0.0;
-
-  Real fNum   = std::numeric_limits<Real>::infinity();
-
-  uint64_t intercepted = 0;
-  uint64_t vignetted   = 0;
-  uint64_t pruned      = 0;
-
-  void computeFromSurface(
-    OpticalSurface const *fp,
-    Vec3 const &chiefRay = -Vec3::eZ());
-
-  void computeFromRayList(
-    std::list<Ray> const &rays,
-    Vec3 const &chiefRay = -Vec3::eZ());
-};
-
-void
-BeamTestStatistics::computeFromSurface(
-  OpticalSurface const *fp,
-  Vec3 const &chiefRay)
-{
-  Real R2         = 0;
-  auto locations  = fp->locations();
-  auto directions = fp->directions();
-  size_t N        = locations.size() / 3;
-
-  const Vec3 *locVec = reinterpret_cast<const Vec3 *>(locations.data());
-  const Vec3 *dirVec = reinterpret_cast<const Vec3 *>(directions.data());
-
-  Vec3 center = sumPrecise<Vec3>(locVec, N);
-
-  x0 = center.x / N;
-  y0 = center.y / N;
-
-  Real corr = 0, c = 0, t;
-  Real currFnum;
-
-  
-  for (size_t i = 3; i < locations.size(); i += 3) {
-    Real x = locations[i] - x0;
-    Real y = locations[i + 1] - y0;
-
-    R2     = x * x + y * y;
-    maxRad = fmax(R2, maxRad);
-    fNum   = fabsmin(.5 / tan(acos(dirVec[i / 3] * chiefRay)), fNum);
-
-    corr   = R2 - c;
-    t      = rmsRad + corr;
-    c      = (t - rmsRad) - corr;
-    rmsRad = t;
-  }
-
-  rmsRad = sqrt(rmsRad / static_cast<Real>(N));
-  maxRad = sqrt(maxRad);
-
-  vignetted = intercepted = pruned = 0;
-
-  for (auto &p : fp->statistics) {
-    intercepted += p.second.intercepted;
-    vignetted   += p.second.vignetted;
-    pruned      += p.second.pruned;
-  }
-}
-
-void
-BeamTestStatistics::computeFromRayList(
-  std::list<Ray> const &rays,
-  Vec3 const &chiefRay)
-{
-  Real  R2     = 0;
-  size_t N     =  rays.size();
-
-  Vec3 vCorr, vC, vT;
-  Vec3 center;
-
-  for (auto const &ray : rays) {
-    vCorr  = ray.origin - vC;
-    vT     = center + vCorr;
-    vC     = (vT - center) - vCorr;
-    center = vT;
-  }
-
-  x0 = center.x / N;
-  y0 = center.y / N;
-
-  Real corr = 0, c = 0, t;
-
-  for (auto const &ray : rays) {
-    Real x = ray.origin.x - x0;
-    Real y = ray.origin.y - y0;
-
-    R2     = x * x + y * y;
-    maxRad = fmax(R2, maxRad);
-    fNum   = fabsmin(.5 / tan(acos(ray.direction * chiefRay)), fNum);
-
-    corr   = R2 - c;
-    t      = rmsRad + corr;
-    c      = (t - rmsRad) - corr;
-    rmsRad = t;
-  }
-
-  rmsRad = sqrt(rmsRad / static_cast<Real>(N));
-  maxRad = sqrt(maxRad);
-}
 
 TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
 {

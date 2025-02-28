@@ -50,9 +50,9 @@ AsyncRayTracer::setUpdateBeam(bool update)
 }
 
 void
-AsyncRayTracer::setDiffraction(bool diffraction)
+AsyncRayTracer::setNonSeq(bool nonSeq)
 {
-  m_diffraction = diffraction;
+  m_nonSeq = nonSeq;
 }
 
 void
@@ -145,13 +145,14 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
     try {
       m_running = true;
 
-      if (m_diffraction) {
-        m_model->traceDiffraction(
-              path.toStdString(),
+      if (m_nonSeq) {
+        m_model->traceNonSequential(
               *m_beam,
+              m_updateBeam,
               this,
               false,
-              &m_batchStart);
+              &m_batchStart,
+              !m_accumulate);
       } else {
         m_model->trace(
               path.toStdString(),

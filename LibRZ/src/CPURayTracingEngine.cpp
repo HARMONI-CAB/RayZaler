@@ -63,6 +63,15 @@ CPURayTracingEngine::transmit(const OpticalSurface *surface, RayBeam *beam)
   beam->walk(
     const_cast<OpticalSurface *>(surface),
     [&] (OpticalSurface *surf, RayBeamSlice const &slice) {
+      printf("Transmit slice: %p[%d..%d] -> %s\n", slice.beam, slice.start, slice.end, surf->parent->name().c_str());
+      for (auto i = slice.start; i < slice.end; ++i) {
+        printf(
+          "==> %s: %s (length %g)\n",
+          slice.beam->surfaces[i]->parent->name().c_str(),
+          Vec3(slice.beam->directions + 3 * i).toString().c_str(),
+          slice.beam->lengths[i]);
+      }
+      
       surf->boundary->transmit(slice);
     }
   );

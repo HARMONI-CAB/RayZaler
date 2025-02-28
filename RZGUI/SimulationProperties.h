@@ -98,6 +98,7 @@ struct SimulationProperties : public JsonSerializable {
 
   TracerType     ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
   SimulationType type  = SIM_TYPE_ONE_SHOT;
+  bool nonSeq          = false;
   int  Ni              = 10;
   int  Nj              = 10;
 
@@ -106,7 +107,6 @@ struct SimulationProperties : public JsonSerializable {
 
   std::list<std::string> footprints;
 
-  QString detector;
   QString path;
 
   std::map<std::string, std::string> dofs;

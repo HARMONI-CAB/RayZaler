@@ -35,7 +35,7 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
   const std::list<RZ::Ray> *m_beam        = nullptr;
   QMutex                    m_beamMutex;
   bool                      m_cancelled   = false;
-  bool                      m_diffraction = false;
+  bool                      m_nonSeq      = false;
   bool                      m_running     = false;
   bool                      m_updateBeam  = true;
   bool                      m_accumulate  = false;
@@ -49,7 +49,7 @@ public:
   bool setModel(RZ::OMModel *model);
   void cancel();
   void setUpdateBeam(bool);
-  void setDiffraction(bool);
+  void setNonSeq(bool);
   void setBeam(std::list<RZ::Ray> const &);
   void setAccumulate(bool);
   bool running() const;

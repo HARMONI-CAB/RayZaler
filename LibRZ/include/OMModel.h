@@ -247,6 +247,12 @@ namespace RZ {
         return m_world;
       }
 
+      inline Simulation *
+      simulation() const
+      {
+        return m_sim;
+      }
+      
       void linkWorld(ReferenceFrame *);
       
       template <class T>
@@ -382,6 +388,14 @@ namespace RZ {
         RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr);
+
+      bool traceNonSequential(
+        std::list<RZ::Ray> const &rays,
+        bool updateBeamElement = false,
+        RayTracingProcessListener *listener = nullptr,
+        bool clear = true,
+        const struct timeval *startTime = nullptr,
+        bool clearIntermediate = true);
 
       struct timeval lastTracerTick() const;
 

@@ -168,14 +168,19 @@ RayBeam::extractRays(
         ray.cumOptLength = beam->cumOptLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
+        ray.intercepted  = beam->isIntercepted(i);
 
         ray.origin       = originPOV 
           ? Vec3(beam->origins + 3 * i) 
           : Vec3(beam->destinations + 3 * i);
         
         if (beamIsSurfaceRelative != rayIsSurfaceRelative) {
-          if (beam->nonSeq)
+          if (beam->nonSeq) {
             surface = beam->surfaces[i];
+            
+            if (ray.intercepted)
+              assert(surface != nullptr);
+          }
 
           if (surface != nullptr) {
             auto plane = surface->frame;
@@ -250,8 +255,13 @@ RayBeam::computeInterceptStatistics(OpticalSurface *surface)
 void
 RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 {
-  assert(!this->nonSeq);
   assert(count == dest->count);
+  size_t maskLen = ((count + 63) >> 6) << 3;
+
+  memcpy(dest->mask, mask, maskLen);
+  memcpy(dest->prevMask, prevMask, maskLen);
+  memcpy(dest->intMask, intMask, maskLen);
+  memcpy(dest->chiefMask, chiefMask, maskLen);
 
   for (uint64_t i = 0; i < this->count; ++i) {
     if (hasRay(i)) {
@@ -263,6 +273,13 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
+
+      dest->lengths[i] = lengths[i];
+      dest->amplitude[i] = amplitude[i];
+      dest->cumOptLengths[i] = cumOptLengths[i];
+      dest->wavelengths[i] = wavelengths[i];
+      dest->ids[i] = ids[i];
+      dest->refNdx[i] = refNdx[i];
     }
   }
 }
@@ -270,6 +287,7 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 void
 RayBeam::toRelative(const ReferenceFrame *plane)
 {
+  assert(!this->nonSeq);
   toRelative(this, plane);
 }
 
@@ -279,9 +297,7 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
   assert(!this->nonSeq);
 
   for (uint64_t i = 0; i < this->count; ++i) {
-    // hadRay (and not hasRay). This is important: we may want to display
-    // the rays that have been pruned in the previous step.
-    if (hadRay(i)) {
+    if (hasRay(i)) {
       plane->fromRelative(
         Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
 
@@ -299,26 +315,32 @@ RayBeam::fromSurfaceRelative()
 {
   assert(this->nonSeq);
 
+  uint64_t total = 0;
+
   for (uint64_t i = 0; i < this->count; ++i) {
-    // hadRay (and not hasRay). This is important: we may want to display
-    // the rays that have been pruned in the previous step.
-    if (hadRay(i)) {
-      if (this->surfaces[i] != nullptr) {
-        auto plane = this->surfaces[i]->frame;
+    if (hasRay(i) && this->surfaces[i] != nullptr) {
+      printf(
+        "%s: %s (length %g)\n",
+        this->surfaces[i]->parent->name().c_str(),
+        Vec3(directions + 3 * i).toString().c_str(),
+        this->lengths[i]);
+      auto plane = this->surfaces[i]->frame;
 
-        plane->fromRelative(
-          Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
+      plane->fromRelative(
+        Vec3(origins + 3 * i)).copyToArray(origins + 3 * i);
 
-        plane->fromRelative(
-          Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
+      plane->fromRelative(
+        Vec3(destinations + 3 * i)).copyToArray(destinations + 3 * i);
 
-        plane->fromRelativeVec(
-          Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+      plane->fromRelativeVec(
+        Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-        this->surfaces[i] = nullptr;
-      }
+      this->surfaces[i] = nullptr;
+      ++total;
     }
   }
+
+  printf("fromSurfaceRelative(): %d rays in abs system\n", total);
 }
 
 uint64_t
@@ -327,11 +349,15 @@ RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
   uint64_t i;
   uint64_t newTransferred = 0;
 
+  assert(nonSeq);
+  assert(this->surfaces != nullptr);
   assert(this->count == beam->count);
+
+  printf("Updating beam from visible (%s)\n", surface->parent->name().c_str());
 
   for (i = 0; i < beam->count; ++i) {
     // Only update NS beam from existing rays
-    if (beam->hasRay(i) && beam->isIntercepted(i) && beam->lengths[i] >= 0) {
+    if (beam->hasRay(i) && beam->isIntercepted(i) && beam->lengths[i] > 0) {
       bool copyRay;
 
       if (!this->hasRay(i)) {
@@ -347,6 +373,9 @@ RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
       }
     }
   }
+
+  if (newTransferred > 0)
+    printf("  New transferred: %d\n", newTransferred);
 
   return newTransferred;
 }
@@ -375,7 +404,7 @@ RayBeam::allocate(uint64_t count)
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     
     if (this->nonSeq)
-      this->surfaces  = allocBuffer<OpticalSurface *>(maskLen);
+      this->surfaces  = allocBuffer<OpticalSurface *>(count);
     
     this->allocation    = count;
   } else if (count >= this->count) {
@@ -428,14 +457,16 @@ RayBeam::walk(
     assert(nonSeq);
     
     for (i = 0; i < count; ++i) {
-      if (surface != surfaces[i]) {
+      auto currSurf = hasRay(i) ? surfaces[i] : nullptr;
+
+      if (surface != currSurf) {
         // Sequence of equal surfaces has finished. Transmit this slice.
         if (surface != nullptr) {
           slice.end = i;
           func(surface, slice);
         }
 
-        surface = surfaces[i];
+        surface = currSurf;
 
         slice.start = i;
       }
