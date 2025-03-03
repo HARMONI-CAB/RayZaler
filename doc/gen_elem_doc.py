@@ -71,6 +71,7 @@ class DocScene:
     self._factoryName   = elemName
     self._code          = self.generateCodeForElement(elemName)
     self._topLevel      = RZ.TopLevelModel.fromString(self._code, [])
+
     self._element       = self._topLevel.lookupElement(DEFAULT_ELEM)
     self._world         = self._topLevel.world()
     self._gridThickness = 3
@@ -240,6 +241,7 @@ def generateImages():
     if elName in DOC_SKIP: continue
     
     print(fr'Generating images for {elName}')
+    
     scene = DocScene(elName)
     files = scene.generateImages()
     for file in files:
@@ -332,18 +334,20 @@ def genDocForElement(elName: str):
 
   # For optical elements, give details on the optical path
   if isOptical:
-    path = RZ.OpticalElement.fromElement(element).opticalPath()
-    surfaces = path.surfaces()
+    optEl  = RZ.OpticalElement.fromElement(element)
+    surfaces = optEl.surfaceNames()
 
     if len(surfaces) > 0:
-      docText += '### Optical path\n'
+      docText += '### Optical surfaces\n'
       docText += '<div style="font-family: var(--font-family-monospace)">'
-      docText += '  <ol>\n'
+      docText += '  <ul>\n'
       for surf in surfaces:
-        proc = path.getSurface(surf)
-        docText += fr'<li><b>{surf}</b>({proc.processor.surfaceShape().name()}, {proc.processor.name()})</li>\n'
+        osf         = optEl.lookupSurface(surf)
+        emInterface = osf.boundary.emInterface()
+        emIfaceName = emInterface.name() if emInterface is not None else "[no interface]"
+        docText += fr'<li><b>{surf}</b>: {osf.boundary.name()}({osf.boundary.surfaceShape().name()}, {emIfaceName})</li>\n'
 
-      docText += '  </ol>\n'
+      docText += '  </ul>\n'
       docText += '</div>\n'
 
   # Save to file

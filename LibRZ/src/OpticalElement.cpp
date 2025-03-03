@@ -152,27 +152,50 @@ OpticalElement::opticalSurfaces()
   return list;
 }
 
+std::list<std::string>
+OpticalElement::surfaceNames() const
+{
+  std::list<std::string> names;
+
+  for (auto &p : m_surfaces)
+    names.push_back(p.name);
+
+  return names;
+}
+
 void
-OpticalElement::pushOpticalSurface(
+OpticalElement::defineOpticalSurface(
   std::string name,
   ReferenceFrame *frame,
-  const MediumBoundary *proc)
+  const MediumBoundary *boundary)
 {
   OpticalSurface surface;
 
+  if (lookupSurface(name) != nullptr)
+    throw std::runtime_error("Surface `" + name + "' already defined in element");
+  
   // Creation of the optical surface
   m_surfaceFrames.push_back(frame);
 
   surface.name      = name;
   surface.frame     = frame;
-  surface.boundary = proc;
+  surface.boundary  = boundary;
   surface.parent    = this;
 
-  m_surfaces.push_back(surface);
-
-  // Insertion at the end of this element's path
+  m_surfaces.push_back(std::move(surface));
+  
   auto last = &m_surfaces.back();
-  m_internalPath.push(last);
+  m_nameToSurf[name] = last;
+}
+
+void
+OpticalElement::pushOpticalSurface(
+  std::string name,
+  ReferenceFrame *frame,
+  const MediumBoundary *boundary)
+{
+  defineOpticalSurface(name, frame, boundary);
+  m_internalPath.push(lookupSurface(name));
 }
 
 const std::vector<Real> &
@@ -191,6 +214,17 @@ void
 OpticalElement::setRecordHits(bool record)
 {
   m_recordHits = record;
+}
+
+OpticalSurface *
+OpticalElement::lookupSurface(std::string const &name)
+{
+  auto it = m_nameToSurf.find(name);
+
+  if (it == m_nameToSurf.end())
+    return nullptr;
+
+  return it->second;
 }
 
 void

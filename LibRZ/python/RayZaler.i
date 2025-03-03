@@ -19,6 +19,7 @@
 //
 
 
+#define PYTHON_SCRIPT_SUPPORT
 #define SWIG_FILE_WITH_INIT
 static PyObject* g_rzException;
 %}
@@ -87,9 +88,9 @@ PyMODINIT_FUNC PyInit_RZ();
 %}
 
 namespace std {
-  %template(PropertyMap) map<string, RZ::PropertyValue>;
-  %template(OpticSurfList) list<RZ::OpticalSurface *>;
-  %rename(ConstOpticSurfList) list<RZ::OpticalSurface const *>;
+  %template(PropertyMap)      map<string, RZ::PropertyValue>;
+  %template(OpticSurfList)    list<RZ::OpticalSurface *>;
+  %rename(ConstOpticSurfList) list<const RZ::OpticalSurface *>;
 }
 
 %exception {

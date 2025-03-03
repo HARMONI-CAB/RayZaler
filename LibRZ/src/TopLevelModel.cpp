@@ -251,6 +251,10 @@ TopLevelModel::fromString(
     recipe = nullptr;
   } catch (std::runtime_error const &e) {
     exceptionString = e.what();
+    if (tlModel != nullptr) {
+      delete tlModel;
+      tlModel = nullptr;
+    }
   }
 
 done:

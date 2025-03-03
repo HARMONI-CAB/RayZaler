@@ -86,7 +86,8 @@ namespace RZ {
 
   class OpticalElement : public Element {
       using Element::Element;
-      std::list<OpticalSurface>               m_surfaces; // Owned
+      std::list<OpticalSurface>               m_surfaces;      // Owned
+      std::map<std::string, OpticalSurface *> m_nameToSurf;    // Borrowed
       std::list<ReferenceFrame *>             m_surfaceFrames; // Owned
       OpticalPath                             m_internalPath;
       bool                                    m_recordHits = false;
@@ -96,6 +97,12 @@ namespace RZ {
         std::string,
         ReferenceFrame *,
         const MediumBoundary *);
+
+      void defineOpticalSurface(
+        std::string,
+        ReferenceFrame *,
+        const MediumBoundary *);
+      
       OpticalElement(
         ElementFactory *,
         std::string const &,
@@ -123,6 +130,9 @@ namespace RZ {
       
       const std::list<const OpticalSurface *> &opticalSurfaces() const;
       std::list<OpticalSurface *>              opticalSurfaces();
+      std::list<std::string>                   surfaceNames() const;
+      
+      OpticalSurface *lookupSurface(std::string const &);
 
       const std::vector<Real> &hits(std::string const &name = "") const;
       const std::vector<Real> &directions(std::string const &name = "") const;
