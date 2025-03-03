@@ -36,7 +36,6 @@ namespace RZ {
     SurfaceShape   *m_surfaceShape  = nullptr;
     EMInterface    *m_emInterface   = nullptr;
     bool            m_reversible    = false;
-    bool            m_complementary = false;
 
   protected:
     inline void
@@ -57,24 +56,11 @@ namespace RZ {
       m_reversible = rev;
     }
 
-    inline void
-    setComplementary(bool comp)
-    {
-      m_complementary = comp;
-    }
-
-
   public:
     inline bool
     reversible() const
     {
       return m_reversible;
-    }
-    
-    inline bool
-    isComplementary() const
-    {
-      return m_complementary;
     }
     
     inline SurfaceShape *

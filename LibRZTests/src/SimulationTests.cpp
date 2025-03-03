@@ -24,6 +24,7 @@
 #include <TopLevelModel.h>
 #include <Simulation.h>
 #include <RayTracingEngine.h>
+#include <Elements/RayBeamElement.h>
 
 using namespace RZ;
 
@@ -31,7 +32,7 @@ static const char *g_twoFlatMirrors =
   "ApertureStop stop(diameter = .1);"
 
   "on aperture of stop {"
-  "  translate(dy = .4) translate(dz = .5) rotate(45, 1, 0, 0) {"
+  "  translate(dy = .375) translate(dz = -.5) rotate(-45, 1, 0, 0) {"
   "    translate(dz = -.1)"
   "      FlatMirror M1(diameter = 1);"
 
@@ -42,7 +43,7 @@ static const char *g_twoFlatMirrors =
   "  }"
   "}";
 
-TEST_CASE("Infinite reflection: side illumination", THIS_TEST_TAG)
+TEST_CASE("Infinite reflection: stray light", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(g_twoFlatMirrors);
   REQUIRE(model);
@@ -65,7 +66,7 @@ TEST_CASE("Infinite reflection: side illumination", THIS_TEST_TAG)
   beamProp.length          = 0;
   beamProp.diameter        = 5e-2;
   beamProp.offset          = Vec3::zero();
-  beamProp.direction       = Vec3::eZ();
+  beamProp.direction       = -Vec3::eZ();
   beamProp.angularDiameter = 0;
   beamProp.numRays         = 1000;
   beamProp.shape           = Ring;
@@ -91,6 +92,61 @@ TEST_CASE("Infinite reflection: side illumination", THIS_TEST_TAG)
 
   auto outRays = model->simulation()->engine()->getRays();
 
+  REQUIRE(outRays.size() == 0);
+  REQUIRE(model->beam()->strayRays() == beamProp.numRays);
+
+  delete model;
+}
+
+TEST_CASE("Infinite reflection: limited propagation", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_twoFlatMirrors);
+  REQUIRE(model);
+
+  auto stop = model->lookupOpticalElement("stop");
+  REQUIRE(stop);
+
+  auto frame = model->lookupReferenceFrame("stop.aperture");
+  REQUIRE(frame != nullptr);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real objDistance = 2 * focalLength;
+  Real diameter    = 0.05;
+
+  Real idealFNum = objDistance / diameter;
+
+  beamProp.id              = 0;
+  beamProp.length          = 0;
+  beamProp.diameter        = 5e-2;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Ring;
+  beamProp.setPlaneRelative(frame);
+  beamProp.collimate();
+  beamProp.random          = false;
+ 
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1000);
+
+  BeamTestStatistics inputStatistics;
+  inputStatistics.computeFromRayList(rays, beamProp.direction);
+
+  printf("(In) Infinite reflection: maximum radius: %g\n", inputStatistics.maxRad);
+  printf("(In) Infinite reflection: center:         %g, %g\n", inputStatistics.x0, inputStatistics.y0);
+  
+  REQUIRE(releq(inputStatistics.maxRad, beamProp.diameter / 2));
+  REQUIRE(isZero(inputStatistics.x0));
+  REQUIRE(isZero(inputStatistics.y0));
+  
+  REQUIRE(model->traceNonSequential(rays, true, nullptr, false, nullptr, true, 2));
+
+  auto outRays = model->simulation()->engine()->getRays();
+
   REQUIRE(outRays.size() == beamProp.numRays);
 
   BeamTestStatistics outputStatistics;
@@ -100,8 +156,8 @@ TEST_CASE("Infinite reflection: side illumination", THIS_TEST_TAG)
   printf("(Out) Infinite reflection: vignetted   = %lld\n", outputStatistics.vignetted);
 
   REQUIRE(outputStatistics.vignetted + outputStatistics.intercepted == beamProp.numRays);
-  REQUIRE(outputStatistics.vignetted == beamProp.numRays);
-  REQUIRE(outputStatistics.intercepted == 0);
+  REQUIRE(outputStatistics.vignetted   == 0);
+  REQUIRE(outputStatistics.intercepted == beamProp.numRays);
 
   delete model;
 }

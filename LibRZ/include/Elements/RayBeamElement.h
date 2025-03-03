@@ -57,7 +57,11 @@ namespace RZ {
 
     void renderOpenGL();
     void clear();
-    void push(Vec3 const &origin, Vec3 const &dest, const GLfloat *color);
+    void push(
+      Vec3 const &origin,
+      Vec3 const &dest,
+      const GLfloat *color,
+      const GLfloat *color2 = nullptr);
   };
 
   class RayBeamElement : public Element {
@@ -65,6 +69,8 @@ namespace RZ {
       const RayColoring   *m_rayColoring = nullptr;
       ExprRandomState      m_randState;
       unsigned int         m_maxRays = 5000;
+      uint64_t             m_strayRays = 0;
+
       pthread_mutex_t      m_rayMutex = PTHREAD_MUTEX_INITIALIZER;
       std::list<Ray>       m_rays;
       LineVertexSet        m_commonRayVert;
@@ -73,6 +79,12 @@ namespace RZ {
       void raysToVertices();
 
     public:
+      inline uint64_t
+      strayRays() const
+      {
+        return m_strayRays;
+      }
+
       RayBeamElement(
         ElementFactory *,
         std::string const &,
@@ -86,6 +98,7 @@ namespace RZ {
       void setRayColoring(RayColoring const &);
       void setRayWidth(Real width);
       void setDynamicAlpha(bool);
+
       virtual void renderOpenGL() override;
   };
 

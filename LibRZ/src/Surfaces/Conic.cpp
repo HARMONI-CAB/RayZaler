@@ -407,15 +407,16 @@ ConicSurface::intercept(
 
   rho2 = x * x + y * y;
 
-  if (rho2 >= m_radius2 || rho2 < m_rHole2)
-    return false;
-
   normal = Vec3(
             sigma * intercept.x,
             sigma * intercept.y,
             sigma * K1 * intercept.z + RDKD).normalized();
 
-  return true;
+
+  if (rho2 >= m_radius2 || rho2 < m_rHole2)
+    return complementary();
+
+  return !complementary();
 }
 
 void

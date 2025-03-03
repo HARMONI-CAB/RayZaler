@@ -134,7 +134,8 @@ RayBeam::extractRays(
       C &dest,
       RayBeamSlice const &slice,
       uint32_t mask,
-      OpticalSurface *surface)
+      OpticalSurface *surface,
+      RayBeamSlice const &exclude)
 {
   bool originPOV             = (mask & OriginPOV) != 0;
   bool destinationPOV        = (mask & DestinationPOV) != 0;
@@ -142,6 +143,7 @@ RayBeam::extractRays(
   bool rayIsSurfaceRelative  = (mask & RayShouldBeSurfaceRelative) != 0;
   bool extractIntercepted    = (mask & ExtractIntercepted) != 0;
   bool extractVignetted      = (mask & ExtractVignetted) != 0;
+  bool excludeBeam           = (mask & ExcludeBeam) != 0;
 
   auto beam = slice.beam;
 
@@ -152,12 +154,27 @@ RayBeam::extractRays(
     || beam->nonSeq
     || surface != nullptr);
   
+  if (excludeBeam) {
+    assert(exclude.beam != nullptr);
+    assert(exclude.beam->count == slice.beam->count);
+  }
+
+  uint32_t total = 0, count = 0;
+
   for (auto i = slice.start; i < slice.end; ++i) {
-    if (beam->hasRay(i) && beam->lengths[i] >= 0) {
+    ++total;
+    if (beam->hasRay(i) && beam->lengths[i] > RZ_BEAM_MINIMUM_WAVELENGTH) {
+      ++count;
       bool shouldExtract = 
         (beam->isIntercepted(i) && extractIntercepted)
         || (!beam->isIntercepted(i) && extractVignetted);
 
+      if (excludeBeam
+        && i >= exclude.start
+        && i <  exclude.end
+        && exclude.beam->hasRay(i))
+        shouldExtract = false;
+      
       if (shouldExtract) {
         Ray ray;
 
@@ -202,9 +219,13 @@ RayBeam::extractRays(
 }
 
 template <class C> void
-RayBeam::extractRays(C &dest, uint32_t mask, OpticalSurface *surf)
+RayBeam::extractRays(
+  C &dest,
+  uint32_t mask,
+  OpticalSurface *surf,
+  RayBeamSlice const &slice)
 {
-  extractRays(dest, RayBeamSlice(this), mask, surf);
+  extractRays(dest, RayBeamSlice(this), mask, surf, slice);
 }
 
 void
@@ -274,12 +295,12 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
-      dest->lengths[i] = lengths[i];
-      dest->amplitude[i] = amplitude[i];
+      dest->lengths[i]       = lengths[i];
+      dest->amplitude[i]     = amplitude[i];
       dest->cumOptLengths[i] = cumOptLengths[i];
-      dest->wavelengths[i] = wavelengths[i];
-      dest->ids[i] = ids[i];
-      dest->refNdx[i] = refNdx[i];
+      dest->wavelengths[i]   = wavelengths[i];
+      dest->ids[i]           = ids[i];
+      dest->refNdx[i]        = refNdx[i];
     }
   }
 }
@@ -319,11 +340,6 @@ RayBeam::fromSurfaceRelative()
 
   for (uint64_t i = 0; i < this->count; ++i) {
     if (hasRay(i) && this->surfaces[i] != nullptr) {
-      printf(
-        "%s: %s (length %g)\n",
-        this->surfaces[i]->parent->name().c_str(),
-        Vec3(directions + 3 * i).toString().c_str(),
-        this->lengths[i]);
       auto plane = this->surfaces[i]->frame;
 
       plane->fromRelative(
@@ -335,12 +351,11 @@ RayBeam::fromSurfaceRelative()
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      this->surfaces[i] = nullptr;
+      this->surfaces[i]     = nullptr;
+
       ++total;
     }
   }
-
-  printf("fromSurfaceRelative(): %d rays in abs system\n", total);
 }
 
 uint64_t
@@ -353,12 +368,12 @@ RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
   assert(this->surfaces != nullptr);
   assert(this->count == beam->count);
 
-  printf("Updating beam from visible (%s)\n", surface->parent->name().c_str());
-
   for (i = 0; i < beam->count; ++i) {
     // Only update NS beam from existing rays
-    if (beam->hasRay(i) && beam->isIntercepted(i) && beam->lengths[i] > 0) {
-      bool copyRay;
+    if (beam->hasRay(i) 
+      && beam->isIntercepted(i)
+      && beam->lengths[i] > RZ_BEAM_MINIMUM_WAVELENGTH) {
+      bool copyRay = false;
 
       if (!this->hasRay(i)) {
         ++newTransferred;
@@ -373,9 +388,6 @@ RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
       }
     }
   }
-
-  if (newTransferred > 0)
-    printf("  New transferred: %d\n", newTransferred);
 
   return newTransferred;
 }
@@ -403,8 +415,9 @@ RayBeam::allocate(uint64_t count)
     this->intMask       = allocBuffer<uint64_t>(maskLen);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     
-    if (this->nonSeq)
-      this->surfaces  = allocBuffer<OpticalSurface *>(count);
+    if (this->nonSeq) {
+      this->surfaces     = allocBuffer<OpticalSurface *>(count);
+    }
     
     this->allocation    = count;
   } else if (count >= this->count) {
@@ -423,8 +436,9 @@ RayBeam::allocate(uint64_t count)
     this->intMask       = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->intMask);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->chiefMask);
 
-    if (this->nonSeq)
-      this->surfaces  = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    if (this->nonSeq) {
+      this->surfaces     = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    }
 
     this->allocation    = count;
   } else {
@@ -518,22 +532,25 @@ RayBeam::~RayBeam()
 template void RayBeam::extractRays<std::list<Ray>>(
   std::list<Ray> &,
   uint32_t mask,
-  OpticalSurface *);
+  OpticalSurface *,
+  RayBeamSlice const &);
 
 template void RayBeam::extractRays<std::list<Ray>>(
   std::list<Ray> &,
   RayBeamSlice const &,
   uint32_t mask,
-  OpticalSurface *);
+  OpticalSurface *,
+  RayBeamSlice const &);
 
 template void RayBeam::extractRays<std::vector<Ray>>(
   std::vector<Ray> &,
   uint32_t mask,
-  OpticalSurface *);
+  OpticalSurface *,
+  RayBeamSlice const &);
 
 template void RayBeam::extractRays<std::vector<Ray>>(
   std::vector<Ray> &,
   RayBeamSlice const &,
   uint32_t mask,
-  OpticalSurface *);
-
+  OpticalSurface *,
+  RayBeamSlice const &);

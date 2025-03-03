@@ -39,7 +39,6 @@ MediumBoundary::cast(RayBeam &beam) const
   Vec3 destination;
   uint64_t count = beam.count;
   Real K, dt, opd;
-  bool comp      = m_complementary;
   auto shape     = surfaceShape();
 
   if (shape != nullptr) {
@@ -51,7 +50,7 @@ MediumBoundary::cast(RayBeam &beam) const
         Real dt, opd;
 
         // Do intercept. Note we do not do pruning here.
-        if (surfaceShape()->intercept(destination, normal, dt, origin, dir) != comp) {
+        if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
           K                      = 2 * M_PI / beam.wavelengths[i];
           opd                    = beam.refNdx[i] * dt;
           beam.lengths[i]        = dt;
@@ -66,27 +65,25 @@ MediumBoundary::cast(RayBeam &beam) const
     }
   } else {
     // Surface is infinite and flat
-    if (!comp) {
-      for (uint64_t i = 0; i < count; ++i) {
-        if (beam.hasRay(i)) {
-          Vec3 origin = Vec3(beam.origins + 3 * i);
-          Vec3 dir    = Vec3(beam.directions + 3 * i);
+    for (uint64_t i = 0; i < count; ++i) {
+      if (beam.hasRay(i)) {
+        Vec3 origin = Vec3(beam.origins + 3 * i);
+        Vec3 dir    = Vec3(beam.directions + 3 * i);
+        
+        // Intercept only if the ray is not parallel to the surface
+        if (!isZero(dir.z)) {
+          dt                     = -origin.z / dir.z;
+          destination            = origin + dt * dir;
           
-          // Intercept only if the ray is not parallel to the surface
-          if (!isZero(dir.z)) {
-            dt                     = -origin.z / dir.z;
-            destination            = origin + dt * dir;
-            
-            K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = beam.refNdx[i] * dt;
-            beam.lengths[i]        = dt;
-            beam.cumOptLengths[i] += opd;
-            beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
+          K                      = 2 * M_PI / beam.wavelengths[i];
+          opd                    = beam.refNdx[i] * dt;
+          beam.lengths[i]        = dt;
+          beam.cumOptLengths[i] += opd;
+          beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
 
-            destination.copyToArray(beam.destinations + 3 * i);
-            Vec3::eZ().copyToArray(beam.normals + 3 * i);
-            beam.intercept(i);
-          }
+          destination.copyToArray(beam.destinations + 3 * i);
+          Vec3::eZ().copyToArray(beam.normals + 3 * i);
+          beam.intercept(i);
         }
       }
     }

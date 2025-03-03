@@ -31,15 +31,27 @@ namespace RZ {
   class SurfaceShape {
       ExprRandomState                m_state;
       std::vector<std::vector<Real>> m_emptyEdges;
+      bool                           m_complementary = false;
 
     public:
       virtual ~SurfaceShape();
       
-      inline ExprRandomState &randState()
+      inline ExprRandomState &
+      randState()
       {
         return m_state;
       }
       
+      inline void
+      setComplementary(bool comp) {
+        m_complementary = comp;
+      }
+
+      inline bool
+      complementary() const {
+        return m_complementary;
+      }
+
       inline bool
       intercept(Vec3 &hit) const
       {

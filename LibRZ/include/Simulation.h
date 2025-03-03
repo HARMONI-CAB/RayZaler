@@ -59,14 +59,14 @@ namespace RZ {
       bool traceSequential(TracingProperties const &);
       bool traceNonSequential(TracingProperties const &);
       void initNSBeam();
-
+      
     public:
       inline RayTracingEngine *
       engine() const
       {
         return m_engine;
       }
-      
+
       Simulation(OMModel *model, std::string const &engine = "cpu");
       ~Simulation();
 

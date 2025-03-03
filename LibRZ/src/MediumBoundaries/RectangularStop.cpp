@@ -24,13 +24,12 @@ using namespace RZ;
 
 RectangularStopBoundary::RectangularStopBoundary()
 {
-  setComplementary(true);
-
   setSurfaceShape(new RectangularFlatSurface());
 
   surfaceShape<RectangularFlatSurface>()->setHeight(.1);
   surfaceShape<RectangularFlatSurface>()->setWidth(.1);
-  
+  surfaceShape()->setComplementary(true); // Capture outside rectangle
+
   setEMInterface(new ReflectiveEMInterface);
   emInterface<ReflectiveEMInterface>()->setTransmission(0);
 }

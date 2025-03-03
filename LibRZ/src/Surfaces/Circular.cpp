@@ -168,9 +168,9 @@ CircularFlatSurface::intercept(
     return false;
  
   if (coord.x * coord.x / m_a2 + coord.y * coord.y / m_b2 < m_radius2)
-    return true;
+    return !complementary();
 
-  return false;
+  return complementary();
 }
 
 //

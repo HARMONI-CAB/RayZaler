@@ -124,11 +124,11 @@ SurfaceArray::intercept(
       destination     = relCrd;
       destination.x  += lensOX;
       destination.y  += lensOY;
-      return true;
+      return complementary();
     }
   }
 
-  return false;
+  return complementary();
 }
 
 void

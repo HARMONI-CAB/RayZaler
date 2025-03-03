@@ -789,16 +789,18 @@ OMModel::traceNonSequential(
         RayTracingProcessListener *listener,
         bool clear,
         const struct timeval *startTime,
-        bool clearIntermediate)
+        bool clearIntermediate,
+        uint32_t maxProps)
 {
   TracingProperties properties;
 
-  properties.type           = NonSequential;
-  properties.pRays          = &rays;
-  properties.beamElement    = updateBeamElement ? m_beam : nullptr;
-  properties.clearDetectors = clear;
-  properties.startTime      = startTime;
-  properties.clearPrevious  = clearIntermediate;
+  properties.type            = NonSequential;
+  properties.pRays           = &rays;
+  properties.beamElement     = updateBeamElement ? m_beam : nullptr;
+  properties.clearDetectors  = clear;
+  properties.startTime       = startTime;
+  properties.clearPrevious   = clearIntermediate;
+  properties.maxPropagations = maxProps;
 
   return m_sim->trace(properties);
 }
@@ -1014,6 +1016,12 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   WorldFrame worldFrame("sky");
   const char *except = nullptr;
   const OpticalElement *optEl;
+
+  if (properties.wavelength <= RZ_BEAM_MINIMUM_WAVELENGTH)
+    throw std::runtime_error(
+      string_printf(
+        "Wavelength is too short (minimum: %g pm)",
+        RZ_BEAM_MINIMUM_WAVELENGTH * 1e12));
 
   switch (properties.reference) {
     case SkyRelative:

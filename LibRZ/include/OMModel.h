@@ -252,7 +252,7 @@ namespace RZ {
       {
         return m_sim;
       }
-      
+
       void linkWorld(ReferenceFrame *);
       
       template <class T>
@@ -395,7 +395,8 @@ namespace RZ {
         RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr,
-        bool clearIntermediate = true);
+        bool clearIntermediate = true,
+        uint32_t maxProps = 3000);
 
       struct timeval lastTracerTick() const;
 

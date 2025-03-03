@@ -110,7 +110,11 @@ LineVertexSet::clear()
 }
 
 void
-LineVertexSet::push(Vec3 const &origin, Vec3 const &dest, const GLfloat *color)
+LineVertexSet::push(
+  Vec3 const &origin,
+  Vec3 const &dest,
+  const GLfloat *color,
+  const GLfloat *color2)
 {
   size_t p = vertices.size();
 
@@ -127,8 +131,11 @@ LineVertexSet::push(Vec3 const &origin, Vec3 const &dest, const GLfloat *color)
   p = colors.size();
   colors.resize(p + 8);
 
-  memcpy(&colors[p],     color, 4 * sizeof(GLfloat));
-  memcpy(&colors[p + 4], color, 4 * sizeof(GLfloat));
+  if (color2 == nullptr)
+    color2 = color;
+
+  memcpy(&colors[p],     color,  4 * sizeof(GLfloat));
+  memcpy(&colors[p + 4], color2, 4 * sizeof(GLfloat));
 }
 
 void
@@ -137,6 +144,8 @@ RayBeamElement::raysToVertices()
   size_t size = m_rays.size();
   size_t actualCount = 0;
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
+  GLfloat black[4] = {0, 0, 0, 1.};
+
   uint32_t currId = 0;
   GLfloat currColor[4];
   bool tooMany = m_rays.size() > m_maxRays;
@@ -153,7 +162,12 @@ RayBeamElement::raysToVertices()
 
   m_rayColoring->id2color(currId, transp, currColor);
 
+  m_strayRays = 0;
+
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
+    if (!p->intercepted)
+      ++m_strayRays;
+
     if (tooMany && drawP < m_randState.randu())
       continue;
     
@@ -165,7 +179,11 @@ RayBeamElement::raysToVertices()
       m_rayColoring->id2color(currId, transp, currColor);
     }
 
-    set->push(p->origin, destination, currColor);
+    set->push(
+      p->origin,
+      destination,
+      currColor,
+      p->intercepted ? nullptr : black);
   }
 }
 
@@ -210,8 +228,7 @@ RayBeamElement::setDynamicAlpha(bool alpha)
   if (m_dynamicAlpha != alpha) {
     m_dynamicAlpha = alpha;
     raysToVertices();
-  }
-  
+  } 
 }
 
 void

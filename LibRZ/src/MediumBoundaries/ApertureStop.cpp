@@ -27,12 +27,12 @@ using namespace RZ;
 ApertureStopBoundary::ApertureStopBoundary()
 {
   setReversible(true);
-  setComplementary(true); // Everything except this shape.
 
   setSurfaceShape(new CircularFlatSurface(.5));
   setEMInterface(new ReflectiveEMInterface);
 
-  emInterface()->setTransmission(0); // Opaque
+  emInterface()->setTransmission(0);      // Opaque
+  surfaceShape()->setComplementary(true); // Capture outside the circle
 }
 
 std::string

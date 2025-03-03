@@ -139,6 +139,12 @@ RayTracingEngine::toBeam()
   m_beam->clearMask();
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
+    if (p->wavelength <= RZ_BEAM_MINIMUM_WAVELENGTH)
+      throw std::runtime_error(
+        string_printf(
+          "Wavelength is too short (minimum: %g pm)",
+          RZ_BEAM_MINIMUM_WAVELENGTH * 1e12));
+          
     p->origin.copyToArray(m_beam->origins + 3 * i);
     p->origin.copyToArray(m_beam->destinations + 3 * i);
     p->direction.copyToArray(m_beam->directions + 3 * i);

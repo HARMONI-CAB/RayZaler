@@ -30,6 +30,8 @@
 #include <Vector.h>
 #include "MediumBoundary.h"
 
+#define RZ_BEAM_MINIMUM_WAVELENGTH 1e-12
+
 namespace RZ {
   class ReferenceFrame;
   class OpticalSurface;
@@ -46,7 +48,7 @@ namespace RZ {
     // Defines whether the ray is susceptible to vignetting
     bool chief = false;
     bool intercepted = false;
-    
+
     RZ::Real wavelength = RZ_WAVELENGTH;
     RZ::Real refNdx     = 1.; // Refractive index of the medium
 
@@ -79,6 +81,7 @@ namespace RZ {
     RayShouldBeSurfaceRelative = 8,
     ExtractIntercepted         = 16,
     ExtractVignetted           = 32,
+    ExcludeBeam                = 64,
     ExtractAll                 = ExtractIntercepted | ExtractVignetted
   };
 
@@ -104,7 +107,7 @@ namespace RZ {
     uint64_t *prevMask  = nullptr;
     uint64_t *chiefMask = nullptr;
     
-    OpticalSurface **surfaces = nullptr;
+    OpticalSurface **surfaces     = nullptr;
 
     inline bool
     isChief(uint64_t index) const
@@ -143,9 +146,6 @@ namespace RZ {
     {
       size_t maskSize = ((count + 63) >> 6) << 3;
       memset(intMask, 0, maskSize);
-
-      if (nonSeq)
-        memset(surfaces, 0, count * sizeof(OpticalSurface *));
     }
 
     inline void
@@ -214,13 +214,16 @@ namespace RZ {
     template <class T> void extractRays(
       T &dest,
       uint32_t mask,
-      OpticalSurface *current = nullptr);
+      OpticalSurface *current = nullptr,
+      RayBeamSlice const &beam = RayBeamSlice());
 
     template <class T> static void extractRays(
       T &dest,
       RayBeamSlice const &slice,
       uint32_t mask,
-      OpticalSurface *current = nullptr);
+      OpticalSurface *current = nullptr,
+      RayBeamSlice const &beam = RayBeamSlice());
+
 
     void clearMask();
     void computeInterceptStatistics(OpticalSurface * = nullptr);
@@ -269,9 +272,9 @@ namespace RZ {
       this->end   = end;
     }
 
-    RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) {
+    RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) { }
 
-    }
+    RayBeamSlice() : beam(nullptr), start(0), end(0) { }
   };
 }
 

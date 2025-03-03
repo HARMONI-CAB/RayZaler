@@ -67,7 +67,10 @@ RectangularFlatSurface::intercept(
   coord = origin + dt * direction;
   n     = Vec3::eZ();
   
-  return fabs(coord.x) < halfW && fabs(coord.y) < halfH;
+  if (fabs(coord.x) < halfW && fabs(coord.y) < halfH)
+    return !complementary();
+
+  return complementary();
 }
 
 void
