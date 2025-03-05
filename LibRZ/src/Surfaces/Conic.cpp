@@ -387,9 +387,12 @@ ConicSurface::intercept(
   Real C     = x0 * x0 + y0 * y0 + K1 * z0 * z0 + 2 * sigma * RDKD * z0 - 2 * D * m_rCurv + DK1 * D;
 
   Real Delta = B * B - 4 * A * C;
-  Real t;
 
-  if (fabs(A) <= std::numeric_limits<Real>::epsilon()) {
+  // Note: The equation is A^2t + Bt + C = 0. This implies certain numerical
+  // precision issue here when 4AC << B^2. For now, this test seems sufficient
+  // but this requires a more careful approach.
+   
+  if (isZero(A)) {
     // Case Bt + C = 0. There is only one solution in this case.
     deltaT = -C / B;
   } else if (Delta >= 0) {
@@ -398,6 +401,9 @@ ConicSurface::intercept(
     return false;
   }
 
+  if (deltaT < 0)
+    return false;
+  
   // Vignetting test is performed only after computing the intersection with
   // the paraboloid.
   Real x, y;

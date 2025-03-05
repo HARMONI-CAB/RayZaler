@@ -137,8 +137,11 @@ Simulation::traceNonSequential(TracingProperties const &props)
   do {
     m_transferredRays = 0;
     
-    // Non sequential beams are all-pruned by default
-    auto nsBeam   = m_engine->makeBeam(true);
+    m_engine->beam()->uninterceptAll();
+
+    // Non sequential beams are all-pruned by default, but they keep the
+    // origins and directions of the original beam
+    auto nsBeam   = m_engine->makeNSBeam();
     
     //
     // In the engine: 
@@ -148,7 +151,6 @@ Simulation::traceNonSequential(TracingProperties const &props)
     m_heuristic->updateVisibility(*m_engine->beam());
     auto candidates = m_heuristic->visibleList();
 
-    m_engine->beam()->uninterceptAll();
     
     // Build the non-sequential beam
     size_t n = 0;
@@ -171,16 +173,6 @@ Simulation::traceNonSequential(TracingProperties const &props)
 
       ++n;
     }
-
-    // This is the last attempt. Extract rays that didn't reach any surface
-    // (i.e., stray light)
-    if (props.beamElement != nullptr)
-      if (propagations + 1 == props.maxPropagations || m_transferredRays == 0)
-        m_engine->beam()->extractRays(
-          m_intermediateRays,
-            OriginPOV | ExtractAll | ExcludeBeam,
-            nullptr,
-            RayBeamSlice(nsBeam));
 
     // The non sequential beam is ready, pass to ray tracer
     m_engine->setMainBeam(nsBeam);
@@ -205,6 +197,9 @@ Simulation::traceNonSequential(TracingProperties const &props)
       return false;
 
   } while (++propagations <= props.maxPropagations && m_transferredRays > 0);
+
+  if (props.beamElement != nullptr)
+    m_engine->beam()->extractRays(m_intermediateRays, OriginPOV | ExtractAll);
 
   return true;
 }

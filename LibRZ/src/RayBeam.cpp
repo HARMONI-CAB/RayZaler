@@ -116,6 +116,90 @@ freeBuffer(T *&buf)
   }
 }
 
+void
+RayBeam::debug() const
+{
+  std::map<OpticalSurface *, uint64_t> surfIntercepts;
+  std::map<uint32_t, uint64_t> rayIds;
+
+  printf("===== Debug RayBeam (%p) =====\n", this);
+  printf("Beam type:   %s\n", nonSeq ? "non-sequential" : "sequential");
+  printf("Count:       %ld rays\n", count);
+  printf("Allocation:  %ld rays\n", allocation);
+  
+  Real minLength = +INFINITY, maxLength = -INFINITY;
+  Real minOPL = +INFINITY, maxOPL = -INFINITY;
+  Real minLambda = +INFINITY, maxLambda = -INFINITY;
+  
+  uint64_t intercepted = 0;
+  uint64_t existing    = 0;
+
+  for (uint64_t i = 0; i < count; ++i) {
+    if (hasRay(i)) {
+      ++existing;
+
+      minLength = fmin(lengths[i], minLength);
+      maxLength = fmax(lengths[i], maxLength);
+      
+      minOPL = fmin(cumOptLengths[i], minOPL);
+      maxOPL = fmax(cumOptLengths[i], maxOPL);
+      
+      minLambda = fmin(wavelengths[i], minLambda);
+      maxLambda = fmax(wavelengths[i], maxLambda);
+      
+      if (isIntercepted(i)) {
+        ++intercepted;
+        if (lengths[i] <= 0)
+          printf("Ray %d: length too short for an intercepted ray (%g)\n", i, lengths[i]);
+      }
+
+      if (nonSeq) {
+        if (surfIntercepts.find(surfaces[i]) == surfIntercepts.end())
+          surfIntercepts[surfaces[i]] = 1;
+        else
+          ++surfIntercepts[surfaces[i]];
+      }
+
+      if (rayIds.find(ids[i]) == rayIds.end())
+        rayIds[ids[i]] = 1;
+      else
+        ++rayIds[ids[i]];
+    }
+  }
+
+  printf("Lengths:     [%g, %g]\n", minLength, maxLength);
+  printf("OPL:         [%g, %g]\n", minOPL,    maxOPL);
+  printf("Lambda:      [%g, %g]\n", minLambda, maxLambda);
+  
+  printf("Existing:    %ld rays\n", existing);
+  printf("Intercepted: %ld rays\n", intercepted);
+
+  if (nonSeq) {
+    for (auto &p : surfIntercepts) {
+      if (p.first == nullptr)
+        printf("* Default surface: %ld intercepts\n", p.second);
+      else {
+        auto name = string_printf(
+          "%s.%s:",
+          p.first->parent->name().c_str(), p.first->name.c_str());
+
+        printf("* %-15s %ld intercepts\n", name.c_str(), p.second);
+      }
+    }
+  }
+
+  printf("Ray IDs: ");
+  bool first = true;
+  for (auto &p : rayIds) {
+    if (!first)
+      printf(", ");
+
+    printf("0x%lx (%ld)", p.first, p.second);
+    first = false;
+  }
+  putchar(10);
+}
+
 template static Real *allocBuffer<Real>(uint64_t, uint64_t, Real *);
 template static void  freeBuffer<Real>(Real *&);
 
@@ -274,6 +358,35 @@ RayBeam::computeInterceptStatistics(OpticalSurface *surface)
 }
 
 void
+RayBeam::copyTo(RayBeam *dest) const
+{
+  assert(count == dest->count);
+  size_t maskLen = ((count + 63) >> 6) << 3;
+
+  memcpy(dest->mask, mask, maskLen);
+  memcpy(dest->prevMask, prevMask, maskLen);
+  memcpy(dest->chiefMask, chiefMask, maskLen);
+  
+  // All non-intercepted by default
+  memset(dest->intMask, 0, maskLen);
+
+  memcpy(dest->lengths,       lengths,       count * sizeof(Real));
+  memcpy(dest->cumOptLengths, cumOptLengths, count * sizeof(Real));
+  memcpy(dest->wavelengths,   wavelengths,   count * sizeof(Real));
+  memcpy(dest->refNdx,        refNdx,        count * sizeof(Real));
+
+  memcpy(dest->ids,           ids,           count * sizeof(uint32_t));
+  memcpy(dest->amplitude,     amplitude,     count * sizeof(Complex));
+
+  memcpy(dest->origins,       origins,       3 * count * sizeof(Real));
+  memcpy(dest->destinations,  destinations,  3 * count * sizeof(Real));
+  memcpy(dest->directions,    directions,    3 * count * sizeof(Real));
+
+  if (nonSeq && dest->nonSeq)
+    memcpy(dest->surfaces,    surfaces,      count * sizeof(OpticalSurface *));
+}
+
+void
 RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 {
   assert(count == dest->count);
@@ -339,7 +452,7 @@ RayBeam::fromSurfaceRelative()
   uint64_t total = 0;
 
   for (uint64_t i = 0; i < this->count; ++i) {
-    if (hasRay(i) && this->surfaces[i] != nullptr) {
+    if (hasRay(i) && isIntercepted(i) && this->surfaces[i] != nullptr) {
       auto plane = this->surfaces[i]->frame;
 
       plane->fromRelative(
@@ -351,15 +464,15 @@ RayBeam::fromSurfaceRelative()
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      this->surfaces[i]     = nullptr;
-
       ++total;
     }
   }
 }
 
 uint64_t
-RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
+RayBeam::updateFromVisible(
+  const OpticalSurface *surface,
+  const RayBeam *beam)
 {
   uint64_t i;
   uint64_t newTransferred = 0;
@@ -375,10 +488,10 @@ RayBeam::updateFromVisible(const OpticalSurface *surface, const RayBeam *beam)
       && beam->lengths[i] > RZ_BEAM_MINIMUM_WAVELENGTH) {
       bool copyRay = false;
 
-      if (!this->hasRay(i)) {
+      if (!isIntercepted(i)) {
         ++newTransferred;
         copyRay = true;
-      } else {
+      } else {        
         copyRay = beam->lengths[i] < this->lengths[i];
       }
 
@@ -454,6 +567,39 @@ RayBeam::allocate(uint64_t count)
     this->refNdx[i] = 1.;
 
   this->count = count;
+}
+
+
+void
+RayBeam::walk(
+      OpticalSurface *surface,
+      const std::function <void (OpticalSurface *, RayBeamSlice const &)>& func,
+      const std::function <bool (OpticalSurface *, RayBeam const *, uint64_t)>& include)
+{
+  auto slice = RayBeamSlice(this); // Start at 0
+
+  for (uint64_t i = 0; i < count; ++i) {
+    auto currSurf = hasRay(i) && include(surface, this, i) 
+    ? (nonSeq ? surfaces[i] : surface) 
+    : nullptr;
+
+    if (surface != currSurf) {
+      // Sequence of equal surfaces has finished. Transmit this slice.
+      if (surface != nullptr) {
+        slice.end = i;
+        func(surface, slice);
+      }
+
+      surface = currSurf;
+
+      slice.start = i;
+    }
+  }
+
+  if (surface != nullptr) {
+    slice.end = count;
+    func(surface, slice);
+  }
 }
 
 void

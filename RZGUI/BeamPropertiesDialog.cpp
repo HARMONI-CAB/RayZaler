@@ -112,6 +112,12 @@ BeamPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->beamShapeCombo,
+        SIGNAL(activated(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->apertureCombo,
         SIGNAL(activated(int)),
         this,
@@ -175,6 +181,10 @@ BeamPropertiesDialog::parseProperties()
 
     case 1:
       m_properties.shape = RZ::Ring;
+      break;
+
+    case 2:
+      m_properties.shape = RZ::Point;
       break;
   }
 
@@ -257,6 +267,7 @@ BeamPropertiesDialog::refreshUi()
 
   BLOCKSIG(ui->originCombo, setCurrentIndex(originIndex));
 
+
   switch (m_properties.objectShape) {
     case RZ::PointLike:
       objShapeIndex = 0;
@@ -324,6 +335,8 @@ BeamPropertiesDialog::refreshUiState()
 
   ui->fNumLabel->setEnabled(m_properties.beam  != BEAM_TYPE_COLLIMATED);
   ui->fNumEdit->setEnabled(m_properties.beam   != BEAM_TYPE_COLLIMATED);
+
+  ui->diamEdit->setEnabled(m_properties.shape != RZ::Point);
 
   ui->apertureCombo->setEnabled(haveApertures);
   ui->focalPlaneCombo->setEnabled(haveFocalPlanes);

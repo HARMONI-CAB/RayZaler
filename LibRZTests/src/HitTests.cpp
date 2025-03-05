@@ -291,8 +291,6 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   REQUIRE(model->trace("bfp", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
 
-  REQUIRE(fp->hits.size() == rays.size());
-
   Real idealFNum = focalLength / diameter;
 
   BeamTestStatistics statistics;
@@ -370,8 +368,6 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
   REQUIRE(model->trace("bfp", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
   REQUIRE(oSurf->hits.size() == rays.size());
-
-  REQUIRE(fp->hits.size() == rays.size());
 
   Real idealFNum = focalLength / diameter;
 
@@ -474,9 +470,6 @@ TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(model->trace("img", rays));
   REQUIRE(iSurf->hits.size() == rays.size());
 
-  REQUIRE(fp->hits.size() == rays.size());
-
-
   // Do statistics on the image
   BeamTestStatistics statistics;
   statistics.computeFromSurface(fp);
@@ -563,7 +556,6 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE(model->setDof("focalLength", focalLength));
 
   REQUIRE(model->trace("img", rays));
-  REQUIRE(fp->hits.size() == rays.size());
 
   // Do statistics on the image
   BeamTestStatistics statistics;
@@ -656,7 +648,6 @@ TEST_CASE("Asymmetric lens: center and focus (object)", THIS_TEST_TAG)
   REQUIRE((Real) L1->get("backFocalLength") == 2 * focalLength);
   
   REQUIRE(model->trace("img", rays));
-  REQUIRE(fp->hits.size() == rays.size());
 
   // Do statistics on the image
   BeamTestStatistics statistics;

@@ -33,25 +33,26 @@ CPURayTracingEngine::CPURayTracingEngine() : RayTracingEngine()
 void
 CPURayTracingEngine::cast(const OpticalSurface *surface, RayBeam *beam)
 {
-  uint64_t i, count = beam->count;
-  auto listenerObj = listener();
+  uint64_t count = beam->count;
+  auto prevBeam = this->beam();
+  bool nonSeq = prevBeam->nonSeq;
 
-  // Cast rays to this boundary by means of the CPU
-  surface->boundary->cast(*beam);
+  // Two cases here:
+  //  - The previous beam is sequential, trust the caller.
+  //  - The previoys beam is non-sequential. Some rays may be aimed to their
+  //    departure surface. Avoid those.
 
-  for (i = 0; i < count; ++i) {
-    if (beam->hasRay(i)) {
-      if (beam->isIntercepted(i)) {
-        if (beam->lengths[i] < 0)
-          beam->prune(i);
-      }
-    }
-
-    if (cancelled())
-      break;
-
-    if ((i & 0x3ff) == 0)
-      rayProgress(i, count);
+  if (!nonSeq) {
+    surface->boundary->cast(RayBeamSlice(beam));
+  } else {
+    beam->walk(
+      const_cast<OpticalSurface *>(surface),
+      [&] (OpticalSurface *surf, RayBeamSlice const &slice) {
+        surface->boundary->cast(slice);
+      },
+      [&] (OpticalSurface *surf, RayBeam const *, uint64_t i) {
+        return prevBeam->surfaces[i] != surface;
+      });
   }
 
   rayProgress(count, count);

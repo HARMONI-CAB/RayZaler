@@ -64,6 +64,10 @@ RectangularFlatSurface::intercept(
     return false;
 
   dt    = -origin.z / direction.z;
+
+  if (dt < 0)
+    return false;
+  
   coord = origin + dt * direction;
   n     = Vec3::eZ();
   

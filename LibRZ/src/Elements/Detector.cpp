@@ -220,15 +220,13 @@ DetectorBoundary::name() const
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorBoundary::cast(RayBeam &beam) const
+DetectorBoundary::transmit(RayBeamSlice const &slice) const
 {
-  uint64_t count = beam.count;
-  uint64_t i;
-  
-  MediumBoundary::cast(beam);
+  uint64_t end = slice.end;
+  RayBeam &beam = *slice.beam;
   // At this point, the amplitude phasor is already updated.
 
-  for (i = 0; i < count; ++i) {
+  for (uint64_t i = slice.start; i < end; ++i) {
     // Check intercept
     if (beam.hasRay(i) && beam.isIntercepted(i))
       m_storage->hit(
@@ -236,6 +234,8 @@ DetectorBoundary::cast(RayBeam &beam) const
         beam.destinations[3 * i + 1], 
         beam.amplitude[i]);
   }
+
+  MediumBoundary::transmit(slice);
 }
 
 DetectorBoundary::DetectorBoundary(DetectorStorage *storage)

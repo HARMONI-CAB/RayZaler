@@ -105,7 +105,7 @@ namespace RZ {
 
     virtual std::string name() const = 0;
     
-    virtual void cast(RayBeam &) const;
+    virtual void cast(RayBeamSlice const &) const;
     virtual void transmit(RayBeamSlice const &) const;
 
     virtual ~MediumBoundary();

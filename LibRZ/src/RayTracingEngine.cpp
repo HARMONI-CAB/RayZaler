@@ -233,9 +233,19 @@ RayTracingEngine::getRays(bool keepPruned)
 }
 
 RayBeam *
-RayTracingEngine::makeBeam(bool nonSeq)
+RayTracingEngine::makeBeam()
 {
-  return new RayBeam(m_rays.size(), nonSeq);
+  return new RayBeam(m_rays.size());
+}
+
+RayBeam *
+RayTracingEngine::makeNSBeam()
+{
+  auto nsBeam = new RayBeam(beam()->count, true);
+
+  beam()->copyTo(nsBeam);
+
+  return nsBeam;
 }
 
 RayBeam *

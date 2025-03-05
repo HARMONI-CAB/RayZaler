@@ -34,15 +34,17 @@ MediumBoundary::~MediumBoundary()
 }
 
 void
-MediumBoundary::cast(RayBeam &beam) const
+MediumBoundary::cast(RayBeamSlice const &slice) const
 {
   Vec3 destination;
-  uint64_t count = beam.count;
+  auto &beam = *slice.beam;
+  uint64_t end = slice.end;
   Real K, dt, opd;
   auto shape     = surfaceShape();
 
   if (shape != nullptr) {
-    for (uint64_t i = 0; i < count; ++i) {
+    bool first = false;
+    for (uint64_t i = slice.start; i < end; ++i) {
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
@@ -65,7 +67,7 @@ MediumBoundary::cast(RayBeam &beam) const
     }
   } else {
     // Surface is infinite and flat
-    for (uint64_t i = 0; i < count; ++i) {
+    for (uint64_t i = slice.start; i < end; ++i) {
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);

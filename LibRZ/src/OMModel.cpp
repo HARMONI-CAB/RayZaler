@@ -1112,7 +1112,9 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   ray.chief      = !properties.vignetting;
   ray.wavelength = properties.wavelength;
 
-  if (properties.shape == Point || std::isinf(properties.focusZ)) {
+  if (properties.shape == Point 
+    || std::isinf(properties.focusZ)
+    || isZero(properties.diameter)) {
     // Collimated beams are easy to calculate. Just throw some rays parallel
     // to the chief ray.
 

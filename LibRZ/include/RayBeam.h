@@ -196,7 +196,7 @@ namespace RZ {
 
       amplitude[index]     = existing->amplitude[index];
       lengths[index]       = existing->lengths[index];
-      cumOptLengths[index] = existing->lengths[index];
+      cumOptLengths[index] = existing->cumOptLengths[index];
       refNdx[index]        = existing->refNdx[index];
       wavelengths[index]   = existing->wavelengths[index];
       ids[index]           = existing->ids[index];
@@ -239,6 +239,7 @@ namespace RZ {
     // we leave normals untouched, as we only care about them during
     // EMInterface calculations
     //
+    void copyTo(RayBeam *) const;
     void toRelative(const ReferenceFrame *plane);
     void toRelative(RayBeam *, const ReferenceFrame *plane) const;
 
@@ -247,11 +248,19 @@ namespace RZ {
 
     void walk(
       OpticalSurface *,
+      const std::function <void (OpticalSurface *, RayBeamSlice const &)>& f,
+      const std::function <bool (OpticalSurface *, RayBeam const *, uint64_t)>& include);
+
+    void walk(
+      OpticalSurface *,
       const std::function <void (OpticalSurface *, RayBeamSlice const &)>& f);
 
-    uint64_t updateFromVisible(const OpticalSurface *, const RayBeam *);
+    uint64_t updateFromVisible(
+      const OpticalSurface *currentSurface,
+      const RayBeam *beam);
+    void debug() const;
 
-    RayBeam(uint64_t, bool mediumBoundaries = false);
+    RayBeam(uint64_t, bool surfaces = false);
     ~RayBeam();
 
   private:

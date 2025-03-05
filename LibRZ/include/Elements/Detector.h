@@ -109,7 +109,7 @@ namespace RZ {
     public:
       DetectorBoundary(DetectorStorage *storage);
       virtual ~DetectorBoundary() = default;
-      virtual void cast(RayBeam &) const;
+      virtual void transmit(RayBeamSlice const &) const;
       virtual std::string name() const;
   };
 

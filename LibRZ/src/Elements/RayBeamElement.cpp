@@ -150,6 +150,7 @@ RayBeamElement::raysToVertices()
   GLfloat currColor[4];
   bool tooMany = m_rays.size() > m_maxRays;
   Real drawP = 1;
+  Real length;
 
   if (transp > 1)
     transp = 1;
@@ -165,13 +166,17 @@ RayBeamElement::raysToVertices()
   m_strayRays = 0;
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
-    if (!p->intercepted)
+    if (!p->intercepted) {
+      length = fmax(p->length, p->cumOptLength / p->refNdx);
       ++m_strayRays;
+    } else {
+      length = p->length;
+    }
 
     if (tooMany && drawP < m_randState.randu())
       continue;
     
-    Vec3 destination = p->origin + p->length * p->direction;
+    Vec3 destination = p->origin + length * p->direction;
     LineVertexSet *set = p->chief ? &m_chiefRayVert : &m_commonRayVert;
 
     if (p->id != currId) {

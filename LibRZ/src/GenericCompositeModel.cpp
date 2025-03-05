@@ -868,9 +868,8 @@ GenericCompositeModel::createScopedExpressions(
 
   // For each local frame, we need to do:
   //  1. Make expressions for the parameters of this context
-  //  2. Add these parameters to the local symtab
-  //  3. Create expressions for local variables and add them to local symtab
-  //  4. Make expressions for the element parameters inside this context
+  //  2. Create expressions for local variables and add them to local symtab
+  //  3. Make expressions for the element parameters inside this context
 
   std::string globalPrefix = m_prefix + localFrame->currNS();
 
@@ -880,8 +879,6 @@ GenericCompositeModel::createScopedExpressions(
     auto name     = p.first;
     auto genP     = allocateParam();
     genP->value   = 0;
-
-    local[name]   = genP;
 
     auto expr = makeExpression(p.second->expression, &local);
 

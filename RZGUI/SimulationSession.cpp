@@ -301,6 +301,8 @@ SimulationState::allocateRays()
           m_lastCompileError = "The specified focal plane `" + beam.focalPlane.toStdString() + "' does not exist";
           return false;
         }
+
+        prop.setPlaneRelative(fp);
         break;
     }
 
@@ -312,15 +314,15 @@ SimulationState::allocateRays()
     auto x0 = beamState->evalCtx.eval("offsetX");
     auto y0 = beamState->evalCtx.eval("offsetY");
     auto z0 = beamState->evalCtx.eval("offsetZ");
-    auto wl = beamState->evalCtx.eval("wavelength");
+    auto wl = beamState->evalCtx.eval("wavelength") * 1e-9;
 
     auto uz = -sqrt(1 - ux * ux - uy * uy);
 
-    prop.direction   = RZ::Vec3(ux, uy, uz);
-    prop.offset      = RZ::Vec3(x0, y0, z0);
-    prop.length      = 1;
-    prop.id          = beamState->id;
-    prop.wavelength  = wl;
+    prop.direction        = RZ::Vec3(ux, uy, uz);
+    prop.offset           = RZ::Vec3(x0, y0, z0);
+    prop.length           = 1;
+    prop.id               = beamState->id;
+    prop.wavelength       = wl;
     beamState->wavelength = wl;
 
     // Chief ray
@@ -337,7 +339,7 @@ SimulationState::allocateRays()
     prop.diameter        = D;
     prop.random          = beam.random;
     prop.objectShape     = beam.objectShape;
-    prop.angularDiameter = S;
+    prop.angularDiameter = RZ::deg2rad(S);
     prop.objectPath      = beam.path.toStdString();
 
     // Define beam focus

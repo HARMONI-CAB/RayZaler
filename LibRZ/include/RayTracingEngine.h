@@ -88,7 +88,9 @@ namespace RZ {
         m_numStages = num;
       }
 
-      virtual RayBeam *makeBeam(bool nonSeq = false);
+      virtual RayBeam *makeBeam();
+      virtual RayBeam *makeNSBeam();
+      
       RayBeam *ensureMainBeam();
 
       RayTracingEngine();

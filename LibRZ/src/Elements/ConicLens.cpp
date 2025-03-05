@@ -49,6 +49,7 @@ ConicLens::recalcModel()
   Real R2  = m_radius * m_radius;
 
   Real Rc[2], Rc2[2], sigma[2];
+  Real dZ[2];
   bool convex[2];
 
   // Calculate properties of both surfaces.
@@ -66,12 +67,14 @@ ConicLens::recalcModel()
     if (isZero(m_K[i] + 1))
       m_displacement[i] = .5 * R2 / m_rCurv[i];
     else
-      m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1); 
+      m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
+
+    dZ[i] = 0; //.5 * m_thickness + m_displacement[i];
   }
 
   // Input focal plane: located at -f minus half the thickness
-  m_frontFocalPlane->setDistance(+(.5 * m_thickness + m_focalLength[0])* Vec3::eZ());
-  m_objectPlane->setDistance(+(.5 * m_thickness + 2 * m_focalLength[0]) * Vec3::eZ());
+  m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
+  m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
 
   m_inputBoundary->setRadius(m_radius);
   m_inputBoundary->setCurvatureRadius(Rc[0]);
@@ -87,8 +90,8 @@ ConicLens::recalcModel()
   m_frontCap.requestRecalc();
 
   // Output focal plane: opposite side
-  m_backFocalPlane->setDistance(-(.5 * m_thickness + m_focalLength[1]) * Vec3::eZ());
-  m_imagePlane->setDistance(-(.5 * m_thickness + 2 * m_focalLength[1]) * Vec3::eZ());
+  m_backFocalPlane->setDistance(-(dZ[1] + m_focalLength[1]) * Vec3::eZ());
+  m_imagePlane->setDistance(-(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
 
   m_outputBoundary->setRadius(m_radius);
   m_outputBoundary->setCurvatureRadius(Rc[1]);
@@ -114,14 +117,8 @@ ConicLens::recalcModel()
   m_outputFrame->recalculate();
 
   setBoundingBox(
-      Vec3(
-        -m_radius,
-        -m_radius,
-        fmin(-m_displacement[1] - m_thickness / 2, -m_thickness / 2)),
-      Vec3(
-        +m_radius,
-        +m_radius,
-        fmax(+m_displacement[0] + m_thickness / 2, +m_thickness / 2)));
+      Vec3(-m_radius, -m_radius, fmin(-dZ[1], -m_thickness / 2)),
+      Vec3(+m_radius, +m_radius, fmax(+dZ[0], +m_thickness / 2)));
 
   refreshFrames();
 
