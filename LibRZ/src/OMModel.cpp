@@ -1111,6 +1111,7 @@ OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
   ray.id         = properties.id;
   ray.chief      = !properties.vignetting;
   ray.wavelength = properties.wavelength;
+  ray.length     = properties.length; // Length of the stray light ray
 
   if (properties.shape == Point 
     || std::isinf(properties.focusZ)

@@ -23,6 +23,8 @@
 #include <OMModel.h>
 #include <vector>
 
+#define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
+
 enum TracerType {
   TRACER_TYPE_GEOMETRIC_OPTICS,
   TRACER_TYPE_DIFFRACTION
@@ -129,6 +131,8 @@ struct SimulationProperties : public JsonSerializable {
   virtual QJsonObject serialize() const override;
   virtual bool deserialize(QJsonObject const &) override;
   virtual void loadDefaults() override;
+
+  bool deserialize(QString path);
 
   SimulationProperties() = default;
   SimulationProperties(const SimulationProperties &);

@@ -546,30 +546,11 @@ SimulationPropertiesDialog::doLoadFromFile()
     if (m_openSettingsDialog->exec()
         && !m_openSettingsDialog->selectedFiles().empty()) {
       QString fileName = m_openSettingsDialog->selectedFiles()[0];
-      QFile   file(fileName);
+      
+      SimulationProperties prop;
 
-      if (!file.open(QIODevice::ReadOnly))
-        throw std::runtime_error(
-            "Cannot load simulation settings from the selected file: "
-            + file.errorString().toStdString());
-
-      if (file.size() > MAX_SIMULATION_CONFIG_FILE_SIZE)
-        throw std::runtime_error(
-            "Settings file is too big (probably not a settings file)");
-
-      auto data = file.readAll();
-      if (file.error() != QFileDevice::NoError)
-        throw std::runtime_error(
-            "Read error while loading settings: "
-            + file.errorString().toStdString());
-
-      SimulationProperties properties;
-      if (!properties.deserialize(data))
-        throw std::runtime_error(
-            "Simulation file contains errors: "
-            + properties.lastError().toStdString());
-
-      m_properties = properties;
+      prop.deserialize(fileName);
+      m_properties = std::move(prop);
 
       sanitizeSaveDirectory(); // To prevent nasty things
 

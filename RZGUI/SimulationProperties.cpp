@@ -18,6 +18,8 @@
 
 #include "SimulationProperties.h"
 #include <QJsonParseError>
+#include <QFile>
+
 
 void
 SimulationBeamProperties::loadDefaults()
@@ -466,6 +468,32 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   regenerateBeamVector();
 
   return true;
+}
+
+bool
+SimulationProperties::deserialize(QString fileName)
+{
+  QFile   file(fileName);
+
+  if (!file.open(QIODevice::ReadOnly))
+    throw std::runtime_error(
+        "Cannot load simulation settings from the selected file: "
+        + file.errorString().toStdString());
+
+  if (file.size() > MAX_SIMULATION_CONFIG_FILE_SIZE)
+    throw std::runtime_error(
+        "Settings file is too big (probably not a settings file)");
+
+  auto data = file.readAll();
+  if (file.error() != QFileDevice::NoError)
+    throw std::runtime_error(
+        "Read error while loading settings: "
+        + file.errorString().toStdString());
+
+  if (!deserialize(data))
+    throw std::runtime_error(
+        "Simulation file contains errors: "
+        + lastError().toStdString());
 }
 
 bool

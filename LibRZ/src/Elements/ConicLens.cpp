@@ -50,6 +50,7 @@ ConicLens::recalcModel()
 
   Real Rc[2], Rc2[2], sigma[2];
   Real dZ[2];
+
   bool convex[2];
 
   // Calculate properties of both surfaces.
@@ -68,10 +69,30 @@ ConicLens::recalcModel()
       m_displacement[i] = .5 * R2 / m_rCurv[i];
     else
       m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
-
-    dZ[i] = 0; //.5 * m_thickness + m_displacement[i];
   }
 
+#if  0
+  auto R_1 = m_rCurv[0];
+  auto R_2 = m_rCurv[1];
+  auto dn  = (m_mu - 1) * m_thickness / m_mu;
+
+  Real d    = m_thickness + m_displacement[0] + m_displacement[1];
+  Real fInv = (m_mu - 1) * (1 / R_1 + 1 / R_2 + dn / (R_1 * R_2));
+  Real FFD  = (1 + dn/ R_1) / fInv;
+  Real BFD  = (1 + dn/ R_2) / fInv;
+
+  printf("Effective F: %g\n", 1 / fInv);
+  printf("Thickness: %g\n", m_thickness);
+  printf("%g, %g\n", R_1, R_2);
+  printf("FFD, BFD: %g, %g\n", FFD, BFD);
+  printf("ffL, bfL: %g, %g\n", m_focalLength[0], m_focalLength[1]);
+
+  dZ[0] = FFD - m_focalLength[0];
+  dZ[1] = BFD - m_focalLength[1];
+  #endif 
+
+  dZ[0] = dZ[1] = .5 * m_thickness;
+  
   // Input focal plane: located at -f minus half the thickness
   m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
   m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
@@ -117,8 +138,8 @@ ConicLens::recalcModel()
   m_outputFrame->recalculate();
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, fmin(-dZ[1], -m_thickness / 2)),
-      Vec3(+m_radius, +m_radius, fmax(+dZ[0], +m_thickness / 2)));
+      Vec3(-m_radius, -m_radius, fmin(-(.5 * m_thickness + m_displacement[1]), -m_thickness / 2)),
+      Vec3(+m_radius, +m_radius, fmax(+(.5 * m_thickness + m_displacement[0]), +m_thickness / 2)));
 
   refreshFrames();
 

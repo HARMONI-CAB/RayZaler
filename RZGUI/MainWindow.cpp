@@ -342,8 +342,15 @@ MainWindow::connectAll()
 }
 
 void
-MainWindow::pushDelayedOpenFile(QString file)
+MainWindow::pushDelayedOpenFile(const char *path, const char *simConfig)
 {
+  DelayedFile file;
+
+  file.path = path;
+
+  if (simConfig != nullptr)
+    file.simConfigPath = simConfig;
+  
   m_delayedFiles.push_back(file);
 }
 
@@ -354,8 +361,18 @@ MainWindow::openDelayedFiles()
     while (ui->sessionTabWidget->count() > 0)
       ui->sessionTabWidget->removeTab(0);
 
-  for (auto &f : m_delayedFiles)
-    (void) openModelFile(f);
+  for (auto &f : m_delayedFiles) {
+    auto session = openModelFile(f.path);
+    if (session != nullptr && !f.simConfigPath.isEmpty()) {
+      try {
+        SimulationProperties prop;
+        prop.deserialize(f.simConfigPath);
+        session->state()->setProperties(prop);
+      } catch (std::runtime_error const &e) {
+        RZError("%s\n", e.what());
+      }
+    }
+  }
 }
 
 void
@@ -566,16 +583,18 @@ MainWindow::registerSession(SimulationSession *session)
   refreshCurrentSession();
 }
 
-bool
+SimulationSession *
 MainWindow::openModelFile(QString file)
 {
+  SimulationSession *sess = nullptr;
   bool ok = false;
 
   QFileInfo info(file);
   m_lastOpenDir = info.dir().path();
   
   try {
-    registerSession(new SimulationSession(file, this));
+    sess = new SimulationSession(file, this);
+    registerSession(sess);
     ok = true;
   } catch (std::runtime_error &e) {
     QMessageBox::critical(
@@ -584,7 +603,12 @@ MainWindow::openModelFile(QString file)
           QString::fromStdString(e.what()));
   }
 
-  return ok;
+  if (!ok && sess != nullptr) {
+    delete sess;
+    sess = nullptr;
+  }
+
+  return sess;
 }
 
 void
@@ -611,7 +635,7 @@ MainWindow::doOpen()
       if (files.size() > 0) {
         done = false;
         for (auto &e : files)
-          done = openModelFile(e) || done;
+          done = (openModelFile(e) != nullptr) || done;
       } else {
         done = true;
       }

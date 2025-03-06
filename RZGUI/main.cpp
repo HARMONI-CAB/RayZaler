@@ -59,14 +59,29 @@ main(int argc, char *argv[])
 {
   QApplication a(argc, argv);
   MainWindow w;
+  bool refersToSimConfig = false;
+  const char *simCfg = nullptr;
 
   loadFonts();
 
   w.show();
 
-  for (auto i = 1; i < argc; ++i)
-    if (argv[i][0] != '-')
-      w.pushDelayedOpenFile(argv[i]);
+  for (auto i = 1; i < argc; ++i) {
+    if (argv[i][0] != '-') {
+      if (refersToSimConfig) {
+        simCfg = argv[i];
+        refersToSimConfig = false;
+      } else {
+        w.pushDelayedOpenFile(argv[i], simCfg);
+        simCfg = nullptr;
+      }
+    } else {
+      std::string opt = argv[i];
+
+      if (opt == "-s" || opt == "--simconfig")
+        refersToSimConfig = true;
+    }
+  }
 
   w.notifyReady();
   

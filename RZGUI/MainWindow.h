@@ -48,6 +48,11 @@ struct SessionUI {
   DOFWidget        *dofWidget = nullptr;
 };
 
+struct DelayedFile {
+  QString path;
+  QString simConfigPath;
+};
+
 class MainWindow : public QMainWindow, public RZ::Logger
 {
   Q_OBJECT
@@ -55,7 +60,7 @@ class MainWindow : public QMainWindow, public RZ::Logger
   SimulationSession *m_currSession = nullptr;
 
   std::list<SimulationSession *> m_sessions;
-  std::list<QString>             m_delayedFiles;
+  std::list<DelayedFile>         m_delayedFiles;
   QMap<SimulationSession *, SessionUI> m_sessionToUi;
 
   QString                     m_lastOpenDir;
@@ -95,8 +100,8 @@ public:
           std::string const &message) override;
 
   MainWindow(QWidget *parent = nullptr);
-  bool openModelFile(QString file);
-  void pushDelayedOpenFile(QString file);
+  SimulationSession *openModelFile(QString file);
+  void pushDelayedOpenFile(const char *path, const char *simCfg = nullptr);
   ~MainWindow() override;
   void notifyReady();
   void keyPressEvent(QKeyEvent *event) override;
