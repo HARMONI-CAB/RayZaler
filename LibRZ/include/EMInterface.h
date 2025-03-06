@@ -47,21 +47,6 @@ namespace RZ {
 
     protected:
       static inline void
-      snell(Vec3 &u, Vec3 const &normal, Real muIORatio)
-      {
-        Vec3 nXu = muIORatio * normal.cross(u);
-        u        = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
-      }
-
-      static inline Vec3
-      snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
-      {
-        Vec3 nXu = muIORatio * normal.cross(u);
-
-        return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
-      }
-
-      static inline void
       reflection(Vec3 &u, Vec3 const &normal)
       {
         u -= 2 * (u * normal) * normal;
@@ -71,6 +56,30 @@ namespace RZ {
       reflection(Vec3 const &u, Vec3 const &normal)
       {
         return u - 2 * (u * normal) * normal;
+      }
+
+      static inline void
+      snell(Vec3 &u, Vec3 const &normal, Real muIORatio)
+      {
+        Vec3 nXu  = muIORatio * normal.cross(u);
+        Real nXu2 = nXu * nXu;
+        
+        if (nXu2 < 1)
+          u = -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+        else
+          reflection(u, normal);
+      }
+
+      static inline Vec3
+      snell(Vec3 const &u, Vec3 const &normal, Real muIORatio)
+      {
+        Vec3 nXu  = muIORatio * normal.cross(u);
+        Real nXu2 = nXu * nXu;
+        
+        if (nXu2 < 1)
+          return -normal.cross(nXu) - normal * sqrt(1 - nXu * nXu);
+        else
+          return reflection(u, normal);
       }
 
       inline ExprRandomState const &

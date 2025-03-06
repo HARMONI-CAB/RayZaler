@@ -391,12 +391,21 @@ ConicSurface::intercept(
   // Note: The equation is A^2t + Bt + C = 0. This implies certain numerical
   // precision issue here when 4AC << B^2. For now, this test seems sufficient
   // but this requires a more careful approach.
-   
+  
   if (isZero(A)) {
     // Case Bt + C = 0. There is only one solution in this case.
     deltaT = -C / B;
   } else if (Delta >= 0) {
-    deltaT = .5 * (-B - sigma * sqrt(Delta)) / A;
+    Real sPart = .5 * sqrt(Delta) / A;
+    Real fPart = -.5 * B/A;
+
+    Real dt1 = fPart + sPart;
+    Real dt2 = fPart - sPart;
+    
+    if (dt1 * dt2 < 0) // One of the two is negative. Pick the positive.
+      deltaT = fmax(dt1, dt2);
+    else
+      deltaT = fmin(dt1, dt2); // Both are of the same sign. Pick the smallest.
   } else {
     return false;
   }

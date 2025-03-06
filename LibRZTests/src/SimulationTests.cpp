@@ -47,20 +47,25 @@ static const char *g_rotatedFocusLens =
   "dof K(-4, 4) = -1;"
   "dof focalLength(.1, .3) = .2;"
   "dof D = 5e-2;"
-  "dof angle = 0;"
-
+  "dof angle(0, 180) = 0;"
+  "dof thickness = 2e-3;"
+  
+  "var fp = .5 * thickness + focalLength;"
+  "var op = .5 * thickness + 2 * focalLength;"
+  
   "rotate(angle, 1, 0, 0) ConicLens L1("
-  "  thickness   = 2e-3,"
-  "  conic       = K,"
-  "  focalLength = focalLength,"
-  "  diameter    = D);"
-
-  "on backFocalPlane of L1 Detector bfpDet(flip = true);"
-  "on imagePlane of L1 Detector imgDet(flip = true);"
-  "on objectPlane of L1 port object;"
-
+    "thickness   = thickness,"
+    "conic       = K,"
+    "focalLength = focalLength,"
+    "diameter    = D);"
+  
+  "translate(dz = -fp) Detector bfpDet(flip = true);"
+  "translate(dz = -op) Detector imgDet(flip = true);"
+  "translate(dz = op) port object;"
+  
   "path bfp L1 to bfpDet;"
   "path img L1 to imgDet;";
+
 
 TEST_CASE("Infinite reflection: stray light", THIS_TEST_TAG)
 {
@@ -181,7 +186,7 @@ TEST_CASE("Infinite reflection: limited propagation", THIS_TEST_TAG)
   delete model;
 }
 
-TEST_CASE("Positive lens: non-sequential simulation", THIS_TEST_TAG)
+TEST_CASE("Rotated lens: proper orientation", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(g_rotatedFocusLens);
   REQUIRE(model);
@@ -206,6 +211,98 @@ TEST_CASE("Positive lens: non-sequential simulation", THIS_TEST_TAG)
 
   // Record hits!
   detector->setRecordHits(true);
+
+  std::list<Ray> rays;
+  BeamProperties beamProp;
+  Real focalLength = 0.2;
+  Real objDistance = 2 * focalLength;
+  Real diameter    = 0.05;
+
+  Real idealFNum = objDistance / diameter;
+
+  beamProp.id              = 0;
+  beamProp.length          = 1;
+  beamProp.diameter        = 0;
+  beamProp.offset          = Vec3::zero();
+  beamProp.direction       = -Vec3::eZ();
+  beamProp.angularDiameter = 0;
+  beamProp.numRays         = 1000;
+  beamProp.shape           = Point;
+  beamProp.setPlaneRelative(object);
+  beamProp.collimate();
+  beamProp.setObjectFNum(idealFNum);
+  beamProp.objectShape     = RingLike;
+  beamProp.random          = false;
+ 
+  printf("(obj) Rotated lens: aperture angle: %g deg\n", rad2deg(beamProp.angularDiameter));
+
+  OMModel::addBeam(rays, beamProp);
+  REQUIRE(rays.size() == 1000);
+
+  BeamTestStatistics inputStatistics;
+  inputStatistics.computeFromRayList(rays, beamProp.direction);
+  printf("(obj) Rotated lens: object radius: %g\n", inputStatistics.maxRad);
+  printf("(obj) Rotated lens: object center: %g, %g\n", inputStatistics.x0, inputStatistics.y0);
+  
+  printf(
+    "(obj) Rotated lens: object f/#: %g (ideal = %g, err = %g)\n",
+    inputStatistics.fNum,
+    idealFNum,
+    inputStatistics.fNum - idealFNum);
+  REQUIRE(releq(inputStatistics.fNum, idealFNum));
+  REQUIRE(isZero(inputStatistics.x0));
+  REQUIRE(isZero(inputStatistics.y0));
+  
+  REQUIRE(model->setDof("D", diameter + 1e-3)); // Extra clearance to avoid edge rays
+  REQUIRE(model->setDof("focalLength", focalLength));
+
+  REQUIRE(model->traceNonSequential(rays));
+
+  // Do statistics on the image
+  BeamTestStatistics statistics;
+  statistics.computeFromSurface(fp);
+  printf("(obj) Rotated lens: image radius: %g\n", statistics.maxRad);
+  printf("(obj) Rotated lens: image center: %g, %g\n", statistics.x0, statistics.y0);
+  printf("(obj) Rotated lens: image f/#: %g (ideal %g)\n", statistics.fNum, idealFNum);
+  
+  // Require f/# within 2% error
+  REQUIRE(fp->hits.size() == rays.size());
+  REQUIRE(isZero(statistics.x0));
+  REQUIRE(isZero(statistics.y0));
+  REQUIRE(statistics.maxRad < 3e-4); // Room for aberrations
+  REQUIRE(releq(statistics.fNum, idealFNum, 2e-2));
+  
+  delete model;
+}
+
+TEST_CASE("Rotated lens: 180 deg flip", THIS_TEST_TAG)
+{
+  auto model = TopLevelModel::fromString(g_rotatedFocusLens);
+  REQUIRE(model);
+
+  auto L1 = model->lookupOpticalElement("L1");
+  REQUIRE(L1);
+
+  auto surfaces = L1->opticalSurfaces();
+  REQUIRE(surfaces.size() == 2);
+
+  auto detector = model->lookupOpticalElement("imgDet");
+  REQUIRE(detector);
+
+  surfaces = detector->opticalSurfaces();
+  REQUIRE(surfaces.size() == 1);
+
+  auto fp = surfaces.front();
+  REQUIRE(fp != nullptr);
+
+  auto object = model->lookupReferenceFrame("object");
+  REQUIRE(object != nullptr);
+
+  // Record hits!
+  detector->setRecordHits(true);
+
+  // Flip lens
+  REQUIRE(model->setDof("angle", 180.));
 
   std::list<Ray> rays;
   BeamProperties beamProp;

@@ -41,19 +41,26 @@ DielectricEMInterface::transmit(RayBeamSlice const &slice)
   blockLight(slice); // Prune rays according to transmission
 
   //
-  // TODO: TEST FOR SPECULAR REFLECTION AND REFRACTION FROM THE OPPOSITE SURFACE
+  // TODO: TEST FOR SPECULAR REFLECTION
   //
 
   auto beam = slice.beam;
+  Real rdir = m_IOratio, rinv = 1 / m_IOratio;
+  Real nIn  = m_muIn;
+  Real nOu  = m_muOut;
+
   for (auto i = slice.start; i < slice.end; ++i) {
     if (mustTransmitRay(slice.beam, i)) {
-      snell(
-        Vec3(beam->directions + 3 * i),
-        Vec3(beam->normals    + 3 * i),
-        m_IOratio).copyToArray(beam->directions + 3 * i);
+      const Vec3 direct(beam->directions + 3 * i);
+      const Vec3 normal(beam->normals    + 3 * i);
       
-      // This ray has entered a new medium. Mark accordingly.
-      beam->refNdx[i] = m_muOut;
+      if (direct * normal < 0) {
+        snell(direct, normal, rdir).copyToArray(beam->directions + 3 * i);
+        beam->refNdx[i] = nOu;
+      } else {
+        snell(direct, -normal, rinv).copyToArray(beam->directions + 3 * i);
+        beam->refNdx[i] = nIn;
+      }
     }
   }
 }
