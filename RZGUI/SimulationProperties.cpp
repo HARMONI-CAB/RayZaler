@@ -494,6 +494,8 @@ SimulationProperties::deserialize(QString fileName)
     throw std::runtime_error(
         "Simulation file contains errors: "
         + lastError().toStdString());
+
+  return true;
 }
 
 bool
