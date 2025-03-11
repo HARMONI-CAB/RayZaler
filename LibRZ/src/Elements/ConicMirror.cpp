@@ -84,7 +84,7 @@ ConicMirror::recalcModel()
 
   m_cap.requestRecalc();
   m_rearCap.requestRecalc();
-  
+
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setCaps(&m_cap, &m_rearCap);
 
@@ -108,8 +108,8 @@ ConicMirror::recalcModel()
   m_boundary->setHoleRadius(m_rHole);
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
-      Vec3(+m_radius, +m_radius, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
+      Vec3(+m_radius + m_x0, +m_radius + m_y0, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
 
   updatePropertyValue("hole",        m_rHole);
   updatePropertyValue("focalLength", 0.5 * m_rCurv);
