@@ -82,6 +82,9 @@ ConicMirror::recalcModel()
   m_rearCap.setInvertNormals(true);
   m_rearCap.setCenterOffset(m_x0, m_y0);
 
+  m_cap.requestRecalc();
+  m_rearCap.requestRecalc();
+  
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setCaps(&m_cap, &m_rearCap);
 

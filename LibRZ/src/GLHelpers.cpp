@@ -1054,23 +1054,23 @@ GLConicCap::recalculate()
   // This loop traverses the radius
   for (j = 0; j <= m_stacks; ++j) {
     GLfloat r = rDelta * j + r0;
-    GLfloat r2 = r * r;
-    GLfloat z = parabola 
-        ? -sigma * (inv2R * r2 - D)
-        : -sigma * (invK1 * (m_rCurv - sqrt(Rc2 - K1 * r2)) - D);
-    GLfloat dFdz = K1 * z + sigma * RDKD;
-
-    GLfloat nInv = 1. / sqrt(r2 + dFdz * dFdz);
-    if (m_invertNormals)
-      nInv = -nInv;
 
     // And this other one, the angles
     for (i = 0; i <= m_sectors; ++i) {
       GLfloat ang = i * angDelta;
-      
       GLfloat x = r * cosf(ang) + m_x0;
       GLfloat y = r * sinf(ang) + m_y0;
+      GLfloat rho2 = x * x + y * y;
       
+      GLfloat z = parabola 
+        ? -sigma * (inv2R * rho2 - D)
+        : -sigma * (invK1 * (m_rCurv - sqrt(Rc2 - K1 * rho2)) - D);
+          GLfloat dFdz = K1 * z + sigma * RDKD;
+
+      GLfloat nInv = 1. / sqrt(rho2 + dFdz * dFdz);
+      if (m_invertNormals)
+        nInv = -nInv;
+
       if (j == m_stacks && i < m_sectors) {
         m_edge[3 * i + 0] = x;
         m_edge[3 * i + 1] = y;
