@@ -119,7 +119,7 @@ TEST_CASE("Parabolic reflector: center and focus", THIS_TEST_TAG)
   // Record hits!
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
 
   beamProp.id              = 0;
@@ -183,7 +183,7 @@ TEST_CASE("Parabolic reflector: expected f/#", THIS_TEST_TAG)
   // Record hits!
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 1;
   Real diameter = 1;
@@ -264,7 +264,7 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   L1->setRecordHits(true);
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real diameter    = 0.05;
@@ -340,7 +340,7 @@ TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
   L1->setRecordHits(true);
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real diameter    = 0.05;
@@ -415,7 +415,7 @@ TEST_CASE("Ideal lens: center and focus (object)", THIS_TEST_TAG)
   L1->setRecordHits(true);
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
@@ -512,7 +512,7 @@ TEST_CASE("Positive lens: center and focus (object)", THIS_TEST_TAG)
   // Record hits!
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
@@ -600,7 +600,7 @@ TEST_CASE("Asymmetric lens: center and focus (object)", THIS_TEST_TAG)
   // Record hits!
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;

@@ -72,6 +72,9 @@ struct SimulationBeamProperties : public JsonSerializable {
   QString offsetY      = "0";       // m
   QString offsetZ      = "0";       // m
   QString wavelength   = "525";     // nm
+  QString length       = "1";       // m
+
+  bool    negativeZ    = true;
   bool    colorByWl    = false;
   bool    random       = false; // Random sampling
 

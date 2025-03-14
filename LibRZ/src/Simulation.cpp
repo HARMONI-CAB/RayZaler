@@ -209,7 +209,7 @@ Simulation::trace(TracingProperties const &props)
 {
   bool ok = false;
 
-  const std::list<Ray> *pRays = props.pRays != nullptr 
+  const RayList *pRays = props.pRays != nullptr 
     ? props.pRays 
     : &props.rays;
   

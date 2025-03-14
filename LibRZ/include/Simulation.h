@@ -39,8 +39,8 @@ namespace RZ {
     bool            clearPrevious         = true;
     bool            clearDetectors        = true;
     std::string     path;
-    const std::list<Ray> *pRays           = nullptr;
-    std::list<Ray>        rays;
+    const RayList  *pRays                 = nullptr;
+    RayList         rays;
     std::string           heuristic       = "dummy";
     unsigned int          maxPropagations = 1000;
     const struct timeval *startTime       = nullptr;
@@ -52,7 +52,7 @@ namespace RZ {
       RayTracingEngine *m_engine = nullptr;
       RayBeam          *m_NSBeam = nullptr;
       uint64_t          m_transferredRays = 0;
-      std::list<Ray>    m_intermediateRays;
+      RayList           m_intermediateRays;
       RayTracingHeuristic *m_heuristic = nullptr;
       struct timeval    m_lastTick;
 

@@ -114,7 +114,7 @@ RayTracingEngine::pushRay(
 }
 
 void
-RayTracingEngine::pushRays(std::list<Ray> const &rays)
+RayTracingEngine::pushRays(RayList const &rays)
 {
   m_rays.insert(m_rays.end(), rays.begin(), rays.end());
   toBeam();
@@ -223,7 +223,7 @@ RayTracingEngine::updateOrigins()
   m_beam->updateOrigins();
 }
 
-std::list<Ray> const &
+RayList const &
 RayTracingEngine::getRays(bool keepPruned)
 {
   if (m_raysDirty)

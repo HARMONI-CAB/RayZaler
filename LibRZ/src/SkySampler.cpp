@@ -17,6 +17,7 @@
 //
 
 #include <SkySampler.h>
+#include <Logger.h>
 
 using namespace RZ;
 

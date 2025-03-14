@@ -157,10 +157,10 @@ namespace RZ {
     {
       fNum = std::fabs(fNum);
       
+      shape = Point;
       if (std::isinf(fNum)) {
         objectShape = PointLike;
       } else {
-        objectShape = CircleLike;
         angularDiameter = 2 * std::atan(0.5 / fNum);
       }
     }
@@ -194,6 +194,8 @@ namespace RZ {
         this->objectShape = CircleLike;
       else if (shape == "extended")
         this->objectShape = Extended;
+      else if (shape == "ring")
+        this->objectShape = RingLike;
       else
         std::runtime_error("Unrecognized angular shape `" + shape + "'");
     }
@@ -368,31 +370,31 @@ namespace RZ {
       // Raytracing methods
       bool trace(
         std::string const &path,
-        std::list<RZ::Ray> const &rays,
+        RZ::RayList const &rays,
         bool updateBeamElement = false,
-        RayTracingProcessListener *listener = nullptr,
+        RZ::RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr,
         bool clearIntermediate = true);
 
       bool traceDiffraction(
         std::string const &path,
-        std::list<RZ::Ray> const &rays,
-        RayTracingProcessListener *listener = nullptr,
+        RZ::RayList const &rays,
+        RZ::RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr);
       
       bool traceDefault(
-        std::list<RZ::Ray> const &rays,
+        RayList const &rays,
         bool updateBeamElement = false,
         RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr);
 
       bool traceNonSequential(
-        std::list<RZ::Ray> const &rays,
+        RZ::RayList const &rays,
         bool updateBeamElement = false,
-        RayTracingProcessListener *listener = nullptr,
+        RZ::RayTracingProcessListener *listener = nullptr,
         bool clear = true,
         const struct timeval *startTime = nullptr,
         bool clearIntermediate = true,
@@ -406,7 +408,7 @@ namespace RZ {
         std::string const &file);
 
       static void addSkyBeam(
-        std::list<Ray> &dest,
+        RZ::RayList &dest,
         unsigned int number = 1000,
         Real radius = .5,
         Real azimuth = 0,
@@ -416,7 +418,7 @@ namespace RZ {
         bool random = true);
 
       static void addElementRelativeBeam(
-        std::list<Ray> &dest,
+        RZ::RayList &dest,
         Element *element,
         unsigned int number = 1000,
         Real radius = .5,
@@ -429,7 +431,7 @@ namespace RZ {
         bool random = true);
 
       static void addElementRelativeFocusBeam(
-        std::list<Ray> &dest,
+        RZ::RayList &dest,
         Element *element,
         unsigned int number = 1000,
         Real radius = .5,
@@ -444,7 +446,7 @@ namespace RZ {
         bool random = true);
 
       static void addFocalPlaneFocusedBeam(
-        std::list<Ray> &dest,
+        RZ::RayList &dest,
         const ReferenceFrame *focalPlane,
         unsigned int number = 1000,
         Real fNum = 17.37,
@@ -457,7 +459,7 @@ namespace RZ {
         bool random = true,
         Real offZ = 0);
 
-      static void addBeam(std::list<Ray> &dest, BeamProperties const &);
+      static void addBeam(RZ::RayList &dest, BeamProperties const &);
       
   };
 }

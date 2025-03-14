@@ -78,7 +78,7 @@ TEST_CASE("Infinite reflection: stray light", THIS_TEST_TAG)
   auto frame = model->lookupReferenceFrame("stop.aperture");
   REQUIRE(frame != nullptr);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
@@ -133,7 +133,7 @@ TEST_CASE("Infinite reflection: limited propagation", THIS_TEST_TAG)
   auto frame = model->lookupReferenceFrame("stop.aperture");
   REQUIRE(frame != nullptr);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
@@ -212,7 +212,7 @@ TEST_CASE("Rotated lens: proper orientation", THIS_TEST_TAG)
   // Record hits!
   detector->setRecordHits(true);
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
@@ -304,7 +304,7 @@ TEST_CASE("Rotated lens: 180 deg flip", THIS_TEST_TAG)
   // Flip lens
   REQUIRE(model->setDof("angle", 180.));
 
-  std::list<Ray> rays;
+  RayList rays;
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;

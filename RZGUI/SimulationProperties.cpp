@@ -237,10 +237,12 @@ SimulationBeamProperties::serialize() const
   SERIALIZE(fNum);
   SERIALIZE(uX);
   SERIALIZE(uY);
+  SERIALIZE(negativeZ);
   SERIALIZE(offsetX);
   SERIALIZE(offsetY);
   SERIALIZE(offsetZ);
   SERIALIZE(wavelength);
+  SERIALIZE(length);
   SERIALIZE(random);
   SERIALIZE(rays);
 #undef SERIALIZE
@@ -271,10 +273,12 @@ SimulationBeamProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(fNum);
   DESERIALIZE(uX);
   DESERIALIZE(uY);
+  DESERIALIZE(negativeZ);
   DESERIALIZE(offsetX);
   DESERIALIZE(offsetY);
   DESERIALIZE(offsetZ);
   DESERIALIZE(wavelength);
+  DESERIALIZE(length);
   DESERIALIZE(random);
   DESERIALIZE(rays);
 #undef DESERIALIZE
@@ -554,6 +558,8 @@ SimulationProperties::SimulationProperties(const SimulationProperties &prop)
   overwrite     = prop.overwrite;
   saveDir       = prop.saveDir;
   saveDetector  = prop.saveDetector;
+  
+
   regenerateBeamVector();
 }
 

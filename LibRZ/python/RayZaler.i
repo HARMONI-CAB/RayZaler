@@ -34,9 +34,9 @@ static PyObject* g_rzException;
 %include "numpy.i"
 
 namespace std {
-  %template(StringList) list<string>;
-  %template(StringVec)  vector<string>;
-  %template(StringSet)  set<string>;
+  %template(StringList)  list<string>;
+  %template(StringVec)   vector<string>;
+  %template(StringSet)   set<string>;
 }
 
 %init %{
@@ -91,6 +91,7 @@ namespace std {
   %template(PropertyMap)      map<string, RZ::PropertyValue>;
   %template(OpticSurfList)    list<RZ::OpticalSurface *>;
   %rename(ConstOpticSurfList) list<const RZ::OpticalSurface *>;
+  %template(PureRayList)      list<RZ::Ray, allocator<RZ::Ray>>;
 }
 
 %exception {
@@ -405,6 +406,25 @@ namespace std {
 }
 
 %extend RZ::RayList {
+  uint64_t
+  size() const
+  {
+    return self->size();
+  }
+
+  RZ::Ray *
+  getRay(uint64_t i)
+  {
+    if (i >= self->size())
+      return nullptr;
+
+    for (auto &p : *self)
+      if (i-- == 0)
+        return &p;
+    
+    return nullptr;
+  }
+
   void
   addSkyBeam(
         unsigned int number = 1000,

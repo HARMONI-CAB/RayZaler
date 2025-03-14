@@ -36,7 +36,10 @@ namespace RZ {
     SurfaceShape   *m_surfaceShape  = nullptr;
     EMInterface    *m_emInterface   = nullptr;
     bool            m_reversible    = false;
-
+    bool            m_infinite      = true;
+    Real            m_hWidth        = .5;
+    Real            m_hHeight       = .5;
+    
   protected:
     inline void
     setSurfaceShape(SurfaceShape *ap)
@@ -101,6 +104,30 @@ namespace RZ {
     emInterface() const
     {
       return static_cast<const T *>(emInterface());
+    }
+
+    inline void
+    setInfinite(bool infinite) {
+      m_infinite = infinite;
+    }
+
+    inline bool
+    infinite() const
+    {
+      return m_infinite;
+    }
+
+    inline void
+    setClipDimensions(Real w, Real h)
+    {
+      m_hWidth  = .5 * w;
+      m_hHeight = .5 * h;
+    }
+
+    inline bool
+    clipped(Real x, Real y) const
+    {
+      return !m_infinite && (fabs(x) >= m_hWidth || fabs(y) >= m_hHeight);
     }
 
     virtual std::string name() const = 0;

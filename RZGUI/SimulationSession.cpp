@@ -198,6 +198,7 @@ SimulationState::createNewBeamStates()
     TRY_DEFINE_BEAM_EXPR(offsetY);
     TRY_DEFINE_BEAM_EXPR(offsetZ);
     TRY_DEFINE_BEAM_EXPR(wavelength);
+    TRY_DEFINE_BEAM_EXPR(length);
 
     beamState->complete = true;
   }
@@ -315,12 +316,19 @@ SimulationState::allocateRays()
     auto y0 = beamState->evalCtx.eval("offsetY");
     auto z0 = beamState->evalCtx.eval("offsetZ");
     auto wl = beamState->evalCtx.eval("wavelength") * 1e-9;
+    auto lg = beamState->evalCtx.eval("length");
 
     auto uz = -sqrt(1 - ux * ux - uy * uy);
 
+    if (!beamState->properties.negativeZ) {
+      ux = -ux;
+      uy = -uy;
+      uz = -uz;
+    }
+
     prop.direction        = RZ::Vec3(ux, uy, uz);
     prop.offset           = RZ::Vec3(x0, y0, z0);
-    prop.length           = 1;
+    prop.length           = lg;
     prop.id               = beamState->id;
     prop.wavelength       = wl;
     beamState->wavelength = wl;
@@ -879,7 +887,7 @@ SimulationState::properties() const
   return m_properties;
 }
 
-std::list<RZ::Ray> const &
+RZ::RayList const &
 SimulationState::rayGroup() const
 {
   return *m_currentRayGroup;

@@ -28,7 +28,7 @@ ObstructionBoundary::ObstructionBoundary()
 
   setSurfaceShape(new CircularFlatSurface(.5));
   surfaceShape<CircularFlatSurface>()->setObstruction(true);
-
+  surfaceShape<CircularFlatSurface>()->setComplementary(true);
   setEMInterface(new DummyEMInterface);
 }
 

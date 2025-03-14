@@ -85,7 +85,7 @@ struct BeamSimulationState {
   BeamSimulationState(const SimulationBeamProperties &, ExprEvaluationContext *);
 };
 
-typedef std::list<RZ::Ray> RayGroup;
+typedef RZ::RayList RayGroup;
 
 class SimulationSession;
 class SimulationState {
@@ -181,7 +181,7 @@ public:
   bool setProperties(SimulationProperties const &);
   std::string getLastError() const;
   SimulationProperties properties() const;
-  std::list<RZ::Ray> const &rayGroup() const;
+  RZ::RayList const &rayGroup() const;
   BeamSimulationState *getBeamState(uint32_t id);
 };
 

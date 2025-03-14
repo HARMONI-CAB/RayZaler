@@ -31,9 +31,10 @@ namespace RZ {
       GLPinHole             m_pinHole;
       TranslatedFrame      *m_stopSurface = nullptr;
       
-      Real m_radius = 1e-2;
-      Real m_width  = 3e-2;
-      Real m_height = 3e-2;
+      Real m_radius   = 1e-2;
+      Real m_width    = 3e-2;
+      Real m_height   = 3e-2;
+      bool m_infinite = true;
 
       void recalcModel();
 

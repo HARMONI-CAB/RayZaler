@@ -56,7 +56,7 @@ AsyncRayTracer::setNonSeq(bool nonSeq)
 }
 
 void
-AsyncRayTracer::setBeam(std::list<RZ::Ray> const &beam)
+AsyncRayTracer::setBeam(RZ::RayList const &beam)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
   m_beam = &beam;

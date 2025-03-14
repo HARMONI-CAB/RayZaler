@@ -53,15 +53,17 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
 
         // Do intercept. Note we do not do pruning here.
         if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
-          K                      = 2 * M_PI / beam.wavelengths[i];
-          opd                    = beam.refNdx[i] * dt;
-          beam.lengths[i]        = dt;
-          beam.cumOptLengths[i] += opd;
-          beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
+          if (!clipped(destination.x, destination.y)) {
+            K                      = 2 * M_PI / beam.wavelengths[i];
+            opd                    = beam.refNdx[i] * dt;
+            beam.lengths[i]        = dt;
+            beam.cumOptLengths[i] += opd;
+            beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
 
-          destination.copyToArray(beam.destinations + 3 * i);
-          normal.copyToArray(beam.normals     + 3 * i);
-          beam.intercept(i);
+            destination.copyToArray(beam.destinations + 3 * i);
+            normal.copyToArray(beam.normals     + 3 * i);
+            beam.intercept(i);
+          }
         }
       }
     }
@@ -77,15 +79,17 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
           dt                     = -origin.z / dir.z;
           destination            = origin + dt * dir;
           
-          K                      = 2 * M_PI / beam.wavelengths[i];
-          opd                    = beam.refNdx[i] * dt;
-          beam.lengths[i]        = dt;
-          beam.cumOptLengths[i] += opd;
-          beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
+          if (!clipped(destination.x, destination.y)) {
+            K                      = 2 * M_PI / beam.wavelengths[i];
+            opd                    = beam.refNdx[i] * dt;
+            beam.lengths[i]        = dt;
+            beam.cumOptLengths[i] += opd;
+            beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
 
-          destination.copyToArray(beam.destinations + 3 * i);
-          Vec3::eZ().copyToArray(beam.normals + 3 * i);
-          beam.intercept(i);
+            destination.copyToArray(beam.destinations + 3 * i);
+            Vec3::eZ().copyToArray(beam.normals + 3 * i);
+            beam.intercept(i);
+          }
         }
       }
     }

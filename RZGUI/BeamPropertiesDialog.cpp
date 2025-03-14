@@ -33,6 +33,18 @@ BeamPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->negZCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->lengthEdit,
+        SIGNAL(textChanged(QString)),
+        this,
+        SLOT(onExprEditChanged()));
+
+  connect(
         ui->diamEdit,
         SIGNAL(textChanged(QString)),
         this,
@@ -223,7 +235,8 @@ BeamPropertiesDialog::parseProperties()
   m_properties.apertureStop = ui->apertureCombo->currentData().toString();
   m_properties.path         = ui->pathEdit->text();
   m_properties.rays         = ui->rayNumberSpin->value();
-
+  m_properties.length       = ui->lengthEdit->text();
+  m_properties.negativeZ    = ui->negZCheck->isChecked();
 }
 
 void
@@ -250,6 +263,8 @@ BeamPropertiesDialog::refreshUi()
   BLOCKSIG(ui->beamSamplingCombo, setCurrentIndex(m_properties.random ? 1 : 0));
   BLOCKSIG(ui->pathEdit,          setText(m_properties.path));
   BLOCKSIG(ui->rayNumberSpin,     setValue(m_properties.rays));
+  BLOCKSIG(ui->lengthEdit,        setText(m_properties.length));
+  BLOCKSIG(ui->negZCheck,         setChecked(m_properties.negativeZ));
 
   switch (m_properties.ref) {
     case BEAM_REFERENCE_INPUT_ELEMENT:
@@ -426,6 +441,8 @@ BeamPropertiesDialog::highlightFaultyField(QString const &failed)
       edit = ui->offsetZEdit;
     else if (failed == "wavelength")
       edit = ui->wlEdit;
+    else if (failed == "length")
+      edit = ui->lengthEdit;
   }
 
   edit->setStyleSheet("background-color: #ffbfbf; color: black");
@@ -501,6 +518,11 @@ BeamPropertiesDialog::onEditDirectionCosines()
     } else {
       uZ = -sqrt(uZ);
 
+      if (!ui->negZCheck->isChecked()) {
+        uX = -uX;
+        uY = -uY;
+        uZ = -uZ;
+      }
       qreal az = atan2(uX, uY); // Yes, this is right.
       qreal el = asin(-uZ);
 

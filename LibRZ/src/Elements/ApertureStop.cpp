@@ -27,6 +27,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ApertureStop, "Circular stop in a rectangular frame"
   property("diameter",  5e-2,   "Aperture diameter [m]");
   property("width",     7.5e-2, "Width of the stop mask [m]");
   property("height",    7.5e-2, "Height of the stop mask [m]");
+  property("infinite",  true,   "External frame is infinite");
 }
 
 void
@@ -42,6 +43,9 @@ ApertureStop::recalcModel()
   m_pinHole.setRadius(m_radius);
   m_pinHole.setHeight(m_height);
   m_pinHole.setWidth(m_width);
+
+  m_boundary->setClipDimensions(m_width, m_height);
+  m_boundary->setInfinite(m_infinite);
 
   setBoundingBox(
     Vec3(-m_width / 2, -m_height/2, 0),
@@ -72,7 +76,12 @@ ApertureStop::propertyChanged(
     m_height = value;
     recalcModel();
     return true;
+  } else if (name == "infinite") {
+    m_infinite = value;
+    recalcModel();
+    return true;
   }
+
 
   return Element::propertyChanged(name, value);
 }

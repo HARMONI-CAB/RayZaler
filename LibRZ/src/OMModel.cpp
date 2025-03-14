@@ -50,6 +50,8 @@ BeamProperties::debug() const
   RZInfo("Wavelength: %g nm\n", wavelength * 1e9);
   RZInfo("Length: %g\n", length);
   RZInfo("Diameter: %g\n", diameter);
+  RZInfo("Spatial shape: %d\n", shape);
+  RZInfo("Angular shape: %d\n", objectShape);
 }
 
 //
@@ -750,7 +752,7 @@ OMModel::clearBeam()
 bool
 OMModel::traceDiffraction(
         std::string const &pathName,
-        std::list<Ray> const &rays,
+        RayList const &rays,
         RayTracingProcessListener *listener,
         bool clear,
         const struct timeval *startTime)
@@ -762,7 +764,7 @@ OMModel::traceDiffraction(
 bool
 OMModel::trace(
         std::string const &pathName,
-        std::list<Ray> const &rays,
+        RayList const &rays,
         bool updateBeamElement,
         RayTracingProcessListener *listener,
         bool clear,
@@ -784,7 +786,7 @@ OMModel::trace(
 
 bool
 OMModel::traceNonSequential(
-        std::list<Ray> const &rays,
+        RayList const &rays,
         bool updateBeamElement,
         RayTracingProcessListener *listener,
         bool clear,
@@ -807,7 +809,7 @@ OMModel::traceNonSequential(
 
 bool
 OMModel::traceDefault(
-    std::list<Ray> const &rays,
+    RayList const &rays,
     bool updateBeamElement,
     RayTracingProcessListener *listener,
     bool clear,
@@ -840,7 +842,7 @@ OMModel::setBeamColoring(RayColoring const *coloring)
 
 void
 OMModel::addSkyBeam(
-  std::list<Ray> &dest,
+  RayList &dest,
   unsigned int number,
   Real radius,
   Real azimuth,
@@ -866,7 +868,7 @@ OMModel::addSkyBeam(
 
 void
 OMModel::addElementRelativeBeam(
-  std::list<Ray> &dest,
+  RayList &dest,
   Element *element,
   unsigned int number,
   Real radius,
@@ -911,7 +913,7 @@ OMModel::addElementRelativeBeam(
 //
 void
 OMModel::addElementRelativeFocusBeam(
-    std::list<Ray> &dest,
+    RayList &dest,
     Element *element,
     unsigned int number,
     Real radius, // Ignored
@@ -945,7 +947,7 @@ OMModel::addElementRelativeFocusBeam(
 
 void
 OMModel::addFocalPlaneFocusedBeam(
-    std::list<Ray> &dest,
+    RayList &dest,
     const ReferenceFrame *frame,
     unsigned int number,
     Real fNum,
@@ -1009,7 +1011,7 @@ OMModel::~OMModel()
 }
 
 void
-OMModel::addBeam(std::list<Ray> &dest, BeamProperties const &properties)
+OMModel::addBeam(RayList &dest, BeamProperties const &properties)
 {
   const ReferenceFrame *frame = nullptr;
   Sampler *raySampler = nullptr;

@@ -49,8 +49,8 @@ namespace RZ {
   };
 
   class RayTracingEngine {
-      std::list<Ray> m_rays;
-      bool           m_raysDirty = false;
+      RayList  m_rays;
+      bool     m_raysDirty = false;
       
       RayBeam *m_beam = nullptr;
       bool     m_beamDirty = true;
@@ -112,7 +112,7 @@ namespace RZ {
         Vec3 const &direction,
         Real length = 0,
         uint32_t id = 0);
-      void pushRays(std::list<Ray> const &);
+      void pushRays(RayList const &);
       
       // Intersect with this surface. It needs to check if the beam is up to
       // date, and recreated it with toBeam() if necessary.
@@ -128,7 +128,7 @@ namespace RZ {
 
       // Clear m_ray, process the beam, set random targets 
       // Return the output rays, after transfer
-      std::list<Ray> const &getRays(bool keepPruned = false);
+      RayList const &getRays(bool keepPruned = false);
 
       // Mark start of elapsed time counter
       void tick();

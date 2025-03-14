@@ -49,8 +49,8 @@ namespace RZ {
     bool chief = false;
     bool intercepted = false;
 
-    RZ::Real wavelength = RZ_WAVELENGTH;
-    RZ::Real refNdx     = 1.; // Refractive index of the medium
+    Real wavelength = RZ_WAVELENGTH;
+    Real refNdx     = 1.; // Refractive index of the medium
 
     // Defined by the user
     uint32_t id = 0;
@@ -58,7 +58,7 @@ namespace RZ {
 
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
 
-  struct RayBeamStatistics {
+struct RayBeamStatistics {
     uint64_t intercepted = 0;
     uint64_t vignetted   = 0;
     uint64_t pruned      = 0;

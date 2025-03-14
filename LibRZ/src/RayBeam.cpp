@@ -688,6 +688,19 @@ template void RayBeam::extractRays<std::list<Ray>>(
   OpticalSurface *,
   RayBeamSlice const &);
 
+template void RayBeam::extractRays<RayList>(
+  RayList &,
+  uint32_t mask,
+  OpticalSurface *,
+  RayBeamSlice const &);
+
+template void RayBeam::extractRays<RayList>(
+  RayList &,
+  RayBeamSlice const &,
+  uint32_t mask,
+  OpticalSurface *,
+  RayBeamSlice const &);
+
 template void RayBeam::extractRays<std::vector<Ray>>(
   std::vector<Ray> &,
   uint32_t mask,
