@@ -38,11 +38,12 @@ namespace RZ {
 
     std::map<uint32_t, RayBeamStatistics> statistics;
     
-    mutable std::vector<Ray>    hits;
+    mutable std::vector<RZ::Ray, std::allocator<RZ::Ray>> hits;
 
     // Haha C++
-    mutable std::vector<Real>   locationArray;
-    mutable std::vector<Real>   directionArray;
+    mutable std::vector<Real>     locationArray;
+    mutable std::vector<Real>     directionArray;
+    mutable std::vector<uint32_t> idArray;
 
     std::vector<Real> &locations() const;
     std::vector<Real> &directions() const;
@@ -58,8 +59,8 @@ namespace RZ {
     OpticalPath &plug(OpticalElement *, std::string const &name = "");
     void push(const OpticalSurface *);
 
-    const std::vector<Real> &hits(std::string const &name) const;
-    const std::vector<Real> &directions(std::string const &name) const;
+    const std::vector<Real>     &hits(std::string const &name) const;
+    const std::vector<Real>     &directions(std::string const &name) const;
 
     inline const OpticalSurface *
     getSurface(std::string const &name) const

@@ -20,6 +20,7 @@
 #include <SurfaceShape.h>
 #include <EMInterface.h>
 #include <RayTracingEngine.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -48,6 +49,7 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
+
         Vec3 normal;
         Real dt, opd;
 

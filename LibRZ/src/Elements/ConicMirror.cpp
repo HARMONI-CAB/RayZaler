@@ -18,6 +18,7 @@
 
 #include <Elements/ConicMirror.h>
 #include <TranslatedFrame.h>
+#include <Logger.h>
 
 using namespace RZ;
 

@@ -230,8 +230,11 @@ OpticalElement::lookupSurface(std::string const &name)
 void
 OpticalElement::clearHits()
 {
-  for (auto &p : m_surfaces)
+  for (auto &p : m_surfaces) {
     p.hits.clear();
+    p.clearCache();
+    p.clearStatistics();
+  }
 }
 
 OpticalElement::OpticalElement(

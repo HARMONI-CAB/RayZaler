@@ -18,6 +18,7 @@
 
 
 #include <Surfaces/Conic.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -391,7 +392,7 @@ ConicSurface::intercept(
   // Note: The equation is A^2t + Bt + C = 0. This implies certain numerical
   // precision issue here when 4AC << B^2. For now, this test seems sufficient
   // but this requires a more careful approach.
-  
+
   if (isZero(A)) {
     // Case Bt + C = 0. There is only one solution in this case.
     deltaT = -C / B;

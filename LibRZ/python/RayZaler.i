@@ -92,6 +92,7 @@ namespace std {
   %template(OpticSurfList)    list<RZ::OpticalSurface *>;
   %rename(ConstOpticSurfList) list<const RZ::OpticalSurface *>;
   %template(PureRayList)      list<RZ::Ray, allocator<RZ::Ray>>;
+  %template(PureRayVec)       vector<RZ::Ray, allocator<RZ::Ray>>;
 }
 
 %exception {
