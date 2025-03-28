@@ -77,6 +77,7 @@ namespace RZ {
 
       virtual std::vector<std::vector<Real>> const &edges() const;
       virtual void renderOpenGL();
+      virtual void renderOpenGLExtra();
       
   };
 }

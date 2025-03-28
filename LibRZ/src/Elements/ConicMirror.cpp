@@ -17,6 +17,7 @@
 //
 
 #include <Elements/ConicMirror.h>
+#include <Surfaces/Conic.h>
 #include <TranslatedFrame.h>
 #include <Logger.h>
 
@@ -28,12 +29,12 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicMirror, "Circular mirror with a surface given b
   property("thickness",      1e-2,      "Thickness of the mirror [m]");
   property("radius",         1e-1,      "Radius of the mirror [m]");
   property("diameter",       2 * 1e-1,  "Diameter of the mirror [m]");
-  property("curvature",      .5,        "Radius of curvature of the mirror [m]");
+  property("curvature",      0.5,       "Radius of curvature of the mirror [m]");
   property("focalLength",    0.5 * .5,  "Focal length of the mirror [m]");
-  property("conic",          0,         "Conic constant (K) of the reflective surface");
-  property("hole",           0,         "Radius of the central hole [m]");
-  property("x0",             0,         "X-axis offset [m]");
-  property("y0",             0,         "Y-axis offset [m]");
+  property("conic",          0.0,       "Conic constant (K) of the reflective surface");
+  property("hole",           0.0,       "Radius of the central hole [m]");
+  property("x0",             0.0,       "X-axis offset [m]");
+  property("y0",             0.0,       "Y-axis offset [m]");
   property("vertexRelative", false,     "Positioning is relative to the vertex of the reflective surface");
 }
 
@@ -58,6 +59,9 @@ ConicMirror::recalcModel()
   }
 
   Real backPlaneZ, apertureZ;
+  Real center = sqrt(m_x0 * m_x0 + m_y0 * m_y0);
+  Real zPlus  = m_boundary->surfaceShape<ConicSurface>()->z(center + m_radius);
+  Real zMinus = m_boundary->surfaceShape<ConicSurface>()->z(fmax(0, center - m_radius));
 
   if (m_vertexRelative) {
     // Mirror is centered around vertex
@@ -68,6 +72,11 @@ ConicMirror::recalcModel()
     apertureZ  = m_thickness - sigma * m_displacement;
     backPlaneZ = 0;
   }
+
+  m_vertex = RZ::Vec3(
+    m_x0,
+    m_y0,
+    apertureZ + m_boundary->surfaceShape<ConicSurface>()->z(center));
 
   m_cap.setRadius(m_radius);
   m_cap.setCurvatureRadius(Rc);
@@ -108,9 +117,12 @@ ConicMirror::recalcModel()
   m_hole.setVisibleCaps(false, false);
   m_boundary->setHoleRadius(m_rHole);
 
+  Real minZ = backPlaneZ + fmin(zPlus, zMinus);
+  Real maxZ = apertureZ + fmax(zPlus, zMinus);
+
   setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(backPlaneZ, backPlaneZ - sigma * m_displacement)),
-      Vec3(+m_radius + m_x0, +m_radius + m_y0, fmax(apertureZ, apertureZ   + sigma * m_displacement)));
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, minZ),
+      Vec3(+m_radius + m_x0, +m_radius + m_y0, maxZ));
 
   updatePropertyValue("hole",        m_rHole);
   updatePropertyValue("focalLength", 0.5 * m_rCurv);
@@ -188,6 +200,12 @@ ConicMirror::~ConicMirror()
 
   if (m_vertexPort != nullptr)
     delete m_vertexPort;
+}
+
+Vec3
+ConicMirror::getVertex() const
+{
+  return parentFrame()->fromRelative(m_vertex);
 }
 
 void

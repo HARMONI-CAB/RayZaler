@@ -126,6 +126,8 @@ namespace RZ {
         return nullptr;
       }
       
+      virtual Vec3 getVertex() const;
+
       virtual OpticalPath opticalPath(std::string const &name = "") const;
       OpticalPath plug(OpticalElement *, std::string const &name = "") const;
       

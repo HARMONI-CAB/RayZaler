@@ -45,13 +45,32 @@ namespace RZ {
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_holeVertices;
     std::vector<GLfloat> m_axes;
-    
+
+    std::vector<GLfloat> m_selectedAxes;
+    std::vector<GLfloat> m_selectedAxesClosed;
+    std::vector<GLfloat> m_selectedEquator;
+
     std::vector<std::vector<Real>> m_edges;
     
-    void recalcGLConic();
-    void recalcGLParabolic();
+    void recalcSelectionGL();
     void recalcGL();
     void recalcDistribution();
+
+    template<class T> void generateConicCircle(
+      T &dest,
+      Real r,
+      Real x0 = 0, Real y0 = 0,
+      Real sign = 1,
+      unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
+    
+    void generateConicSectionVertices(
+      std::vector<GLfloat> &dest,
+      Real r0,
+      Real rn,
+      Real x0, Real y0,
+      Real ux, Real uy,
+      Real sign = 1,
+      unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
 
   public:
     ConicSurface(Real radius, Real RCurv, Real K);
@@ -63,7 +82,8 @@ namespace RZ {
     void setCenterOffset(Real, Real);
     void setHoleRadius(Real);
     void setConvex(bool);
-    
+    Real z(Real r) const;
+
     virtual bool intercept(
       Vec3 &hit,
       Vec3 &normal,
@@ -82,6 +102,7 @@ namespace RZ {
 
     virtual std::vector<std::vector<Real>> const &edges() const override;
     virtual void renderOpenGL() override;
+    virtual void renderOpenGLExtra() override;
   };
 }
 

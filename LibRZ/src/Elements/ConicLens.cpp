@@ -26,21 +26,21 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves
   property("thickness",         1e-2,       "Thickness of the lens [m]");
   property("radius",            2.5e-2,     "Radius of the lens [m]");
   property("diameter",          2 * 2.5e-2, "Diameter of the lens [m]");
-  property("x0",                0,          "X-axis offset [m]");
-  property("y0",                0,          "Y-axis offset [m]");
+  property("x0",                0.0,        "X-axis offset [m]");
+  property("y0",                0.0,        "Y-axis offset [m]");
   property("n",                 1.5,        "Refractive index");
 
   property("curvature",         1e-1,       "Radius of curvature of both surfaces [m]");
   property("focalLength",       5e-2,       "Focal length of both surfaces [m]");
-  property("conic",             0,          "Conic constant (K) of both surfaces");
+  property("conic",             0.0,        "Conic constant (K) of both surfaces");
 
   property("frontCurvature",    1e-1,       "Radius of curvature of the front surface [m]");
   property("frontFocalLength",  5e-2,       "Focal length of the front surface [m]");
-  property("frontConic",        0,          "Conic constant (K) of the front surface");
+  property("frontConic",        0.0,        "Conic constant (K) of the front surface");
 
   property("backCurvature",     1e-1,       "Radius of curvature of the front surface [m]");
   property("backFocalLength",   5e-2,       "Focal length of the back surface [m]");
-  property("backConic",         0,          "Conic constant (K) of the back surface");
+  property("backConic",         0.0,        "Conic constant (K) of the back surface");
 }
 
 void
@@ -89,10 +89,10 @@ ConicLens::recalcModel()
 
   dZ[0] = FFD - m_focalLength[0];
   dZ[1] = BFD - m_focalLength[1];
-  #endif 
+#endif 
 
   dZ[0] = dZ[1] = .5 * m_thickness;
-  
+
   // Input focal plane: located at -f minus half the thickness
   m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
   m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());

@@ -141,6 +141,12 @@ FlatMirror::~FlatMirror()
     delete m_flipFrame;
 }
 
+Vec3
+FlatMirror::getVertex() const
+{
+  return m_reflectiveSurfaceFrame->getCenter();
+}
+
 void
 FlatMirror::nativeMaterialOpenGL(std::string const &)
 {

@@ -58,6 +58,7 @@ namespace RZ {
       
       virtual ~FlatMirror() override;
 
+      virtual Vec3 getVertex() const override;
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
   };

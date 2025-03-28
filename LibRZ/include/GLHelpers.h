@@ -540,10 +540,12 @@ public:
   
   class GLArrow : public GLPrimitive {
       Vec3            m_direction;
+      Vec3            m_origin;
       GLfloat         m_thickness = 2;
       
     public:
       void setThickness(GLfloat thickness);
+      void setOrigin(Vec3 const &vec);
       void setDirection(Vec3 const &vec);
       
       virtual void display() override;

@@ -1800,6 +1800,12 @@ GLArrow::setDirection(Vec3 const &vec)
 }
 
 void
+GLArrow::setOrigin(Vec3 const &origin)
+{
+  m_origin = origin;
+}
+
+void
 GLArrow::display()
 {
   glPushAttrib(GL_LINE_BIT | GL_LIGHTING_BIT | GL_COLOR_BUFFER_BIT);
@@ -1808,8 +1814,11 @@ GLArrow::display()
     glLineWidth(m_thickness);
 
     glBegin(GL_LINES);
-      glVertex3f(0, 0, 0);
-      glVertex3f(m_direction.x, m_direction.y, m_direction.z);
+      glVertex3f(m_origin.x, m_origin.y, m_origin.z);
+      glVertex3f(
+        m_origin.x + m_direction.x,
+        m_origin.y + m_direction.y,
+        m_origin.z + m_direction.z);
     glEnd();
   glPopAttrib();
 }

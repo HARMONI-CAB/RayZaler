@@ -232,9 +232,24 @@ RZGUIGLWidget::displayApertures(const RZ::Element *el)
 
       if (ap != nullptr) {
         pushReferenceFrameMatrix(surf->frame);
-        /*if (m_displayElements)
-          glTranslatef(0, 0, 1e-3);*/
+        
         ap->renderOpenGL();
+
+        if (el == m_selectedElement) {
+          glColor3f(1, 1, 0);
+          
+          ap->renderOpenGLExtra();
+
+          if (m_displayElements)
+            glColor3f(0, 0, 1);
+          else
+            glColor3f(1, 1, 1);
+        }
+        
+        /*if (!surf->boundary->infinite()) {
+          
+        }*/
+
         glPopMatrix();
       }
     }
@@ -366,9 +381,7 @@ RZGUIGLWidget::displayCurrentPath()
       if (q == path->m_sequence.end())
         break;
 
-      pushReferenceFrameMatrix((*p)->frame);
       m_pathArrows[i++].display();
-      glPopMatrix();
     }
   }
 }
@@ -463,19 +476,17 @@ RZGUIGLWidget::setSelectedOpticalPath(const RZ::OpticalPath *path)
     m_pathArrows.clear();
 
     if (path != nullptr) {
-      for (auto p = path->m_sequence.begin();
-          p != path->m_sequence.end();
-          ++p) {
-        auto q = std::next(p);
-        if (q == path->m_sequence.end())
-          break;
+      auto p = path->m_sequence.begin();
+      for (auto q = std::next(p);
+          q != path->m_sequence.end();
+          p = q, q = std::next(p)) {
+        RZ::Vec3 qCenter = (*q)->parent->getVertex();
+        RZ::Vec3 pCenter = (*p)->parent->getVertex();
 
         RZ::GLArrow arrow;
-        RZ::Vec3 direction = (*q)->frame->getCenter() - (*p)->frame->getCenter();
 
-        direction = (*p)->frame->toRelativeVec(direction);
-        
-        arrow.setDirection(direction);
+        arrow.setOrigin(pCenter);
+        arrow.setDirection(qCenter - pCenter);
         arrow.setThickness(4);
         m_pathArrows.push_back(arrow);
       }

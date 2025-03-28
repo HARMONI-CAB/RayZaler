@@ -129,6 +129,12 @@ OpticalElement::opticalPath(std::string const &name) const
     throw std::runtime_error("Unknown optical path `" + name + "'");
 }
 
+Vec3
+OpticalElement::getVertex() const
+{
+  return parentFrame()->getCenter();
+}
+
 OpticalPath
 OpticalElement::plug(OpticalElement *newElement, std::string const &name) const
 {

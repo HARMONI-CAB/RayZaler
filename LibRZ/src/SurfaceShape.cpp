@@ -31,6 +31,12 @@ SurfaceShape::renderOpenGL()
   // Implement me!
 }
 
+void
+SurfaceShape::renderOpenGLExtra()
+{
+  // Used to represent elements that are selected. Implement me!
+}
+
 std::vector<std::vector<Real>> const &
 SurfaceShape::edges() const
 {

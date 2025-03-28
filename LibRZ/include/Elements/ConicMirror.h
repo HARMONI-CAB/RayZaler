@@ -47,6 +47,7 @@ namespace RZ {
       Real m_displacement   = 0;
       
       Real m_rHoleHeight    = 0;
+      Vec3 m_vertex;
       bool m_vertexRelative = false;
 
       void recalcModel();
@@ -63,6 +64,7 @@ namespace RZ {
       
       virtual ~ConicMirror() override;
 
+      virtual Vec3 getVertex() const override;
       virtual void nativeMaterialOpenGL(std::string const &) override;
       virtual void renderOpenGL() override;
   };
