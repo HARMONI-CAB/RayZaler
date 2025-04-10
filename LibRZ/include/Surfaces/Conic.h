@@ -41,7 +41,8 @@ namespace RZ {
 
     bool m_parabola = false;
     bool m_convex   = false;
-
+    bool m_dirty    = false;
+    
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_holeVertices;
     std::vector<GLfloat> m_axes;

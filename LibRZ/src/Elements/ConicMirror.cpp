@@ -84,16 +84,18 @@ ConicMirror::recalcModel()
   m_cap.setConvex(convex);
   m_cap.setInvertNormals(false);
   m_cap.setCenterOffset(m_x0, m_y0);
-  
+  m_cap.setHoleRadius(m_rHole);
+
   m_rearCap.setRadius(m_radius);
   m_rearCap.setCurvatureRadius(Rc);
   m_rearCap.setConicConstant(m_K);
   m_rearCap.setConvex(convex);
   m_rearCap.setInvertNormals(true);
   m_rearCap.setCenterOffset(m_x0, m_y0);
+  m_rearCap.setHoleRadius(m_rHole);
 
-  m_cap.requestRecalc();
-  m_rearCap.requestRecalc();
+  //m_cap.requestRecalc();
+  //m_rearCap.requestRecalc();
 
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setCaps(&m_cap, &m_rearCap);
@@ -107,9 +109,6 @@ ConicMirror::recalcModel()
   m_boundary->setConicConstant(m_K);
   m_boundary->setConvex(convex);
   m_boundary->setCenterOffset(m_x0, m_y0);
-
-  m_cap.setHoleRadius(m_rHole);
-  m_rearCap.setHoleRadius(m_rHole);
 
   m_hole.setRadius(m_rHole);
   m_hole.setInvertNormals(true);

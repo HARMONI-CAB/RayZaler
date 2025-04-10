@@ -73,7 +73,7 @@ ConicSurface::setCenterOffset(Real x, Real y)
   m_y0 = y;
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 void
@@ -83,7 +83,7 @@ ConicSurface::setRadius(Real R)
   m_radius2 = R * R;
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 void
@@ -93,7 +93,7 @@ ConicSurface::setCurvatureRadius(Real R)
   m_rCurv2 = R * R;
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 void
@@ -103,7 +103,7 @@ ConicSurface::setConicConstant(Real K)
   m_parabola = isZero(K + 1);
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 void
@@ -113,7 +113,7 @@ ConicSurface::setHoleRadius(Real Rhole)
   m_rHole2 = Rhole * Rhole;
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 void
@@ -122,12 +122,15 @@ ConicSurface::setConvex(bool convex)
   m_convex = convex;
 
   recalcDistribution();
-  recalcGL();
+  m_dirty = true;
 }
 
 std::vector<std::vector<Real>> const &
 ConicSurface::edges() const
 {
+  if (m_dirty)
+    const_cast<ConicSurface *>(this)->recalcGL();
+  
   return m_edges;
 }
 
@@ -322,6 +325,8 @@ ConicSurface::recalcGL()
   generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, +m_uy, -m_ux);
 
   //recalcSelectionGL();
+
+  m_dirty = false;
 }
 
 bool
@@ -425,6 +430,9 @@ ConicSurface::name() const
 void
 ConicSurface::renderOpenGL()
 {
+  if (m_dirty)
+    recalcGL();
+  
   auto N = m_axes.size() / (4 * 3);
 
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -454,6 +462,9 @@ ConicSurface::renderOpenGL()
 void
 ConicSurface::renderOpenGLExtra()
 {
+  if (m_dirty)
+    recalcGL();
+  
   glEnableClientState(GL_VERTEX_ARRAY);
     glPushAttrib(GL_ENABLE_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_LINE_BIT);
 

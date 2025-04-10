@@ -19,6 +19,7 @@
 #include <RZGLModel.h>
 #include <Element.h>
 #include <OMModel.h>
+#include <Elements/RayBeamElement.h>
 
 using namespace RZ;
 
@@ -41,6 +42,13 @@ RZGLModel::displayModel(OMModel *model)
     
     if (p->nestedModel() != nullptr)
       displayModel(p->nestedModel());
+  }
+
+  if (model == m_model) {
+    auto beam = model->beam();
+    pushElementMatrix(beam);
+    beam->renderOpenGL();
+    popElementMatrix();
   }
 }
 

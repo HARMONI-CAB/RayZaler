@@ -31,7 +31,8 @@ namespace RZ {
     Real m_a2 = 1;
     Real m_b2 = 1;
     bool m_obstruction = false;
-
+    bool m_dirty = false;
+    
     std::vector<GLfloat> m_vertices;
     std::vector<GLfloat> m_grid;
     std::vector<std::vector<Real>> m_edges;

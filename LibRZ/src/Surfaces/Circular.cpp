@@ -12,6 +12,9 @@ CircularFlatSurface::CircularFlatSurface(Real radius)
 std::vector<std::vector<Real>> const &
 CircularFlatSurface::edges() const
 {
+  if (m_dirty)
+    const_cast<CircularFlatSurface *>(this)->recalculate();
+    
   return m_edges;
 }
 
@@ -95,6 +98,8 @@ CircularFlatSurface::recalculate()
       m_grid.push_back(0);
     }
   }
+
+  m_dirty = false;
 }
 
 void
@@ -103,7 +108,7 @@ CircularFlatSurface::setRadius(Real radius)
   m_radius  = radius;
   m_radius2 = radius * radius;
 
-  recalculate();
+  m_dirty = true;
 }
 
 // Circular apertures can be eccentric to define elliptical apertures.
@@ -149,7 +154,7 @@ CircularFlatSurface::setEccentricity(Real ecc)
   m_a = sqrt(m_a2);
   m_b = sqrt(m_b2);
 
-  recalculate();
+  m_dirty = true;
 }
 
 bool
@@ -233,7 +238,7 @@ CircularFlatSurface::setObstruction(bool obs)
 {
   m_obstruction = obs;
 
-  recalculate();
+  m_dirty = true;
 }
 
 void
@@ -259,6 +264,9 @@ CircularFlatSurface::renderOpenGLObstruction()
 void
 CircularFlatSurface::renderOpenGL()
 {
+  if (m_dirty)
+    recalculate();
+
   glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, 3 * sizeof(GLfloat), m_vertices.data());
     glDrawArrays(GL_LINE_LOOP, 0, m_vertices.size() / 3);
