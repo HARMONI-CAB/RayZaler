@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <Logger.h>
+#include <climits>
 
 int
 yylex(RZ::ParserContext *ctx)
@@ -431,16 +432,18 @@ void
 ParserContext::registerParameter(ParserDOFDecl const &decl)
 {
   Real min, max, defVal;
+  auto where = m_file + ":" + std::to_string(m_line + 1);
   parseDOFDecl(decl, min, max, defVal);
-  m_recipe->addParam(decl.name, defVal, min, max);
+  m_recipe->addParam(decl.name, defVal, min, max, where);
 }
 
 void
 ParserContext::registerDOF(ParserDOFDecl const &decl)
 {
   Real min, max, defVal;
+  auto where = m_file + ":" + std::to_string(m_line + 1);
   parseDOFDecl(decl, min, max, defVal);
-  m_recipe->addDof(decl.name, defVal, min, max);
+  m_recipe->addDof(decl.name, defVal, min, max, where);
 }
 
 void
@@ -515,8 +518,18 @@ ParserContext::resolvePath(std::string const &path)
   if (path[0] != '/') {
     for (auto p : m_searchPaths) {
       absPath = p + "/" + path;
-      if (access(absPath.c_str(), F_OK) != -1)
+      if (access(absPath.c_str(), F_OK) != -1) {
+        std::vector<char> pathAlloc;
+        pathAlloc.reserve(PATH_MAX);
+        
+        if (realpath(absPath.c_str(), pathAlloc.data()) == nullptr)
+          throw std::runtime_error(
+            "Cannot resolve relative script path `" + path + 
+            "': " + strerror(errno));
+        
+        absPath = pathAlloc.data();
         return absPath;
+      }
     }
 
     return "";
@@ -540,10 +553,11 @@ ParserContext::script(std::string const &path)
 void
 ParserContext::addImportOnce(std::string const &path)
 {
+  
   if (m_parentContext == nullptr) {
     if (alreadyImported(path))
       return;
-    
+
     m_includeOnce.insert(path);
   } else {
     m_parentContext->addImportOnce(path);
@@ -553,6 +567,7 @@ ParserContext::addImportOnce(std::string const &path)
 bool
 ParserContext::alreadyImported(std::string const &path) const
 {
+
   if (m_parentContext == nullptr)
     return m_includeOnce.find(path) != m_includeOnce.end();
   else
@@ -665,7 +680,7 @@ ParserContext::popElementDefinition()
     throw std::runtime_error("Internal error: attempting to leave root recipe!");
 
   popIncludeOnce();
-  
+
   m_recipe = m_recipe->parent();
 }
 
@@ -681,9 +696,8 @@ ParserContext::defineElement(std::string const &name, std::string const &factory
 void
 ParserContext::debugParamList(ParserAssignList const &list)
 {
-  for (auto p : list) {
+  for (auto p : list)
     printf("  %s = %s\n", p.first.c_str(), p.second.c_str());
-  }
 }
 
 std::string

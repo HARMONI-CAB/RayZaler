@@ -79,9 +79,10 @@ namespace RZ {
   };
 
   struct RecipeParameter {
-    Real defaultVal;
-    Real min;
-    Real max;
+    Real        defaultVal;
+    Real        min;
+    Real        max;
+    std::string where;
   };
 
   enum RecipeContextType {
@@ -276,13 +277,15 @@ namespace RZ {
         std::string const &name,
         Real defVal,
         Real min = -INFINITY,
-        Real max = +INFINITY);
+        Real max = +INFINITY,
+        std::string const &where = "");
       
       bool addParam(
         std::string const &name,
         Real defVal,
         Real min = -INFINITY,
-        Real max = +INFINITY);
+        Real max = +INFINITY,
+        std::string const &where = "");
 
       void debug();
 

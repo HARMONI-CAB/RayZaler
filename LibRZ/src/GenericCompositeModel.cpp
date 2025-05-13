@@ -827,6 +827,8 @@ GenericCompositeModel::makeExpression(
       auto it = dict->find(dep);
       if (it != dict->end())
         it->second->dependencies.push_back(paramEvaluator);
+      else
+        throw std::runtime_error("Undefined expression dependency (" + dep + ")");
     }
   }
 
@@ -970,6 +972,7 @@ GenericCompositeModel::initGlobalScope()
 {
   // Start creation of global symbol table
   registerGlobalsRecursive(this);
+
   // Elements of the symbol table related to the DOFs and parameters
   for (auto p : m_params) {
     auto name = m_prefix + p.first;

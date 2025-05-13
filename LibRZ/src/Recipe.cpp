@@ -674,16 +674,25 @@ Recipe::addDof(
   std::string const &name,
   Real defVal,
   Real min,
-  Real max)
+  Real max,
+  std::string const &where)
 {
   RecipeParameter *newParam = makeRecipeParam(m_dofs, name);
 
-  if (newParam == nullptr)
-    throw std::runtime_error("Degree of freedom `" + name + "' already defined");
+  if (newParam == nullptr) {
+    auto param = &m_dofs.find(name)->second;   
+    throw std::runtime_error(
+      "Degree of freedom `" + 
+      name + 
+      "' already defined (original definition in " +
+      param->where +
+      ")");
+  }
   
   newParam->defaultVal = defVal;
   newParam->min        = min;
   newParam->max        = max;
+  newParam->where      = where;
 
   return true;
 }
@@ -693,16 +702,25 @@ Recipe::addParam(
   std::string const &name,
   Real defVal,
   Real min,
-  Real max)
+  Real max,
+  std::string const &where)
 {
   RecipeParameter *newParam = makeRecipeParam(m_parameters, name);
 
-  if (newParam == nullptr)
-    throw std::runtime_error("Parameter `" + name + "' already defined");
-  
+  if (newParam == nullptr) {
+    auto param = &m_parameters.find(name)->second;   
+    throw std::runtime_error(
+      "Parameter `" +
+      name + 
+      "' already defined (original definition in " +
+      param->where +
+      ")");
+  }
+
   newParam->defaultVal = defVal;
   newParam->min        = min;
   newParam->max        = max;
+  newParam->where      = where;
 
   return true; 
 }
