@@ -19,7 +19,12 @@
 #ifndef _GLHELPERS_H
 #define _GLHELPERS_H
 
-#include <GL/glu.h>
+#ifdef __APPLE__
+#  include <OpenGL/glu.h>
+#else
+#  include <GL/glu.h>
+#endif
+
 #include <vector>
 #include <Vector.h>
 #include <ReferenceFrame.h>

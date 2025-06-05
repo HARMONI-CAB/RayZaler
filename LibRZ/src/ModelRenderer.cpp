@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <png.h>
 #include <Logger.h>
-#include <GL/glu.h>
+#include "GLHelpers.h"
 #include "RZGLModel.h"
 
 using namespace RZ;

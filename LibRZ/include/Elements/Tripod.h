@@ -20,7 +20,6 @@
 #define _TRIPOD_H
 
 #include <Element.h>
-#include <GL/glu.h>
 #include <GLHelpers.h>
 #include <TripodFrame.h>
 

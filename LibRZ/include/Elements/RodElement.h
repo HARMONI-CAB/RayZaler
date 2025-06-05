@@ -20,7 +20,6 @@
 #define _RODELEMENT_H
 
 #include <Element.h>
-#include <GL/glu.h>
 #include <GLHelpers.h>
 
 namespace RZ {
