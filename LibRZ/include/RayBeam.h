@@ -85,6 +85,18 @@ struct RayBeamStatistics {
     ExtractAll                 = ExtractIntercepted | ExtractVignetted
   };
 
+  struct RayBeam;
+
+  struct RayBeamSlice {
+    RayBeam *beam  = nullptr;
+    uint64_t start = 0;
+    uint64_t end   = 0;
+
+    inline RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end);
+    inline RayBeamSlice(RayBeam *beam);
+    inline RayBeamSlice();
+  };
+  
   struct RayBeam {
     uint64_t count      = 0;
     uint64_t allocation = 0;
@@ -267,24 +279,19 @@ struct RayBeamStatistics {
     void addInterceptMetrics(OpticalSurface *surface, RayBeamSlice const &slice);
   };
 
-  struct RayBeamSlice {
-    RayBeam *beam  = nullptr;
-    uint64_t start = 0;
-    uint64_t end   = 0;
+  inline 
+  RayBeamSlice::RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end) : beam(beam) {
+    assert(start <= end);
+    assert(end <= beam->count);
+    assert(start < beam->count);
 
-    RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end) : beam(beam) {
-      assert(start <= end);
-      assert(end <= beam->count);
-      assert(start < beam->count);
+    this->start = start;
+    this->end   = end;
+  }
 
-      this->start = start;
-      this->end   = end;
-    }
+  inline RayBeamSlice::RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) { }
 
-    RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) { }
-
-    RayBeamSlice() : beam(nullptr), start(0), end(0) { }
-  };
+  inline RayBeamSlice::RayBeamSlice() : beam(nullptr), start(0), end(0) { }
 }
 
 #endif // _RAY_BEAM_H
