@@ -27,6 +27,8 @@ using namespace RZ;
 
 Ray::Ray()
 {
+  direction    = Vec3::eZ();
+  uEx          = Vec3::eX();
   length       = 0;
   cumOptLength = 0;
   chief        = false;
@@ -280,8 +282,11 @@ RayBeam::extractRays(
         ray.cumOptLength = beam->cumOptLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
+        ray.uEx          = Vec3(beam->uEx + 3 * i);
+        ray.Ex           = beam->Ex[i];
+        ray.Ey           = beam->Ey[i];
         ray.intercepted  = beam->isIntercepted(i);
-
+        
         ray.origin       = originPOV 
           ? Vec3(beam->origins + 3 * i) 
           : Vec3(beam->destinations + 3 * i);
@@ -300,9 +305,11 @@ RayBeam::extractRays(
             if (beamIsSurfaceRelative) {
               ray.origin    = plane->fromRelative(ray.origin);
               ray.direction = plane->fromRelativeVec(ray.direction);
+              ray.uEx       = plane->fromRelativeVec(ray.uEx);
             } else {
               ray.origin    = plane->toRelative(ray.origin);
               ray.direction = plane->toRelativeVec(ray.direction);
+              ray.uEx       = plane->toRelativeVec(ray.uEx);
             }
           }
         }
@@ -387,11 +394,13 @@ RayBeam::copyTo(RayBeam *dest) const
   memcpy(dest->media,         media,         count * sizeof(const EMMedium *));
 
   memcpy(dest->ids,           ids,           count * sizeof(uint32_t));
-  memcpy(dest->amplitude,     amplitude,     count * sizeof(Complex));
+  memcpy(dest->Ex,            Ex,            count * sizeof(Complex));
+  memcpy(dest->Ey,            Ey,            count * sizeof(Complex));
 
   memcpy(dest->origins,       origins,       3 * count * sizeof(Real));
   memcpy(dest->destinations,  destinations,  3 * count * sizeof(Real));
   memcpy(dest->directions,    directions,    3 * count * sizeof(Real));
+  memcpy(dest->uEx,           uEx,           3 * count * sizeof(Real));
 
   if (nonSeq && dest->nonSeq)
     memcpy(dest->surfaces,    surfaces,      count * sizeof(OpticalSurface *));
@@ -419,8 +428,12 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
+      plane->toRelativeVec(
+        Vec3(uEx + 3 * i)).copyToArray(dest->uEx + 3 * i);
+
       dest->lengths[i]       = lengths[i];
-      dest->amplitude[i]     = amplitude[i];
+      dest->Ex[i]            = Ex[i];
+      dest->Ey[i]            = Ey[i];
       dest->cumOptLengths[i] = cumOptLengths[i];
       dest->wavelengths[i]   = wavelengths[i];
       dest->ids[i]           = ids[i];
@@ -451,6 +464,9 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
 
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+
+      plane->fromRelativeVec(
+        Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
     }
   }
 }
@@ -474,6 +490,9 @@ RayBeam::fromSurfaceRelative()
 
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+
+      plane->fromRelativeVec(
+        Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
 
       ++total;
     }
@@ -528,7 +547,9 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
-    this->amplitude     = allocBuffer<Complex>(count);
+    this->uEx           = allocBuffer<Real>(3 * count);
+    this->Ex            = allocBuffer<Complex>(count);
+    this->Ey            = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
     this->media         = allocBuffer<const EMMedium *>(count);
@@ -549,7 +570,9 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
-    this->amplitude     = allocBuffer<Complex>(count, prev, this->amplitude);
+    this->uEx           = allocBuffer<Real>(3 * count, 3 * prev, this->uEx);
+    this->Ex            = allocBuffer<Complex>(count, prev, this->Ex);
+    this->Ey            = allocBuffer<Complex>(count, prev, this->Ey);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
@@ -660,7 +683,10 @@ RayBeam::deallocate()
   freeBuffer(lengths);
   freeBuffer(wavelengths);
   freeBuffer(cumOptLengths);
-  freeBuffer(amplitude);
+  freeBuffer(uEx);
+  freeBuffer(Ex);
+  freeBuffer(Ey);
+  freeBuffer(media);
   freeBuffer(ids);
   freeBuffer(mask);
   freeBuffer(prevMask);

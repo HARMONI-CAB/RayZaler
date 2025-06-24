@@ -41,6 +41,9 @@ namespace RZ {
     // Defined by input
     Vec3 origin;
     Vec3 direction;
+    Vec3 uEx; // Direction of the Ex vector
+
+    Complex Ex, Ey; // Initial complex amplitudes for the X and Y directions
 
     // Incremented by tracer
     Real length;
@@ -108,7 +111,9 @@ struct RayBeamStatistics {
     Real *origins          = nullptr;
     Real *directions       = nullptr;
     Real *destinations     = nullptr;
-    Complex *amplitude     = nullptr;
+    Real *uEx              = nullptr;
+    Complex *Ex            = nullptr;
+    Complex *Ey            = nullptr;
     Real *lengths          = nullptr;
     Real *cumOptLengths    = nullptr;
     Real *normals          = nullptr; // Surface normals of the boundary surface
@@ -208,8 +213,10 @@ struct RayBeamStatistics {
       memcpy(directions   + 3 * index, existing->directions   + 3 * index, 3 * sizeof(Real));
       memcpy(normals      + 3 * index, existing->normals      + 3 * index, 3 * sizeof(Real));
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
-
-      amplitude[index]     = existing->amplitude[index];
+      memcpy(uEx          + 3 * index, existing->uEx          + 3 * index, 3 * sizeof(Real));
+      
+      Ex[index]            = existing->Ex[index];
+      Ey[index]            = existing->Ey[index];
       lengths[index]       = existing->lengths[index];
       cumOptLengths[index] = existing->cumOptLengths[index];
       media[index]         = existing->media[index];

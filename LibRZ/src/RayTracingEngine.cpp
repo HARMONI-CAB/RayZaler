@@ -123,7 +123,7 @@ RayTracingEngine::pushRays(RayList const &rays)
   memcpy(m_beam->normals, m_beam->directions, 3 * m_beam->count * sizeof(Real));
 
   for (auto i = 0; i < m_beam->count; ++i)
-    m_beam->amplitude[i] = 1;
+    m_beam->Ex[i] = 1;
 }
 
 void

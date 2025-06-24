@@ -232,7 +232,7 @@ DetectorBoundary::transmit(RayBeamSlice const &slice) const
       m_storage->hit(
         beam.destinations[3 * i + 0], 
         beam.destinations[3 * i + 1], 
-        beam.amplitude[i]);
+        beam.Ex[i]);
   }
 
   MediumBoundary::transmit(slice);
