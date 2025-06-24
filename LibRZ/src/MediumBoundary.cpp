@@ -107,9 +107,9 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
 }
 
 void
-MediumBoundary::transmit(RayBeamSlice const &slice) const
+MediumBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinterRays) const
 {
   // Transmit rays through this interface with the intercepted beams
   if (emInterface() != nullptr)
-    emInterface()->transmit(slice);
+    emInterface()->transmit(slice, splinterRays);
 }

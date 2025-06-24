@@ -33,7 +33,7 @@ namespace RZ {
       void setRefractiveIndex(Real , Real);
       
       virtual std::string name() const override;
-      virtual void transmit(RayBeamSlice const &beam) override;
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
       virtual void setSurroundingMedium(const EMMedium *) override;
       virtual void setMedia(
         const EMMedium *positive = nullptr,

@@ -111,7 +111,9 @@ ParaxialZernikeEMInterface::dZdy(Real x, Real y) const
 }
 
 void
-ParaxialZernikeEMInterface::transmit(RayBeamSlice const &slice)
+ParaxialZernikeEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterRays)
 {
   Real Rinv    = 1. / m_radius;
   Real Rsq     = m_radius * m_radius;

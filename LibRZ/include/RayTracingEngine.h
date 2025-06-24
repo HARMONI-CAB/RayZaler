@@ -69,7 +69,7 @@ namespace RZ {
 
     protected:
       virtual void cast(const OpticalSurface *, RayBeam *) = 0;
-      virtual void transmit(const OpticalSurface *, RayBeam *) = 0;
+      virtual void transmit(const OpticalSurface *, RayBeam *, RayBeam *) = 0;
 
       void rayProgress(uint64_t num, uint64_t total);
 

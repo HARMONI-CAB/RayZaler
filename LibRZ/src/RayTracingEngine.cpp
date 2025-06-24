@@ -201,7 +201,7 @@ RayTracingEngine::transmitThrough(const OpticalSurface *surface)
   
   stageProgress(PROGRESS_TYPE_TRANSFER, m_stageName, m_currStage, m_numStages);
 
-  transmit(surface, m_beam);
+  transmit(surface, m_beam, nullptr);
 
   if (surface != nullptr)
     m_beam->fromRelative(surface->frame);

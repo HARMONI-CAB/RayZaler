@@ -28,7 +28,9 @@ ReflectiveEMInterface::name() const
 }
 
 void
-ReflectiveEMInterface::transmit(RayBeamSlice const &slice)
+ReflectiveEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterRays)
 {
   blockLight(slice); // Prune rays according to transmission
 

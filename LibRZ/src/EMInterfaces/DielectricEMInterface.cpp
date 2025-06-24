@@ -37,7 +37,9 @@ DielectricEMInterface::setRefractiveIndex(Real in, Real out)
 }
 
 void
-DielectricEMInterface::transmit(RayBeamSlice const &slice)
+DielectricEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterRays)
 {
   blockLight(slice); // Prune rays according to transmission
 

@@ -220,7 +220,7 @@ DetectorBoundary::name() const
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorBoundary::transmit(RayBeamSlice const &slice) const
+DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
 {
   uint64_t end = slice.end;
   RayBeam &beam = *slice.beam;
@@ -235,7 +235,7 @@ DetectorBoundary::transmit(RayBeamSlice const &slice) const
         beam.Ex[i]);
   }
 
-  MediumBoundary::transmit(slice);
+  MediumBoundary::transmit(slice, splinter);
 }
 
 DetectorBoundary::DetectorBoundary(DetectorStorage *storage)

@@ -207,7 +207,7 @@ namespace RZ {
         unsigned int stride);
 
       virtual std::string name() const = 0;
-      virtual void transmit(RayBeamSlice const &beam) = 0;
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *splinterRays) = 0;
       virtual ~EMInterface();
   };
 }

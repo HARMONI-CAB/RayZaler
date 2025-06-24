@@ -59,12 +59,15 @@ CPURayTracingEngine::cast(const OpticalSurface *surface, RayBeam *beam)
 }
 
 void
-CPURayTracingEngine::transmit(const OpticalSurface *surface, RayBeam *beam)
+CPURayTracingEngine::transmit(
+  const OpticalSurface *surface,
+  RayBeam *beam,
+  RayBeam *splinterRays)
 {
   beam->walk(
     const_cast<OpticalSurface *>(surface),
     [&] (OpticalSurface *surf, RayBeamSlice const &slice) {
-      surf->boundary->transmit(slice);
+      surf->boundary->transmit(slice, splinterRays);
     }
   );
 }
