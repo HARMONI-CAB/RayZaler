@@ -27,8 +27,8 @@
 
 namespace RZ {
   class MediumBoundary;
-  class OpticalElement;
-  
+  class OpticalElement;  
+  struct EMMedium;
 
   struct OpticalSurface {
     std::string                 name;
@@ -140,6 +140,7 @@ namespace RZ {
       const std::vector<Real> &hits(std::string const &name = "") const;
       const std::vector<Real> &directions(std::string const &name = "") const;
 
+      void setSurroundingMedium(EMMedium const *);
       virtual void setRecordHits(bool);
       virtual void clearHits();
 

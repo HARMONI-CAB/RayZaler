@@ -27,16 +27,54 @@ namespace RZ {
   class ReferenceFrame;
 
   //
+  // EMMedium characterizes the dielectric properties of an electromagnetic
+  // medium where waves can propagate.
+  //
+
+  enum EMMediumType {
+    EMMediumVacuum,     // Ref index is just 1
+    EMMediumIsotropic,  // Ref index is > 1
+    EMMediumUniaxial    // Two indicies + reference frame + axis
+
+    // No biaxial media so far, but it will come soon.
+  };
+
+  struct EMMedium {
+    EMMediumType    type = EMMediumVacuum;
+    
+    union {
+      Real            n = 1.;
+      struct {
+        Real no;
+        Real ne;
+      };
+    };
+
+    ReferenceFrame *frame = nullptr;
+    Vec3            axis;
+
+    inline bool
+    isotropic() const
+    {
+      return type == EMMediumVacuum || type == EMMediumIsotropic;
+    }
+  };
+  
+
+  //
   // It is important to remark that the EMInterface works in the reference
   // frame of the capture surface. We do not need to convert things back
   // to the absolute reference frames until all transfer took place.
   //
   class EMInterface {
-      ExprRandomState m_randState;
+      ExprRandomState          m_randState;
       Real                     m_transmission     = 1.;
       std::vector<Real> const *m_txMap            = nullptr;
       bool                     m_fullyOpaque      = false;
       bool                     m_fullyTransparent = true;
+      const EMMedium          *m_pMedium          = nullptr; // Medium in the positive normal
+      const EMMedium          *m_nMedium          = nullptr; // Medium in the negative normal
+      const EMMedium          *m_surroundings     = nullptr; // Medium if unspecified
 
       // Only relevant if m_txMap is non-null
       unsigned int             m_cols         = 0;
@@ -46,6 +84,24 @@ namespace RZ {
       Real                     m_hy           = 0;
 
     protected:
+      inline const EMMedium *
+      pMedium() const
+      {
+        return m_pMedium == nullptr ? m_surroundings : m_pMedium;
+      }
+
+      inline const EMMedium *
+      nMedium() const
+      {
+        return m_nMedium == nullptr ? m_surroundings : m_nMedium;
+      }
+
+      inline const EMMedium *
+      surroundings() const
+      {
+        return m_surroundings;
+      }
+      
       static inline void
       reflection(Vec3 &u, Vec3 const &normal)
       {
@@ -103,6 +159,11 @@ namespace RZ {
       void blockLight(RayBeamSlice const &slice);
 
     public:
+      virtual void setSurroundingMedium(const EMMedium *);
+      virtual void setMedia(
+        const EMMedium *positive = nullptr,
+        const EMMedium *negative = nullptr);
+
       void setTransmission(Real);
       void setTransmission(
         Real width,

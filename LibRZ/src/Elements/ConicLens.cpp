@@ -51,14 +51,16 @@ ConicLens::recalcModel()
   Real Rc[2], Rc2[2], sigma[2];
   Real dZ[2];
 
+  Real n = m_glass.n;
+
   bool convex[2];
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 2; ++i) {
     if (m_fromFlen[i])
-      m_rCurv[i]       = 2 * m_focalLength[i] * (m_mu - 1);
+      m_rCurv[i]       = 2 * m_focalLength[i] * (n - 1);
     else
-      m_focalLength[i] = .5 * m_rCurv[i] / (m_mu - 1);
+      m_focalLength[i] = .5 * m_rCurv[i] / (n - 1);
 
     Rc[i]     = fabs(m_rCurv[i]);
     Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
@@ -74,10 +76,10 @@ ConicLens::recalcModel()
 #if  0
   auto R_1 = m_rCurv[0];
   auto R_2 = m_rCurv[1];
-  auto dn  = (m_mu - 1) * m_thickness / m_mu;
+  auto dn  = (n - 1) * m_thickness / n;
 
   Real d    = m_thickness + m_displacement[0] + m_displacement[1];
-  Real fInv = (m_mu - 1) * (1 / R_1 + 1 / R_2 + dn / (R_1 * R_2));
+  Real fInv = (n - 1) * (1 / R_1 + 1 / R_2 + dn / (R_1 * R_2));
   Real FFD  = (1 + dn/ R_1) / fInv;
   Real BFD  = (1 + dn/ R_2) / fInv;
 
@@ -99,7 +101,7 @@ ConicLens::recalcModel()
 
   m_inputBoundary->setRadius(m_radius);
   m_inputBoundary->setCurvatureRadius(Rc[0]);
-  m_inputBoundary->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setMedia(nullptr, &m_glass);
   m_inputBoundary->setConicConstant(m_K[0]);
   m_inputBoundary->setConvex(convex[0]);
 
@@ -116,7 +118,7 @@ ConicLens::recalcModel()
 
   m_outputBoundary->setRadius(m_radius);
   m_outputBoundary->setCurvatureRadius(Rc[1]);
-  m_outputBoundary->setRefractiveIndex(m_mu, 1);
+  m_outputBoundary->setMedia(&m_glass, nullptr);
   m_outputBoundary->setConicConstant(m_K[1]);
   m_outputBoundary->setConvex(!convex[1]);
   
@@ -191,7 +193,7 @@ ConicLens::propertyChanged(
   } else if (name == "y0") {
     m_y0 = value;
   } else if (name == "n") {
-    m_mu = value;
+    m_glass.n = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -207,11 +209,16 @@ ConicLens::ConicLens(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
-  m_inputBoundary  = new ConicLensBoundary;
-  m_outputBoundary = new ConicLensBoundary;
+  m_glass.type     = EMMediumIsotropic;
+  m_glass.n        = 1.5;
 
+  m_inputBoundary  = new ConicLensBoundary;
   m_inputBoundary->setConvex(true);
+  m_inputBoundary->setMedia(nullptr, &m_glass);
+
+  m_outputBoundary = new ConicLensBoundary;
   m_outputBoundary->setConvex(false);
+  m_outputBoundary->setMedia(&m_glass, nullptr);
 
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputFrame", frame, Vec3::zero());

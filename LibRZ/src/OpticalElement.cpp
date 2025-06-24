@@ -17,6 +17,7 @@
 //
 
 #include <OpticalElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
@@ -241,6 +242,14 @@ OpticalElement::clearHits()
     p.clearCache();
     p.clearStatistics();
   }
+}
+
+void
+OpticalElement::setSurroundingMedium(EMMedium const *medium)
+{
+  for (auto &surface : m_surfaces)
+    if (surface.boundary->emInterface() != nullptr)
+      surface.boundary->emInterface()->setSurroundingMedium(medium);
 }
 
 OpticalElement::OpticalElement(

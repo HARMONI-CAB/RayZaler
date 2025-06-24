@@ -18,6 +18,7 @@
 
 #include <EMInterfaces/DielectricEMInterface.h>
 #include <RayTracingEngine.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -68,4 +69,48 @@ DielectricEMInterface::transmit(RayBeamSlice const &slice)
 DielectricEMInterface::~DielectricEMInterface()
 {
 
+}
+
+bool
+DielectricEMInterface::detectAnisotropic() const
+{
+  if (pMedium() != nullptr && !pMedium()->isotropic())
+    return true;
+  
+  if (nMedium() != nullptr && !nMedium()->isotropic())
+    return true;
+
+  return false;
+}
+
+void
+DielectricEMInterface::setSurroundingMedium(const EMMedium *medium)
+{
+  EMInterface::setSurroundingMedium(medium);
+
+  if (detectAnisotropic()) {
+    RZWarning(
+      "Anisotropic media are not compatible with DielectricEMInterface.\n");
+    RZWarning(
+      "Taking fast axis' refractive index for Snell's law.\n");
+  }
+
+  setRefractiveIndex(pMedium()->n, nMedium()->n);
+}
+
+void
+DielectricEMInterface::setMedia(
+  const EMMedium *positive,
+  const EMMedium *negative)
+{
+  EMInterface::setMedia(positive, negative);
+
+  if (detectAnisotropic()) {
+    RZWarning(
+      "Anisotropic media are not compatible with DielectricEMInterface\n");
+    RZWarning(
+      "Taking fast axis' refractive index for Snell's law.\n");
+  }
+
+  setRefractiveIndex(pMedium()->n, nMedium()->n);
 }

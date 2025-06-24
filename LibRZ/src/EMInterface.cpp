@@ -22,6 +22,8 @@
 
 using namespace RZ;
 
+static const EMMedium g_vaccum;
+
 EMInterface::~EMInterface()
 {
 
@@ -106,4 +108,22 @@ EMInterface::blockLight(RayBeamSlice const &slice)
       }
     }
   }
+}
+
+void
+EMInterface::setSurroundingMedium(const EMMedium *medium)
+{
+  if (medium == nullptr)
+    medium = &g_vaccum;
+  
+  m_surroundings = medium;
+}
+
+void
+EMInterface::setMedia(
+  const EMMedium *positive,
+  const EMMedium *negative)
+{
+  m_pMedium = positive;
+  m_nMedium = negative;
 }

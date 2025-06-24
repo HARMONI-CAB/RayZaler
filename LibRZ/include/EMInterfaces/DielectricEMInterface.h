@@ -27,11 +27,17 @@ namespace RZ {
       Real m_muIn   = 1;
       Real m_IOratio = 1 / 1.5;
 
+      bool detectAnisotropic() const;
+      
     public:
       void setRefractiveIndex(Real , Real);
       
       virtual std::string name() const override;
       virtual void transmit(RayBeamSlice const &beam) override;
+      virtual void setSurroundingMedium(const EMMedium *) override;
+      virtual void setMedia(
+        const EMMedium *positive = nullptr,
+        const EMMedium *negative = nullptr) override;
       virtual ~DielectricEMInterface() override;
   };
 }

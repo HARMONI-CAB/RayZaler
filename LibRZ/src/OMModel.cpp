@@ -30,6 +30,7 @@
 #include <Samplers/Point.h>
 #include <Samplers/Map.h>
 #include <Simulation.h>
+#include <EMInterface.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
@@ -202,6 +203,8 @@ OMModel::registerOpticalElement(OpticalElement *element)
     return false;
 
   m_nameToOpticalElement[element->name()] = element;
+  
+  element->setSurroundingMedium(m_surroundings);
 
   return true;
 }
@@ -441,6 +444,21 @@ OMModel::genReferenceFrameName(std::string const &type)
   } while (lookupReferenceFrame(hint) != nullptr);
 
   return hint;
+}
+
+void
+OMModel::setSurroundingMedium(EMMedium const *medium)
+{
+  for (auto &p : m_nameToOpticalElement) {
+    p.second->setSurroundingMedium(medium);
+    
+    // Some elements may have a nested OM model with a specific interpretation
+    // of the concept of surroundings. Let the underlying OM model handle this
+    // request.
+    auto nestedModel = p.second->nestedModel();
+    if (nestedModel != nullptr)
+      nestedModel->setSurroundingMedium(medium);
+  }
 }
 
 bool
