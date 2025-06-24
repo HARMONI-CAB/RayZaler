@@ -22,6 +22,7 @@
 #include <string>
 #include "RayBeam.h"
 #include "Random.h"
+#include "ReferenceFrame.h"
 
 namespace RZ {
   class ReferenceFrame;
@@ -53,10 +54,42 @@ namespace RZ {
     ReferenceFrame *frame = nullptr;
     Vec3            axis;
 
+    static const EMMedium *vacuum();
+
     inline bool
     isotropic() const
     {
       return type == EMMediumVacuum || type == EMMediumIsotropic;
+    }
+
+    inline Real
+    opd(Real dt, Vec3 const &dir) const
+    {
+      Vec3 absAxis;
+      Vec3 fastPath;
+      Real slowComp;
+      Real slowPath, fastComponent;
+      
+
+      switch (type) {
+        case EMMediumVacuum:
+          return dt;
+
+        case EMMediumIsotropic:
+          return dt * n;
+
+        case EMMediumUniaxial:
+          // TODO: Cache stuff somewhere. This is a per-ray operation
+          absAxis = frame->fromRelativeVec(axis);
+          slowComp  = absAxis * dir;
+
+          fastPath  = no * dt * (dir - slowComp * absAxis);
+          slowPath  = ne * dt * slowComp;
+          
+          return sqrt(slowPath * slowPath + fastPath * fastPath);
+      }
+
+      return dt;
     }
   };
   
@@ -101,7 +134,7 @@ namespace RZ {
       {
         return m_surroundings;
       }
-      
+
       static inline void
       reflection(Vec3 &u, Vec3 const &normal)
       {

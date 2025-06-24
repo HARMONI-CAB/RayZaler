@@ -24,6 +24,8 @@
 
 using namespace RZ;
 
+static const EMMedium g_vacuum;
+
 /////////////////////////////// MediumBoundary ///////////////////////////
 MediumBoundary::~MediumBoundary()
 {
@@ -41,6 +43,7 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
   auto &beam = *slice.beam;
   uint64_t end = slice.end;
   Real K, dt, opd;
+  
   auto shape     = surfaceShape();
 
   if (shape != nullptr) {
@@ -49,7 +52,9 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
-
+        const EMMedium *medium = beam.media[i] != nullptr 
+          ? beam.media[i] 
+          : &g_vacuum;
         Vec3 normal;
         Real dt, opd;
 
@@ -57,7 +62,7 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
         if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
           if (!clipped(destination.x, destination.y)) {
             K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = beam.refNdx[i] * dt;
+            opd                    = medium->opd(dt, dir);
             beam.lengths[i]        = dt;
             beam.cumOptLengths[i] += opd;
             beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
@@ -75,7 +80,10 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
-        
+        const EMMedium *medium = beam.media[i] != nullptr 
+          ? beam.media[i] 
+          : &g_vacuum;
+
         // Intercept only if the ray is not parallel to the surface
         if (!isZero(dir.z)) {
           dt                     = -origin.z / dir.z;
@@ -83,7 +91,7 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
           
           if (!clipped(destination.x, destination.y)) {
             K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = beam.refNdx[i] * dt;
+            opd                    = medium->opd(dt, dir);
             beam.lengths[i]        = dt;
             beam.cumOptLengths[i] += opd;
             beam.amplitude[i]     *= std::exp(Complex(0, K * opd));

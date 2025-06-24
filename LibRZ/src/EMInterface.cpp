@@ -22,7 +22,13 @@
 
 using namespace RZ;
 
-static const EMMedium g_vaccum;
+static const EMMedium g_vacuum;
+
+const EMMedium *
+EMMedium::vacuum()
+{
+  return &g_vacuum;
+}
 
 EMInterface::~EMInterface()
 {
@@ -114,7 +120,7 @@ void
 EMInterface::setSurroundingMedium(const EMMedium *medium)
 {
   if (medium == nullptr)
-    medium = &g_vaccum;
+    medium = EMMedium::vacuum();
   
   m_surroundings = medium;
 }

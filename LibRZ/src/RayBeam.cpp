@@ -21,9 +21,20 @@
 #include "RayBeam.h"
 #include <ReferenceFrame.h>
 #include <OpticalElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
+Ray::Ray()
+{
+  length       = 0;
+  cumOptLength = 0;
+  chief        = false;
+  intercepted  = false;
+  wavelength   = RZ_WAVELENGTH;
+  medium       = EMMedium::vacuum();
+  id           = 0;
+}
 
 //
 // Under the refactored raytracing abstraction, ray beams go through several
@@ -265,7 +276,7 @@ RayBeam::extractRays(
         ray.id           = beam->ids[i];
         ray.chief        = beam->isChief(i);
         ray.wavelength   = beam->wavelengths[i];
-        ray.refNdx       = beam->refNdx[i];
+        ray.medium       = beam->media[i];
         ray.cumOptLength = beam->cumOptLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
@@ -373,7 +384,7 @@ RayBeam::copyTo(RayBeam *dest) const
   memcpy(dest->lengths,       lengths,       count * sizeof(Real));
   memcpy(dest->cumOptLengths, cumOptLengths, count * sizeof(Real));
   memcpy(dest->wavelengths,   wavelengths,   count * sizeof(Real));
-  memcpy(dest->refNdx,        refNdx,        count * sizeof(Real));
+  memcpy(dest->media,         media,         count * sizeof(const EMMedium *));
 
   memcpy(dest->ids,           ids,           count * sizeof(uint32_t));
   memcpy(dest->amplitude,     amplitude,     count * sizeof(Complex));
@@ -413,7 +424,7 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       dest->cumOptLengths[i] = cumOptLengths[i];
       dest->wavelengths[i]   = wavelengths[i];
       dest->ids[i]           = ids[i];
-      dest->refNdx[i]        = refNdx[i];
+      dest->media[i]         = media[i];
     }
   }
 }
@@ -520,7 +531,7 @@ RayBeam::allocate(uint64_t count)
     this->amplitude     = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
-    this->refNdx        = allocBuffer<Real>(count);
+    this->media         = allocBuffer<const EMMedium *>(count);
     this->wavelengths   = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
@@ -542,7 +553,7 @@ RayBeam::allocate(uint64_t count)
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
-    this->refNdx        = allocBuffer<Real>(count, prev, this->refNdx);
+    this->media         = allocBuffer<const EMMedium *>(count, prev, this->media);
     this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
     this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
     this->prevMask      = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->prevMask);
@@ -564,7 +575,7 @@ RayBeam::allocate(uint64_t count)
     (maskLen - prevMaskLen) * sizeof(uint64_t));
   
   for (int64_t i = this->count; i < count; ++i)
-    this->refNdx[i] = 1.;
+    this->media[i] = nullptr;
 
   this->count = count;
 }

@@ -153,7 +153,7 @@ RayTracingEngine::toBeam()
     m_beam->cumOptLengths[i] = p->cumOptLength;
     m_beam->ids[i]           = p->id;
     m_beam->wavelengths[i]   = p->wavelength;
-    m_beam->refNdx[i]        = p->refNdx;
+    m_beam->media[i]         = p->medium;
 
     if (p->chief)
       m_beam->setChiefRay(i);

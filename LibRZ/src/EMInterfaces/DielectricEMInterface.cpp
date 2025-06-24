@@ -57,10 +57,10 @@ DielectricEMInterface::transmit(RayBeamSlice const &slice)
       
       if (direct * normal < 0) {
         snell(direct, normal, rdir).copyToArray(beam->directions + 3 * i);
-        beam->refNdx[i] = nOu;
+        beam->media[i] = nMedium();
       } else {
         snell(direct, -normal, rinv).copyToArray(beam->directions + 3 * i);
-        beam->refNdx[i] = nIn;
+        beam->media[i] = pMedium();
       }
     }
   }

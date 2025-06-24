@@ -17,6 +17,7 @@
 //
 
 #include <Elements/RayBeamElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
@@ -167,7 +168,7 @@ RayBeamElement::raysToVertices()
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
     if (!p->intercepted) {
-      length = fmax(p->length, p->cumOptLength / p->refNdx);
+      length = fmax(p->length, p->cumOptLength / p->medium->n);
       ++m_strayRays;
     } else {
       length = p->length;

@@ -35,6 +35,7 @@
 namespace RZ {
   class ReferenceFrame;
   class OpticalSurface;
+  struct EMMedium;
 
   struct Ray {
     // Defined by input
@@ -42,18 +43,20 @@ namespace RZ {
     Vec3 direction;
 
     // Incremented by tracer
-    Real length = 0;
-    Real cumOptLength = 0;
+    Real length;
+    Real cumOptLength;
 
     // Defines whether the ray is susceptible to vignetting
-    bool chief = false;
-    bool intercepted = false;
+    bool chief;
+    bool intercepted;
 
-    Real wavelength = RZ_WAVELENGTH;
-    Real refNdx     = 1.; // Refractive index of the medium
+    Real wavelength;
+    const EMMedium *medium;
 
     // Defined by the user
-    uint32_t id = 0;
+    uint32_t id;
+
+    Ray();
   };
 
   class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
@@ -98,26 +101,26 @@ struct RayBeamStatistics {
   };
   
   struct RayBeam {
-    uint64_t count      = 0;
-    uint64_t allocation = 0;
-    bool nonSeq         = false; // Non sequential beam (allocs surfaces)
+    uint64_t count         = 0;
+    uint64_t allocation    = 0;
+    bool nonSeq            = false; // Non sequential beam (allocs surfaces)
 
-    Real *origins       = nullptr;
-    Real *directions    = nullptr;
-    Real *destinations  = nullptr;
-    Complex *amplitude  = nullptr;
-    Real *lengths       = nullptr;
-    Real *cumOptLengths = nullptr;
-    Real *normals       = nullptr; // Surface normals of the boundary surface
-    Real *wavelengths   = nullptr;
-    Real *refNdx        = nullptr;
+    Real *origins          = nullptr;
+    Real *directions       = nullptr;
+    Real *destinations     = nullptr;
+    Complex *amplitude     = nullptr;
+    Real *lengths          = nullptr;
+    Real *cumOptLengths    = nullptr;
+    Real *normals          = nullptr; // Surface normals of the boundary surface
+    Real *wavelengths      = nullptr;
+    const EMMedium **media = nullptr;
 
-    uint32_t *ids       = nullptr;
+    uint32_t *ids          = nullptr;
 
-    uint64_t *mask      = nullptr;
-    uint64_t *intMask   = nullptr;
-    uint64_t *prevMask  = nullptr;
-    uint64_t *chiefMask = nullptr;
+    uint64_t *mask         = nullptr;
+    uint64_t *intMask      = nullptr;
+    uint64_t *prevMask     = nullptr;
+    uint64_t *chiefMask    = nullptr;
     
     OpticalSurface **surfaces     = nullptr;
 
@@ -209,7 +212,7 @@ struct RayBeamStatistics {
       amplitude[index]     = existing->amplitude[index];
       lengths[index]       = existing->lengths[index];
       cumOptLengths[index] = existing->cumOptLengths[index];
-      refNdx[index]        = existing->refNdx[index];
+      media[index]         = existing->media[index];
       wavelengths[index]   = existing->wavelengths[index];
       ids[index]           = existing->ids[index];
 
