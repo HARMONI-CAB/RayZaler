@@ -31,10 +31,13 @@
 #include <Samplers/Map.h>
 #include <Simulation.h>
 #include <EMInterface.h>
+#include <Random.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
 using namespace RZ;
+
+static ExprRandomState g_randState;
 
 void
 BeamProperties::debug() const
@@ -449,6 +452,8 @@ OMModel::genReferenceFrameName(std::string const &type)
 void
 OMModel::setSurroundingMedium(EMMedium const *medium)
 {
+  m_surroundings = medium;
+
   for (auto &p : m_nameToOpticalElement) {
     p.second->setSurroundingMedium(medium);
     
@@ -1028,6 +1033,15 @@ OMModel::~OMModel()
     delete m_sim;
 }
 
+static inline Vec3
+makeUEx(Vec3 const &dir)
+{
+  auto ax1 = Vec3::eX().cross(dir);
+  auto ax2 = Vec3::eY().cross(dir);
+
+  return ax1 * ax1 > ax2 * ax2 ? ax1.normalized() : ax2.normalized();
+}
+
 void
 OMModel::addBeam(RayList &dest, BeamProperties const &properties)
 {
@@ -1036,6 +1050,7 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
   WorldFrame worldFrame("sky");
   const char *except = nullptr;
   const OpticalElement *optEl;
+  
 
   if (properties.wavelength <= RZ_BEAM_MINIMUM_WAVELENGTH)
     throw std::runtime_error(
@@ -1132,6 +1147,8 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
   ray.chief      = !properties.vignetting;
   ray.wavelength = properties.wavelength;
   ray.length     = properties.length; // Length of the stray light ray
+  ray.Ex         = Complex(g_randState.randn(), g_randState.randn());
+  ray.Ey         = Complex(g_randState.randn(), g_randState.randn());
 
   if (properties.shape == Point 
     || std::isinf(properties.focusZ)
@@ -1150,6 +1167,7 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
         origin = center - direction * properties.length;
       ray.origin    = system * coord + origin;
       ray.direction = direction;
+      ray.uEx       = makeUEx(direction);
       dest.push_back(ray);
     }
   } else {
@@ -1170,6 +1188,7 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (focus - ray.origin).normalized();
+        ray.uEx       = makeUEx(direction);
         dest.push_back(ray);
       }
     } else {
@@ -1178,6 +1197,7 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (ray.origin - focus).normalized();
+        ray.uEx       = makeUEx(direction);
         dest.push_back(ray);
       }
     }

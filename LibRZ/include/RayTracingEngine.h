@@ -55,7 +55,7 @@ namespace RZ {
       RayBeam *m_beam = nullptr;
       bool     m_beamDirty = true;
       bool     m_notificationPendig = false;
-
+      bool     m_calculateFields = false;
       std::string m_stageName;
       size_t      m_currStage = 0;
       size_t      m_numStages = 0;
@@ -80,6 +80,12 @@ namespace RZ {
         return m_beam;
       }
 
+      inline void
+      setCalculateFields(bool doIt)
+      {
+        m_calculateFields = doIt;
+      }
+      
       inline void
       setCurrentStage(std::string const &name, size_t current, size_t num)
       {

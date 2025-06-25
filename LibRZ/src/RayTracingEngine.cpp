@@ -201,8 +201,18 @@ RayTracingEngine::transmitThrough(const OpticalSurface *surface)
   
   stageProgress(PROGRESS_TYPE_TRANSFER, m_stageName, m_currStage, m_numStages);
 
-  transmit(surface, m_beam, nullptr);
+  if (m_calculateFields) {
+    RayBeam splinteredBeam(0);
+    splinteredBeam.nonSeq = m_beam->nonSeq;
+    transmit(surface, m_beam, nullptr);
 
+    if (splinteredBeam.count > 0)
+      splinteredBeam.appendTo(m_beam);
+    
+  } else {
+    transmit(surface, m_beam, nullptr);
+  }
+  
   if (surface != nullptr)
     m_beam->fromRelative(surface->frame);
   else

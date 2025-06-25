@@ -38,6 +38,7 @@ namespace RZ {
     RayBeamElement *beamElement           = nullptr;
     bool            clearPrevious         = true;
     bool            clearDetectors        = true;
+    bool            calculateFields       = false;    
     std::string     path;
     const RayList  *pRays                 = nullptr;
     RayList         rays;

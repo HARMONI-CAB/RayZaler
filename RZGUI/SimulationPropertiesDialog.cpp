@@ -391,11 +391,11 @@ SimulationPropertiesDialog::parseProperties()
 
   switch (ui->tracingType->currentIndex()) {
     case 0:
-      m_properties.ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
+      m_properties.ttype = TRACER_TYPE_SCALAR_RAYS;
       break;
 
     case 1:
-      m_properties.ttype = TRACER_TYPE_DIFFRACTION;
+      m_properties.ttype = TRACER_TYPE_VECTOR_RAYS;
       break;
   }
 

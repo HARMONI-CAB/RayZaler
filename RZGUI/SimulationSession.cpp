@@ -1291,6 +1291,7 @@ SimulationSession::runSimulation()
   gettimeofday(&m_lastModelRefresh, nullptr);
 
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
+  m_tracer->setCalculateFields(m_simState->properties().ttype == TRACER_TYPE_VECTOR_RAYS);
   m_tracer->setAccumulate(false);
   m_tracer->setNonSeq(m_simState->properties().nonSeq);
   gettimeofday(&m_simulationStart, nullptr);

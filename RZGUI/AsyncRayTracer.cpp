@@ -25,6 +25,13 @@ AsyncRayTracer::AsyncRayTracer(RZ::OMModel *model, QObject *parent)
 {
   m_model = model;
   m_cancelled = false;
+
+  setNonSeq(false);
+  setCalculateFields(false);
+
+  m_tracingProperties.listener        = this;
+  m_tracingProperties.clearDetectors  = false;
+  m_tracingProperties.maxPropagations = 3000;
 }
 
 bool
@@ -52,20 +59,26 @@ AsyncRayTracer::setUpdateBeam(bool update)
 void
 AsyncRayTracer::setNonSeq(bool nonSeq)
 {
-  m_nonSeq = nonSeq;
+  m_tracingProperties.type = nonSeq ? RZ::NonSequential : RZ::Sequential;
 }
 
 void
 AsyncRayTracer::setBeam(RZ::RayList const &beam)
 {
   QMutexLocker<QMutex> locker(&m_beamMutex);
-  m_beam = &beam;
+  m_tracingProperties.pRays = &beam;
+}
+
+void
+AsyncRayTracer::setCalculateFields(bool doIt)
+{
+  m_tracingProperties.calculateFields = doIt;
 }
 
 void
 AsyncRayTracer::setAccumulate(bool acc)
 {
-  m_accumulate = acc;
+  m_tracingProperties.clearPrevious = !acc;
 }
 
 bool
@@ -139,30 +152,17 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
   m_currSim = step;
   m_numSim  = total;
 
-  if (m_beam == nullptr) {
+  m_tracingProperties.beamElement = m_updateBeam ? m_model->beam() : nullptr;
+  m_tracingProperties.startTime   = &m_batchStart;
+  
+  
+  if (m_tracingProperties.pRays == nullptr) {
     emit error("Undefined beam object");
   } else {
     try {
       m_running = true;
-
-      if (m_nonSeq) {
-        m_model->traceNonSequential(
-              *m_beam,
-              m_updateBeam,
-              this,
-              false,
-              &m_batchStart,
-              !m_accumulate);
-      } else {
-        m_model->trace(
-              path.toStdString(),
-              *m_beam,
-              m_updateBeam,
-              this,
-              false,
-              &m_batchStart,
-              !m_accumulate);
-      }
+      
+      m_model->simulation()->trace(m_tracingProperties);
 
       m_batchStart = m_model->lastTracerTick();
       m_running = false;

@@ -47,6 +47,7 @@ Simulation::traceSequential(TracingProperties const &props)
   const OpticalPath *path = m_model->lookupOpticalPathOrEx(props.path);
   size_t n = 0;
 
+  m_engine->setCalculateFields(props.calculateFields);
   for (auto constSurf : path->m_sequence) {
     OpticalSurface *surface = const_cast<OpticalSurface *>(constSurf);
 
@@ -133,7 +134,8 @@ Simulation::traceNonSequential(TracingProperties const &props)
     */
 
   auto tempBeam = m_engine->makeBeam();
-
+  m_engine->setCalculateFields(props.calculateFields);
+  
   do {
     m_transferredRays = 0;
     

@@ -407,6 +407,60 @@ RayBeam::copyTo(RayBeam *dest) const
 }
 
 void
+RayBeam::appendTo(RayBeam *dest) const
+{
+  walk(
+    [&] (ConstRayBeamSlice const &slice) {
+      uint64_t length = slice.length();
+      uint64_t sOff = slice.start;
+      uint64_t dOff = dest->count;
+      uint64_t sOffV = 3 * sOff;
+      uint64_t dOffV = 3 * dOff;
+
+      dest->allocate(dest->count + slice.length());
+
+      memcpy(dest->lengths + dOff,        lengths + sOff,       length * sizeof(Real));
+      memcpy(dest->cumOptLengths + dOff,  cumOptLengths + sOff, length * sizeof(Real));
+      memcpy(dest->wavelengths + dOff,    wavelengths + sOff,   length * sizeof(Real));
+      memcpy(dest->media + dOff,          media + sOff,         length * sizeof(const EMMedium *));
+
+      memcpy(dest->ids + dOff,            ids + sOff,           length * sizeof(uint32_t));
+      memcpy(dest->Ex + dOff,             Ex + sOff,            length * sizeof(Complex));
+      memcpy(dest->Ey + dOff,             Ey + sOff,            length * sizeof(Complex));
+
+      memcpy(dest->origins + dOffV,       origins + sOffV,      3 * length * sizeof(Real));
+      memcpy(dest->destinations + dOffV,  destinations + sOffV, 3 * length * sizeof(Real));
+      memcpy(dest->directions + dOffV,    directions + sOffV,   3 * length * sizeof(Real));
+      memcpy(dest->uEx + dOffV,           uEx + sOffV,          3 * length * sizeof(Real));
+
+      if (nonSeq && dest->nonSeq)
+        memcpy(dest->surfaces + dOff,    surfaces + sOff,      length * sizeof(OpticalSurface *));
+
+      uint64_t d = dOff;
+
+      #define COPYMASKBIT(mask) \
+        dest->mask[dBlock] |= ((mask[sBlock] >> sBit) & 1) << dBit
+
+      for (uint64_t i = slice.start; i < slice.end; ++i, ++d) {
+        
+        uint64_t sBlock = i >> 6;
+        uint64_t sBit   = i & 63;
+
+        uint64_t dBlock = d >> 6;
+        uint64_t dBit   = d & 63;
+
+        COPYMASKBIT(mask);
+        COPYMASKBIT(intMask);
+        COPYMASKBIT(prevMask);
+        COPYMASKBIT(chiefMask);
+      }
+
+      #undef COPYMASKBIT
+    }
+  );
+}
+
+void
 RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 {
   assert(count == dest->count);
@@ -542,7 +596,10 @@ RayBeam::allocate(uint64_t count)
   size_t prev = this->count;
   size_t prevMaskLen = (this->count + 63) >> 6;
 
-  if (prev == 0) {
+  if (prev == count) {
+    // NO-OP
+    return;
+  } if (prev == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
@@ -565,7 +622,7 @@ RayBeam::allocate(uint64_t count)
     }
     
     this->allocation    = count;
-  } else if (count >= this->count) {
+  } else if (count > this->count) {
     this->origins       = allocBuffer<Real>(3 * count, 3 * prev, this->origins);
     this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
@@ -670,6 +727,31 @@ RayBeam::walk(
       slice.end = count;
       func(surface, slice);
     }
+  }
+}
+
+void
+RayBeam::walk(const std::function <void (ConstRayBeamSlice const &)>& func) const
+{
+  ConstRayBeamSlice slice(this); // Start at 0
+  int64_t firstExisting = -1;
+  uint64_t i = 0;
+  
+
+  for (i = 0; i < count; ++i) {
+    if (firstExisting < 0 && hasRay(i)) {
+      firstExisting = slice.start = i;
+    } else if (firstExisting >= 0 && !hasRay(i)) {
+      slice.end = i;
+      func(slice);
+
+      firstExisting = -1;
+    }
+  }
+
+  if (firstExisting >= 0) {
+    slice.end = count;
+    func(slice);
   }
 }
 

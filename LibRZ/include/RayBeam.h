@@ -20,14 +20,11 @@
 #ifndef _RAY_BEAM_H
 #define _RAY_BEAM_H
 
-#include <cassert>
-#include <stdint.h>
 #include <vector>
-#include <list>
 #include <map>
 #include <functional>
 
-#include <Vector.h>
+#include "RayTypes.h"
 #include "MediumBoundary.h"
 
 #define RZ_BEAM_MINIMUM_WAVELENGTH 1e-12
@@ -35,50 +32,6 @@
 namespace RZ {
   class ReferenceFrame;
   class OpticalSurface;
-  struct EMMedium;
-
-  struct Ray {
-    // Defined by input
-    Vec3 origin;
-    Vec3 direction;
-    Vec3 uEx; // Direction of the Ex vector
-
-    Complex Ex, Ey; // Initial complex amplitudes for the X and Y directions
-
-    // Incremented by tracer
-    Real length;
-    Real cumOptLength;
-
-    // Defines whether the ray is susceptible to vignetting
-    bool chief;
-    bool intercepted;
-
-    Real wavelength;
-    const EMMedium *medium;
-
-    // Defined by the user
-    uint32_t id;
-
-    Ray();
-  };
-
-  class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
-
-struct RayBeamStatistics {
-    uint64_t intercepted = 0;
-    uint64_t vignetted   = 0;
-    uint64_t pruned      = 0;
-
-    inline RayBeamStatistics &
-    operator +=(RayBeamStatistics const &existing)
-    {
-      intercepted += existing.intercepted;
-      vignetted   += existing.vignetted;
-      pruned      += existing.pruned;
-
-      return *this;
-    }
-  };
 
   enum RayExtractionMask {
     OriginPOV                  = 1,
@@ -91,18 +44,6 @@ struct RayBeamStatistics {
     ExtractAll                 = ExtractIntercepted | ExtractVignetted
   };
 
-  struct RayBeam;
-
-  struct RayBeamSlice {
-    RayBeam *beam  = nullptr;
-    uint64_t start = 0;
-    uint64_t end   = 0;
-
-    inline RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end);
-    inline RayBeamSlice(RayBeam *beam);
-    inline RayBeamSlice();
-  };
-  
   struct RayBeam {
     uint64_t count         = 0;
     uint64_t allocation    = 0;
@@ -262,6 +203,7 @@ struct RayBeamStatistics {
     // EMInterface calculations
     //
     void copyTo(RayBeam *) const;
+    void appendTo(RayBeam *) const;
     void toRelative(const ReferenceFrame *plane);
     void toRelative(RayBeam *, const ReferenceFrame *plane) const;
 
@@ -277,6 +219,8 @@ struct RayBeamStatistics {
       OpticalSurface *,
       const std::function <void (OpticalSurface *, RayBeamSlice const &)>& f);
 
+    void walk(const std::function <void (ConstRayBeamSlice const &)>& f) const;
+
     uint64_t updateFromVisible(
       const OpticalSurface *currentSurface,
       const RayBeam *beam);
@@ -287,21 +231,7 @@ struct RayBeamStatistics {
 
   private:
     void addInterceptMetrics(OpticalSurface *surface, RayBeamSlice const &slice);
-  };
-
-  inline 
-  RayBeamSlice::RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end) : beam(beam) {
-    assert(start <= end);
-    assert(end <= beam->count);
-    assert(start < beam->count);
-
-    this->start = start;
-    this->end   = end;
-  }
-
-  inline RayBeamSlice::RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) { }
-
-  inline RayBeamSlice::RayBeamSlice() : beam(nullptr), start(0), end(0) { }
+  };  
 }
 
 #endif // _RAY_BEAM_H

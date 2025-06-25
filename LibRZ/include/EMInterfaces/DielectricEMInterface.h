@@ -22,13 +22,29 @@
 #include <EMInterface.h>
 
 namespace RZ {
-  class DielectricEMInterface : public EMInterface {
-      Real m_muOut  = 1.5;
-      Real m_muIn   = 1;
-      Real m_IOratio = 1 / 1.5;
+  enum DielectricInterfaceCase {
+    IsoToIso,
+    AnisoToIso,
+    IsoToAniso,
+    AnisoToAniso
+  };
 
-      bool detectAnisotropic() const;
-      
+  class DielectricEMInterface : public EMInterface {
+      Real m_n2   = 1.5;
+      Real m_n1   = 1;
+      Real m_n1n2 = 1 / 1.5;
+      DielectricInterfaceCase m_interfaceCase = IsoToIso;
+
+      bool detectInterfaceCase();
+
+      inline void calcIsoToIsoFields(
+        RayBeam *inputBeam,
+        uint64_t inputRay,
+        RayBeam *splinterBeam,
+        uint64_t splinterRay,
+        const Vec3 &ui);
+
+
     public:
       void setRefractiveIndex(Real , Real);
       

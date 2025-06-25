@@ -20,6 +20,7 @@
 #define _MEDIUM_BOUNDARY_H
 
 #include "Random.h"
+#include "RayTypes.h"
 
 #define RZ_SPEED_OF_LIGHT 299792458 // m/s
 #define RZ_WAVELENGTH     555e-9
@@ -29,8 +30,6 @@ namespace RZ {
   class ReferenceFrame;
   class EMInterface;
 
-  struct RayBeam;
-  struct RayBeamSlice;
 
   class MediumBoundary {
     SurfaceShape   *m_surfaceShape  = nullptr;

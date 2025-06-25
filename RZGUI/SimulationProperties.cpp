@@ -323,12 +323,12 @@ SimulationProperties::serialize() const
   QJsonObject dofObj;
 
   switch (ttype) {
-    case TRACER_TYPE_GEOMETRIC_OPTICS:
-      object["ttype"] = "GEOMETRIC_OPTICS";
+    case TRACER_TYPE_SCALAR_RAYS:
+      object["ttype"] = "SCALAR";
       break;
 
-    case TRACER_TYPE_DIFFRACTION:
-      object["ttype"] = "DIFFRACTION";
+    case TRACER_TYPE_VECTOR_RAYS:
+      object["ttype"] = "VECTOR";
       break;
   }
 
@@ -391,10 +391,10 @@ SimulationProperties::deserialize(
 
     auto asString = obj[key].toString();
 
-    if (asString == "GEOMETRIC_OPTICS")
-      value = TRACER_TYPE_GEOMETRIC_OPTICS;
-    else if (asString == "DIFFRACTION")
-      value = TRACER_TYPE_DIFFRACTION;
+    if (asString == "GEOMETRIC_OPTICS" || asString == "SCALAR")
+      value = TRACER_TYPE_SCALAR_RAYS;
+    else if (asString == "VECTOR")
+      value = TRACER_TYPE_VECTOR_RAYS;
     else {
       setLastError("Unknown tracer type `" + asString + "'");
       return false;

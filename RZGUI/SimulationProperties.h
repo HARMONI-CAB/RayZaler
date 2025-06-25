@@ -26,8 +26,8 @@
 #define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
 
 enum TracerType {
-  TRACER_TYPE_GEOMETRIC_OPTICS,
-  TRACER_TYPE_DIFFRACTION
+  TRACER_TYPE_SCALAR_RAYS,
+  TRACER_TYPE_VECTOR_RAYS
 };
 
 enum SimulationType {
@@ -101,7 +101,7 @@ protected:
 struct SimulationProperties : public JsonSerializable {
   using JsonSerializable::deserialize;
 
-  TracerType     ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
+  TracerType     ttype = TRACER_TYPE_SCALAR_RAYS;
   SimulationType type  = SIM_TYPE_ONE_SHOT;
   bool nonSeq          = false;
   int  Ni              = 10;
