@@ -539,7 +539,7 @@ RayBeam::allocate(uint64_t count)
 {
   size_t maskLen = (count + 63) >> 6;
   size_t prev = this->count;
-  size_t prevMaskLen = (this->count + 63) >> 6;
+  size_t prevMaskLen = (prev + 63) >> 6;
 
   if (prev == count) {
     // NO-OP
@@ -614,7 +614,7 @@ RayBeam::allocate(uint64_t count)
     0,
     (maskLen - prevMaskLen) * sizeof(uint64_t));
 
-  for (int64_t i = this->count; i < count; ++i)
+  for (int64_t i = prev; i < count; ++i)
     this->media[i] = nullptr;
 
   this->count = count;
