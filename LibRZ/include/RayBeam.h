@@ -271,6 +271,8 @@ namespace RZ {
     
     uint64_t d = dOff;
 
+    // TODO: Optimize.
+    
 #define COPYMASKBIT(field) \
     dest->field[dBlock] = (dest->field[dBlock] & ~(1ull << dBit)) | (((src->field[sBlock] >> sBit) & 1ull) << dBit)
 
@@ -285,34 +287,6 @@ namespace RZ {
       COPYMASKBIT(intMask);
       COPYMASKBIT(prevMask);
       COPYMASKBIT(chiefMask);
-
-
-      if (((d - dOff) & 63) == 0) {
-        printf(
-          "[%04d] XMASK: 0x%016llx - 0x%016llx\n",
-          dBlock,
-          dest->mask[dBlock],
-          src->mask[sBlock]);
-        printf(
-          "[%04d] IMASK: 0x%016llx - 0x%016llx\n",
-          dBlock,
-          dest->intMask[dBlock],
-          src->intMask[sBlock]);
-        printf(
-          "[%04d] PMASK: 0x%016llx - 0x%016llx\n",
-          dBlock,
-          dest->prevMask[dBlock],
-          src->prevMask[sBlock]);
-        printf(
-          "[%04d] CMASK: 0x%016llx - 0x%016llx\n\n",
-          dBlock,
-          dest->chiefMask[dBlock],
-          src->chiefMask[sBlock]);
-      }
-        
-      assert(dest->hadRay(d) == src->hadRay(i));
-      assert(dest->hasRay(d) == src->hasRay(i));
-      assert(dest->isIntercepted(d) == src->isIntercepted(i));
     }
 
 #undef COPYMASKBIT

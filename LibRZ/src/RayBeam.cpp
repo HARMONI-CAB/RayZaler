@@ -190,13 +190,13 @@ RayBeam::debug() const
   if (nonSeq) {
     for (auto &p : surfIntercepts) {
       if (p.first == nullptr)
-        printf("* Default surface: %ld intercepts\n", p.second);
+        printf("* [0x%016llx] Default surface: %ld intercepts\n", 0, p.second);
       else {
         auto name = string_printf(
           "%s.%s:",
           p.first->parent->name().c_str(), p.first->name.c_str());
 
-        printf("* %-15s %ld intercepts\n", name.c_str(), p.second);
+        printf("* [0x%016llx] %-15s %ld intercepts\n", p.first, name.c_str(), p.second);
       }
     }
   }
@@ -258,8 +258,6 @@ RayBeam::extractRays(
 
   uint32_t total = 0, count = 0;
 
-  printf("extractRays(%d:%d) [0x%x]\n", slice.start, slice.end, mask);
-
   for (auto i = slice.start; i < slice.end; ++i) {
     ++total;
     if (beam->hasRay(i) && beam->lengths[i] > RZ_BEAM_MINIMUM_WAVELENGTH) {
@@ -267,9 +265,6 @@ RayBeam::extractRays(
       bool shouldExtract = 
         (beam->isIntercepted(i) && extractIntercepted)
         || (!beam->isIntercepted(i) && extractVignetted);
-
-      if (!shouldExtract)
-        printf(" [%3d] Not extracted because intercepted is %d\n", i, beam->isIntercepted(i));
 
       if (excludeBeam
         && i >= exclude.start
@@ -321,8 +316,6 @@ RayBeam::extractRays(
 
         dest.push_back(std::move(ray));
       }
-    } else {
-      printf(" [%3d] Skipped because we have it = %d, wl = %g\n", i, beam->hasRay(i), beam->wavelengths[i]);;
     }
   }
 }
@@ -397,8 +390,6 @@ RayBeam::appendTo(RayBeam *dest) const
       uint64_t dOff = dest->count;
 
       dest->allocate(dest->count + length);
-
-      printf("Copy slice of length %d to %d\n", length, dOff);
 
       slice.copyTo(RayBeamSlice(dest, dOff, dOff + length));
     }
@@ -628,26 +619,27 @@ RayBeam::walk(
       const std::function <bool (OpticalSurface *, RayBeam const *, uint64_t)>& include)
 {
   auto slice = RayBeamSlice(this); // Start at 0
+  OpticalSurface *sliceSurf = nullptr;
 
   for (uint64_t i = 0; i < count; ++i) {
-    auto currSurf = hasRay(i) && include(surface, this, i) 
+    auto currSurf = hasRay(i) && include(surface, this, i)
     ? (nonSeq ? surfaces[i] : surface) 
     : nullptr;
 
-    if (surface != currSurf) {
+    if (sliceSurf != currSurf) {
       // Sequence of equal surfaces has finished. Transmit this slice.
-      if (surface != nullptr) {
+      if (sliceSurf != nullptr) {
         slice.end = i;
         func(surface, slice);
       }
 
-      surface = currSurf;
+      sliceSurf = currSurf;
 
       slice.start = i;
     }
   }
 
-  if (surface != nullptr) {
+  if (sliceSurf != nullptr) {
     slice.end = count;
     func(surface, slice);
   }

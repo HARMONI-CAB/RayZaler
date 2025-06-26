@@ -175,12 +175,6 @@ DielectricEMInterface::transmit(
       }
 
       if (splinterBeam != nullptr) {
-        assert(mustTransmitRay(splinterBeam, i));
-        assert(splinterBeam->surfaces[i] == inputBeam->surfaces[i]);
-        assert(splinterBeam->hadRay(i) == inputBeam->hadRay(i));
-        assert(splinterBeam->hasRay(i) == inputBeam->hasRay(i));
-        assert(splinterBeam->isIntercepted(i) == inputBeam->isIntercepted(i));
-
         reflection(ui, normal).copyToArray(splinterBeam->directions + 3 * i);
         switch (m_interfaceCase) {
           case IsoToIso:
@@ -192,9 +186,6 @@ DielectricEMInterface::transmit(
             break;
         }
       }
-    } else if (splinterBeam != nullptr) {
-      printf("<%d> Pruned\n", i);
-      splinterBeam->prune(i);
     }
   }
 }

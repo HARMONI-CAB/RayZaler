@@ -67,9 +67,7 @@ Simulation::traceSequential(TracingProperties const &props)
           OriginPOV | BeamIsSurfaceRelative | ExtractIntercepted,
         surface);
 
-    printf("Beam before transmit: %d rays\n", m_engine->beam()->count);
     m_engine->transmitThrough(surface);    
-    printf("Beam after transmit:  %d rays\n\n", m_engine->beam()->count);
 
     m_engine->updateOrigins(); // Destinations == origins
 
@@ -163,7 +161,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
     size_t n = 0;
     for (auto surface : candidates) {
       assert(surface != nullptr);
-
+      
       m_engine->setCurrentStage(surface->name, n, candidates.size());
 
       // Convert this beam to relative and store it in tempBeam
@@ -181,10 +179,6 @@ Simulation::traceNonSequential(TracingProperties const &props)
       ++n;
     }
 
-    printf("Non sequential beam:\n");
-    nsBeam->debug();
-    printf("\n");
-
     // The non sequential beam is ready, pass to ray tracer
     m_engine->setMainBeam(nsBeam);
 
@@ -198,22 +192,12 @@ Simulation::traceNonSequential(TracingProperties const &props)
           OriginPOV 
         | BeamIsSurfaceRelative
         | ExtractIntercepted);
-      printf("Intermediate rays: %d\n", m_intermediateRays.size());
     }
 
     // Transmit through all these surfaces
-    printf("About to transmit: %d\n", m_engine->beam()->count);
     m_engine->transmitThroughIntercepted();
-    printf("Transmitted: %d\n", m_engine->beam()->count);
-    m_engine->beam()->debug();
-    printf("\n");
 
     m_engine->updateOrigins();
-
-    printf("Origins updated\n");
-    m_engine->beam()->debug();
-    printf("\n");
-    
 
     if (m_engine->cancelled())
       return false;

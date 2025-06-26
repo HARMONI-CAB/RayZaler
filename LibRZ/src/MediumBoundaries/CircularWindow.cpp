@@ -26,6 +26,8 @@ CircularWindowBoundary::CircularWindowBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(.5));
   setEMInterface(new DielectricEMInterface);
+  emInterface<DielectricEMInterface>()->setSurroundingMedium(nullptr);
+  setReversible(true);
 }
 
 std::string
