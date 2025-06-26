@@ -129,23 +129,37 @@ DielectricEMInterface::transmit(
 {
   blockLight(slice); // Prune rays according to transmission
 
-  //
-  // TODO: TEST FOR SPECULAR REFLECTION
-  //
-
   auto inputBeam = slice.beam;
   Real rdir = m_n1n2, rinv = 1 / m_n1n2;
   Real n1  = m_n1;
   Real n2  = m_n2;
 
   if (splinterBeam != nullptr) {
+    // Make sure the splinter beam is properly allocated
+    if (splinterBeam->count < inputBeam->count) {
+      switch (m_interfaceCase) {
+        case IsoToIso:
+          splinterBeam->allocate(inputBeam->count);
+          break;
+
+        default:
+          // TODO: Write me!
+          break;
+      }
+    }
+
+    // Copy splinter beam
     switch (m_interfaceCase) {
       case IsoToIso:
-        splinterBeam->allocate(inputBeam->count);
-        inputBeam->copyTo(splinterBeam);
+        slice.copyTo(RayBeamSlice(splinterBeam, slice.start, slice.end));
+        break;
+
+      default:
+        // TODO: Write me
         break;
     }
   }
+
   for (auto i = slice.start; i < slice.end; ++i) {
     if (mustTransmitRay(slice.beam, i)) {
       const Vec3 ui(inputBeam->directions  + 3 * i);
@@ -161,8 +175,13 @@ DielectricEMInterface::transmit(
       }
 
       if (splinterBeam != nullptr) {
+        assert(mustTransmitRay(splinterBeam, i));
+        assert(splinterBeam->surfaces[i] == inputBeam->surfaces[i]);
+        assert(splinterBeam->hadRay(i) == inputBeam->hadRay(i));
+        assert(splinterBeam->hasRay(i) == inputBeam->hasRay(i));
+        assert(splinterBeam->isIntercepted(i) == inputBeam->isIntercepted(i));
+
         reflection(ui, normal).copyToArray(splinterBeam->directions + 3 * i);
-        splinterBeam->media[i] = medium;
         switch (m_interfaceCase) {
           case IsoToIso:
             calcIsoToIsoFields(inputBeam, i, splinterBeam, i, ui);
@@ -174,6 +193,7 @@ DielectricEMInterface::transmit(
         }
       }
     } else if (splinterBeam != nullptr) {
+      printf("<%d> Pruned\n", i);
       splinterBeam->prune(i);
     }
   }

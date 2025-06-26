@@ -67,7 +67,9 @@ Simulation::traceSequential(TracingProperties const &props)
           OriginPOV | BeamIsSurfaceRelative | ExtractIntercepted,
         surface);
 
+    printf("Beam before transmit: %d rays\n", m_engine->beam()->count);
     m_engine->transmitThrough(surface);
+    printf("Beam after transmit:  %d rays\n\n", m_engine->beam()->count);
 
     m_engine->updateOrigins(); // Destinations == origins
 
@@ -135,7 +137,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
 
   auto tempBeam = m_engine->makeBeam();
   m_engine->setCalculateFields(props.calculateFields);
-  
+
   do {
     m_transferredRays = 0;
     
@@ -144,7 +146,10 @@ Simulation::traceNonSequential(TracingProperties const &props)
     // Non sequential beams are all-pruned by default, but they keep the
     // origins and directions of the original beam
     auto nsBeam   = m_engine->makeNSBeam();
-    
+    // Needed only to handle splintered beams
+    if (props.calculateFields)
+      tempBeam->allocate(m_engine->beam()->count);
+      
     //
     // In the engine: 
     //   - Make non-sequential beam.
@@ -183,15 +188,19 @@ Simulation::traceNonSequential(TracingProperties const &props)
     m_engine->beam()->computeInterceptStatistics();
 
     // Save intermediate rays for representation
-    if (props.beamElement != nullptr)
+    if (props.beamElement != nullptr) {
       m_engine->beam()->extractRays(
         m_intermediateRays,
           OriginPOV 
         | BeamIsSurfaceRelative
         | ExtractIntercepted);
-    
+      printf("Intermediate rays: %d\n", m_intermediateRays.size());
+    }
+
     // Transmit through all these surfaces
+    printf("About to transmit: %d\n", m_engine->beam()->count);
     m_engine->transmitThroughIntercepted();
+    printf("Transmitted: %d\n\n", m_engine->beam()->count);
 
     m_engine->updateOrigins();
 

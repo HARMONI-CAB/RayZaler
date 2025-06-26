@@ -231,7 +231,70 @@ namespace RZ {
 
   private:
     void addInterceptMetrics(OpticalSurface *surface, RayBeamSlice const &slice);
-  };  
+  };
+
+  template<typename T> inline void
+  Slice<T>::copyTo(Slice<RayBeam> const &slice) const
+  {
+    auto len = length();
+    assert(len == slice.length());
+
+    uint64_t sOff   = this->start;
+    uint64_t dOff   = slice.start;
+    uint64_t sOffV = 3 * sOff;
+    uint64_t dOffV = 3 * dOff;
+
+    auto dest = slice.beam;
+    auto src  = this->beam;
+
+#define COPYSCALAR(field) \
+    memcpy(dest->field + dOff, src->field + sOff, len * sizeof(src->field[0]))
+  
+#define COPYVECTOR(field) \
+    memcpy(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
+  
+    COPYSCALAR(lengths);
+    COPYSCALAR(cumOptLengths);
+    COPYSCALAR(wavelengths);
+    COPYSCALAR(media);
+    COPYSCALAR(ids);
+    COPYSCALAR(Ex);
+    COPYSCALAR(Ey);
+
+    if (src->nonSeq && dest->nonSeq) {
+      printf("Copy surfaces!\n");
+      COPYSCALAR(surfaces);
+    }
+
+    COPYVECTOR(origins);
+    COPYVECTOR(destinations);
+    COPYVECTOR(directions);
+    COPYVECTOR(uEx);
+    
+    uint64_t d = dOff;
+
+#define COPYMASKBIT(mask) \
+    dest->mask[dBlock] |= ((src->mask[sBlock] >> sBit) & 1ull) << dBit
+
+    printf("Copy %d -> %d\n", sOff, dOff);
+    
+    for (uint64_t i = this->start; i < this->end; ++i, ++d) {
+      uint64_t sBlock = i >> 6;
+      uint64_t sBit   = i & 63;
+
+      uint64_t dBlock = d >> 6;
+      uint64_t dBit   = d & 63;
+
+      COPYMASKBIT(mask);
+      COPYMASKBIT(intMask);
+      COPYMASKBIT(prevMask);
+      COPYMASKBIT(chiefMask);
+    }
+
+#undef COPYMASKBIT
+#undef COPYVECTOR
+#undef COPYSCALAR
+  }
 }
 
 #endif // _RAY_BEAM_H

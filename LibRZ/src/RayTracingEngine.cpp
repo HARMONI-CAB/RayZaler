@@ -204,7 +204,7 @@ RayTracingEngine::transmitThrough(const OpticalSurface *surface)
   if (m_calculateFields) {
     RayBeam splinteredBeam(0);
     splinteredBeam.nonSeq = m_beam->nonSeq;
-    transmit(surface, m_beam, nullptr);
+    transmit(surface, m_beam, &splinteredBeam);
 
     if (splinteredBeam.count > 0)
       splinteredBeam.appendTo(m_beam);

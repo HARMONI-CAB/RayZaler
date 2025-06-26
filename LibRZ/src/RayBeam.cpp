@@ -258,6 +258,8 @@ RayBeam::extractRays(
 
   uint32_t total = 0, count = 0;
 
+  printf("extractRays(%d:%d) [0x%x]\n", slice.start, slice.end, mask);
+
   for (auto i = slice.start; i < slice.end; ++i) {
     ++total;
     if (beam->hasRay(i) && beam->lengths[i] > RZ_BEAM_MINIMUM_WAVELENGTH) {
@@ -265,6 +267,9 @@ RayBeam::extractRays(
       bool shouldExtract = 
         (beam->isIntercepted(i) && extractIntercepted)
         || (!beam->isIntercepted(i) && extractVignetted);
+
+      if (!shouldExtract)
+        printf(" [%3d] Not extracted because intercepted is %d\n", i, beam->isIntercepted(i));
 
       if (excludeBeam
         && i >= exclude.start
@@ -316,6 +321,8 @@ RayBeam::extractRays(
 
         dest.push_back(std::move(ray));
       }
+    } else {
+      printf(" [%3d] Skipped because we have it = %d, wl = %g\n", i, beam->hasRay(i), beam->wavelengths[i]);;
     }
   }
 }
@@ -378,32 +385,7 @@ RayBeam::computeInterceptStatistics(OpticalSurface *surface)
 void
 RayBeam::copyTo(RayBeam *dest) const
 {
-  assert(count == dest->count);
-  size_t maskLen = ((count + 63) >> 6) << 3;
-
-  memcpy(dest->mask, mask, maskLen);
-  memcpy(dest->prevMask, prevMask, maskLen);
-  memcpy(dest->chiefMask, chiefMask, maskLen);
-  
-  // All non-intercepted by default
-  memset(dest->intMask, 0, maskLen);
-
-  memcpy(dest->lengths,       lengths,       count * sizeof(Real));
-  memcpy(dest->cumOptLengths, cumOptLengths, count * sizeof(Real));
-  memcpy(dest->wavelengths,   wavelengths,   count * sizeof(Real));
-  memcpy(dest->media,         media,         count * sizeof(const EMMedium *));
-
-  memcpy(dest->ids,           ids,           count * sizeof(uint32_t));
-  memcpy(dest->Ex,            Ex,            count * sizeof(Complex));
-  memcpy(dest->Ey,            Ey,            count * sizeof(Complex));
-
-  memcpy(dest->origins,       origins,       3 * count * sizeof(Real));
-  memcpy(dest->destinations,  destinations,  3 * count * sizeof(Real));
-  memcpy(dest->directions,    directions,    3 * count * sizeof(Real));
-  memcpy(dest->uEx,           uEx,           3 * count * sizeof(Real));
-
-  if (nonSeq && dest->nonSeq)
-    memcpy(dest->surfaces,    surfaces,      count * sizeof(OpticalSurface *));
+  ConstRayBeamSlice(this).copyTo(RayBeamSlice(dest));
 }
 
 void
@@ -412,50 +394,13 @@ RayBeam::appendTo(RayBeam *dest) const
   walk(
     [&] (ConstRayBeamSlice const &slice) {
       uint64_t length = slice.length();
-      uint64_t sOff = slice.start;
       uint64_t dOff = dest->count;
-      uint64_t sOffV = 3 * sOff;
-      uint64_t dOffV = 3 * dOff;
 
-      dest->allocate(dest->count + slice.length());
+      dest->allocate(dest->count + length);
 
-      memcpy(dest->lengths + dOff,        lengths + sOff,       length * sizeof(Real));
-      memcpy(dest->cumOptLengths + dOff,  cumOptLengths + sOff, length * sizeof(Real));
-      memcpy(dest->wavelengths + dOff,    wavelengths + sOff,   length * sizeof(Real));
-      memcpy(dest->media + dOff,          media + sOff,         length * sizeof(const EMMedium *));
+      printf("Copy slice of length %d to %d\n", length, dOff);
 
-      memcpy(dest->ids + dOff,            ids + sOff,           length * sizeof(uint32_t));
-      memcpy(dest->Ex + dOff,             Ex + sOff,            length * sizeof(Complex));
-      memcpy(dest->Ey + dOff,             Ey + sOff,            length * sizeof(Complex));
-
-      memcpy(dest->origins + dOffV,       origins + sOffV,      3 * length * sizeof(Real));
-      memcpy(dest->destinations + dOffV,  destinations + sOffV, 3 * length * sizeof(Real));
-      memcpy(dest->directions + dOffV,    directions + sOffV,   3 * length * sizeof(Real));
-      memcpy(dest->uEx + dOffV,           uEx + sOffV,          3 * length * sizeof(Real));
-
-      if (nonSeq && dest->nonSeq)
-        memcpy(dest->surfaces + dOff,    surfaces + sOff,      length * sizeof(OpticalSurface *));
-
-      uint64_t d = dOff;
-
-      #define COPYMASKBIT(mask) \
-        dest->mask[dBlock] |= ((mask[sBlock] >> sBit) & 1) << dBit
-
-      for (uint64_t i = slice.start; i < slice.end; ++i, ++d) {
-        
-        uint64_t sBlock = i >> 6;
-        uint64_t sBit   = i & 63;
-
-        uint64_t dBlock = d >> 6;
-        uint64_t dBit   = d & 63;
-
-        COPYMASKBIT(mask);
-        COPYMASKBIT(intMask);
-        COPYMASKBIT(prevMask);
-        COPYMASKBIT(chiefMask);
-      }
-
-      #undef COPYMASKBIT
+      slice.copyTo(RayBeamSlice(dest, dOff, dOff + length));
     }
   );
 }
@@ -654,6 +599,21 @@ RayBeam::allocate(uint64_t count)
     0,
     (maskLen - prevMaskLen) * sizeof(uint64_t));
   
+  memset(
+    this->mask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
+  memset(
+    this->intMask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
+  memset(
+    this->prevMask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
   for (int64_t i = this->count; i < count; ++i)
     this->media[i] = nullptr;
 

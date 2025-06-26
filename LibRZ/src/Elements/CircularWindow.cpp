@@ -42,8 +42,8 @@ CircularWindow::recalcModel()
   m_outputBoundary->setRefractiveIndex(m_mu, 1);
 
   // Intercept surfaces
-  m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
-  m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
 
   setBoundingBox(
       Vec3(-m_radius, -m_radius, -m_thickness/2),

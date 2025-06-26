@@ -80,6 +80,7 @@ namespace RZ {
     uint64_t end   = 0;
 
     inline uint64_t length() const { return end - start; }
+    inline void copyTo(Slice<RayBeam> const &) const; // Definition in RayBeam.h
     inline Slice(T *beam, uint64_t start, uint64_t end);
     inline Slice(T *beam);
     inline Slice();
