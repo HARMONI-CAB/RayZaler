@@ -29,7 +29,8 @@ namespace RZ {
 
   class DetectorStorage {
       std::vector<uint32_t> m_photons;
-      std::vector<Complex>  m_amplitude;
+      std::vector<Complex>  m_Ex;
+      std::vector<Complex>  m_Ey;
       Real m_width;
       Real m_height;
 
@@ -47,7 +48,7 @@ namespace RZ {
       
     public:
       inline bool
-      hit(Real x, Real y, Complex amplitude)
+      hit(Real x, Real y, Complex Ex, Complex Ey)
       {
         int row, col;
         size_t ndx;
@@ -61,9 +62,10 @@ namespace RZ {
 
         ndx = col + row * m_stride;
         ++m_photons[ndx];
-        m_amplitude[ndx] += amplitude;
+        m_Ex[ndx] += Ex;
+        m_Ey[ndx] += Ey;
 
-        E = (m_amplitude[ndx] * std::conj(m_amplitude[ndx])).real();
+        E = mag2(m_Ex[ndx]) + mag2(m_Ey[ndx]);
 
         if (m_photons[ndx] > m_maxCounts)
           m_maxCounts = m_photons[ndx];

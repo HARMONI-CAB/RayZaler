@@ -36,6 +36,12 @@ namespace RZ {
   typedef Vec3 Point3;
   static inline RZ::Vec3 operator *(RZ::Real k, RZ::Vec3 v);
 
+  static inline Real
+  mag2(Complex a)
+  {
+    return (a * std::conj(a)).real();
+  }
+  
   static inline bool
   isZero(Real a, Real precision = 1e-9)
   {

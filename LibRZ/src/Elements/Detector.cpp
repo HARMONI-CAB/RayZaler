@@ -71,7 +71,8 @@ DetectorStorage::recalculate()
 
   if (m_photons.size() != newSize) {
     m_photons.resize(newSize);
-    m_amplitude.resize(newSize);
+    m_Ex.resize(newSize);
+    m_Ey.resize(newSize);
     clear();
   }
 }
@@ -121,14 +122,15 @@ DetectorStorage::data() const
 const Complex *
 DetectorStorage::amplitude() const
 {
-  return m_amplitude.data();
+  return m_Ex.data();
 }
 
 void
 DetectorStorage::clear()
 {
   std::fill(m_photons.begin(), m_photons.end(), 0);
-  std::fill(m_amplitude.begin(), m_amplitude.end(), 0.);
+  std::fill(m_Ex.begin(), m_Ex.end(), 0.);
+  std::fill(m_Ey.begin(), m_Ey.end(), 0.);
 
   m_maxCounts = 0;
   m_maxEnergy = 0;
@@ -194,7 +196,7 @@ DetectorStorage::saveAmplitude(std::string const &path) const
   }
 
   for (auto j = 0; j < m_rows; ++j) {
-    const RZ::Complex *data = m_amplitude.data() + j * m_stride;
+    const RZ::Complex *data = amplitude() + j * m_stride;
     if (fwrite(data, chunkSize, 1, fp) < 1) {
       RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
       goto done;
@@ -228,11 +230,22 @@ DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
 
   for (uint64_t i = slice.start; i < end; ++i) {
     // Check intercept
-    if (beam.hasRay(i) && beam.isIntercepted(i))
-      m_storage->hit(
-        beam.destinations[3 * i + 0], 
-        beam.destinations[3 * i + 1], 
-        beam.Ex[i]);
+    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+      Complex Ex = 0, Ey = 0;
+      Vec3 dest(beam.destinations + 3 * i);
+
+      if (beam.fields) {
+        Vec3 uEx(beam.uEx + 3 * i);
+        Vec3 uEy = Vec3(beam.directions + 3 * i).cross(uEx);
+        Vec3 In  = beam.Ex[i].real() * uEx + beam.Ey[i].real() * uEy;
+        Vec3 Qu  = beam.Ex[i].imag() * uEx + beam.Ey[i].imag() * uEy;
+
+        Ex = Complex(In.x, Qu.x);
+        Ey = Complex(In.y, Qu.y);
+      }
+      
+      m_storage->hit(dest.x, dest.y, Ex, Ey);
+    }
   }
 
   MediumBoundary::transmit(slice, splinter);
