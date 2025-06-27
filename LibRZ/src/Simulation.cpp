@@ -74,6 +74,12 @@ Simulation::traceSequential(TracingProperties const &props)
       return false;
 
     ++n;
+
+    if (!props.keepStrayRays)
+      m_engine->beam()->pruneStrayLight();
+
+    if (props.compactifyInterval > 0 && n % props.compactifyInterval == 0)
+      m_engine->beam()->compactify();
   }
 
   if (props.beamElement != nullptr)
@@ -188,6 +194,15 @@ Simulation::traceNonSequential(TracingProperties const &props)
     if (m_engine->cancelled())
       return false;
 
+    if (!props.keepStrayRays)
+      m_engine->beam()->pruneStrayLight();
+
+    if (props.compactifyInterval > 0 && (propagations + 1) % props.compactifyInterval == 0) {
+      m_engine->beam()->compactify();
+
+      if (tempBeam->count > m_engine->beam()->count)
+        tempBeam->shrink(m_engine->beam()->count);
+    }
   } while (++propagations <= props.maxPropagations && m_transferredRays > 0);
 
   if (props.beamElement != nullptr)

@@ -176,6 +176,7 @@ namespace RZ {
     #undef SETMASK
 
     virtual void allocate(uint64_t);
+    virtual void shrink(uint64_t);
     virtual void deallocate();
 
     template <class T> void extractRays(
@@ -213,6 +214,8 @@ namespace RZ {
 
     void fromRelative(const ReferenceFrame *plane);
     void fromSurfaceRelative();
+    void pruneStrayLight();
+    void compactify();
 
     void walk(
       OpticalSurface *,
@@ -252,10 +255,10 @@ namespace RZ {
     auto src  = this->beam;
 
 #define COPYSCALAR(field) \
-    memcpy(dest->field + dOff, src->field + sOff, len * sizeof(src->field[0]))
+    memmove(dest->field + dOff, src->field + sOff, len * sizeof(src->field[0]))
   
 #define COPYVECTOR(field) \
-    memcpy(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
+    memmove(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
   
     COPYSCALAR(lengths);
     COPYSCALAR(cumOptLengths);

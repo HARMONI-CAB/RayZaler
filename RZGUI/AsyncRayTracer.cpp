@@ -82,6 +82,24 @@ AsyncRayTracer::setSecondaryRays(bool doIt)
 }
 
 void
+AsyncRayTracer::setMaxPropagations(unsigned int maxProp)
+{
+  m_tracingProperties.maxPropagations = maxProp;
+}
+
+void
+AsyncRayTracer::setCompactifyInterval(unsigned int interval)
+{
+  m_tracingProperties.compactifyInterval = interval;
+}
+
+void
+AsyncRayTracer::setKeepStrayLight(bool doIt)
+{
+  m_tracingProperties.keepStrayRays = doIt;
+}
+
+void
 AsyncRayTracer::setAccumulate(bool acc)
 {
   m_tracingProperties.clearPrevious = !acc;

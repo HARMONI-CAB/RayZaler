@@ -32,18 +32,16 @@ class AsyncRayTracer : public QObject, public RZ::RayTracingProcessListener
 {
   Q_OBJECT
 
-  RZ::OMModel              *m_model         = nullptr; // Borrowed
-  const RZ::RayList        *m_beam          = nullptr;
+  RZ::OMModel              *m_model       = nullptr; // Borrowed
   QMutex                    m_beamMutex;
   RZ::TracingProperties     m_tracingProperties;
 
-  bool                      m_cancelled     = false;
-  bool                      m_calcFields    = false;
-  bool                      m_running       = false;
-  bool                      m_updateBeam    = true;
-  bool                      m_secondaryRays = false;
-  int                       m_currSim       = 0;
-  int                       m_numSim        = 1;
+  bool                      m_cancelled   = false;
+  bool                      m_calcFields  = false;
+  bool                      m_running     = false;
+  bool                      m_updateBeam  = true;
+  int                       m_currSim     = 0;
+  int                       m_numSim      = 1;
   struct timeval            m_batchStart;
 
 public:
@@ -52,9 +50,12 @@ public:
   bool setModel(RZ::OMModel *model);
   void cancel();
   void setCalculateFields(bool);
-  void setSecondaryRays(bool);
   void setUpdateBeam(bool);
   void setNonSeq(bool);
+  void setSecondaryRays(bool);
+  void setMaxPropagations(unsigned int);
+  void setCompactifyInterval(unsigned int);
+  void setKeepStrayLight(bool);
   void setBeam(RZ::RayList const &);
   void setAccumulate(bool);
   bool running() const;

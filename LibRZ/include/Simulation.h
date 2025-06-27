@@ -40,6 +40,10 @@ namespace RZ {
     bool            clearDetectors        = true;
     bool            calculateFields       = false;
     bool            secondaryRays         = false;
+    bool            keepStrayRays         = false;
+    unsigned int    compactifyInterval    = 1;
+    Real            powerThreshold        = 0.;
+
     std::string     path;
     const RayList  *pRays                 = nullptr;
     RayList         rays;

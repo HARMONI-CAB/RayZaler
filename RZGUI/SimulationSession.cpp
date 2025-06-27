@@ -1293,6 +1293,9 @@ SimulationSession::runSimulation()
   m_tracer->setUpdateBeam(m_simState->steps() == 1);
   m_tracer->setCalculateFields(m_simState->properties().ttype == TRACER_TYPE_VECTOR_RAYS);
   m_tracer->setSecondaryRays(m_simState->properties().secondaryRays);
+  m_tracer->setKeepStrayLight(m_simState->properties().keepStrayLight);
+  m_tracer->setMaxPropagations(m_simState->properties().maxProp);
+  m_tracer->setCompactifyInterval(m_simState->properties().compactifyInterval);
   m_tracer->setAccumulate(false);
   m_tracer->setNonSeq(m_simState->properties().nonSeq);
   gettimeofday(&m_simulationStart, nullptr);

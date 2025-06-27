@@ -103,9 +103,14 @@ struct SimulationProperties : public JsonSerializable {
 
   TracerType     ttype = TRACER_TYPE_SCALAR_RAYS;
   SimulationType type  = SIM_TYPE_ONE_SHOT;
-  bool nonSeq          = false;
-  int  Ni              = 10;
-  int  Nj              = 10;
+
+  bool nonSeq                 = false;
+  bool secondaryRays          = false;
+  bool keepStrayLight         = true;
+  int compactifyInterval      = 1;
+  int maxProp                 = 8;
+  int  Ni                     = 10;
+  int  Nj                     = 10;
 
   std::list<SimulationBeamProperties>      beams;
   std::vector<SimulationBeamProperties *>  beamVector;
@@ -121,7 +126,6 @@ struct SimulationProperties : public JsonSerializable {
   bool    saveCSV       = true;
   bool    clearDetector = false;
   bool    overwrite     = false;
-  bool    secondaryRays = false;
 
   QString saveDir       = "artifacts";
   QString saveDetector  = "";

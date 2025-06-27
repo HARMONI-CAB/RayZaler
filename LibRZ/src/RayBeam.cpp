@@ -439,6 +439,35 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
 }
 
 void
+RayBeam::compactify()
+{
+  uint64_t p = 0;
+
+  walk(
+    [&] (ConstRayBeamSlice const &slice) {
+      uint64_t length = slice.length();
+
+      if (p < slice.start)
+        slice.copyTo(RayBeamSlice(this, p, p + length));
+      p += length;
+    }
+  );
+
+  if (p < this->count)
+    this->count = p;
+}
+
+void
+RayBeam::pruneStrayLight()
+{
+  uint64_t i = 0;
+
+  for (i = 0; i < count; ++i)
+    if (hasRay(i) && !isIntercepted(i))
+      prune(i);
+}
+
+void
 RayBeam::toRelative(const ReferenceFrame *plane)
 {
   assert(!this->nonSeq);
@@ -594,7 +623,7 @@ RayBeam::allocate(uint64_t count)
 
     this->allocation    = count;
   } else {
-    throw std::runtime_error("Cannot shrink ray list");
+    throw std::runtime_error("Cannot shrink beam from allocate(). Call shrink() instead.");
   }
 
   memset(
@@ -743,11 +772,20 @@ RayBeam::deallocate()
   this->count = 0;
 }
 
+void
+RayBeam::shrink(uint64_t count)
+{
+  if (count > this->count)
+    throw std::runtime_error("Cannot incrase beam allocation from shrink(). Use allocate() instead.");
+
+  this->count = count;
+}
+
 RayBeam::RayBeam(uint64_t count, bool nonSeq, bool fields)
 {
   this->nonSeq = nonSeq;
   this->fields = fields;
-  
+
   allocate(count);
 
   if (nonSeq)
