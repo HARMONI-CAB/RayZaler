@@ -282,9 +282,13 @@ RayBeam::extractRays(
         ray.cumOptLength = beam->cumOptLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
-        ray.uEx          = Vec3(beam->uEx + 3 * i);
-        ray.Ex           = beam->Ex[i];
-        ray.Ey           = beam->Ey[i];
+
+        if (beam->fields) {
+          ray.uEx        = Vec3(beam->uEx + 3 * i);
+          ray.Ex         = beam->Ex[i];
+          ray.Ey         = beam->Ey[i];
+        }
+        
         ray.intercepted  = beam->isIntercepted(i);
         
         ray.origin       = originPOV 
@@ -418,16 +422,18 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
-      plane->toRelativeVec(
-        Vec3(uEx + 3 * i)).copyToArray(dest->uEx + 3 * i);
-
       dest->lengths[i]       = lengths[i];
-      dest->Ex[i]            = Ex[i];
-      dest->Ey[i]            = Ey[i];
       dest->cumOptLengths[i] = cumOptLengths[i];
       dest->wavelengths[i]   = wavelengths[i];
       dest->ids[i]           = ids[i];
       dest->media[i]         = media[i];
+
+      if (fields && dest->fields) {
+        dest->Ex[i]          = Ex[i];
+        dest->Ey[i]          = Ey[i];
+        plane->toRelativeVec(
+          Vec3(uEx + 3 * i)).copyToArray(dest->uEx + 3 * i);
+      }
     }
   }
 }
@@ -455,8 +461,9 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      plane->fromRelativeVec(
-        Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
+      if (fields)
+        plane->fromRelativeVec(
+          Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
     }
   }
 }
@@ -481,8 +488,9 @@ RayBeam::fromSurfaceRelative()
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      plane->fromRelativeVec(
-        Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
+      if (fields)
+        plane->fromRelativeVec(
+          Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
 
       ++total;
     }
@@ -540,9 +548,6 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
-    this->uEx           = allocBuffer<Real>(3 * count);
-    this->Ex            = allocBuffer<Complex>(count);
-    this->Ey            = allocBuffer<Complex>(count);
     this->lengths       = allocBuffer<Real>(count);
     this->cumOptLengths = allocBuffer<Real>(count);
     this->media         = allocBuffer<const EMMedium *>(count);
@@ -553,8 +558,13 @@ RayBeam::allocate(uint64_t count)
     this->intMask       = allocBuffer<uint64_t>(maskLen);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     
-    if (this->nonSeq) {
+    if (this->nonSeq)
       this->surfaces     = allocBuffer<OpticalSurface *>(count);
+    
+    if (this->fields) {
+      this->uEx          = allocBuffer<Real>(3 * count);
+      this->Ex           = allocBuffer<Complex>(count);
+      this->Ey           = allocBuffer<Complex>(count);
     }
     
     this->allocation    = count;
@@ -563,9 +573,6 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
-    this->uEx           = allocBuffer<Real>(3 * count, 3 * prev, this->uEx);
-    this->Ex            = allocBuffer<Complex>(count, prev, this->Ex);
-    this->Ey            = allocBuffer<Complex>(count, prev, this->Ey);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
     this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
@@ -576,8 +583,13 @@ RayBeam::allocate(uint64_t count)
     this->intMask       = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->intMask);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->chiefMask);
 
-    if (this->nonSeq) {
-      this->surfaces     = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    if (this->nonSeq)
+      this->surfaces    = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    
+    if (this->fields) {
+      this->uEx         = allocBuffer<Real>(3 * count, 3 * prev, this->uEx);
+      this->Ex          = allocBuffer<Complex>(count, prev, this->Ex);
+      this->Ey          = allocBuffer<Complex>(count, prev, this->Ey);
     }
 
     this->allocation    = count;

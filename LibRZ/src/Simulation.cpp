@@ -48,6 +48,8 @@ Simulation::traceSequential(TracingProperties const &props)
   size_t n = 0;
 
   m_engine->setCalculateFields(props.calculateFields);
+  m_engine->setBeamSplintering(props.secondaryRays);
+
   for (auto constSurf : path->m_sequence) {
     OpticalSurface *surface = const_cast<OpticalSurface *>(constSurf);
 
@@ -83,19 +85,6 @@ Simulation::traceSequential(TracingProperties const &props)
       OriginPOV | ExtractVignetted);
 
   return true;
-}
-
-void
-Simulation::initNSBeam()
-{
-  if (m_NSBeam != nullptr) {
-    delete m_NSBeam;
-    m_NSBeam = nullptr;
-  }
-
-  m_transferredRays = 0;
-  m_NSBeam = new RayBeam(m_engine->beam()->count, true);
-  m_NSBeam->pruneAll();
 }
 
 bool
@@ -135,6 +124,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
 
   auto tempBeam = m_engine->makeBeam();
   m_engine->setCalculateFields(props.calculateFields);
+  m_engine->setBeamSplintering(props.secondaryRays);
 
   do {
     m_transferredRays = 0;
@@ -144,8 +134,9 @@ Simulation::traceNonSequential(TracingProperties const &props)
     // Non sequential beams are all-pruned by default, but they keep the
     // origins and directions of the original beam
     auto nsBeam   = m_engine->makeNSBeam();
+    
     // Needed only to handle splintered beams
-    if (props.calculateFields)
+    if (props.secondaryRays)
       tempBeam->allocate(m_engine->beam()->count);
       
     //

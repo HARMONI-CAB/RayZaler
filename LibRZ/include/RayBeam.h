@@ -48,6 +48,7 @@ namespace RZ {
     uint64_t count         = 0;
     uint64_t allocation    = 0;
     bool nonSeq            = false; // Non sequential beam (allocs surfaces)
+    bool fields            = false; // Fields allocated
 
     Real *origins          = nullptr;
     Real *directions       = nullptr;
@@ -154,15 +155,18 @@ namespace RZ {
       memcpy(directions   + 3 * index, existing->directions   + 3 * index, 3 * sizeof(Real));
       memcpy(normals      + 3 * index, existing->normals      + 3 * index, 3 * sizeof(Real));
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
-      memcpy(uEx          + 3 * index, existing->uEx          + 3 * index, 3 * sizeof(Real));
-      
-      Ex[index]            = existing->Ex[index];
-      Ey[index]            = existing->Ey[index];
+
       lengths[index]       = existing->lengths[index];
       cumOptLengths[index] = existing->cumOptLengths[index];
       media[index]         = existing->media[index];
       wavelengths[index]   = existing->wavelengths[index];
       ids[index]           = existing->ids[index];
+
+      if (fields && existing->fields) {
+        Ex[index]            = existing->Ex[index];
+        Ey[index]            = existing->Ey[index];
+        memcpy(uEx + 3 * index, existing->uEx + 3 * index, 3 * sizeof(Real));
+      }
 
       SETMASK(mask);
       SETMASK(chiefMask);
@@ -258,8 +262,6 @@ namespace RZ {
     COPYSCALAR(wavelengths);
     COPYSCALAR(media);
     COPYSCALAR(ids);
-    COPYSCALAR(Ex);
-    COPYSCALAR(Ey);
 
     if (src->nonSeq && dest->nonSeq)
       COPYSCALAR(surfaces);
@@ -267,7 +269,12 @@ namespace RZ {
     COPYVECTOR(origins);
     COPYVECTOR(destinations);
     COPYVECTOR(directions);
-    COPYVECTOR(uEx);
+
+    if (src->fields && dest->fields) {
+      COPYSCALAR(Ex);
+      COPYSCALAR(Ey);
+      COPYVECTOR(uEx);
+    }
     
     uint64_t d = dOff;
 

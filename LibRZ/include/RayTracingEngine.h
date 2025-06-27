@@ -56,6 +56,8 @@ namespace RZ {
       bool     m_beamDirty = true;
       bool     m_notificationPendig = false;
       bool     m_calculateFields = false;
+      bool     m_beamSplintering = false;
+
       std::string m_stageName;
       size_t      m_currStage = 0;
       size_t      m_numStages = 0;
@@ -84,6 +86,12 @@ namespace RZ {
       setCalculateFields(bool doIt)
       {
         m_calculateFields = doIt;
+      }
+
+      inline void
+      setBeamSplintering(bool doIt)
+      {
+        m_beamSplintering = doIt;
       }
       
       inline void

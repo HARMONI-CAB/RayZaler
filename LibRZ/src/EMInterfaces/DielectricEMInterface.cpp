@@ -47,7 +47,6 @@ DielectricEMInterface::calcIsoToIsoFields(
   const Vec3 normal(inputBeam->normals    + 3 * inputRay);
   const Vec3 ut(inputBeam->directions     + 3 * inputRay);
   const Vec3 viEx(inputBeam->uEx          + 3 * inputRay);
-  const Vec3 ur(splinterBeam->directions  + 3 * splinterRay);
   const Complex Ex = inputBeam->Ex[inputRay];
   const Complex Ey = inputBeam->Ey[inputRay];
 
@@ -92,7 +91,6 @@ DielectricEMInterface::calcIsoToIsoFields(
 
   // Deduction of the parallel components of each ray
   auto wip = ui.cross(ws).normalized();
-  auto wrp = ur.cross(ws).normalized();
   auto wtp = ut.cross(ws).normalized();
 
   // Projection of the incident electric field amplitudes onto the SxP plane
@@ -101,10 +99,6 @@ DielectricEMInterface::calcIsoToIsoFields(
 
   auto Eis  = Complex(Eir * ws,  Eii * ws);
   auto Eip  = Complex(Eir * wip, Eii * wip);
-
-  // Calculation of the field amplitudes of the reflected ray, in the SxP plane
-  auto Ers = rs * Eis;
-  auto Erp = rp * Eip;
 
   // Calculation of the field amplitudes of the transmitted ray, in the SxP plane
   auto Ets = ts * Eis;
@@ -115,10 +109,18 @@ DielectricEMInterface::calcIsoToIsoFields(
   inputBeam->Ex[inputRay] = Ets;
   inputBeam->Ey[inputRay] = Etp;
 
-  // Update reflected ray
-  ws.copyToArray(splinterBeam->uEx + 3 * splinterRay);
-  splinterBeam->Ex[splinterRay] = Ers;
-  splinterBeam->Ey[splinterRay] = Erp;
+  if (splinterBeam != nullptr) {
+    const Vec3 ur(splinterBeam->directions + 3 * splinterRay);
+    auto wrp = ur.cross(ws).normalized();
+
+    // Calculation of the field amplitudes of the reflected ray, in the SxP plane
+    auto Ers = rs * Eis;
+    auto Erp = rp * Eip;
+
+    ws.copyToArray(splinterBeam->uEx + 3 * splinterRay);
+    splinterBeam->Ex[splinterRay] = Ers;
+    splinterBeam->Ey[splinterRay] = Erp;
+  }
 }
 
 
@@ -174,17 +176,17 @@ DielectricEMInterface::transmit(
         inputBeam->media[i] = pMedium();
       }
 
-      if (splinterBeam != nullptr) {
+      if (splinterBeam != nullptr)
         reflection(ui, normal).copyToArray(splinterBeam->directions + 3 * i);
-        switch (m_interfaceCase) {
-          case IsoToIso:
-            calcIsoToIsoFields(inputBeam, i, splinterBeam, i, ui);
-            break;
 
-          default:
-            // TODO: Write me!
-            break;
-        }
+      if (inputBeam->fields) switch (m_interfaceCase) {
+        case IsoToIso:
+          calcIsoToIsoFields(inputBeam, i, splinterBeam, i, ui);
+          break;
+
+        default:
+          // TODO: Write me!
+          break;
       }
     }
   }

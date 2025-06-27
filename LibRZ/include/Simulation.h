@@ -38,7 +38,8 @@ namespace RZ {
     RayBeamElement *beamElement           = nullptr;
     bool            clearPrevious         = true;
     bool            clearDetectors        = true;
-    bool            calculateFields       = false;    
+    bool            calculateFields       = false;
+    bool            secondaryRays         = false;
     std::string     path;
     const RayList  *pRays                 = nullptr;
     RayList         rays;
@@ -59,7 +60,6 @@ namespace RZ {
 
       bool traceSequential(TracingProperties const &);
       bool traceNonSequential(TracingProperties const &);
-      void initNSBeam();
       
     public:
       inline RayTracingEngine *
