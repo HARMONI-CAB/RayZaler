@@ -230,7 +230,7 @@ namespace RZ {
       const RayBeam *beam);
     void debug() const;
 
-    RayBeam(uint64_t, bool surfaces = false);
+    RayBeam(uint64_t, bool surfaces = false, bool field = false);
     ~RayBeam();
 
   private:

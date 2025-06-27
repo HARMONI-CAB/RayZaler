@@ -355,6 +355,7 @@ SimulationProperties::serialize() const
   SERIALIZE(saveArtifacts);
   SERIALIZE(clearDetector);
   SERIALIZE(overwrite);
+  SERIALIZE(secondaryRays);
   SERIALIZE(saveDir);
   SERIALIZE(saveDetector);
 #undef SERIALIZE
@@ -464,6 +465,7 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(saveArtifacts);
   DESERIALIZE(clearDetector);
   DESERIALIZE(overwrite);
+  DESERIALIZE(secondaryRays);
   DESERIALIZE(saveDir);
   DESERIALIZE(saveDetector);
 
@@ -556,6 +558,7 @@ SimulationProperties::SimulationProperties(const SimulationProperties &prop)
   saveCSV       = prop.saveCSV;
   clearDetector = prop.clearDetector;
   overwrite     = prop.overwrite;
+  secondaryRays = prop.secondaryRays;
   saveDir       = prop.saveDir;
   saveDetector  = prop.saveDetector;
   
@@ -578,6 +581,7 @@ SimulationProperties::SimulationProperties(SimulationProperties &&prop)
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);
   std::swap(overwrite     , prop.overwrite);
+  std::swap(secondaryRays , prop.secondaryRays);
   std::swap(saveDir       , prop.saveDir);
   std::swap(saveDetector  , prop.saveDetector);
 
@@ -600,6 +604,7 @@ SimulationProperties::operator=(const SimulationProperties &prop)
   saveCSV       = prop.saveCSV;
   clearDetector = prop.clearDetector;
   overwrite     = prop.overwrite;
+  secondaryRays = prop.secondaryRays;
   saveDir       = prop.saveDir;
   saveDetector  = prop.saveDetector;
   regenerateBeamVector();
@@ -623,6 +628,7 @@ SimulationProperties::operator=(SimulationProperties &&prop)
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);
   std::swap(overwrite     , prop.overwrite);
+  std::swap(secondaryRays , prop.secondaryRays);
   std::swap(saveDir       , prop.saveDir);
   std::swap(saveDetector  , prop.saveDetector);
 

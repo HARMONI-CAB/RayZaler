@@ -121,6 +121,7 @@ struct SimulationProperties : public JsonSerializable {
   bool    saveCSV       = true;
   bool    clearDetector = false;
   bool    overwrite     = false;
+  bool    secondaryRays = false;
 
   QString saveDir       = "artifacts";
   QString saveDetector  = "";

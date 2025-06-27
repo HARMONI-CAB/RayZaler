@@ -121,9 +121,6 @@ RayTracingEngine::pushRays(RayList const &rays)
 
   // Assume rays come from a flat surface
   memcpy(m_beam->normals, m_beam->directions, 3 * m_beam->count * sizeof(Real));
-
-  for (auto i = 0; i < m_beam->count; ++i)
-    m_beam->Ex[i] = 1;
 }
 
 void
@@ -254,9 +251,7 @@ RayTracingEngine::getRays(bool keepPruned)
 RayBeam *
 RayTracingEngine::makeBeam()
 {
-  auto beam = new RayBeam(m_rays.size());
-
-  beam->fields = m_calculateFields;
+  auto beam = new RayBeam(m_rays.size(), false, m_calculateFields);
 
   return beam;
 }
@@ -264,10 +259,8 @@ RayTracingEngine::makeBeam()
 RayBeam *
 RayTracingEngine::makeNSBeam()
 {
-  auto nsBeam = new RayBeam(beam()->count, true);
+  auto nsBeam = new RayBeam(beam()->count, true, m_calculateFields);
 
-  nsBeam->fields = m_calculateFields;
-  
   beam()->copyTo(nsBeam);
 
   return nsBeam;

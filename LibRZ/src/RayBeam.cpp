@@ -743,10 +743,11 @@ RayBeam::deallocate()
   this->count = 0;
 }
 
-RayBeam::RayBeam(uint64_t count, bool nonSeq)
+RayBeam::RayBeam(uint64_t count, bool nonSeq, bool fields)
 {
   this->nonSeq = nonSeq;
-
+  this->fields = fields;
+  
   allocate(count);
 
   if (nonSeq)

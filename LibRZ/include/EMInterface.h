@@ -69,8 +69,7 @@ namespace RZ {
       Vec3 fastPath;
       Real slowComp;
       Real slowPath, fastComponent;
-      
-
+    
       switch (type) {
         case EMMediumVacuum:
           return dt;
@@ -90,6 +89,33 @@ namespace RZ {
       }
 
       return dt;
+    }
+
+    inline void
+    advancePhase(
+      Complex &Ex,
+      Complex &Ey,
+      Vec3 const &uEx,
+      Vec3 const &dir,
+      Real K,
+      Real dt) const {
+      Complex phiEx = 1, phiEy = 1;
+
+      switch (type) {
+        case EMMediumVacuum:
+          phiEx = phiEy = std::exp(Complex(0, K * dt));
+          break;
+
+        case EMMediumIsotropic:
+          phiEx = phiEy = std::exp(Complex(0, n * K * dt));
+          break;
+
+        case EMMediumUniaxial:
+          break;
+      }
+
+      Ex *= phiEx;
+      Ey *= phiEy;
     }
   };
   

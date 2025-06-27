@@ -177,6 +177,12 @@ SimulationPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->secondaryRaysCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->simTypeCombo,
         SIGNAL(activated(int)),
         this,
@@ -315,6 +321,7 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->steps2Spin,            setValue(m_properties.Nj));
 
   BLOCKSIG(ui->nonSeqCheck,           setChecked(m_properties.nonSeq));
+  BLOCKSIG(ui->secondaryRaysCheck,    setChecked(m_properties.secondaryRays));
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
   BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
@@ -414,6 +421,7 @@ SimulationPropertiesDialog::parseProperties()
   }
 
   m_properties.nonSeq        = ui->nonSeqCheck->isChecked();
+  m_properties.secondaryRays = ui->secondaryRaysCheck->isChecked();
 
   // Artifact generation
   m_properties.saveArtifacts = ui->saveCheck->isChecked();

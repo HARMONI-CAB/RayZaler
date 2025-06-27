@@ -47,9 +47,6 @@ Simulation::traceSequential(TracingProperties const &props)
   const OpticalPath *path = m_model->lookupOpticalPathOrEx(props.path);
   size_t n = 0;
 
-  m_engine->setCalculateFields(props.calculateFields);
-  m_engine->setBeamSplintering(props.secondaryRays);
-
   for (auto constSurf : path->m_sequence) {
     OpticalSurface *surface = const_cast<OpticalSurface *>(constSurf);
 
@@ -123,8 +120,6 @@ Simulation::traceNonSequential(TracingProperties const &props)
     */
 
   auto tempBeam = m_engine->makeBeam();
-  m_engine->setCalculateFields(props.calculateFields);
-  m_engine->setBeamSplintering(props.secondaryRays);
 
   do {
     m_transferredRays = 0;
@@ -134,7 +129,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
     // Non sequential beams are all-pruned by default, but they keep the
     // origins and directions of the original beam
     auto nsBeam   = m_engine->makeNSBeam();
-    
+
     // Needed only to handle splintered beams
     if (props.secondaryRays)
       tempBeam->allocate(m_engine->beam()->count);
@@ -221,6 +216,8 @@ Simulation::trace(TracingProperties const &props)
     for (auto p : m_model->detectors())
       m_model->lookupDetectorOrEx(p)->clear();
 
+  m_engine->setCalculateFields(props.calculateFields);
+  m_engine->setBeamSplintering(props.secondaryRays);
   m_engine->pushRays(*pRays);
 
   if (props.startTime != nullptr)

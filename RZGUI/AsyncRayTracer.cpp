@@ -76,6 +76,12 @@ AsyncRayTracer::setCalculateFields(bool doIt)
 }
 
 void
+AsyncRayTracer::setSecondaryRays(bool doIt)
+{
+  m_tracingProperties.secondaryRays = doIt;
+}
+
+void
 AsyncRayTracer::setAccumulate(bool acc)
 {
   m_tracingProperties.clearPrevious = !acc;

@@ -65,8 +65,15 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
             opd                    = medium->opd(dt, dir);
             beam.lengths[i]        = dt;
             beam.cumOptLengths[i] += opd;
-            beam.Ex[i]            *= std::exp(Complex(0, K * opd));
-            beam.Ey[i]            *= std::exp(Complex(0, K * opd));
+
+            if (beam.fields)
+              medium->advancePhase(
+                beam.Ex[i],
+                beam.Ey[i],
+                Vec3(beam.uEx + 3 * i),
+                dir,
+                K,
+                dt);
 
             destination.copyToArray(beam.destinations + 3 * i);
             normal.copyToArray(beam.normals     + 3 * i);
@@ -95,8 +102,16 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
             opd                    = medium->opd(dt, dir);
             beam.lengths[i]        = dt;
             beam.cumOptLengths[i] += opd;
-            beam.Ex[i]     *= std::exp(Complex(0, K * opd));
-
+            
+            if (beam.fields)
+              medium->advancePhase(
+                beam.Ex[i],
+                beam.Ey[i],
+                Vec3(beam.uEx + 3 * i),
+                dir,
+                K,
+                dt);
+              
             destination.copyToArray(beam.destinations + 3 * i);
             Vec3::eZ().copyToArray(beam.normals + 3 * i);
             beam.intercept(i);
