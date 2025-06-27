@@ -656,28 +656,29 @@ RayBeam::walk(
     assert(!nonSeq);
     func(surface, slice);
   } else {
+    OpticalSurface *sliceSurf = nullptr;
     uint64_t i = 0;
     assert(nonSeq);
     
     for (i = 0; i < count; ++i) {
       auto currSurf = hasRay(i) ? surfaces[i] : nullptr;
 
-      if (surface != currSurf) {
+      if (sliceSurf != currSurf) {
         // Sequence of equal surfaces has finished. Transmit this slice.
-        if (surface != nullptr) {
+        if (sliceSurf != nullptr) {
           slice.end = i;
-          func(surface, slice);
+          func(sliceSurf, slice);
         }
 
-        surface = currSurf;
+        sliceSurf = currSurf;
 
         slice.start = i;
       }
     }
 
-    if (surface != nullptr) {
+    if (sliceSurf != nullptr) {
       slice.end = count;
-      func(surface, slice);
+      func(sliceSurf, slice);
     }
   }
 }
