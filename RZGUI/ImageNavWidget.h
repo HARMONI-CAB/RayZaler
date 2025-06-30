@@ -21,6 +21,7 @@
 
 #include <QWidget>
 #include <QPaintEvent>
+#include <complex>
 
 namespace RZ {
   class Detector;
@@ -28,6 +29,8 @@ namespace RZ {
 
 class QImage;
 class QPointF;
+
+typedef std::complex<qreal> qcomplex;
 
 class ImageNavWidget : public QWidget
 {
@@ -52,6 +55,8 @@ class ImageNavWidget : public QWidget
   QPointF       m_move_ref_pos;
   QPointF       m_currPos;
   QPoint        m_currSel;
+
+  qcomplex      m_amplitudeBasis[2] = {1, 0};
 
   bool          m_have_last_pos = false;
   bool          m_have_ref_pos  = false;
@@ -110,6 +115,7 @@ public:
   void    resetZoom();
   void    zoomToPoint(QPointF const &);
   
+  void    setAmplitudeBasis(qcomplex ux, qcomplex uy);
   void    setShowPhotons(bool);
   void    setShowPhase(bool);
   void    setShowGrid(bool);

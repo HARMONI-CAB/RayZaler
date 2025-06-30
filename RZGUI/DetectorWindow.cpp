@@ -25,6 +25,8 @@
 #include <QFileDialog>
 #include <QFrame>
 
+#define HSQRT2 0.70710678118
+
 DetectorWindow::DetectorWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::DetectorWindow)
@@ -33,6 +35,8 @@ DetectorWindow::DetectorWindow(QWidget *parent) :
 
   m_navWidget = new ImageNavWidget();
   m_navWidget->setAutoScale(true);
+
+  applyPolarization();
 
   ui->viewGrid->addWidget(m_navWidget, 1, 0);
 
@@ -98,6 +102,42 @@ DetectorWindow::populateStatusBar()
 DetectorWindow::~DetectorWindow()
 {
   delete ui;
+}
+
+void
+DetectorWindow::applyPolarization()
+{
+  qcomplex ux = 1;
+  qcomplex uy = 0;
+
+  switch (m_polarization) {
+    case Horizontal:
+      ux = 1;
+      uy = 0;
+      break;
+
+    case Vertical:
+      ux = 0;
+      uy = 1;
+      break;
+
+    case RHCP:
+      ux = HSQRT2;
+      uy = qcomplex(0, HSQRT2);
+      break;
+
+    case LHCP:
+      ux = HSQRT2;
+      uy = qcomplex(0, -HSQRT2);
+      break;
+  }
+
+  BLOCKSIG(ui->actionEx,   setChecked(m_polarization == Horizontal));
+  BLOCKSIG(ui->actionEy,   setChecked(m_polarization == Vertical));
+  BLOCKSIG(ui->actionRHCP, setChecked(m_polarization == RHCP));
+  BLOCKSIG(ui->actionLHCP, setChecked(m_polarization == LHCP));
+
+  m_navWidget->setAmplitudeBasis(ux, uy);
 }
 
 void
@@ -257,6 +297,30 @@ DetectorWindow::connectAll()
         SIGNAL(triggered(bool)),
         this,
         SLOT(onClearDetector()));
+
+  connect(
+        ui->actionEx,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onTogglePolarization()));
+
+  connect(
+        ui->actionEy,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onTogglePolarization()));
+
+  connect(
+        ui->actionRHCP,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onTogglePolarization()));
+
+  connect(
+        ui->actionLHCP,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onTogglePolarization()));
 
   connect(
         ui->actionLogScale,
@@ -516,4 +580,20 @@ DetectorWindow::onExport()
       }
     }
   }
+}
+
+void
+DetectorWindow::onTogglePolarization()
+{
+  auto obj = QObject::sender();
+  if (ui->actionEx == obj)
+    m_polarization = Horizontal;
+  else if (ui->actionEy == obj)
+    m_polarization = Vertical;
+  else if (ui->actionRHCP == obj)
+    m_polarization = RHCP;
+  else if (ui->actionLHCP == obj)
+    m_polarization = LHCP;
+
+  applyPolarization();
 }

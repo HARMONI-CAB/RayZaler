@@ -331,6 +331,7 @@ SimulationState::allocateRays()
     prop.length           = lg;
     prop.id               = beamState->id;
     prop.wavelength       = wl;
+    prop.coherent         = beam.coherent;
     beamState->wavelength = wl;
 
     // Chief ray
@@ -349,7 +350,7 @@ SimulationState::allocateRays()
     prop.objectShape     = beam.objectShape;
     prop.angularDiameter = RZ::deg2rad(S);
     prop.objectPath      = beam.path.toStdString();
-
+    
     // Define beam focus
     switch (beam.beam) {
       case BEAM_TYPE_COLLIMATED:

@@ -244,6 +244,7 @@ SimulationBeamProperties::serialize() const
   SERIALIZE(wavelength);
   SERIALIZE(length);
   SERIALIZE(random);
+  SERIALIZE(coherent);
   SERIALIZE(rays);
 #undef SERIALIZE
 
@@ -280,6 +281,7 @@ SimulationBeamProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(wavelength);
   DESERIALIZE(length);
   DESERIALIZE(random);
+  DESERIALIZE(coherent);
   DESERIALIZE(rays);
 #undef DESERIALIZE
 

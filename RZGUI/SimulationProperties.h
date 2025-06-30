@@ -77,7 +77,7 @@ struct SimulationBeamProperties : public JsonSerializable {
   bool    negativeZ    = true;
   bool    colorByWl    = false;
   bool    random       = false; // Random sampling
-
+  bool    coherent     = false;
   int     index        = -1;
 
   virtual QJsonObject serialize() const override;

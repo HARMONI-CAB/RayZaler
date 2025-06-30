@@ -185,6 +185,15 @@ RayBeamElement::raysToVertices()
       m_rayColoring->id2color(currId, transp, currColor);
     }
 
+    Real power = (p->Ex * std::conj(p->Ex) + p->Ey * std::conj(p->Ey)).real();
+
+    if (power > 1)
+      power = 1;
+
+    currColor[0] *= power;
+    currColor[1] *= power;
+    currColor[2] *= power;
+
     set->push(
       p->origin,
       destination,

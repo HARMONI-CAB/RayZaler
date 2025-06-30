@@ -153,6 +153,10 @@
    <addaction name="actionShow_photons"/>
    <addaction name="actionElectricField"/>
    <addaction name="actionTogglePhase"/>
+   <addaction name="actionEx"/>
+   <addaction name="actionEy"/>
+   <addaction name="actionRHCP"/>
+   <addaction name="actionLHCP"/>
    <addaction name="actionLogScale"/>
   </widget>
   <action name="actionExportAs">
@@ -248,6 +252,50 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
+  <action name="actionEx">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ex</string>
+   </property>
+   <property name="toolTip">
+    <string>Horizontal electric field</string>
+   </property>
+  </action>
+  <action name="actionEy">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Ey</string>
+   </property>
+   <property name="toolTip">
+    <string>Vertical electric field</string>
+   </property>
+  </action>
+  <action name="actionRHCP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>RHCP</string>
+   </property>
+   <property name="toolTip">
+    <string>RHCP electric field</string>
+   </property>
+  </action>
+  <action name="actionLHCP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LHCP</string>
+   </property>
+   <property name="toolTip">
+    <string>LHCP electric field</string>
    </property>
   </action>
  </widget>
