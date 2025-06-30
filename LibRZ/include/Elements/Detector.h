@@ -102,7 +102,8 @@ namespace RZ {
       unsigned int    rows() const;
       unsigned int    stride() const;
       const uint32_t *data() const;
-      const Complex  *amplitude() const;
+      const Complex  *Ex() const;
+      const Complex  *Ey() const;
   };
 
   class DetectorBoundary : public MediumBoundary {
@@ -159,8 +160,8 @@ namespace RZ {
       Real            height() const;
       unsigned int    stride() const;
       const uint32_t *data() const;
-      const Complex  *amplitude() const;
-      
+      const Complex  *Ex() const;
+      const Complex  *Ey() const;
       uint32_t        maxCounts() const;
       Real            maxEnergy() const;
   };

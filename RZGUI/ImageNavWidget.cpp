@@ -40,7 +40,7 @@ ImageNavWidget::pixelValue(unsigned p)
     const uint32_t *photons = m_detector->data();
     return photons[p]; 
   } else {
-    const RZ::Complex A = m_detector->amplitude()[p];
+    const RZ::Complex A = m_detector->Ex()[p];
     RZ::Real E = std::real(A * std::conj(A));
     return E;
   }
@@ -49,7 +49,7 @@ ImageNavWidget::pixelValue(unsigned p)
 inline qreal
 ImageNavWidget::pixelPhase(unsigned p)
 {
-  const RZ::Complex A = m_detector->amplitude()[p];
+  const RZ::Complex A = m_detector->Ex()[p];
   return std::arg(A);
 }
 

@@ -120,9 +120,15 @@ DetectorStorage::data() const
 }
 
 const Complex *
-DetectorStorage::amplitude() const
+DetectorStorage::Ex() const
 {
   return m_Ex.data();
+}
+
+const Complex *
+DetectorStorage::Ey() const
+{
+  return m_Ey.data();
 }
 
 void
@@ -196,7 +202,15 @@ DetectorStorage::saveAmplitude(std::string const &path) const
   }
 
   for (auto j = 0; j < m_rows; ++j) {
-    const RZ::Complex *data = amplitude() + j * m_stride;
+    const RZ::Complex *data = Ex() + j * m_stride;
+    if (fwrite(data, chunkSize, 1, fp) < 1) {
+      RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
+      goto done;
+    }
+  }
+
+  for (auto j = 0; j < m_rows; ++j) {
+    const RZ::Complex *data = Ey() + j * m_stride;
     if (fwrite(data, chunkSize, 1, fp) < 1) {
       RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
       goto done;
@@ -237,6 +251,7 @@ DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
       if (beam.fields) {
         Vec3 uEx(beam.uEx + 3 * i);
         Vec3 uEy = Vec3(beam.directions + 3 * i).cross(uEx);
+
         Vec3 In  = beam.Ex[i].real() * uEx + beam.Ey[i].real() * uEy;
         Vec3 Qu  = beam.Ex[i].imag() * uEx + beam.Ey[i].imag() * uEy;
 
@@ -326,6 +341,8 @@ Detector::Detector(
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_boundary);
 
+  addPort("surface", m_detectorSurface);
+
   refreshProperties();
   recalcModel();
 }
@@ -388,9 +405,15 @@ Detector::data() const
 }
 
 const Complex *
-Detector::amplitude() const
+Detector::Ex() const
 {
-  return m_storage->amplitude();
+  return m_storage->Ex();
+}
+
+const Complex *
+Detector::Ey() const
+{
+  return m_storage->Ey();
 }
 
 void

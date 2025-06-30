@@ -51,8 +51,8 @@ DielectricEMInterface::calcIsoToIsoFields(
   const Complex Ey = inputBeam->Ey[inputRay];
 
   bool positive = ui * normal >= 0;
-  const Real n1 = positive ? m_n1 : m_n2;
-  const Real n2 = positive ? m_n2 : m_n1;
+  const Real n1 = positive ? m_n2 : m_n1;
+  const Real n2 = positive ? m_n1 : m_n2;
 
   auto ws = ui.cross(normal);
   

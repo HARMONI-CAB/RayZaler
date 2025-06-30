@@ -123,6 +123,7 @@ namespace RZ {
     Real diameter            = .5;           // [m]
     Real wavelength          = 535e-9;
     unsigned int numRays     = 1000;
+    bool coherent            = false;
     bool random              = false;
     Vec3 direction           = -Vec3::eZ();  // [1]
     Vec3 offset              = Vec3::zero(); // [m]

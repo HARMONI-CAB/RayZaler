@@ -1147,8 +1147,11 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
   ray.chief      = !properties.vignetting;
   ray.wavelength = properties.wavelength;
   ray.length     = properties.length; // Length of the stray light ray
-  ray.Ex         = Complex(g_randState.randn(), g_randState.randn());
-  ray.Ey         = Complex(g_randState.randn(), g_randState.randn());
+
+  if (properties.coherent) {
+    ray.Ex      = Complex(g_randState.randn(), g_randState.randn());
+    ray.Ey      = Complex(g_randState.randn(), g_randState.randn());
+  }
 
   if (properties.shape == Point 
     || std::isinf(properties.focusZ)
@@ -1167,6 +1170,10 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
         origin = center - direction * properties.length;
       ray.origin    = system * coord + origin;
       ray.direction = direction;
+      if (!properties.coherent) {
+        ray.Ex      = Complex(g_randState.randn(), g_randState.randn());
+        ray.Ey      = Complex(g_randState.randn(), g_randState.randn());
+      }
       ray.uEx       = makeUEx(direction);
       dest.push_back(ray);
     }
@@ -1189,6 +1196,10 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
         ray.origin    = system * coord + origin;
         ray.direction = (focus - ray.origin).normalized();
         ray.uEx       = makeUEx(direction);
+        if (!properties.coherent) {
+          ray.Ex         = Complex(g_randState.randn(), g_randState.randn());
+          ray.Ey         = Complex(g_randState.randn(), g_randState.randn());
+        }
         dest.push_back(ray);
       }
     } else {
@@ -1198,6 +1209,10 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
         ray.origin    = system * coord + origin;
         ray.direction = (ray.origin - focus).normalized();
         ray.uEx       = makeUEx(direction);
+        if (!properties.coherent) {
+          ray.Ex         = Complex(g_randState.randn(), g_randState.randn());
+          ray.Ey         = Complex(g_randState.randn(), g_randState.randn());
+        }
         dest.push_back(ray);
       }
     }
