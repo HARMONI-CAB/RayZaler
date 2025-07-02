@@ -56,11 +56,40 @@ OpticalSurface::directions() const
   return directionArray;
 }
 
+std::vector<Complex> &
+OpticalSurface::Efield() const
+{
+  size_t expectedSize = 2 * hits.size();
+
+  if (EArray.size() != expectedSize) {
+    EArray.resize(expectedSize);
+
+    for (size_t i = 0; i < hits.size(); ++i) {
+      if (hits[i].fields) {
+        Vec3 uEx(hits[i].uEx);
+        Vec3 uEy(hits[i].direction.cross(uEx));
+
+        Vec3 In  = hits[i].Ex.real() * uEx + hits[i].Ey.real() * uEy;
+        Vec3 Qu  = hits[i].Ex.imag() * uEx + hits[i].Ey.imag() * uEy;
+
+        EArray[2 * i + 0] = Complex(In.x, Qu.x);
+        EArray[2 * i + 1] = Complex(In.y, Qu.y);
+      } else {
+        EArray[2 * i + 0] = std::nan("unavailable");
+        EArray[2 * i + 1] = std::nan("unavailable");
+      }
+    }
+  }
+
+  return EArray;
+}
+
 void
 OpticalSurface::clearCache() const
 {
   locationArray.clear();
   directionArray.clear();
+  EArray.clear();
 }
 
 void
@@ -106,7 +135,6 @@ OpticalPath::hits(std::string const &name) const
 const std::vector<Real> &
 OpticalPath::directions(std::string const &name) const
 {
-  // You just have to love C++
   const OpticalSurface *surface = m_sequence.front();
   
   if (!name.empty()) {
@@ -118,6 +146,22 @@ OpticalPath::directions(std::string const &name) const
   }
 
   return surface->directions();
+}
+
+const std::vector<Complex> &
+OpticalPath::Efield(std::string const &name) const
+{
+  const OpticalSurface *surface = m_sequence.front();
+  
+  if (!name.empty()) {
+    auto it = m_nameToSurface.find(name);
+    if (it == m_nameToSurface.cend())
+      throw std::runtime_error("No such optical surface `" + name + "'");
+    
+    surface = it->second;
+  }
+
+  return surface->Efield();
 }
 
 ////////////////////////// Optical Element ////////////////////////////////////
@@ -217,6 +261,12 @@ const std::vector<Real> &
 OpticalElement::directions(std::string const &name) const
 {
   return opticalPath().directions(name);
+}
+
+const std::vector<Complex> &
+OpticalElement::Efield(std::string const &name) const
+{
+  return opticalPath().Efield(name);
 }
 
 void

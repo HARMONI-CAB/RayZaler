@@ -28,14 +28,6 @@ DielectricEMInterface::name() const
   return "DielectricEMInterface";
 }
 
-void
-DielectricEMInterface::setRefractiveIndex(Real in, Real out)
-{
-  m_n1   = in;
-  m_n2   = out;
-  m_n1n2 = in / out;
-}
-
 inline void
 DielectricEMInterface::calcIsoToIsoFields(
   RayBeam *inputBeam,
@@ -213,6 +205,14 @@ DielectricEMInterface::detectInterfaceCase()
     m_interfaceCase = AnisoToAniso;
   
   return m_interfaceCase == IsoToIso;
+}
+
+void
+DielectricEMInterface::setRefractiveIndex(Real in, Real out)
+{
+  m_n1   = in;
+  m_n2   = out;
+  m_n1n2 = in / out;
 }
 
 void

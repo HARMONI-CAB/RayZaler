@@ -43,12 +43,6 @@ CircularWindowBoundary::setRadius(Real R)
 }
 
 void
-CircularWindowBoundary::setRefractiveIndex(Real in, Real out)
-{
-  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
-}
-
-void
 CircularWindowBoundary::setMedia(const EMMedium *positive, const EMMedium *negative)
 {
   emInterface<DielectricEMInterface>()->setMedia(positive, negative);

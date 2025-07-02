@@ -45,7 +45,8 @@ namespace RZ {
     // Defines whether the ray is susceptible to vignetting
     bool chief;
     bool intercepted;
-
+    bool fields;
+    
     Real wavelength;
     const EMMedium *medium;
 

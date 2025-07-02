@@ -283,7 +283,8 @@ RayBeam::extractRays(
         ray.cumOptLength = beam->cumOptLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
-
+        ray.fields       = beam->fields;
+        
         if (beam->fields) {
           ray.uEx        = Vec3(beam->uEx + 3 * i);
           ray.Ex         = beam->Ex[i];

@@ -68,6 +68,7 @@ namespace std {
 #include <ModelRenderer.h>
 #include <ParserContext.h>
 #include <RayBeam.h>
+#include <RayTypes.h>
 #include <Recipe.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>
@@ -124,6 +125,7 @@ namespace std {
 %include "MediumBoundary.h"
 %include "ModelRenderer.h"
 %include "ParserContext.h"
+%include "RayTypes.h"
 %include "RayBeam.h"
 %include "RayTracingEngine.h"
 
@@ -272,6 +274,34 @@ namespace std {
 
     return outArray;
   }
+
+  PyObject *
+  EArray(std::string const &name = "") const
+  {
+    unsigned int cols   = 2;
+    unsigned int rows   = self->Efield(name).size() / 2;
+    const Complex *data = self->Efield(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows, cols};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(cols * sizeof(Complex)),
+      static_cast<npy_intp>(sizeof(Complex))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_COMPLEX128,
+      strides,
+      const_cast<Complex *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
 }
 
 %extend RZ::Matrix3 {
