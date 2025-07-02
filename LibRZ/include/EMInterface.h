@@ -111,11 +111,33 @@ namespace RZ {
           break;
 
         case EMMediumUniaxial:
+          // Implement me!
           break;
       }
 
       Ex *= phiEx;
       Ey *= phiEy;
+    }
+
+    inline Real
+    power(Complex const &Ex, Complex const &Ey, Vec3 const &uEx) const
+    {
+      Real E2 = (Ex * std::conj(Ex)).real() + (Ey * std::conj(Ey)).real();
+
+      switch (type) {
+        case EMMediumIsotropic:
+          E2 *= n;
+          break;
+
+        case EMMediumUniaxial:
+          // Implement me!
+          break;
+
+        default:
+          break;
+      }
+
+      return E2;
     }
   };
   
@@ -214,6 +236,14 @@ namespace RZ {
       {
         return beam->hasRay(i) && beam->isIntercepted(i);
       }
+
+      inline void blockLightMap(
+        RayBeamSlice const &slice,
+        const std::function <void (RayBeam *beam, uint64_t, Real)>&);
+
+      inline void blockLightUniform(
+        RayBeamSlice const &slice,
+        const std::function <void (RayBeam *beam, uint64_t, Real)>&);
 
       void blockLight(RayBeamSlice const &slice);
 

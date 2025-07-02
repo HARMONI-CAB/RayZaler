@@ -29,11 +29,12 @@ namespace RZ {
   class SurfaceShape;
   class ReferenceFrame;
   class EMInterface;
-
+  class OpticalSurface;
 
   class MediumBoundary {
     SurfaceShape   *m_surfaceShape  = nullptr;
     EMInterface    *m_emInterface   = nullptr;
+    OpticalSurface *m_parent        = nullptr;
     bool            m_reversible    = false;
     bool            m_infinite      = true;
     Real            m_hWidth        = .5;
@@ -59,6 +60,18 @@ namespace RZ {
     }
 
   public:
+    inline void
+    setParent(OpticalSurface *element)
+    {
+      m_parent = element;
+    }
+
+    inline OpticalSurface *
+    parent() const
+    {
+      return m_parent;
+    }
+
     inline bool
     reversible() const
     {

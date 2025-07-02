@@ -193,6 +193,7 @@ namespace RZ {
       RayBeamSlice const &beam = RayBeamSlice());
 
 
+    Real power() const;
     void clearMask();
     void computeInterceptStatistics(OpticalSurface * = nullptr);
     void updateOrigins();

@@ -36,6 +36,7 @@ Ray::Ray()
   wavelength   = RZ_WAVELENGTH;
   medium       = EMMedium::vacuum();
   id           = 0;
+  power        = 0;
 }
 
 //
@@ -287,6 +288,8 @@ RayBeam::extractRays(
           ray.uEx        = Vec3(beam->uEx + 3 * i);
           ray.Ex         = beam->Ex[i];
           ray.Ey         = beam->Ey[i];
+          if (beam->media[i] != nullptr)
+            ray.power    = beam->media[i]->power(ray.Ex, ray.Ey, ray.uEx);
         }
         
         ray.intercepted  = beam->isIntercepted(i);
@@ -747,6 +750,27 @@ RayBeam::walk(const std::function <void (ConstRayBeamSlice const &)>& func) cons
     slice.end = count;
     func(slice);
   }
+}
+
+Real
+RayBeam::power() const
+{
+  if (!fields)
+    return -1;
+
+  Real c = 0;
+  Real y, t;
+  Real sum = 0;
+
+  auto N = count;
+  while (N-- > 0) if (hasRay(N) && media[N] != NULL) {
+    y = media[N]->power(Ex[N], Ey[N], Vec3(uEx + 3 * N)) - c;
+    t = sum + y;
+    c = (t - sum) - y;
+    sum = t;
+  }
+
+  return sum;
 }
 
 void

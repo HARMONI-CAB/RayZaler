@@ -52,6 +52,9 @@ namespace RZ {
     // Defined by the user
     uint32_t id;
 
+    // Calculated on extraction
+    Real power;
+    
     Ray();
   };
 

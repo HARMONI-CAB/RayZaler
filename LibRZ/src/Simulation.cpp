@@ -188,7 +188,6 @@ Simulation::traceNonSequential(TracingProperties const &props)
 
     // Transmit through all these surfaces
     m_engine->transmitThroughIntercepted();
-
     m_engine->updateOrigins();
 
     if (m_engine->cancelled())
@@ -253,8 +252,10 @@ Simulation::trace(TracingProperties const &props)
       throw std::runtime_error("Unrecognized simulation type");
   }
 
-  if (ok && props.beamElement != nullptr)
+  if (ok && props.beamElement != nullptr) {
+    props.beamElement->setScalarRays(!props.calculateFields);
     props.beamElement->setList(m_intermediateRays);
+  }
 
   m_lastTick = m_engine->lastTick();
 

@@ -97,12 +97,12 @@ namespace RZ {
       void pushOpticalSurface(
         std::string,
         ReferenceFrame *,
-        const MediumBoundary *);
+        MediumBoundary *);
 
       void defineOpticalSurface(
         std::string,
         ReferenceFrame *,
-        const MediumBoundary *);
+        MediumBoundary *);
       
       OpticalElement(
         ElementFactory *,

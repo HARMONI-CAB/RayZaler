@@ -94,6 +94,7 @@ TEST_CASE("Infinite reflection: stray light", THIS_TEST_TAG)
   beamProp.angularDiameter = 0;
   beamProp.numRays         = 1000;
   beamProp.shape           = Ring;
+  
   beamProp.setPlaneRelative(frame);
   beamProp.collimate();
   beamProp.random          = false;

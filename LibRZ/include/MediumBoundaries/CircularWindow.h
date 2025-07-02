@@ -23,13 +23,15 @@
 
 namespace RZ {
   class ReferenceFrame;
-
+  class EMMedium;
+  
   class CircularWindowBoundary : public MediumBoundary {
     public:
       CircularWindowBoundary();
       
       void setRadius(Real);
       void setRefractiveIndex(Real , Real);
+      void setMedia(const EMMedium *positive, const EMMedium *negative);
       virtual std::string name() const;
   };
 }

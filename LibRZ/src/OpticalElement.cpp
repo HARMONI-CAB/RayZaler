@@ -174,7 +174,7 @@ void
 OpticalElement::defineOpticalSurface(
   std::string name,
   ReferenceFrame *frame,
-  const MediumBoundary *boundary)
+  MediumBoundary *boundary)
 {
   OpticalSurface surface;
 
@@ -193,13 +193,15 @@ OpticalElement::defineOpticalSurface(
   
   auto last = &m_surfaces.back();
   m_nameToSurf[name] = last;
+
+  boundary->setParent(last);
 }
 
 void
 OpticalElement::pushOpticalSurface(
   std::string name,
   ReferenceFrame *frame,
-  const MediumBoundary *boundary)
+  MediumBoundary *boundary)
 {
   defineOpticalSurface(name, frame, boundary);
   m_internalPath.push(lookupSurface(name));

@@ -418,6 +418,17 @@ RZGUIGLWidget::setBackgroundGradient(const GLfloat *above, const GLfloat *below)
 {
   memcpy(m_bgAbove, above, 3 * sizeof(GLfloat));
   memcpy(m_bgBelow, below, 3 * sizeof(GLfloat));
+
+  if (m_model != nullptr) {
+    GLfloat meanColor[4] = {
+      .5f * (m_bgAbove[0] + m_bgBelow[0]), 
+      .5f * (m_bgAbove[1] + m_bgBelow[1]), 
+      .5f * (m_bgAbove[2] + m_bgBelow[2]),
+      1.f};
+    m_model->beam()->setBgColor(meanColor);
+  }
+  
+  
   update();
 }
 
@@ -894,8 +905,16 @@ RZGUIGLWidget::setModel(RZ::OMModel *model)
   m_selectedPath = nullptr;
   m_selectedRefFrame = nullptr;
 
-  if (m_model != nullptr)
+  if (m_model != nullptr) {
+    GLfloat meanColor[4] = {
+      .5f * (m_bgAbove[0] + m_bgBelow[0]), 
+      .5f * (m_bgAbove[1] + m_bgBelow[1]), 
+      .5f * (m_bgAbove[2] + m_bgBelow[2]),
+      1.f};
+    
+    m_model->beam()->setBgColor(meanColor);
     m_model->recalculate();
+  }
 
   update();
 }

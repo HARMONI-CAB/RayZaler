@@ -803,6 +803,7 @@ OMModel::trace(
   properties.clearDetectors = clear;
   properties.startTime      = startTime;
   properties.clearPrevious  = clearIntermediate;
+  properties.keepStrayRays  = true;
 
   return m_sim->trace(properties);
 }
@@ -826,6 +827,7 @@ OMModel::traceNonSequential(
   properties.startTime       = startTime;
   properties.clearPrevious   = clearIntermediate;
   properties.maxPropagations = maxProps;
+  properties.keepStrayRays   = true;
 
   return m_sim->trace(properties);
 }

@@ -74,45 +74,97 @@ EMInterface::setTransmission(
     m_txMap = nullptr;
 }
 
+// There are 2x2 independent cases. Depending on how the transmission is 
+// provided:
+//
+//   1. Transmission is given by a uniform transmission coefficient
+//   2. Transmission is given by a transmission map
+//
+// And depending on the beam type:
+//
+//   1. The beam is described by means of scalar rays
+//   2. The beam is described in terms of fields
+
+inline void
+EMInterface::blockLightMap(
+  RayBeamSlice const &slice,
+  const std::function <void (RayBeam *beam, uint64_t, Real)> &attenuate)
+{
+  auto beam = slice.beam;
+  std::vector<Real> const &map = *m_txMap;
+
+  for (auto i = slice.start; i < slice.end; ++i) {
+    if (mustTransmitRay(beam, i)) { 
+      Real coordX = beam->destinations[3 * i + 0];
+      Real coordY = beam->destinations[3 * i + 1];
+
+      int  pixI   = +floor(coordX / m_hx) + m_cols / 2;
+      int  pixJ   = -floor(coordY / m_hy) + m_rows / 2;
+
+      if (pixI >= 0 && pixI < m_cols && pixJ >= 0 && pixJ < m_rows)
+        attenuate(beam, i, map[pixI + pixJ * m_stride]);
+    }
+  }
+}
+
+inline void
+EMInterface::blockLightUniform(
+  RayBeamSlice const &slice,
+  const std::function <void (RayBeam *beam, uint64_t, Real)> &attenuate)
+{
+  auto beam = slice.beam;
+
+  if (!m_fullyTransparent) {
+    if (m_fullyOpaque) {
+      // Fully opaque. Block all intercepted rays unconditionally
+      for (auto i = slice.start; i < slice.end; ++i)
+        if (mustTransmitRay(beam, i))
+          beam->prune(i);
+    } else {
+      // Partially opaque. Block rays according to its transmission probability.
+      Real tx = m_transmission;
+      for (auto i = slice.start; i < slice.end; ++i)
+        attenuate(beam, i, tx);
+    }
+  }
+}
+
 void
 EMInterface::blockLight(RayBeamSlice const &slice)
 {
-  auto beam       = slice.beam;
   auto &state     = randState();
 
   // Block light by means of transmission map
   if (m_txMap != nullptr) {
-    std::vector<Real> const &map = *m_txMap;
-
-    for (auto i = slice.start; i < slice.end; ++i) {
-      if (mustTransmitRay(beam, i)) { 
-        Real coordX = beam->destinations[3 * i + 0];
-        Real coordY = beam->destinations[3 * i + 1];
-
-        int  pixI   = +floor(coordX / m_hx) + m_cols / 2;
-        int  pixJ   = -floor(coordY / m_hy) + m_rows / 2;
-
-        if (pixI >= 0 && pixI < m_cols && pixJ >= 0 && pixJ < m_rows)
-          if (map[pixI + pixJ * m_stride] < state.randu())
+    if (slice.beam->fields)
+      blockLightMap(
+        slice,
+        [&] (RayBeam *beam, uint64_t i, Real tx) {
+          beam->Ex[i] *= tx;
+          beam->Ey[i] *= tx;
+        });
+    else
+      blockLightMap(
+        slice,
+        [&] (RayBeam *beam, uint64_t i, Real tx) {
+          if (tx < state.randu())
             beam->prune(i);
-      }
-    }
+        });
   } else {
-    if (!m_fullyTransparent) {
-      if (m_fullyOpaque) {
-        // Fully opaque. Block all intercepted rays unconditionally
-        for (auto i = slice.start; i < slice.end; ++i)
-          if (mustTransmitRay(beam, i))
+    if (slice.beam->fields)
+      blockLightUniform(
+        slice,
+        [&] (RayBeam *beam, uint64_t i, Real tx) {
+          beam->Ex[i] *= tx;
+          beam->Ey[i] *= tx;
+        });
+    else
+      blockLightUniform(
+        slice,
+        [&] (RayBeam *beam, uint64_t i, Real tx) {
+          if (tx < state.randu())
             beam->prune(i);
-      } else {
-        // Partially opaque. Block rays according to its transmission probability.
-        Real tx = m_transmission;
-        for (auto i = slice.start; i < slice.end; ++i)
-          if (mustTransmitRay(beam, i))
-            if (tx < state.randu())
-              beam->prune(i);
-      }
-    }
+        });
   }
 }
 

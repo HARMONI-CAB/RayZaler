@@ -31,7 +31,7 @@ DielectricEMInterface::name() const
 void
 DielectricEMInterface::setRefractiveIndex(Real in, Real out)
 {
-  m_n1    = in;
+  m_n1   = in;
   m_n2   = out;
   m_n1n2 = in / out;
 }
