@@ -19,7 +19,8 @@ add_executable(
   src/ElementTests.cpp
   src/TopLevelTests.cpp
   src/HitTests.cpp
-  src/SimulationTests.cpp)
+  src/SimulationTests.cpp
+  src/EMTests.cpp)
 
 target_link_directories(RZTests PRIVATE ${LIBRZ_LIBDIR})
 
