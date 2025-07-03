@@ -84,12 +84,32 @@ OpticalSurface::Efield() const
   return EArray;
 }
 
+std::vector<Real> &
+OpticalSurface::power() const
+{
+  size_t expectedSize = hits.size();
+
+  if (powerArray.size() != expectedSize) {
+    powerArray.resize(expectedSize);
+
+    for (size_t i = 0; i < hits.size(); ++i) {
+      if (hits[i].fields)
+        powerArray[i] = hits[i].power;
+      else
+        powerArray[i] = std::nan("unavailable");
+    }
+  }
+
+  return powerArray;
+}
+
 void
 OpticalSurface::clearCache() const
 {
   locationArray.clear();
   directionArray.clear();
   EArray.clear();
+  powerArray.clear();
 }
 
 void
@@ -162,6 +182,22 @@ OpticalPath::Efield(std::string const &name) const
   }
 
   return surface->Efield();
+}
+
+const std::vector<Real> &
+OpticalPath::power(std::string const &name) const
+{
+  const OpticalSurface *surface = m_sequence.front();
+  
+  if (!name.empty()) {
+    auto it = m_nameToSurface.find(name);
+    if (it == m_nameToSurface.cend())
+      throw std::runtime_error("No such optical surface `" + name + "'");
+    
+    surface = it->second;
+  }
+
+  return surface->power();
 }
 
 ////////////////////////// Optical Element ////////////////////////////////////
@@ -261,6 +297,12 @@ const std::vector<Real> &
 OpticalElement::directions(std::string const &name) const
 {
   return opticalPath().directions(name);
+}
+
+const std::vector<Real> &
+OpticalElement::power(std::string const &name) const
+{
+  return opticalPath().power(name);
 }
 
 const std::vector<Complex> &

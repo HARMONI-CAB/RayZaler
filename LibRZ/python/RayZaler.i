@@ -228,8 +228,6 @@ namespace std {
     unsigned int rows = self->hits(name).size() / 3;
     const Real *data  = self->hits(name).data();
 
-    unsigned int i, j;
-        
     npy_intp dims[]    = {rows, cols};
     npy_intp strides[] = {
       static_cast<npy_intp>(cols * sizeof(Real)),
@@ -255,8 +253,6 @@ namespace std {
     unsigned int rows = self->directions(name).size() / 3;
     const Real *data  = self->directions(name).data();
 
-    unsigned int i, j;
-        
     npy_intp dims[]    = {rows, cols};
     npy_intp strides[] = {
       static_cast<npy_intp>(cols * sizeof(Real)),
@@ -274,6 +270,32 @@ namespace std {
 
     return outArray;
   }
+
+  PyObject *
+  powerArray(std::string const &name = "") const
+  {
+    unsigned int rows = self->power(name).size();
+    const Real *data  = self->power(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(sizeof(Real))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      1,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      const_cast<Real *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
 
   PyObject *
   EArray(std::string const &name = "") const

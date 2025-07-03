@@ -43,11 +43,13 @@ namespace RZ {
     // Haha C++
     mutable std::vector<Real>     locationArray;
     mutable std::vector<Real>     directionArray;
+    mutable std::vector<Real>     powerArray;
     mutable std::vector<Complex>  EArray;
     mutable std::vector<uint32_t> idArray;
 
     std::vector<Real>    &locations() const;
     std::vector<Real>    &directions() const;
+    std::vector<Real>    &power() const;
     std::vector<Complex> &Efield() const;
 
     void clearCache() const;
@@ -64,6 +66,7 @@ namespace RZ {
     const std::vector<Real>     &hits(std::string const &name) const;
     const std::vector<Real>     &directions(std::string const &name) const;
     const std::vector<Complex>  &Efield(std::string const &name) const;
+    const std::vector<Real>     &power(std::string const &name = "") const;
 
     inline const OpticalSurface *
     getSurface(std::string const &name) const
@@ -142,6 +145,7 @@ namespace RZ {
 
       const std::vector<Real>    &hits(std::string const &name = "") const;
       const std::vector<Real>    &directions(std::string const &name = "") const;
+      const std::vector<Real>    &power(std::string const &name = "") const;
       const std::vector<Complex> &Efield(std::string const &name = "") const;
 
       void setSurroundingMedium(EMMedium const *);
