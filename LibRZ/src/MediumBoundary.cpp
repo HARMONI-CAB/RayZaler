@@ -42,8 +42,11 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
   Vec3 destination;
   auto &beam = *slice.beam;
   uint64_t end = slice.end;
-  Real K, dt, opd;
+  Real dt;
   
+  EMMedium newMedium;
+  const EMMedium *mediumCopy = nullptr;
+
   auto shape     = surfaceShape();
 
   if (shape != nullptr) {
@@ -56,27 +59,33 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
           ? beam.media[i] 
           : &g_vacuum;
         Vec3 normal;
-        Real dt, opd;
 
         // Do intercept. Note we do not do pruning here.
         if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
           if (!clipped(destination.x, destination.y)) {
-            K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = medium->opd(dt, dir);
-            beam.lengths[i]        = dt;
-            beam.cumOptLengths[i] += opd;
+            beam.lengths[i]     = dt;
+            beam.cumLengths[i] += dt;
 
-            if (beam.fields)
-              medium->advancePhase(
-                beam.Ex[i],
-                beam.Ey[i],
-                Vec3(beam.uEx + 3 * i),
-                dir,
-                K,
-                dt);
+            if (beam.fields) {
+              if (!medium->isotropic()) {
+                if (mediumCopy != medium) {
+                  mediumCopy = medium;  
+                  newMedium = *medium;
+                }
+                
+                newMedium.axisToSurfaceFrame(m_frame);
+                medium = &newMedium;
+              }
+
+              auto K = 2 * M_PI / beam.wavelengths[i];
+              const Vec3 uEx(beam.uEx + 3 * i);
+              const auto uEy = dir.cross(uEx);
+
+              medium->advancePhase(beam.Ex[i], beam.Ey[i], uEx, uEy, K, dt);
+            }
 
             destination.copyToArray(beam.destinations + 3 * i);
-            normal.copyToArray(beam.normals     + 3 * i);
+            normal.copyToArray(beam.normals + 3 * i);
             beam.intercept(i);
           }
         }
@@ -98,20 +107,27 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
           destination            = origin + dt * dir;
           
           if (!clipped(destination.x, destination.y)) {
-            K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = medium->opd(dt, dir);
-            beam.lengths[i]        = dt;
-            beam.cumOptLengths[i] += opd;
+            beam.lengths[i]     = dt;
+            beam.cumLengths[i] += dt;
             
-            if (beam.fields)
-              medium->advancePhase(
-                beam.Ex[i],
-                beam.Ey[i],
-                Vec3(beam.uEx + 3 * i),
-                dir,
-                K,
-                dt);
-              
+            if (beam.fields) {
+              if (!medium->isotropic()) {
+                if (mediumCopy != medium) {
+                  mediumCopy = medium;  
+                  newMedium = *medium;
+                }
+                
+                newMedium.axisToSurfaceFrame(m_frame);
+                medium = &newMedium;
+              }
+
+              auto K = 2 * M_PI / beam.wavelengths[i];
+              const Vec3 uEx(beam.uEx + 3 * i);
+              const auto uEy = dir.cross(uEx);
+
+              medium->advancePhase(beam.Ex[i], beam.Ey[i], uEx, uEy, K, dt);
+            }
+            
             destination.copyToArray(beam.destinations + 3 * i);
             Vec3::eZ().copyToArray(beam.normals + 3 * i);
             beam.intercept(i);

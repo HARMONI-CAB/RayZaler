@@ -142,7 +142,7 @@ RayBeam::debug() const
   printf("Allocation:  %ld rays\n", allocation);
   
   Real minLength = +INFINITY, maxLength = -INFINITY;
-  Real minOPL = +INFINITY, maxOPL = -INFINITY;
+  Real minPL     = +INFINITY, maxPL     = -INFINITY;
   Real minLambda = +INFINITY, maxLambda = -INFINITY;
   
   uint64_t intercepted = 0;
@@ -155,8 +155,8 @@ RayBeam::debug() const
       minLength = fmin(lengths[i], minLength);
       maxLength = fmax(lengths[i], maxLength);
       
-      minOPL = fmin(cumOptLengths[i], minOPL);
-      maxOPL = fmax(cumOptLengths[i], maxOPL);
+      minPL     = fmin(cumLengths[i], minPL);
+      maxPL     = fmax(cumLengths[i], maxPL);
       
       minLambda = fmin(wavelengths[i], minLambda);
       maxLambda = fmax(wavelengths[i], maxLambda);
@@ -182,7 +182,7 @@ RayBeam::debug() const
   }
 
   printf("Lengths:     [%g, %g]\n", minLength, maxLength);
-  printf("OPL:         [%g, %g]\n", minOPL,    maxOPL);
+  printf("Path length: [%g, %g]\n", minPL,    maxPL);
   printf("Lambda:      [%g, %g]\n", minLambda, maxLambda);
   
   printf("Existing:    %ld rays\n", existing);
@@ -280,7 +280,7 @@ RayBeam::extractRays(
         ray.chief        = beam->isChief(i);
         ray.wavelength   = beam->wavelengths[i];
         ray.medium       = beam->media[i];
-        ray.cumOptLength = beam->cumOptLengths[i];
+        ray.cumOptLength = beam->cumLengths[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
         ray.fields       = beam->fields;
@@ -289,8 +289,10 @@ RayBeam::extractRays(
           ray.uEx        = Vec3(beam->uEx + 3 * i);
           ray.Ex         = beam->Ex[i];
           ray.Ey         = beam->Ey[i];
-          if (beam->media[i] != nullptr)
-            ray.power    = beam->media[i]->power(ray.Ex, ray.Ey, ray.uEx);
+          if (beam->media[i] != nullptr) {
+            auto uEy = ray.direction.cross(ray.uEx);
+            ray.power    = beam->media[i]->power(ray.Ex, ray.Ey, ray.uEx, uEy);
+          }
         }
         
         ray.intercepted  = beam->isIntercepted(i);
@@ -427,7 +429,7 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
       dest->lengths[i]       = lengths[i];
-      dest->cumOptLengths[i] = cumOptLengths[i];
+      dest->cumLengths[i]    = cumLengths[i];
       dest->wavelengths[i]   = wavelengths[i];
       dest->ids[i]           = ids[i];
       dest->media[i]         = media[i];
@@ -582,7 +584,7 @@ RayBeam::allocate(uint64_t count)
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
     this->lengths       = allocBuffer<Real>(count);
-    this->cumOptLengths = allocBuffer<Real>(count);
+    this->cumLengths    = allocBuffer<Real>(count);
     this->media         = allocBuffer<const EMMedium *>(count);
     this->wavelengths   = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
@@ -608,7 +610,7 @@ RayBeam::allocate(uint64_t count)
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
-    this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
+    this->cumLengths    = allocBuffer<Real>(count, prev, this->cumLengths);
     this->media         = allocBuffer<const EMMedium *>(count, prev, this->media);
     this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
     this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
@@ -765,7 +767,9 @@ RayBeam::power() const
 
   auto N = count;
   while (N-- > 0) if (hasRay(N) && media[N] != NULL) {
-    y = media[N]->power(Ex[N], Ey[N], Vec3(uEx + 3 * N)) - c;
+    const auto ex = Vec3(uEx + 3 * N);
+    const auto ey = Vec3(directions + 3 * N).cross(ex);
+    y = media[N]->power(Ex[N], Ey[N], ex, ey) - c;
     t = sum + y;
     c = (t - sum) - y;
     sum = t;
@@ -783,7 +787,7 @@ RayBeam::deallocate()
   freeBuffer(normals);
   freeBuffer(lengths);
   freeBuffer(wavelengths);
-  freeBuffer(cumOptLengths);
+  freeBuffer(cumLengths);
   freeBuffer(uEx);
   freeBuffer(Ex);
   freeBuffer(Ey);

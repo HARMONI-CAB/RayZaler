@@ -275,6 +275,7 @@ OpticalElement::defineOpticalSurface(
   m_nameToSurf[name] = last;
 
   boundary->setParent(last);
+  boundary->setParentFrame(frame);
 }
 
 void

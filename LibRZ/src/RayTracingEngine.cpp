@@ -25,6 +25,7 @@
 #include <exception>
 #include <sys/param.h>
 #include <OpticalElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
@@ -147,10 +148,13 @@ RayTracingEngine::toBeam()
     p->direction.copyToArray(m_beam->directions + 3 * i);
 
     m_beam->lengths[i]       = p->length;
-    m_beam->cumOptLengths[i] = p->cumOptLength;
+    m_beam->cumLengths[i]    = p->cumOptLength;
     m_beam->ids[i]           = p->id;
     m_beam->wavelengths[i]   = p->wavelength;
     m_beam->media[i]         = p->medium;
+
+    if (m_beam->media[i] == NULL)
+      m_beam->media[i] = EMMedium::vacuum();
 
     if (p->chief)
       m_beam->setChiefRay(i);

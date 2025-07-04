@@ -163,7 +163,7 @@ BeamTestStatistics::computeFromRayList(
       +2 * std::real(Ex * std::conj(Ey)),
       -2 * std::imag(Ex * std::conj(Ey)),
     };
-    
+
 #define KAHAN_ITER(dim)                           \
     corr4[dim] = Si[dim] - c4[dim];               \
     t4[dim]    = S[dim] + corr4[dim];             \

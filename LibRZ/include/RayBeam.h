@@ -57,7 +57,7 @@ namespace RZ {
     Complex *Ex            = nullptr;
     Complex *Ey            = nullptr;
     Real *lengths          = nullptr;
-    Real *cumOptLengths    = nullptr;
+    Real *cumLengths       = nullptr;
     Real *normals          = nullptr; // Surface normals of the boundary surface
     Real *wavelengths      = nullptr;
     const EMMedium **media = nullptr;
@@ -157,7 +157,7 @@ namespace RZ {
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
 
       lengths[index]       = existing->lengths[index];
-      cumOptLengths[index] = existing->cumOptLengths[index];
+      cumLengths[index]    = existing->cumLengths[index];
       media[index]         = existing->media[index];
       wavelengths[index]   = existing->wavelengths[index];
       ids[index]           = existing->ids[index];
@@ -262,7 +262,7 @@ namespace RZ {
     memmove(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
   
     COPYSCALAR(lengths);
-    COPYSCALAR(cumOptLengths);
+    COPYSCALAR(cumLengths);
     COPYSCALAR(wavelengths);
     COPYSCALAR(media);
     COPYSCALAR(ids);
