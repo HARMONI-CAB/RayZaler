@@ -136,6 +136,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
+  ${LIBRZ_INCLUDEDIR}/Matrix4.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundary.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries.h
   ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
@@ -159,6 +160,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h
+  ${LIBRZ_INCLUDEDIR}/Vector4.h
   ${LIBRZ_INCLUDEDIR}/Zernike.h
 
   ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
