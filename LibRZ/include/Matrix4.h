@@ -116,6 +116,58 @@ namespace RZ {
       );
     }
 
+    // Matrix inversion
+    // Explicit algoritm obtained and tested from https://stackoverflow.com/questions/2624422/efficient-4x4-matrix-inverse-affine-transform
+    bool
+    invert(Matrix4 &out)
+    {
+      Matrix4 inverted = Matrix4::eye();
+      
+      auto s0 = coef[0][0] * coef[1][1] - coef[1][0] * coef[0][1];
+      auto s1 = coef[0][0] * coef[1][2] - coef[1][0] * coef[0][2];
+      auto s2 = coef[0][0] * coef[1][3] - coef[1][0] * coef[0][3];
+      auto s3 = coef[0][1] * coef[1][2] - coef[1][1] * coef[0][2];
+      auto s4 = coef[0][1] * coef[1][3] - coef[1][1] * coef[0][3];
+      auto s5 = coef[0][2] * coef[1][3] - coef[1][2] * coef[0][3];
+
+      auto c5 = coef[2][2] * coef[3][3] - coef[3][2] * coef[2][3];
+      auto c4 = coef[2][1] * coef[3][3] - coef[3][1] * coef[2][3];
+      auto c3 = coef[2][1] * coef[3][2] - coef[3][1] * coef[2][2];
+      auto c2 = coef[2][0] * coef[3][3] - coef[3][0] * coef[2][3];
+      auto c1 = coef[2][0] * coef[3][2] - coef[3][0] * coef[2][2];
+      auto c0 = coef[2][0] * coef[3][1] - coef[3][0] * coef[2][1];
+
+      // Should check for 0 determinant
+      auto det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;
+
+      if (isZero(det))
+        return false;
+
+      auto invdet = 1.0 / det;
+      
+      out.coef[0][0] = ( coef[1][1] * c5 - coef[1][2] * c4 + coef[1][3] * c3) * invdet;
+      out.coef[0][1] = (-coef[0][1] * c5 + coef[0][2] * c4 - coef[0][3] * c3) * invdet;
+      out.coef[0][2] = ( coef[3][1] * s5 - coef[3][2] * s4 + coef[3][3] * s3) * invdet;
+      out.coef[0][3] = (-coef[2][1] * s5 + coef[2][2] * s4 - coef[2][3] * s3) * invdet;
+
+      out.coef[1][0] = (-coef[1][0] * c5 + coef[1][2] * c2 - coef[1][3] * c1) * invdet;
+      out.coef[1][1] = ( coef[0][0] * c5 - coef[0][2] * c2 + coef[0][3] * c1) * invdet;
+      out.coef[1][2] = (-coef[3][0] * s5 + coef[3][2] * s2 - coef[3][3] * s1) * invdet;
+      out.coef[1][3] = ( coef[2][0] * s5 - coef[2][2] * s2 + coef[2][3] * s1) * invdet;
+
+      out.coef[2][0] = ( coef[1][0] * c4 - coef[1][1] * c2 + coef[1][3] * c0) * invdet;
+      out.coef[2][1] = (-coef[0][0] * c4 + coef[0][1] * c2 - coef[0][3] * c0) * invdet;
+      out.coef[2][2] = ( coef[3][0] * s4 - coef[3][1] * s2 + coef[3][3] * s0) * invdet;
+      out.coef[2][3] = (-coef[2][0] * s4 + coef[2][1] * s2 - coef[2][3] * s0) * invdet;
+
+      out.coef[3][0] = (-coef[1][0] * c3 + coef[1][1] * c1 - coef[1][2] * c0) * invdet;
+      out.coef[3][1] = ( coef[0][0] * c3 - coef[0][1] * c1 + coef[0][2] * c0) * invdet;
+      out.coef[3][2] = (-coef[3][0] * s3 + coef[3][1] * s1 - coef[3][2] * s0) * invdet;
+      out.coef[3][3] = ( coef[2][0] * s3 - coef[2][1] * s1 + coef[2][2] * s0) * invdet;
+
+      return true;
+    }
+
     // Matrix-scalar product
     inline Matrix4
     operator *(Real k) const

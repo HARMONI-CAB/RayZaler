@@ -265,6 +265,30 @@ TEST_CASE("Matrix-vector poducts (4D)", THIS_TEST_TAG)
   }
 }
 
+TEST_CASE("Matrix inversion (4D)", THIS_TEST_TAG)
+{
+  Real x, y, z, t;
+  Matrix4 M(Vec4::eT(), Vec4::eY(), Vec4::eZ(), Vec4::eX());
+
+  unsigned int i;
+
+  for (i = 0; i < 1000; ++i) {
+    Matrix4 matrix, inv;
+
+    for (auto j = 0; j < 4; ++j) {
+      x = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      y = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      z = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      t = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+
+      matrix.rows[j] = Vec4(x, y, z, t);
+    }
+    
+    REQUIRE(matrix.invert(inv));
+    REQUIRE(inv * matrix == Matrix4::eye());
+  }
+}
+
 TEST_CASE("Reference frame (instantiation)", THIS_TEST_TAG)
 {
   WorldFrame wf("world");
