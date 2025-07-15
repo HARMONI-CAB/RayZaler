@@ -28,6 +28,81 @@ DielectricEMInterface::name() const
   return "DielectricEMInterface";
 }
 
+inline bool
+DielectricEMInterface::G(
+  Real &bfr,
+  Real &rad,
+  Vec3 const &k_i,
+  Vec3 const &normal,
+  Real n_o,
+  Real n_e,
+  Vec3 const &axis)
+{
+  auto qj = (n_e * n_e - n_o * n_o) / (n_o * n_o);
+  auto etaaj = -normal * axis;
+  auto kieta = -k_i * normal;
+  auto kiaj  = k_i * axis;
+
+  auto a     = 1 + qj * etaaj * etaaj;
+  auto inv2a = .5 / a;
+  auto b     = 2 * (kieta + qj * kiaj * etaaj);
+  auto c     = k_i * k_i - n_e * n_e + qj * kiaj * kiaj;
+
+  auto D     = b * b - 4 * a * c;
+
+  if (D < 0)
+    return false;
+
+  bfr = -b * inv2a;
+  rad = sqrt(D) * inv2a;
+
+  return true;
+}
+
+inline bool
+DielectricEMInterface::anisoAnisoBreak(
+        Vec3 &sor,
+        Vec3 &ser,
+        Vec3 &sot,
+        Vec3 &set,
+        Vec3 const &k_i,
+        Vec3 const &normal,
+        Real n_o1,
+        Real n_e1,
+        Vec3 const &axis1,
+        Real n_o2,
+        Real n_e2,
+        Vec3 const &axis2)
+{
+  Real bfr1, rad1, bfr2, rad2;
+
+  if (!G(bfr1, rad1, k_i, normal, n_o1, n_e1, axis1))
+    return false;
+
+  if (!G(bfr2, rad2, k_i, normal, n_o2, n_e2, axis1))
+    return false;
+
+  auto G1 = bfr1 - rad1;
+  auto G2 = bfr2 + rad2;
+
+  auto k_r = k_i - G1 * normal;
+  auto k_t = k_i - G2 * normal;
+
+  auto iKR = 1 / k_r.norm();
+  auto iKT = 1 / k_t.norm();
+
+  sor = n_o1 * k_r;
+  sot = n_o2 * k_t;
+
+  auto kra1 = k_r * axis1;
+  auto kta2 = k_t * axis2;
+
+  ser = n_e1 * n_e1 * kra1 * iKR * axis1 + n_o1 * n_o1 * (iKR * (k_r - kra1 * axis1));
+  set = n_e2 * n_e2 * kta2 * iKT * axis2 * n_o2 * n_o2 * (iKT * (k_t - kta2 * axis2));
+
+  return true;
+}
+
 inline void
 DielectricEMInterface::calcIsoToIsoFields(
   RayBeam *inputBeam,
@@ -115,6 +190,64 @@ DielectricEMInterface::calcIsoToIsoFields(
   }
 }
 
+//
+// ISOTROPIC TO ISOTROPIC CASE
+// 
+// This is regular Snell + Fresnel. We identify two media: the positive
+// medium and the negative medium. The positive medium is the side the normal
+// points at. The positive medium refractive index is n1, and the negative medium
+// refractive index is n2.
+
+inline void
+DielectricEMInterface::transmitIsoIso(
+  RayBeamSlice const &slice,
+  RayBeam *splinterBeam)
+{
+  auto beam = slice.beam;
+  Real rdir = m_n1n2, rinv = 1 / m_n1n2;
+  Real n1   = m_n1;
+  Real n2   = m_n2;
+
+  // Allocate space for secondary rays
+  if (splinterBeam != nullptr) {
+    if (splinterBeam->count < beam->count)
+      splinterBeam->allocate(beam->count);
+
+    slice.copyTo(RayBeamSlice(splinterBeam, slice.start, slice.end));
+  }
+
+  for (auto i = slice.start; i < slice.end; ++i) if (mustTransmitRay(beam, i)) {
+    const Vec3 ui(beam->directions  + 3 * i);
+    const Vec3 normal(beam->normals + 3 * i);
+    auto medium = beam->media[i];
+    auto iSign  = ui * normal;
+    
+    // Sanity check.
+    assert(medium == (iSign < 0 ? pMedium() : nMedium()));
+
+    const Vec3 transmitted = iSign < 0 
+      ? snell(ui, normal, rdir)
+      : snell(ui, -normal, rinv);
+
+    auto tSign = transmitted * normal;
+
+    transmitted.copyToArray(beam->directions + 3 * i);
+    
+    beam->media[i] = tSign < 0 ? nMedium() : pMedium();
+
+    if (splinterBeam != nullptr) {
+      // Calculate secondary ray if the primary ray is a transmission. 
+      // Otherwise (total reflection) prune secondary ray
+      if (iSign * tSign > 0)
+        reflection(ui, normal).copyToArray(splinterBeam->directions + 3 * i);
+      else
+        splinterBeam->prune(i);
+    }
+
+    if (beam->fields)
+      calcIsoToIsoFields(beam, i, splinterBeam, i, ui);
+  }
+}
 
 void
 DielectricEMInterface::transmit(
@@ -123,64 +256,14 @@ DielectricEMInterface::transmit(
 {
   blockLight(slice); // Prune rays according to transmission
 
-  auto inputBeam = slice.beam;
-  Real rdir = m_n1n2, rinv = 1 / m_n1n2;
-  Real n1  = m_n1;
-  Real n2  = m_n2;
+  switch (m_interfaceCase) {
+    case IsoToIso:
+      transmitIsoIso(slice, splinterBeam);
+      break;
 
-  if (splinterBeam != nullptr) {
-    // Make sure the splinter beam is properly allocated
-    if (splinterBeam->count < inputBeam->count) {
-      switch (m_interfaceCase) {
-        case IsoToIso:
-          splinterBeam->allocate(inputBeam->count);
-          break;
-
-        default:
-          // TODO: Write me!
-          break;
-      }
-    }
-
-    // Copy splinter beam
-    switch (m_interfaceCase) {
-      case IsoToIso:
-        slice.copyTo(RayBeamSlice(splinterBeam, slice.start, slice.end));
-        break;
-
-      default:
-        // TODO: Write me
-        break;
-    }
-  }
-
-  for (auto i = slice.start; i < slice.end; ++i) {
-    if (mustTransmitRay(slice.beam, i)) {
-      const Vec3 ui(inputBeam->directions  + 3 * i);
-      const Vec3 normal(inputBeam->normals + 3 * i);
-      auto medium = inputBeam->media[i];
-
-      if (ui * normal < 0) {
-        snell(ui, normal, rdir).copyToArray(inputBeam->directions + 3 * i);
-        inputBeam->media[i] = nMedium();
-      } else {
-        snell(ui, -normal, rinv).copyToArray(inputBeam->directions + 3 * i);
-        inputBeam->media[i] = pMedium();
-      }
-
-      if (splinterBeam != nullptr)
-        reflection(ui, normal).copyToArray(splinterBeam->directions + 3 * i);
-
-      if (inputBeam->fields) switch (m_interfaceCase) {
-        case IsoToIso:
-          calcIsoToIsoFields(inputBeam, i, splinterBeam, i, ui);
-          break;
-
-        default:
-          // TODO: Write me!
-          break;
-      }
-    }
+    default:
+      // TODO: Write me
+      break;
   }
 }
 

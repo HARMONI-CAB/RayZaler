@@ -44,6 +44,22 @@ namespace RZ {
         uint64_t splinterRay,
         const Vec3 &ui);
 
+      static inline bool G(Real &bfr, Real &rad, Vec3 const &k_i, Vec3 const &normal, Real n_o, Real n_e, Vec3 const &axis);
+      static inline bool anisoAnisoBreak(
+        Vec3 &sor,
+        Vec3 &ser,
+        Vec3 &sot,
+        Vec3 &set,
+        Vec3 const &k_i,
+        Vec3 const &normal,
+        Real n_o1,
+        Real n_e1,
+        Vec3 const &axis1,
+        Real n_o2,
+        Real n_e2,
+        Vec3 const &axis2);
+      
+      inline void transmitIsoIso(RayBeamSlice const &beam, RayBeam *);
 
     public:
       void setRefractiveIndex(Real , Real);
