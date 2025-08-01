@@ -231,7 +231,305 @@ TEST_CASE("Fresnel equations: Brewster's angle (Iso2Iso)", THIS_TEST_TAG)
   delete model;
 }
 
-TEST_CASE("EMSolver: Aniso2Aniso", THIS_TEST_TAG)
+static inline void
+verifyIncidentRay(EMSolver const &solver)
+{
+  printf("Incident ray properties:\n");
+  printf("  <ki, ki>   = %g (ni = %g)\n", solver.ki * solver.ki, solver.ni);
+  printf("  ui         = %s\n", solver.ui.toString().c_str());
+  printf("  ki         = %s\n", solver.ki.toString().c_str());
+  printf("  vDx (iinc) = %s\n", solver.viDx.toString().c_str());
+  REQUIRE(isZero(solver.viDx * solver.ui));
+  putchar(10);
+}
+
+static inline void
+verifyRayBreak(EMSolver const &solver, RayBreakMask desiredMask)
+{
+  auto rays  = solver.rayMask;
+  
+  const char *descs[] = {"Evanescent", "Propagating"};
+
+  printf("Ray break result:\n");
+
+  if (desiredMask & ReflectedOrdinary)
+    printf("  Reflected   ordinary:      %s\n", descs[!!(rays & ReflectedOrdinary)]);
+
+  if (desiredMask & ReflectedExtraordinary)
+    printf("  Reflected   extraordinary: %s\n", descs[!!(rays & ReflectedExtraordinary)]);
+
+  if (desiredMask & TransmittedOrdinary)
+    printf("  Transmitted ordinary:      %s\n", descs[!!(rays & TransmittedOrdinary)]);
+
+  if (desiredMask & TransmittedExtraordinary)
+    printf("  Transmitted extraordinary: %s\n", descs[!!(rays & TransmittedExtraordinary)]);
+  
+  REQUIRE(rays == desiredMask);
+  putchar(10);
+
+  printf("Wave vectors:\n");
+
+  if (desiredMask & ReflectedOrdinary)
+    printf("  ko1 = %s\n", solver.ko1.toString().c_str());
+
+  if (desiredMask & ReflectedExtraordinary)
+    printf("  ke1 = %s\n", solver.ke1.toString().c_str());
+
+  if (desiredMask & TransmittedOrdinary)
+    printf("  ko2 = %s\n", solver.ko2.toString().c_str());
+
+  if (desiredMask & TransmittedExtraordinary)
+    printf("  ke2 = %s\n", solver.ke2.toString().c_str());
+
+  putchar(10);
+
+  printf("Refractive indices (guessed from k):\n");
+  printf("  ni  = %g\n", solver.ni);
+  if (desiredMask & ReflectedOrdinary)
+    printf("  no1 = %g\n", solver.ko1.norm());
+
+  if (desiredMask & ReflectedExtraordinary)
+    printf("  ne1 = %g\n", solver.ke1.norm());
+
+  if (desiredMask & TransmittedOrdinary)
+    printf("  no2 = %g\n", solver.ko2.norm());
+
+  if (desiredMask & TransmittedExtraordinary)
+    printf("  ne2 = %g\n", solver.ke2.norm());
+
+  putchar(10);
+
+  printf("Checking tranverse momentum conservation:\n");
+  auto kiwq = solver.ki * solver.wq;
+  printf("  <ki,  wq> = %g\n", kiwq);
+
+  if (desiredMask & ReflectedOrdinary) {
+    auto ko1wq = solver.ko1 * solver.wq;
+    printf("  <ko1, wq> = %g\n", ko1wq);
+    REQUIRE(releq(kiwq, ko1wq));
+  }
+
+  if (desiredMask & ReflectedExtraordinary) {
+    auto ke1wq = solver.ke1 * solver.wq;
+    printf("  <ke1, wq> = %g\n", ke1wq);
+    REQUIRE(releq(kiwq, ke1wq));
+  }
+
+  if (desiredMask & TransmittedOrdinary) {
+    auto ko2wq = solver.ko2 * solver.wq;
+    printf("  <ko1, wq> = %g\n", ko2wq);
+    REQUIRE(releq(kiwq, ko2wq));
+  }
+
+  if (desiredMask & TransmittedExtraordinary) {
+    auto ke2wq = solver.ke2 * solver.wq;
+    printf("  <ke2, wq> = %g\n", ke2wq);
+    REQUIRE(releq(kiwq, ke2wq));
+  }
+
+  putchar(10);
+}
+
+static void
+verifyFieldsDirections(EMSolver const &solver)
+{
+  auto &dbg = solver.dirs;
+
+  printf("D-field directions:\n");
+
+  if (solver.rayMask & ReflectedOrdinary) {
+    printf("  io1 = %s\n", dbg.io1.toString().c_str());
+    REQUIRE(isZero(dbg.io1 * solver.uo1));
+  }
+
+  if (solver.rayMask & ReflectedExtraordinary) {
+    printf("  ie1 = %s\n", dbg.ie1.toString().c_str());
+    REQUIRE(isZero(dbg.ie1 * solver.ue1));
+  }
+
+  if (solver.rayMask & TransmittedOrdinary) {
+    printf("  io2 = %s\n", dbg.io2.toString().c_str());
+    REQUIRE(isZero(dbg.io2 * solver.uo2));
+  }
+
+  if (solver.rayMask & TransmittedExtraordinary) {
+    printf("  ie2 = %s\n", dbg.ie2.toString().c_str());
+    REQUIRE(isZero(dbg.ie2 * solver.ue2));
+  }
+
+  putchar(10);
+}
+
+static void
+verifyFields(
+  EMSolver const &solver,
+  bool imag)
+{
+  auto &dbg = solver.dirs;
+  auto const &normal = solver.normal;
+  const char *component = imag ? "quadrature" : "in-phase";
+
+  Real D1, D2;
+  Real B1, B2;
+
+  Vec3 E1, E2;
+  Vec3 H1, H2;
+  
+  Vec3 Si, So1, Se1, So2, Se2;
+  Real S1, S2;
+
+  const Vec3 &Di = imag ? dbg.DiI      : dbg.DiR;
+  const Vec4 &D  = imag ? dbg.DI       : dbg.DR;
+  auto Damp      = imag ? solver.DampI : solver.DampR;
+  const Vec3 &fi = imag ? dbg.fiI      : dbg.fiR;
+  const Vec3 &gi = imag ? dbg.giI      : dbg.giR;
+
+  printf("Checking normal D field continuity (%s)\n", component);
+  Real Do1 = D.coords[0];
+  Real De1 = D.coords[1];
+  Real Do2 = D.coords[2];
+  Real De2 = D.coords[3];
+
+  D1 = (Di + Do1 * dbg.io1 + De1 * dbg.ie1) * normal;
+  D2 = (Do2 * dbg.io2 + De2 * dbg.ie2) * normal;
+  printf("  DiR      = %s\n", Di.toString().c_str());
+  printf("  DR       = %s\n", D.toString().c_str());
+  printf("  <D1, n>  = %g\n", D1);
+  printf("  <D2, n>  = %g\n", D2);
+
+  REQUIRE(releq(D1, D2));
+  putchar(10);
+
+  printf("Checking tangent E field continuity (%s)\n", component);
+  Vec3 Ei  = Damp * fi;
+  Vec3 Eo1 = Do1 * dbg.fo1;
+  Vec3 Ee1 = De1 * dbg.fe1;
+  Vec3 Eo2 = Do2 * dbg.fo2;
+  Vec3 Ee2 = De2 * dbg.fe2;
+
+  E1 = (Ei + Eo1 + Ee1).cross(normal);
+  E2 = (Eo2 + Ee2).cross(normal);
+  
+  printf("  E1 x n = %s\n", E1.toString().c_str());
+  printf("  E2 x n = %s\n", E2.toString().c_str());
+  REQUIRE(isZero((E1 - E2).norm()));
+  putchar(10);
+
+  printf("Checking tangent H field continuity (%s)\n", component);
+  Vec3 Hi  = Damp * gi;
+  Vec3 Ho1 = Do1 * dbg.go1;
+  Vec3 He1 = De1 * dbg.ge1;
+  Vec3 Ho2 = Do2 * dbg.go2;
+  Vec3 He2 = De2 * dbg.ge2;
+
+  H1 = (Hi + Ho1 + He1).cross(normal);
+  H2 = (Ho2 + He2).cross(normal);
+
+  printf("  H1 x n = %s\n", H1.toString().c_str());
+  printf("  H2 x n = %s\n", H2.toString().c_str());
+  REQUIRE(isZero((H1 - H2).norm()));
+  putchar(10);
+
+  printf("Checking normal B field continuity (%s)\n", component);
+  B1 = (Hi + Ho1 + He1) * normal;
+  B2 = (Ho2 + He2) * normal;
+  printf("  <B1, n>  = %g\n", B1);
+  printf("  <B2, n>  = %g\n", B2);
+  REQUIRE(releq(B1, B2));
+  putchar(10);
+
+  printf("Checking energy conservation (%s)\n", component);
+  Si  = Ei.cross(Hi);
+  So1 = Eo1.cross(Ho1);
+  Se1 = Ee1.cross(He1);
+  So2 = Eo2.cross(Ho2);
+  Se2 = Ee2.cross(He2);
+
+  S1 = (Si + So1 + Se1) * normal;
+  S2 = (So2 + Se2) * normal;
+  printf("  <S1, n>  = %g\n", S1);
+  printf("  <S2, n>  = %g\n", S2);
+  REQUIRE(releq(S1, S2));
+  putchar(10);
+}
+
+TEST_CASE("EMSolver: Aniso2Aniso (Ordinary ray)", THIS_TEST_TAG)
+{  
+  // Reference frame: just a world frame
+  WorldFrame frame("world");
+
+  // Medium 1
+  EMMedium m1;
+
+  m1.type  = EMMediumUniaxial;
+  m1.frame = &frame;
+  m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+  m1.no    = 1.1;
+  m1.ne    = 1.5;
+
+  REQUIRE(!m1.isotropic());
+
+  printf("Medium 1 axis: %s\n", m1.axis.toString().c_str());
+  printf("Medium 1 no:   %g\n", m1.no);
+  printf("Medium 1 ne:   %g\n", m1.ne);
+
+  // Medium 2
+  EMMedium m2;
+
+  m2.type  = EMMediumUniaxial;
+  m2.frame = &frame;
+  m2.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+  m2.no    = 2.2;
+  m2.ne    = 2.5;
+  REQUIRE(!m2.isotropic());
+
+  printf("Medium 2 axis: %s\n", m2.axis.toString().c_str());
+  printf("Medium 2 no:   %g\n", m2.no);
+  printf("Medium 2 ne:   %g\n", m2.ne);
+
+  Vec3 normal = -Vec3::eY();
+  Real angle  = deg2rad(35);
+  Vec3 ui     = Vec3(sin(angle), cos(angle), 0);
+
+  // Ordinary ray simulation
+  Vec3 vDx = ui.cross(m1.axis).normalized();
+  Complex Dx(10, 20);
+
+  while (vDx * vDx < 1e-12) {
+    m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+    vDx = ui.cross(m1.axis).normalized();
+  }
+
+  EMSolver solver;
+  EMFields ro, re, to, te;
+  
+  solver.debug = true;
+
+  solver.setReferenceFrame(&frame);
+  solver.setMedia(&m1, &m2);
+
+  printf("NOTE: INCIDENT RAY IS ORDINARY RAY\n");
+
+  auto neff = m1.no;
+  auto ki   = neff * ui;
+
+  solver.setIncidentRay(ki, normal, Dx, 0, vDx);
+  
+  verifyIncidentRay(solver);
+
+  solver.rayBreak();
+
+  verifyRayBreak(solver, AllRays);
+
+  solver.solveAnisoAniso(ro, re, to, te);
+  
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
+}
+
+
+TEST_CASE("EMSolver: Aniso2Aniso (Extraordinary ray)", THIS_TEST_TAG)
 {  
   // Reference frame: just a world frame
   WorldFrame frame("world");
@@ -280,19 +578,11 @@ TEST_CASE("EMSolver: Aniso2Aniso", THIS_TEST_TAG)
 
   EMSolver solver;
   EMFields ro, re, to, te;
-
+  
   solver.debug = true;
-  auto &dbg = solver.dirs;
 
   solver.setReferenceFrame(&frame);
   solver.setMedia(&m1, &m2);
-  printf("Inverse dielectric tensor for medium 1:\n");
-  printf("%s\n", solver.iep1.toString().c_str());
-  putchar(10);
-
-  printf("Inverse dielectric tensor for medium 2:\n");
-  printf("%s\n", solver.iep2.toString().c_str());
-  putchar(10);
 
   Vec3 fDx  = solver.iep1 * vDx;
   auto neff2 = 1 / (vDx * fDx);
@@ -301,179 +591,22 @@ TEST_CASE("EMSolver: Aniso2Aniso", THIS_TEST_TAG)
   REQUIRE(neff <= m1.ne);
   REQUIRE(m1.no <= neff);
 
+  printf("NOTE: INCIDENT RAY IS EXTRA-ORDINARY RAY. SNELL WILL NOT APPLY.\n");
   auto ki    = neff * ui;
 
   solver.setIncidentRay(ki, normal, Dx, 0, vDx);
   
-  printf("Effective refractive index: %g\n", neff);
-  printf("  <ki, ki>   = %g\n", ki * ki);
-  printf("  ui         = %s\n", ui.toString().c_str());
-  printf("  ki         = %s\n", ki.toString().c_str());
-  printf("  vDx (iinc) = %s\n", vDx.toString().c_str());
-  printf("  fDx        = %s\n", fDx.toString().c_str());
-  REQUIRE(isZero(vDx * ui));
-  putchar(10);
+  verifyIncidentRay(solver);
 
-  printf("Checking proper ray break:\n");
-  auto rays = solver.rayBreak();
-  const char *descs[] = {"Evanescent", "Propagating"};
-  printf("  Reflected   ordinary:      %s\n", descs[!!(rays & ReflectedOrdinary)]);
-  printf("  Reflected   extraordinary: %s\n", descs[!!(rays & ReflectedExtraordinary)]);
-  printf("  Transmitted ordinary:      %s\n", descs[!!(rays & TransmittedOrdinary)]);
-  printf("  Transmitted extraordinary: %s\n", descs[!!(rays & TransmittedExtraordinary)]);
-  REQUIRE(rays == AllRays);
-  putchar(10);
+  solver.rayBreak();
 
-  printf("Wave vectors:\n");
-  printf("  ko1 = %s\n", solver.ko1.toString().c_str());
-  printf("  ke1 = %s\n", solver.ke1.toString().c_str());
-  printf("  ko2 = %s\n", solver.ko2.toString().c_str());
-  printf("  ke2 = %s\n", solver.ke2.toString().c_str());
+  verifyRayBreak(solver, AllRays);
 
-  putchar(10);
-
-  printf("Refractive indices (guessed from k):\n");
-  printf("  ni  = %g = %g\n", solver.ni, neff);
-  REQUIRE(releq(solver.ni, neff));
-
-  printf("  no1 = %g\n", solver.ko1.norm());
-  printf("  ne1 = %g\n", solver.ke1.norm());
-  printf("  no2 = %g\n", solver.ko2.norm());
-  printf("  ne2 = %g\n", solver.ke2.norm());
-
-  putchar(10);
-
-  printf("Checking tranverse momentum conservation:\n");
-  auto kiwq = ki * solver.wq;
-  printf("  <ki,  wq> = %g\n", kiwq);
-  auto ko1wq = solver.ko1 * solver.wq;
-  printf("  <ko1, wq> = %g\n", ko1wq);
-  REQUIRE(releq(kiwq, ko1wq));
-  auto ke1wq = solver.ke1 * solver.wq;
-  printf("  <ke1, wq> = %g\n", ke1wq);
-  REQUIRE(releq(kiwq, ke1wq));
-  auto ko2wq = solver.ko2 * solver.wq;
-  printf("  <ko1, wq> = %g\n", ko2wq);
-  REQUIRE(releq(kiwq, ko2wq));
-  auto ke2wq = solver.ke2 * solver.wq;
-  printf("  <ke2, wq> = %g\n", ke2wq);
-  REQUIRE(releq(kiwq, ke2wq));
-  putchar(10);
-
-  printf("Solving fields...\n");
   solver.solveAnisoAniso(ro, re, to, te);
-
-  Real D1, D2;
-  Real B1, B2;
-
-  Vec3 E1, E2;
-  Vec3 H1, H2;
   
-  Vec3 Si, So1, Se1, So2, Se2;
-  Real S1, S2;
-
-  printf("Check field directions:\n");
-  printf("  io1 = %s\n", dbg.io1.toString().c_str());
-  REQUIRE(isZero(dbg.io1 * solver.uo1));
-
-  printf("  ie1 = %s\n", dbg.ie1.toString().c_str());
-  REQUIRE(isZero(dbg.ie1 * solver.ue1));
-
-  printf("  io2 = %s\n", dbg.io2.toString().c_str());
-  REQUIRE(isZero(dbg.io2 * solver.uo2));
-
-  printf("  ie2 = %s\n", dbg.ie2.toString().c_str());
-  REQUIRE(isZero(dbg.ie2 * solver.ue2));
-  putchar(10);
-
-  printf("Checking normal D field continuity (in-phase)\n");
-  Real Do1 = dbg.DR.coords[0];
-  Real De1 = dbg.DR.coords[1];
-  Real Do2 = dbg.DR.coords[2];
-  Real De2 = dbg.DR.coords[3];
-
-  D1 = (dbg.DiR + Do1 * dbg.io1 + De1 * dbg.ie1) * normal;
-  D2 = (Do2 * dbg.io2 + De2 * dbg.ie2) * normal;
-  printf("  DiR      = %s\n", dbg.DiR.toString().c_str());
-  printf("  DR       = %s\n", dbg.DR.toString().c_str());
-  printf("  <D1, n>  = %g\n", D1);
-  printf("  <D2, n>  = %g\n", D2);
-
-  REQUIRE(releq(D1, D2));
-  putchar(10);
-
-  printf("Checking tangent E field continuity (in-phase)\n");
-  Vec3 Ei  = solver.DampR * dbg.fiR;
-  Vec3 Eo1 = Do1 * dbg.fo1;
-  Vec3 Ee1 = De1 * dbg.fe1;
-  Vec3 Eo2 = Do2 * dbg.fo2;
-  Vec3 Ee2 = De2 * dbg.fe2;
-
-  E1 = (Ei + Eo1 + Ee1).cross(normal);
-  E2 = (Eo2 + Ee2).cross(normal);
-  
-  printf("  E1 x n = %s\n", E1.toString().c_str());
-  printf("  E2 x n = %s\n", E2.toString().c_str());
-  REQUIRE(isZero((E1 - E2).norm()));
-  putchar(10);
-
-  printf("Checking tangent H field continuity (in-phase)\n");
-  Vec3 Hi  = solver.DampR * dbg.giR;
-  Vec3 Ho1 = Do1 * dbg.go1;
-  Vec3 He1 = De1 * dbg.ge1;
-  Vec3 Ho2 = Do2 * dbg.go2;
-  Vec3 He2 = De2 * dbg.ge2;
-
-  H1 = (Hi + Ho1 + He1).cross(normal);
-  H2 = (Ho2 + He2).cross(normal);
-  printf("  Hi  = %s\n", Hi.toString().c_str());
-  printf("  Ho1 = %s\n", Ho1.toString().c_str());
-  printf("  He1 = %s\n", He1.toString().c_str());
-  printf("  Ho2 = %s\n", Ho2.toString().c_str());
-  printf("  He2 = %s\n", He2.toString().c_str());
-
-  printf("  H1 x n = %s\n", H1.toString().c_str());
-  printf("  H2 x n = %s\n", H2.toString().c_str());
-  REQUIRE(isZero((H1 - H2).norm()));
-  putchar(10);
-
-  printf("Checking normal B field continuity (in-phase)\n");
-  B1 = (Hi + Ho1 + He1) * normal;
-  B2 = (Ho2 + He2) * normal;
-  printf("  <B1, n>  = %g\n", B1);
-  printf("  <B2, n>  = %g\n", B2);
-  REQUIRE(releq(B1, B2));
-  putchar(10);
-
-  printf("Checking energy conservation (in-phase)\n");
-  Si  = Ei.cross(Hi);
-  So1 = Eo1.cross(Ho1);
-  Se1 = Ee1.cross(He1);
-  So2 = Eo2.cross(Ho2);
-  Se2 = Ee2.cross(He2);
-
-  S1 = (Si + So1 + Se1) * normal;
-  S2 = (So2 + Se2) * normal;
-  printf("  <S1, n>  = %g\n", S1);
-  printf("  <S2, n>  = %g\n", S2);
-  REQUIRE(releq(S1, S2));
-  putchar(10);
-
-  printf("Checking normal D field continuity (quadrature)\n");
-  Do1 = dbg.DI.coords[0];
-  De1 = dbg.DI.coords[1];
-  Do2 = dbg.DI.coords[2];
-  De2 = dbg.DI.coords[3];
-
-  D1 = (dbg.DiI + Do1 * dbg.io1 + De1 * dbg.ie1) * normal;
-  D2 = (Do2 * dbg.io2 + De2 * dbg.ie2) * normal;
-  printf("  DiI      = %s\n", dbg.DI.toString().c_str());
-  printf("  DI       = %s\n", dbg.DI.toString().c_str());
-  printf("  <D1, n>  = %g\n", D1);
-  printf("  <D2, n>  = %g\n", D2);
-
-  REQUIRE(releq(D1, D2));
-  putchar(10);
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
 }
 
 
