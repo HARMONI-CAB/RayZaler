@@ -72,13 +72,15 @@ namespace RZ {
   struct Vec3 {
     union {
       struct {
-        Real x, y, z;
+        Real x = 0;
+        Real y = 0;
+        Real z = 0;
       };
 
       Real coords[3];
     };
 
-    inline Vec3() : Vec3(0, 0, 0) { }
+    inline Vec3() = default;
     inline Vec3(Real x, Real y, Real z) : x(x), y(y), z(z) { }
     inline Vec3(const Real coords[3]) : 
       x(coords == nullptr ? 0 : coords[0]),

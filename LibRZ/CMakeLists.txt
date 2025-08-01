@@ -191,6 +191,8 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
 
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMSolver.h
+
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DielectricEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DummyEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/ParaxialEMInterface.h
