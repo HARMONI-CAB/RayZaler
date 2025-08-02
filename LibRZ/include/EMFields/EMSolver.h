@@ -611,7 +611,7 @@ namespace RZ {
       
       // Directions of the electric displacement vectors
       auto is1 = ws;
-      auto it1 = uo2.cross(is1);
+      auto it1 = uo1.cross(is1);
       auto io2 = uo2.cross(ax2);
       auto ie2 = ue2.cross(ax2).cross(ue2).normalized();
 
@@ -633,8 +633,8 @@ namespace RZ {
 
       // System matrix
       auto M = Matrix4(
-        Vec4(       0, wq * fs1, -wq * fo2, -wq * fe2),
-        Vec4(ws * ft1,        0, -ws * fo2, -ws * fe2),
+        Vec4(       0, wq * ft1, -wq * fo2, -wq * fe2),
+        Vec4(ws * fs1,        0, -ws * fo2, -ws * fe2),
         Vec4(wq * gs1,        0, -wq * go2, -wq * ge2),
         Vec4(       0, ws * gt1, -ws * go2, -ws * ge2));
       

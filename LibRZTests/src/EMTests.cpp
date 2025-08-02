@@ -244,7 +244,7 @@ verifyIncidentRay(EMSolver const &solver)
 }
 
 static inline void
-verifyRayBreak(EMSolver const &solver, RayBreakMask desiredMask)
+verifyRayBreak(EMSolver const &solver, int desiredMask)
 {
   auto rays  = solver.rayMask;
   
@@ -252,50 +252,81 @@ verifyRayBreak(EMSolver const &solver, RayBreakMask desiredMask)
 
   printf("Ray break result:\n");
 
-  if (desiredMask & ReflectedOrdinary)
-    printf("  Reflected   ordinary:      %s\n", descs[!!(rays & ReflectedOrdinary)]);
+  if (solver.m1->isotropic()) {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  Reflected:   %s\n", descs[!!(rays & ReflectedOrdinary)]);
+  } else {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  Reflected (O): %s\n", descs[!!(rays & ReflectedOrdinary)]);
 
-  if (desiredMask & ReflectedExtraordinary)
-    printf("  Reflected   extraordinary: %s\n", descs[!!(rays & ReflectedExtraordinary)]);
+    if (desiredMask & ReflectedExtraordinary)
+      printf("  Reflected (X): %s\n", descs[!!(rays & ReflectedExtraordinary)]);
+  }
 
-  if (desiredMask & TransmittedOrdinary)
-    printf("  Transmitted ordinary:      %s\n", descs[!!(rays & TransmittedOrdinary)]);
+  if (solver.m2->isotropic()) {
+    if (desiredMask & TransmittedOrdinary)
+      printf("  Transmitted:   %s\n", descs[!!(rays & TransmittedOrdinary)]);
+  } else {
+    if (desiredMask & TransmittedOrdinary)
+      printf("  Transmitted (O): %s\n", descs[!!(rays & TransmittedOrdinary)]);
 
-  if (desiredMask & TransmittedExtraordinary)
-    printf("  Transmitted extraordinary: %s\n", descs[!!(rays & TransmittedExtraordinary)]);
-  
+    if (desiredMask & TransmittedExtraordinary)
+      printf("  Transmitted (X): %s\n", descs[!!(rays & TransmittedExtraordinary)]);
+  }
+
   REQUIRE(rays == desiredMask);
   putchar(10);
 
   printf("Wave vectors:\n");
 
-  if (desiredMask & ReflectedOrdinary)
-    printf("  ko1 = %s\n", solver.ko1.toString().c_str());
+  if (solver.m1->isotropic()) {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  kr  = %s\n", solver.ko1.toString().c_str());
+  } else {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  ko1 = %s\n", solver.ko1.toString().c_str());
 
-  if (desiredMask & ReflectedExtraordinary)
-    printf("  ke1 = %s\n", solver.ke1.toString().c_str());
+    if (desiredMask & ReflectedExtraordinary)
+      printf("  ke1 = %s\n", solver.ke1.toString().c_str());
+  }
 
-  if (desiredMask & TransmittedOrdinary)
-    printf("  ko2 = %s\n", solver.ko2.toString().c_str());
+  if (solver.m2->isotropic()) {
+    if (desiredMask & TransmittedOrdinary)
+      printf("  kt  = %s\n", solver.ko1.toString().c_str());
+  } else {
+    if (desiredMask & TransmittedOrdinary)
+      printf("  ko2 = %s\n", solver.ko2.toString().c_str());
 
-  if (desiredMask & TransmittedExtraordinary)
-    printf("  ke2 = %s\n", solver.ke2.toString().c_str());
+    if (desiredMask & TransmittedExtraordinary)
+      printf("  ke2 = %s\n", solver.ke2.toString().c_str());
+  }
 
   putchar(10);
 
   printf("Refractive indices (guessed from k):\n");
   printf("  ni  = %g\n", solver.ni);
-  if (desiredMask & ReflectedOrdinary)
-    printf("  no1 = %g\n", solver.ko1.norm());
 
-  if (desiredMask & ReflectedExtraordinary)
-    printf("  ne1 = %g\n", solver.ke1.norm());
+  if (solver.m1->isotropic()) {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  n1  = %g\n", solver.ko1.norm());
+  } else {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  no1 = %g\n", solver.ko1.norm());
 
-  if (desiredMask & TransmittedOrdinary)
-    printf("  no2 = %g\n", solver.ko2.norm());
+    if (desiredMask & ReflectedExtraordinary)
+      printf("  ne1 = %g\n", solver.ke1.norm());
+  }
 
-  if (desiredMask & TransmittedExtraordinary)
-    printf("  ne2 = %g\n", solver.ke2.norm());
+  if (solver.m2->isotropic()) {
+    if (desiredMask & ReflectedOrdinary)
+      printf("  n2  = %g\n", solver.ko2.norm());
+  } else {
+    if (desiredMask & TransmittedOrdinary)
+      printf("  no2 = %g\n", solver.ko2.norm());
+
+    if (desiredMask & TransmittedExtraordinary)
+      printf("  ne2 = %g\n", solver.ke2.norm());
+  }
 
   putchar(10);
 
@@ -303,28 +334,44 @@ verifyRayBreak(EMSolver const &solver, RayBreakMask desiredMask)
   auto kiwq = solver.ki * solver.wq;
   printf("  <ki,  wq> = %g\n", kiwq);
 
-  if (desiredMask & ReflectedOrdinary) {
-    auto ko1wq = solver.ko1 * solver.wq;
-    printf("  <ko1, wq> = %g\n", ko1wq);
-    REQUIRE(releq(kiwq, ko1wq));
+  if (solver.m1->isotropic()) {
+    if (desiredMask & ReflectedOrdinary) {
+      auto ko1wq = solver.ko1 * solver.wq;
+      printf("  <kr,  wq> = %g\n", ko1wq);
+      REQUIRE(releq(kiwq, ko1wq));
+    }
+  } else {
+    if (desiredMask & ReflectedOrdinary) {
+      auto ko1wq = solver.ko1 * solver.wq;
+      printf("  <ko1, wq> = %g\n", ko1wq);
+      REQUIRE(releq(kiwq, ko1wq));
+    }
+
+    if (desiredMask & ReflectedExtraordinary) {
+      auto ke1wq = solver.ke1 * solver.wq;
+      printf("  <ke1, wq> = %g\n", ke1wq);
+      REQUIRE(releq(kiwq, ke1wq));
+    }
   }
 
-  if (desiredMask & ReflectedExtraordinary) {
-    auto ke1wq = solver.ke1 * solver.wq;
-    printf("  <ke1, wq> = %g\n", ke1wq);
-    REQUIRE(releq(kiwq, ke1wq));
-  }
+  if (solver.m2->isotropic()) {
+    if (desiredMask & TransmittedOrdinary) {
+      auto ko2wq = solver.ko2 * solver.wq;
+      printf("  <kt,  wq> = %g\n", ko2wq);
+      REQUIRE(releq(kiwq, ko2wq));
+    }
+  } else {
+    if (desiredMask & TransmittedOrdinary) {
+      auto ko2wq = solver.ko2 * solver.wq;
+      printf("  <ko1, wq> = %g\n", ko2wq);
+      REQUIRE(releq(kiwq, ko2wq));
+    }
 
-  if (desiredMask & TransmittedOrdinary) {
-    auto ko2wq = solver.ko2 * solver.wq;
-    printf("  <ko1, wq> = %g\n", ko2wq);
-    REQUIRE(releq(kiwq, ko2wq));
-  }
-
-  if (desiredMask & TransmittedExtraordinary) {
-    auto ke2wq = solver.ke2 * solver.wq;
-    printf("  <ke2, wq> = %g\n", ke2wq);
-    REQUIRE(releq(kiwq, ke2wq));
+    if (desiredMask & TransmittedExtraordinary) {
+      auto ke2wq = solver.ke2 * solver.wq;
+      printf("  <ke2, wq> = %g\n", ke2wq);
+      REQUIRE(releq(kiwq, ke2wq));
+    }
   }
 
   putchar(10);
@@ -337,24 +384,44 @@ verifyFieldsDirections(EMSolver const &solver)
 
   printf("D-field directions:\n");
 
-  if (solver.rayMask & ReflectedOrdinary) {
-    printf("  io1 = %s\n", dbg.io1.toString().c_str());
-    REQUIRE(isZero(dbg.io1 * solver.uo1));
+  if (solver.m1->isotropic()) {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  is1 = %s\n", dbg.is1.toString().c_str());
+      REQUIRE(isZero(dbg.is1 * solver.uo1));
+      printf("  it1 = %s\n", dbg.it1.toString().c_str());
+      REQUIRE(isZero(dbg.it1 * solver.uo1));
+      REQUIRE(isZero(dbg.is1 * dbg.it1));
+    }
+  } else {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  io1 = %s\n", dbg.io1.toString().c_str());
+      REQUIRE(isZero(dbg.io1 * solver.uo1));
+    }
+
+    if (solver.rayMask & ReflectedExtraordinary) {
+      printf("  ie1 = %s\n", dbg.ie1.toString().c_str());
+      REQUIRE(isZero(dbg.ie1 * solver.ue1));
+    }
   }
 
-  if (solver.rayMask & ReflectedExtraordinary) {
-    printf("  ie1 = %s\n", dbg.ie1.toString().c_str());
-    REQUIRE(isZero(dbg.ie1 * solver.ue1));
-  }
+  if (solver.m2->isotropic()) {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  is2 = %s\n", dbg.is2.toString().c_str());
+      REQUIRE(isZero(dbg.is2 * solver.uo2));
+      printf("  it2 = %s\n", dbg.it2.toString().c_str());
+      REQUIRE(isZero(dbg.it2 * solver.uo2));
+      REQUIRE(isZero(dbg.is2 * dbg.it2));
+    }
+  } else {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  io2 = %s\n", dbg.io2.toString().c_str());
+      REQUIRE(isZero(dbg.io2 * solver.uo2));
+    }
 
-  if (solver.rayMask & TransmittedOrdinary) {
-    printf("  io2 = %s\n", dbg.io2.toString().c_str());
-    REQUIRE(isZero(dbg.io2 * solver.uo2));
-  }
-
-  if (solver.rayMask & TransmittedExtraordinary) {
-    printf("  ie2 = %s\n", dbg.ie2.toString().c_str());
-    REQUIRE(isZero(dbg.ie2 * solver.ue2));
+    if (solver.rayMask & TransmittedExtraordinary) {
+      printf("  ie2 = %s\n", dbg.ie2.toString().c_str());
+      REQUIRE(isZero(dbg.ie2 * solver.ue2));
+    }
   }
 
   putchar(10);
@@ -609,5 +676,224 @@ TEST_CASE("EMSolver: Aniso2Aniso (Extraordinary ray)", THIS_TEST_TAG)
   verifyFields(solver, true);
 }
 
+TEST_CASE("EMSolver: Aniso2Iso (Ordinary ray)", THIS_TEST_TAG)
+{  
+  // Reference frame: just a world frame
+  WorldFrame frame("world");
 
+  // Medium 1
+  EMMedium m1;
 
+  m1.type  = EMMediumUniaxial;
+  m1.frame = &frame;
+  m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+  m1.no    = 1.1;
+  m1.ne    = 1.5;
+
+  REQUIRE(!m1.isotropic());
+
+  printf("Medium 1 axis: %s\n", m1.axis.toString().c_str());
+  printf("Medium 1 no:   %g\n", m1.no);
+  printf("Medium 1 ne:   %g\n", m1.ne);
+
+  // Medium 2
+  EMMedium m2;
+
+  m2.type  = EMMediumIsotropic;
+  m2.n     = 2.2;
+
+  REQUIRE(m2.isotropic());
+
+  printf("Medium 2 n:    %g\n", m2.n);
+
+  Vec3 normal = -Vec3::eY();
+  Real angle  = deg2rad(35);
+  Vec3 ui     = Vec3(sin(angle), cos(angle), 0);
+
+  // Ordinary ray simulation
+  Vec3 vDx = ui.cross(m1.axis).normalized();
+  Complex Dx(10, 20);
+
+  while (vDx * vDx < 1e-12) {
+    m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+    vDx = ui.cross(m1.axis).normalized();
+  }
+
+  EMSolver solver;
+  EMFields ro, re, transmitted;
+  
+  solver.debug = true;
+
+  solver.setReferenceFrame(&frame);
+  solver.setMedia(&m1, &m2);
+
+  printf("NOTE: INCIDENT RAY IS ORDINARY RAY\n");
+
+  auto neff = m1.no;
+  auto ki   = neff * ui;
+
+  solver.setIncidentRay(ki, normal, Dx, 0, vDx);
+  
+  verifyIncidentRay(solver);
+
+  solver.rayBreak();
+
+  verifyRayBreak(
+    solver,
+    ReflectedOrdinary | ReflectedExtraordinary | TransmittedOrdinary);
+
+  solver.solveAnisoIso(ro, re, transmitted);
+  
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
+}
+
+TEST_CASE("EMSolver: Aniso2Iso (Extraordinary ray)", THIS_TEST_TAG)
+{  
+  // Reference frame: just a world frame
+  WorldFrame frame("world");
+
+  // Medium 1
+  EMMedium m1;
+
+  m1.type  = EMMediumUniaxial;
+  m1.frame = &frame;
+  m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+  m1.no    = 1.1;
+  m1.ne    = 1.5;
+
+  REQUIRE(!m1.isotropic());
+
+  printf("Medium 1 axis: %s\n", m1.axis.toString().c_str());
+  printf("Medium 1 no:   %g\n", m1.no);
+  printf("Medium 1 ne:   %g\n", m1.ne);
+
+  // Medium 2
+  EMMedium m2;
+
+  m2.type  = EMMediumIsotropic;
+  m2.n     = 2.2;
+
+  REQUIRE(m2.isotropic());
+
+  printf("Medium 2 n:    %g\n", m2.n);
+
+  Vec3 normal = -Vec3::eY();
+  Real angle  = deg2rad(35);
+  Vec3 ui     = Vec3(sin(angle), cos(angle), 0);
+
+  // Extraordinary ray simulation
+  Vec3 vDx = ui.cross(m1.axis).cross(ui).normalized();
+  Complex Dx(10, 20);
+
+  while (vDx * vDx < 1e-12) {
+    m1.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+    vDx = ui.cross(m1.axis).cross(ui).normalized();
+  }
+
+  EMSolver solver;
+  EMFields ro, re, transmitted;
+  
+  solver.debug = true;
+
+  solver.setReferenceFrame(&frame);
+  solver.setMedia(&m1, &m2);
+
+  Vec3 fDx  = solver.iep1 * vDx;
+  auto neff2 = 1 / (vDx * fDx);
+  auto neff  = sqrt(neff2);
+
+  REQUIRE(neff <= m1.ne);
+  REQUIRE(m1.no <= neff);
+
+  printf("NOTE: INCIDENT RAY IS EXTRA-ORDINARY RAY. SNELL WILL NOT APPLY.\n");
+  auto ki    = neff * ui;
+
+  solver.setIncidentRay(ki, normal, Dx, 0, vDx);
+  
+  verifyIncidentRay(solver);
+
+  solver.rayBreak();
+
+  verifyRayBreak(
+    solver,
+    ReflectedOrdinary | ReflectedExtraordinary | TransmittedOrdinary);
+
+  solver.solveAnisoIso(ro, re, transmitted);
+  
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
+}
+
+TEST_CASE("EMSolver: Iso2Aniso", THIS_TEST_TAG)
+{  
+  // Reference frame: just a world frame
+  WorldFrame frame("world");
+
+  // Medium 1
+  EMMedium m1;
+
+  m1.type  = EMMediumIsotropic;
+  m1.n     = 1.1;
+
+  REQUIRE(m1.isotropic());
+
+  printf("Medium 1 n:    %g\n", m1.n);
+
+  // Medium 2
+  EMMedium m2;
+
+  m2.type  = EMMediumUniaxial;
+  m2.frame = &frame;
+  m2.axis  = Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN).normalized();
+  m2.no    = 2.2;
+  m2.ne    = 2.5;
+  REQUIRE(!m2.isotropic());
+
+  printf("Medium 2 axis: %s\n", m2.axis.toString().c_str());
+  printf("Medium 2 no:   %g\n", m2.no);
+  printf("Medium 2 ne:   %g\n", m2.ne);
+
+  Vec3 normal = -Vec3::eY();
+  Real angle  = deg2rad(35);
+  Vec3 ui     = Vec3(sin(angle), cos(angle), 0);
+
+  // Ordinary ray simulation
+  Vec3 vDx = ui.cross(Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN)).normalized();
+  Complex Dx(10, 20);
+  Complex Dy(30, 40);
+
+  while (vDx * vDx < 1e-12)
+    vDx = ui.cross(Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN)).normalized();
+
+  REQUIRE(isZero(vDx * ui));
+  
+  EMSolver solver;
+  EMFields reflected, to, te;
+  
+  solver.debug = true;
+
+  solver.setReferenceFrame(&frame);
+  solver.setMedia(&m1, &m2);
+
+  auto neff = m1.n;
+  auto ki   = neff * ui;
+
+  solver.setIncidentRay(ki, normal, Dx, Dy, vDx);
+  
+  verifyIncidentRay(solver);
+
+  solver.rayBreak();
+
+  verifyRayBreak(
+    solver,
+    ReflectedOrdinary | TransmittedOrdinary | TransmittedExtraordinary);
+
+  solver.solveIsoAniso(reflected, to, te);
+  
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
+}
