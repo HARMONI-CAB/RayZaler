@@ -201,7 +201,7 @@ namespace RZ {
         Real n1sq = n1 * n1;
         Real n2sq = n2 * n2;
 
-        Real n2ton1sq = n2sq / n1sq;
+        n2ton1sq  = n2sq / n1sq;
       }
 
       if (!m1->isotropic()) {
@@ -384,12 +384,16 @@ namespace RZ {
       auto Dip  = Complex(DReal * wip, DImag * wip);
 
       // Calculation of the field amplitudes of the transmitted ray, in the SxP plane
+      // The n2ton1sq "undoes" the effect of the refractive index on the
+      // Fresnel equations.
       transmitted.Dx  = ts * Dis * n2ton1sq;
       transmitted.Dy  = tp * Dip * n2ton1sq;
       transmitted.vDx = ws;
       transmitted.vDy = wtp;
 
       // Calculation of the field amplitudes of the reflected ray, in the SxP plane
+      // The n2ton1sq term is not needed here, as both the incident and reflected
+      // rays lie on the same medium.
       reflected.Dx  = rs * Dis;
       reflected.Dy  = rp * Dip;
       reflected.vDx = ws;
@@ -408,23 +412,24 @@ namespace RZ {
 
         dirs.iiR  = iiR;
         dirs.iiI  = iiI;
-        dirs.is1  = dirs.is2 = ws;
+        dirs.is1  = ws;
         dirs.it1  = wrp;
+        dirs.is2  = ws;
         dirs.it2  = wtp;
+        
+        dirs.fiR  = dirs.iiR / n1sq;
+        dirs.fiI  = dirs.iiI / n1sq;
+        dirs.fs1  = dirs.is1 / n1sq;
+        dirs.ft1  = dirs.it1 / n1sq;
+        dirs.fs2  = dirs.is2 / n2sq;
+        dirs.ft2  = dirs.it2 / n2sq;
 
-        dirs.fiR  = dirs.iiR / n1;
-        dirs.fiI  = dirs.iiI / n1;
-        dirs.fs1  = dirs.is1 / n1;
-        dirs.ft1  = dirs.it1 / n1;
-        dirs.fs2  = dirs.is2 / n2;
-        dirs.ft2  = dirs.it2 / n2;
-
-        dirs.giR  = dirs.iiR.cross(uo1) / n1;
-        dirs.giI  = dirs.iiI.cross(uo1) / n1;
+        dirs.giR  = dirs.iiR.cross(ui) / n1;
+        dirs.giI  = dirs.iiI.cross(ui) / n1;
         dirs.gs1  = dirs.is1.cross(uo1) / n1;
         dirs.gt1  = dirs.it1.cross(uo1) / n1;
-        dirs.gs2  = dirs.is1.cross(uo2) / n2;
-        dirs.gt2  = dirs.it1.cross(uo2) / n2;
+        dirs.gs2  = dirs.is2.cross(uo2) / n2;
+        dirs.gt2  = dirs.it2.cross(uo2) / n2;
       }
     }
 

@@ -239,7 +239,14 @@ verifyIncidentRay(EMSolver const &solver)
   printf("  ui         = %s\n", solver.ui.toString().c_str());
   printf("  ki         = %s\n", solver.ki.toString().c_str());
   printf("  vDx (iinc) = %s\n", solver.viDx.toString().c_str());
+  printf("  ws         = %s\n", solver.ws.toString().c_str());
+  printf("  wq         = %s\n", solver.wq.toString().c_str());
+  
   REQUIRE(isZero(solver.viDx * solver.ui));
+  REQUIRE(isZero(solver.wq * solver.normal));
+  REQUIRE(isZero(solver.ws * solver.normal));
+  REQUIRE(isZero(solver.ws * solver.wq));
+
   putchar(10);
 }
 
@@ -254,7 +261,7 @@ verifyRayBreak(EMSolver const &solver, int desiredMask)
 
   if (solver.m1->isotropic()) {
     if (desiredMask & ReflectedOrdinary)
-      printf("  Reflected:   %s\n", descs[!!(rays & ReflectedOrdinary)]);
+      printf("  Reflected:     %s\n", descs[!!(rays & ReflectedOrdinary)]);
   } else {
     if (desiredMask & ReflectedOrdinary)
       printf("  Reflected (O): %s\n", descs[!!(rays & ReflectedOrdinary)]);
@@ -280,25 +287,37 @@ verifyRayBreak(EMSolver const &solver, int desiredMask)
   printf("Wave vectors:\n");
 
   if (solver.m1->isotropic()) {
-    if (desiredMask & ReflectedOrdinary)
+    if (desiredMask & ReflectedOrdinary) {
       printf("  kr  = %s\n", solver.ko1.toString().c_str());
+      REQUIRE(solver.ko1 * solver.normal > 0);
+    }
   } else {
-    if (desiredMask & ReflectedOrdinary)
+    if (desiredMask & ReflectedOrdinary) {
       printf("  ko1 = %s\n", solver.ko1.toString().c_str());
+      REQUIRE(solver.ko1 * solver.normal > 0);
+    }
 
-    if (desiredMask & ReflectedExtraordinary)
+    if (desiredMask & ReflectedExtraordinary) {
       printf("  ke1 = %s\n", solver.ke1.toString().c_str());
+      REQUIRE(solver.ke1 * solver.normal > 0);
+    }
   }
 
   if (solver.m2->isotropic()) {
-    if (desiredMask & TransmittedOrdinary)
-      printf("  kt  = %s\n", solver.ko1.toString().c_str());
+    if (desiredMask & TransmittedOrdinary) {
+      printf("  kt  = %s\n", solver.ko2.toString().c_str());
+      REQUIRE(solver.ko2 * solver.normal < 0);
+    }
   } else {
-    if (desiredMask & TransmittedOrdinary)
+    if (desiredMask & TransmittedOrdinary) {
       printf("  ko2 = %s\n", solver.ko2.toString().c_str());
+      REQUIRE(solver.ko2 * solver.normal < 0);
+    }
 
-    if (desiredMask & TransmittedExtraordinary)
+    if (desiredMask & TransmittedExtraordinary) {
       printf("  ke2 = %s\n", solver.ke2.toString().c_str());
+      REQUIRE(solver.ke2 * solver.normal < 0);
+    }
   }
 
   putchar(10);
@@ -423,6 +442,88 @@ verifyFieldsDirections(EMSolver const &solver)
       REQUIRE(isZero(dbg.ie2 * solver.ue2));
     }
   }
+  putchar(10);
+
+  printf("E-field directions:\n");
+  if (solver.m1->isotropic()) {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  fs1 = %s\n", dbg.fs1.toString().c_str());
+      printf("  ft1 = %s\n", dbg.it1.toString().c_str());
+    }
+  } else {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  fo1 = %s\n", dbg.fo1.toString().c_str());
+    }
+
+    if (solver.rayMask & ReflectedExtraordinary) {
+      printf("  fe1 = %s\n", dbg.fe1.toString().c_str());
+    }
+  }
+
+  if (solver.m2->isotropic()) {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  fs2 = %s\n", dbg.fs2.toString().c_str());
+      printf("  ft2 = %s\n", dbg.ft2.toString().c_str());
+    }
+  } else {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  fo2 = %s\n", dbg.fo2.toString().c_str());
+    }
+
+    if (solver.rayMask & TransmittedExtraordinary) {
+      printf("  fe2 = %s\n", dbg.fe2.toString().c_str());
+    }
+  }
+
+  putchar(10);
+
+  printf("H-field directions:\n");
+  if (solver.m1->isotropic()) {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  gs1 = %s\n", dbg.gs1.toString().c_str());
+      REQUIRE(isZero(dbg.gs1 * solver.uo1));
+      REQUIRE(isZero(dbg.gs1 * dbg.fs1));
+      
+      printf("  gt1 = %s\n", dbg.gt1.toString().c_str());
+      REQUIRE(isZero(dbg.gt1 * solver.uo1));
+      REQUIRE(isZero(dbg.gt1 * dbg.ft1));
+    }
+  } else {
+    if (solver.rayMask & ReflectedOrdinary) {
+      printf("  go1 = %s\n", dbg.go1.toString().c_str());
+      REQUIRE(isZero(dbg.go1 * solver.uo1));
+      REQUIRE(isZero(dbg.go1 * dbg.fo1));
+    }
+
+    if (solver.rayMask & ReflectedExtraordinary) {
+      printf("  ge1 = %s\n", dbg.ge1.toString().c_str());
+      REQUIRE(isZero(dbg.ge1 * solver.ue1));
+      REQUIRE(isZero(dbg.ge1 * dbg.fe1));
+    }
+  }
+
+  if (solver.m2->isotropic()) {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  gs2 = %s\n", dbg.gs2.toString().c_str());
+      REQUIRE(isZero(dbg.gs2 * solver.uo2));
+      REQUIRE(isZero(dbg.gs2 * dbg.fs2));
+      printf("  gt2 = %s\n", dbg.gt2.toString().c_str());
+      REQUIRE(isZero(dbg.gt2 * solver.uo2));
+      REQUIRE(isZero(dbg.gt2 * dbg.ft2));
+    }
+  } else {
+    if (solver.rayMask & TransmittedOrdinary) {
+      printf("  go2 = %s\n", dbg.go2.toString().c_str());
+      REQUIRE(isZero(dbg.go2 * solver.uo2));
+      REQUIRE(isZero(dbg.go2 * dbg.fo2));
+    }
+
+    if (solver.rayMask & TransmittedExtraordinary) {
+      printf("  ge2 = %s\n", dbg.ge2.toString().c_str());
+      REQUIRE(isZero(dbg.ge2 * solver.ue2));
+      REQUIRE(isZero(dbg.ge2 * dbg.fe2));
+    }
+  }
 
   putchar(10);
 }
@@ -518,6 +619,69 @@ verifyFields(
   printf("  <S2, n>  = %g\n", S2);
   REQUIRE(releq(S1, S2));
   putchar(10);
+}
+
+TEST_CASE("EMSolver: Iso2Iso", THIS_TEST_TAG)
+{  
+  // Reference frame: just a world frame
+  WorldFrame frame("world");
+
+  // Medium 1
+  EMMedium m1;
+
+  m1.type  = EMMediumIsotropic;
+  m1.n     = 1.1;
+  REQUIRE(m1.isotropic());
+
+  printf("Medium 1 n:    %g\n", m1.n);
+
+  // Medium 2
+  EMMedium m2;
+
+  m2.type  = EMMediumIsotropic;
+  m2.n     = 2.2;
+  REQUIRE(m2.isotropic());
+
+  printf("Medium 2 n:    %g\n", m2.n);
+
+  Vec3 normal = -Vec3::eY();
+  Real angle  = deg2rad(35);
+  Vec3 ui     = Vec3(sin(angle), cos(angle), 0);
+
+  // Ordinary ray simulation
+  Vec3 vDx = ui.cross(Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN)).normalized();
+  Complex Dx(10, 20);
+  Complex Dy(30, 40);
+
+  while (vDx * vDx < 1e-12)
+    vDx = ui.cross(Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN)).normalized();
+
+  REQUIRE(isZero(vDx * ui));
+  
+  EMSolver solver;
+  EMFields reflected, transmitted;
+  
+  solver.debug = true;
+
+  solver.setReferenceFrame(&frame);
+  solver.setMedia(&m1, &m2);
+
+  auto neff = m1.n;
+  auto ki   = neff * ui;
+
+  solver.setIncidentRay(ki, normal, Dx, Dy, vDx);
+  
+  verifyIncidentRay(solver);
+
+  solver.rayBreak();
+
+  verifyRayBreak(solver, ReflectedOrdinary | TransmittedOrdinary);
+
+  solver.solveIsoIso(reflected, transmitted);
+  
+  verifyFieldsDirections(solver);
+  verifyFields(solver, false);
+  verifyFields(solver, true);
 }
 
 TEST_CASE("EMSolver: Aniso2Aniso (Ordinary ray)", THIS_TEST_TAG)
@@ -869,7 +1033,7 @@ TEST_CASE("EMSolver: Iso2Aniso", THIS_TEST_TAG)
     vDx = ui.cross(Vec3(RZ_URANDSIGN, RZ_URANDSIGN, RZ_URANDSIGN)).normalized();
 
   REQUIRE(isZero(vDx * ui));
-  
+
   EMSolver solver;
   EMFields reflected, to, te;
   
