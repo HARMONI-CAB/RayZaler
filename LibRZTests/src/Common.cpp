@@ -148,14 +148,14 @@ BeamTestStatistics::computeFromRayList(
   S[0] = S[1] = S[2] = S[3] = 0;
   
   for (auto const &ray : rays) {
-    auto pwr      = ray.power * ray.direction * chiefRay;
+    auto pwr      = ray.S * chiefRay;
     corr          = pwr - c;
     t             = incidentPower + corr;
     c             = (t - incidentPower) - corr;
     incidentPower = t;
 
-    auto Ex = ray.Ex;
-    auto Ey = ray.Ey;
+    auto Ex = ray.Dx;
+    auto Ey = ray.Dy;
 
     Real Si[4] = {
       mag2(Ex) + mag2(Ey),

@@ -22,21 +22,22 @@
 #include <ReferenceFrame.h>
 #include <OpticalElement.h>
 #include <EMInterface.h>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
 Ray::Ray()
 {
   direction    = Vec3::eZ();
-  uEx          = Vec3::eX();
+  uDx          = Vec3::eX();
   length       = 0;
   cumOptLength = 0;
   chief        = false;
   intercepted  = false;
   wavelength   = RZ_WAVELENGTH;
   medium       = EMMedium::vacuum();
+  neff         = 1.;
   id           = 0;
-  power        = 0;
 }
 
 //
@@ -142,7 +143,7 @@ RayBeam::debug() const
   printf("Allocation:  %ld rays\n", allocation);
   
   Real minLength = +INFINITY, maxLength = -INFINITY;
-  Real minPL     = +INFINITY, maxPL     = -INFINITY;
+  Real minOPL    = +INFINITY, maxOPL    = -INFINITY;
   Real minLambda = +INFINITY, maxLambda = -INFINITY;
   
   uint64_t intercepted = 0;
@@ -155,8 +156,8 @@ RayBeam::debug() const
       minLength = fmin(lengths[i], minLength);
       maxLength = fmax(lengths[i], maxLength);
       
-      minPL     = fmin(cumLengths[i], minPL);
-      maxPL     = fmax(cumLengths[i], maxPL);
+      minOPL     = fmin(opl[i], minOPL);
+      maxOPL     = fmax(opl[i], maxOPL);
       
       minLambda = fmin(wavelengths[i], minLambda);
       maxLambda = fmax(wavelengths[i], maxLambda);
@@ -182,7 +183,7 @@ RayBeam::debug() const
   }
 
   printf("Lengths:     [%g, %g]\n", minLength, maxLength);
-  printf("Path length: [%g, %g]\n", minPL,    maxPL);
+  printf("OPL:         [%g, %g]\n", minOPL,    maxOPL);
   printf("Lambda:      [%g, %g]\n", minLambda, maxLambda);
   
   printf("Existing:    %ld rays\n", existing);
@@ -235,6 +236,9 @@ RayBeam::extractRays(
       OpticalSurface *surface,
       RayBeamSlice const &exclude)
 {
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
+  
   bool originPOV             = (mask & OriginPOV) != 0;
   bool destinationPOV        = (mask & DestinationPOV) != 0;
   bool beamIsSurfaceRelative = (mask & BeamIsSurfaceRelative) != 0;
@@ -279,19 +283,36 @@ RayBeam::extractRays(
         ray.id           = beam->ids[i];
         ray.chief        = beam->isChief(i);
         ray.wavelength   = beam->wavelengths[i];
+        ray.neff         = beam->neff[i];
         ray.medium       = beam->media[i];
-        ray.cumOptLength = beam->cumLengths[i];
+        ray.cumOptLength = beam->opl[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
         ray.fields       = beam->fields;
         
         if (beam->fields) {
-          ray.uEx        = Vec3(beam->uEx + 3 * i);
-          ray.Ex         = beam->Ex[i];
-          ray.Ey         = beam->Ey[i];
+          ray.uDx        = Vec3(beam->vDx + 3 * i);
+          ray.Dx         = beam->Dx[i];
+          ray.Dy         = beam->Dy[i];
           if (beam->media[i] != nullptr) {
-            auto uEy = ray.direction.cross(ray.uEx);
-            ray.power    = beam->media[i]->power(ray.Ex, ray.Ey, ray.uEx, uEy);
+            auto uDy = ray.direction.cross(ray.uDx);
+            const ReferenceFrame *frame = 
+              beamIsSurfaceRelative && beam->surfaces[i] != nullptr
+              ? frame = beam->surfaces[i]->frame
+              : nullptr;
+
+            // Calculate poynting vector here and deduce power
+            calcPoyntingVector(
+              ray.S,
+              ieps,
+              ray.Dx,
+              ray.Dy,
+              ray.uDx,
+              uDy,
+              ray.direction,
+              ray.medium,
+              prevMedium,
+              frame);
           }
         }
         
@@ -315,11 +336,11 @@ RayBeam::extractRays(
             if (beamIsSurfaceRelative) {
               ray.origin    = plane->fromRelative(ray.origin);
               ray.direction = plane->fromRelativeVec(ray.direction);
-              ray.uEx       = plane->fromRelativeVec(ray.uEx);
+              ray.uDx       = plane->fromRelativeVec(ray.uDx);
             } else {
               ray.origin    = plane->toRelative(ray.origin);
               ray.direction = plane->toRelativeVec(ray.direction);
-              ray.uEx       = plane->toRelativeVec(ray.uEx);
+              ray.uDx       = plane->toRelativeVec(ray.uDx);
             }
           }
         }
@@ -428,17 +449,18 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
-      dest->lengths[i]       = lengths[i];
-      dest->cumLengths[i]    = cumLengths[i];
-      dest->wavelengths[i]   = wavelengths[i];
-      dest->ids[i]           = ids[i];
-      dest->media[i]         = media[i];
+      dest->lengths[i]     = lengths[i];
+      dest->opl[i]         = opl[i];
+      dest->wavelengths[i] = wavelengths[i];
+      dest->neff[i]        = neff[i];
+      dest->ids[i]         = ids[i];
+      dest->media[i]       = media[i];
 
       if (fields && dest->fields) {
-        dest->Ex[i]          = Ex[i];
-        dest->Ey[i]          = Ey[i];
+        dest->Dx[i] = Dx[i];
+        dest->Dy[i] = Dy[i];
         plane->toRelativeVec(
-          Vec3(uEx + 3 * i)).copyToArray(dest->uEx + 3 * i);
+          Vec3(vDx + 3 * i)).copyToArray(dest->vDx + 3 * i);
       }
     }
   }
@@ -496,9 +518,10 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      if (fields)
+      if (fields) {
         plane->fromRelativeVec(
-          Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
+          Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
+      }
     }
   }
 }
@@ -523,9 +546,10 @@ RayBeam::fromSurfaceRelative()
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
-      if (fields)
+      if (fields) {
         plane->fromRelativeVec(
-          Vec3(uEx + 3 * i)).copyToArray(uEx + 3 * i);
+          Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
+      }
 
       ++total;
     }
@@ -584,9 +608,10 @@ RayBeam::allocate(uint64_t count)
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
     this->lengths       = allocBuffer<Real>(count);
-    this->cumLengths    = allocBuffer<Real>(count);
+    this->opl           = allocBuffer<Real>(count);
     this->media         = allocBuffer<const EMMedium *>(count);
     this->wavelengths   = allocBuffer<Real>(count);
+    this->neff          = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
     this->prevMask      = allocBuffer<uint64_t>(maskLen);
@@ -597,9 +622,9 @@ RayBeam::allocate(uint64_t count)
       this->surfaces     = allocBuffer<OpticalSurface *>(count);
     
     if (this->fields) {
-      this->uEx          = allocBuffer<Real>(3 * count);
-      this->Ex           = allocBuffer<Complex>(count);
-      this->Ey           = allocBuffer<Complex>(count);
+      this->vDx          = allocBuffer<Real>(3 * count);
+      this->Dx           = allocBuffer<Complex>(count);
+      this->Dy           = allocBuffer<Complex>(count);
     }
     
     this->allocation    = count;
@@ -609,8 +634,9 @@ RayBeam::allocate(uint64_t count)
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
+    this->neff          = allocBuffer<Real>(count, prev, this->neff);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
-    this->cumLengths    = allocBuffer<Real>(count, prev, this->cumLengths);
+    this->opl           = allocBuffer<Real>(count, prev, this->opl);
     this->media         = allocBuffer<const EMMedium *>(count, prev, this->media);
     this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
     this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
@@ -622,9 +648,9 @@ RayBeam::allocate(uint64_t count)
       this->surfaces    = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
     
     if (this->fields) {
-      this->uEx         = allocBuffer<Real>(3 * count, 3 * prev, this->uEx);
-      this->Ex          = allocBuffer<Complex>(count, prev, this->Ex);
-      this->Ey          = allocBuffer<Complex>(count, prev, this->Ey);
+      this->vDx         = allocBuffer<Real>(3 * count, 3 * prev, this->vDx);
+      this->Dx          = allocBuffer<Complex>(count, prev, this->Dx);
+      this->Dy          = allocBuffer<Complex>(count, prev, this->Dy);
     }
 
     this->allocation    = count;
@@ -744,7 +770,6 @@ RayBeam::walk(const std::function <void (ConstRayBeamSlice const &)>& func) cons
     } else if (firstExisting >= 0 && !hasRay(i)) {
       slice.end = i;
       func(slice);
-
       firstExisting = -1;
     }
   }
@@ -761,15 +786,34 @@ RayBeam::power() const
   if (!fields)
     return -1;
 
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
   Real c = 0;
   Real y, t;
   Real sum = 0;
 
   auto N = count;
   while (N-- > 0) if (hasRay(N) && media[N] != NULL) {
-    const auto ex = Vec3(uEx + 3 * N);
-    const auto ey = Vec3(directions + 3 * N).cross(ex);
-    y = media[N]->power(Ex[N], Ey[N], ex, ey) - c;
+    const auto ui = Vec3(directions + 3 * N);
+    const auto ex = Vec3(vDx + 3 * N);
+    const auto ey = ui.cross(ex);
+    
+    Vec3 S;
+
+    // Calculate poynting vector here and deduce power of ray
+    calcPoyntingVector(
+      S,
+      ieps,
+      Dx[N],
+      Dy[N],
+      ex,
+      ey,
+      ui,
+      media[N],
+      prevMedium,
+      nullptr);
+    
+    y = S * ui - c;
     t = sum + y;
     c = (t - sum) - y;
     sum = t;
@@ -787,10 +831,11 @@ RayBeam::deallocate()
   freeBuffer(normals);
   freeBuffer(lengths);
   freeBuffer(wavelengths);
-  freeBuffer(cumLengths);
-  freeBuffer(uEx);
-  freeBuffer(Ex);
-  freeBuffer(Ey);
+  freeBuffer(neff);
+  freeBuffer(opl);
+  freeBuffer(vDx);
+  freeBuffer(Dx);
+  freeBuffer(Dy);
   freeBuffer(media);
   freeBuffer(ids);
   freeBuffer(mask);

@@ -183,9 +183,11 @@ RayBeamElement::raysToVertices()
   m_strayRays = 0;
 
   if (!m_scalar)
-    for (auto p = m_rays.begin(); p != m_rays.end(); ++p)
-      if (p->power > maxPower)
-        maxPower = p->power;
+    for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
+      auto power = p->direction * p->S;
+      if (power > maxPower)
+        maxPower = power;
+    }
   
   if (isZero(maxPower))
     maxPower = 1;
@@ -211,7 +213,7 @@ RayBeamElement::raysToVertices()
     }
 
     if (!m_scalar) {
-      Real power = 5 * p->power / maxPower;
+      Real power = 5 * p->S * p->direction / maxPower;
 
       if (power > 1)
         power = 1;

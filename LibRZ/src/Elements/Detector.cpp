@@ -249,11 +249,11 @@ DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
       Vec3 dest(beam.destinations + 3 * i);
 
       if (beam.fields) {
-        Vec3 uEx(beam.uEx + 3 * i);
+        Vec3 uEx(beam.vDx + 3 * i);
         Vec3 uEy = Vec3(beam.directions + 3 * i).cross(uEx);
 
-        Vec3 In  = beam.Ex[i].real() * uEx + beam.Ey[i].real() * uEy;
-        Vec3 Qu  = beam.Ex[i].imag() * uEx + beam.Ey[i].imag() * uEy;
+        Vec3 In  = beam.Dx[i].real() * uEx + beam.Dy[i].real() * uEy;
+        Vec3 Qu  = beam.Dx[i].imag() * uEx + beam.Dy[i].imag() * uEy;
 
         Ex = Complex(In.x, Qu.x);
         Ey = Complex(In.y, Qu.y);

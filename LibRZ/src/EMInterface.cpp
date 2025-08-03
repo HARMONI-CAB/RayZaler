@@ -140,8 +140,8 @@ EMInterface::blockLight(RayBeamSlice const &slice)
       blockLightMap(
         slice,
         [&] (RayBeam *beam, uint64_t i, Real tx) {
-          beam->Ex[i] *= tx;
-          beam->Ey[i] *= tx;
+          beam->Dx[i] *= tx;
+          beam->Dy[i] *= tx;
         });
     else
       blockLightMap(
@@ -155,8 +155,8 @@ EMInterface::blockLight(RayBeamSlice const &slice)
       blockLightUniform(
         slice,
         [&] (RayBeam *beam, uint64_t i, Real tx) {
-          beam->Ex[i] *= tx;
-          beam->Ey[i] *= tx;
+          beam->Dx[i] *= tx;
+          beam->Dy[i] *= tx;
         });
     else
       blockLightUniform(

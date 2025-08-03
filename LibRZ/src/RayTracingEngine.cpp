@@ -147,22 +147,25 @@ RayTracingEngine::toBeam()
     p->origin.copyToArray(m_beam->destinations + 3 * i);
     p->direction.copyToArray(m_beam->directions + 3 * i);
 
-    m_beam->lengths[i]       = p->length;
-    m_beam->cumLengths[i]    = p->cumOptLength;
-    m_beam->ids[i]           = p->id;
-    m_beam->wavelengths[i]   = p->wavelength;
-    m_beam->media[i]         = p->medium;
+    m_beam->lengths[i]     = p->length;
+    m_beam->opl[i]         = p->cumOptLength;
+    m_beam->ids[i]         = p->id;
+    m_beam->wavelengths[i] = p->wavelength;
+    m_beam->neff[i]        = p->neff;
+    m_beam->media[i]       = p->medium;
 
-    if (m_beam->media[i] == NULL)
+    if (m_beam->media[i] == NULL) {
       m_beam->media[i] = EMMedium::vacuum();
-
+      m_beam->neff[i]  = 1;
+    }
+    
     if (p->chief)
       m_beam->setChiefRay(i);
 
     if (m_beam->fields) {
-      m_beam->Ex[i] = p->Ex;
-      m_beam->Ey[i] = p->Ey;
-      p->uEx.copyToArray(m_beam->uEx + 3 * i);
+      m_beam->Dx[i] = p->Dx;
+      m_beam->Dy[i] = p->Dy;
+      p->uDx.copyToArray(m_beam->vDx + 3 * i);
     }
     
     ++i;

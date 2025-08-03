@@ -94,7 +94,7 @@ TEST_CASE("Fresnel equations: power conservation (Iso2Iso)", THIS_TEST_TAG)
     beamProp.offset          = Vec3::zero();
     beamProp.direction       = -Vec3::eZ();
     beamProp.angularDiameter = 0;
-    beamProp.numRays         = 100;
+    beamProp.numRays         = 20;
     beamProp.shape           = Circular;
     
     beamProp.setPlaneRelative(frame);

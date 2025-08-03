@@ -53,13 +53,14 @@ namespace RZ {
     Real *origins          = nullptr;
     Real *directions       = nullptr;
     Real *destinations     = nullptr;
-    Real *uEx              = nullptr;
-    Complex *Ex            = nullptr;
-    Complex *Ey            = nullptr;
+    Real *vDx              = nullptr;
+    Complex *Dx            = nullptr;
+    Complex *Dy            = nullptr;
     Real *lengths          = nullptr;
-    Real *cumLengths       = nullptr;
+    Real *opl              = nullptr;
     Real *normals          = nullptr; // Surface normals of the boundary surface
     Real *wavelengths      = nullptr;
+    Real *neff             = nullptr; // Effective refractive index
     const EMMedium **media = nullptr;
 
     uint32_t *ids          = nullptr;
@@ -155,17 +156,18 @@ namespace RZ {
       memcpy(directions   + 3 * index, existing->directions   + 3 * index, 3 * sizeof(Real));
       memcpy(normals      + 3 * index, existing->normals      + 3 * index, 3 * sizeof(Real));
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
-
-      lengths[index]       = existing->lengths[index];
-      cumLengths[index]    = existing->cumLengths[index];
-      media[index]         = existing->media[index];
-      wavelengths[index]   = existing->wavelengths[index];
-      ids[index]           = existing->ids[index];
+      
+      lengths[index]     = existing->lengths[index];
+      opl[index]         = existing->opl[index];
+      media[index]       = existing->media[index];
+      wavelengths[index] = existing->wavelengths[index];
+      neff[index]        = existing->neff[index];
+      ids[index]         = existing->ids[index];
 
       if (fields && existing->fields) {
-        Ex[index]            = existing->Ex[index];
-        Ey[index]            = existing->Ey[index];
-        memcpy(uEx + 3 * index, existing->uEx + 3 * index, 3 * sizeof(Real));
+        Dx[index] = existing->Dx[index];
+        Dy[index] = existing->Dy[index];
+        memcpy(vDx + 3 * index, existing->vDx + 3 * index, 3 * sizeof(Real));
       }
 
       SETMASK(mask);
@@ -262,8 +264,9 @@ namespace RZ {
     memmove(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
   
     COPYSCALAR(lengths);
-    COPYSCALAR(cumLengths);
+    COPYSCALAR(opl);
     COPYSCALAR(wavelengths);
+    COPYSCALAR(neff);
     COPYSCALAR(media);
     COPYSCALAR(ids);
 
@@ -275,9 +278,9 @@ namespace RZ {
     COPYVECTOR(directions);
 
     if (src->fields && dest->fields) {
-      COPYSCALAR(Ex);
-      COPYSCALAR(Ey);
-      COPYVECTOR(uEx);
+      COPYSCALAR(Dx);
+      COPYSCALAR(Dy);
+      COPYVECTOR(vDx);
     }
     
     uint64_t d = dOff;

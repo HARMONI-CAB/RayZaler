@@ -34,27 +34,26 @@ namespace RZ {
     // Defined by input
     Vec3 origin;
     Vec3 direction;
-    Vec3 uEx; // Direction of the Ex vector
+    Vec3 uDx; // Direction of the Dx vector
 
-    Complex Ex, Ey; // Initial complex amplitudes for the X and Y directions
+    Complex Dx, Dy; // Initial complex amplitudes for the X and Y directions
+    Vec3 S; // Poynting vector direction
 
     // Incremented by tracer
     Real length;
     Real cumOptLength;
+    Real neff = 1.;
 
     // Defines whether the ray is susceptible to vignetting
     bool chief;
     bool intercepted;
     bool fields;
     
-    Real wavelength;
+    Real wavelength; // Vacuum wavelength!
     const EMMedium *medium;
 
     // Defined by the user
     uint32_t id;
-
-    // Calculated on extraction
-    Real power;
     
     Ray();
   };

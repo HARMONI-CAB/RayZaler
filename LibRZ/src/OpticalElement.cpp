@@ -18,6 +18,7 @@
 
 #include <OpticalElement.h>
 #include <EMInterface.h>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
@@ -60,17 +61,33 @@ std::vector<Complex> &
 OpticalSurface::Efield() const
 {
   size_t expectedSize = 2 * hits.size();
-
+  
   if (EArray.size() != expectedSize) {
+    Matrix3 ieps;
+    const EMMedium *prevMedium = nullptr;
+  
     EArray.resize(expectedSize);
 
     for (size_t i = 0; i < hits.size(); ++i) {
       if (hits[i].fields) {
-        Vec3 uEx(hits[i].uEx);
-        Vec3 uEy(hits[i].direction.cross(uEx));
+        Vec3 fx, fy;
 
-        Vec3 In  = hits[i].Ex.real() * uEx + hits[i].Ey.real() * uEy;
-        Vec3 Qu  = hits[i].Ex.imag() * uEx + hits[i].Ey.imag() * uEy;
+        Vec3 uDx(hits[i].uDx);
+        Vec3 uDy(hits[i].direction.cross(uDx));
+
+        calcEdirfromDdir(
+          fx,
+          fy,
+          ieps,
+          uDx,
+          uDy,
+          hits[i].direction,
+          hits[i].medium,
+          prevMedium,
+          frame);
+        
+        Vec3 In  = hits[i].Dx.real() * fx + hits[i].Dy.real() * fy;
+        Vec3 Qu  = hits[i].Dx.imag() * fx + hits[i].Dy.imag() * fy;
 
         EArray[2 * i + 0] = Complex(In.x, Qu.x);
         EArray[2 * i + 1] = Complex(In.y, Qu.y);
@@ -94,7 +111,7 @@ OpticalSurface::power() const
 
     for (size_t i = 0; i < hits.size(); ++i) {
       if (hits[i].fields)
-        powerArray[i] = hits[i].power;
+        powerArray[i] = hits[i].S * hits[i].direction;
       else
         powerArray[i] = std::nan("unavailable");
     }

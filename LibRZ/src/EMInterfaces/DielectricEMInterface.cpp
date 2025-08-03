@@ -113,13 +113,18 @@ DielectricEMInterface::calcIsoToIsoFields(
 {
   const Vec3 normal(inputBeam->normals    + 3 * inputRay);
   const Vec3 ut(inputBeam->directions     + 3 * inputRay);
-  const Vec3 viEx(inputBeam->uEx          + 3 * inputRay);
-  const Complex Ex = inputBeam->Ex[inputRay];
-  const Complex Ey = inputBeam->Ey[inputRay];
-
+  const Vec3 viEx(inputBeam->vDx          + 3 * inputRay);
+  
   bool positive = ui * normal >= 0;
   const Real n1 = positive ? m_n2 : m_n1;
   const Real n2 = positive ? m_n1 : m_n2;
+
+  const Real invn1sq  = 1 / (n1 * n1);
+  const Real n2ton1sq = n2 * n2 * invn1sq;
+
+  const Complex Dx = inputBeam->Dx[inputRay];
+  const Complex Dy = inputBeam->Dy[inputRay];
+
 
   auto ws = ui.cross(normal);
   
@@ -161,32 +166,32 @@ DielectricEMInterface::calcIsoToIsoFields(
   auto wtp = ut.cross(ws).normalized();
 
   // Projection of the incident electric field amplitudes onto the SxP plane
-  auto Eir  = Ex.real() * viEx + Ey.real() * viEy;
-  auto Eii  = Ex.imag() * viEx + Ey.imag() * viEy;
+  auto Dir  = Dx.real() * viEx + Dy.real() * viEy;
+  auto Dii  = Dx.imag() * viEx + Dy.imag() * viEy;
 
-  auto Eis  = Complex(Eir * ws,  Eii * ws);
-  auto Eip  = Complex(Eir * wip, Eii * wip);
+  auto Dis  = Complex(Dir * ws,  Dii * ws);
+  auto Dip  = Complex(Dir * wip, Dii * wip);
 
   // Calculation of the field amplitudes of the transmitted ray, in the SxP plane
-  auto Ets = ts * Eis;
-  auto Etp = tp * Eip;
+  auto Dts = ts * Dis;
+  auto Dtp = tp * Dip;
 
   // Update transmitted ray
-  ws.copyToArray(inputBeam->uEx    + 3 * inputRay);
-  inputBeam->Ex[inputRay] = Ets;
-  inputBeam->Ey[inputRay] = Etp;
+  ws.copyToArray(inputBeam->vDx    + 3 * inputRay);
+  inputBeam->Dx[inputRay] = Dts * n2ton1sq;
+  inputBeam->Dy[inputRay] = Dtp * n2ton1sq;
 
   if (splinterBeam != nullptr) {
     const Vec3 ur(splinterBeam->directions + 3 * splinterRay);
     auto wrp = ur.cross(ws).normalized();
 
     // Calculation of the field amplitudes of the reflected ray, in the SxP plane
-    auto Ers = rs * Eis;
-    auto Erp = rp * Eip;
+    auto Drs = rs * Dis;
+    auto Drp = rp * Dip;
 
-    ws.copyToArray(splinterBeam->uEx + 3 * splinterRay);
-    splinterBeam->Ex[splinterRay] = Ers;
-    splinterBeam->Ey[splinterRay] = Erp;
+    ws.copyToArray(splinterBeam->vDx + 3 * splinterRay);
+    splinterBeam->Dx[splinterRay] = Drs;
+    splinterBeam->Dy[splinterRay] = Drp;
   }
 }
 
@@ -234,6 +239,7 @@ DielectricEMInterface::transmitIsoIso(
     transmitted.copyToArray(beam->directions + 3 * i);
     
     beam->media[i] = tSign < 0 ? nMedium() : pMedium();
+    beam->neff[i]  = beam->media[i]->n;
 
     if (splinterBeam != nullptr) {
       // Calculate secondary ray if the primary ray is a transmission. 

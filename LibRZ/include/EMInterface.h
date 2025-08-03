@@ -44,118 +44,46 @@ namespace RZ {
     EMMediumType    type = EMMediumVacuum;
     
     union {
-      Real            n = 1.;
+      Real   n = 1.;
       struct {
         Real no;
         Real ne;
       };
     };
 
-    ReferenceFrame *frame = nullptr;
-    Vec3            axis = Vec3::eZ();  // Axis relative to existing frame
-
-private:
-    Vec3          srfAxis = Vec3::eZ(); // Axis relative to surface frame
-    Real          no2inv = 1, ne2inv = 1;
+    const ReferenceFrame *frame = nullptr;
+    Vec3                  axis = Vec3::eZ();  // Axis relative to existing frame
 
 public:
     static const EMMedium *vacuum();
 
-    // Needed to cache certain values
     inline void
-    axisToSurfaceFrame(const ReferenceFrame *surfFrame)
+    ieps(Matrix3 &iep, Vec3 const &ax) const
     {
-      srfAxis = surfFrame->toRelativeVec(frame->fromRelativeVec(axis));
-      no2inv  = 1 / (no * no);
-      ne2inv  = 1 / (ne * ne);
+      Real nosq = no * no;
+      Real nesq = ne * ne;
+
+      auto axax = Matrix3::outer(ax, ax);
+
+      iep = axax / nesq + (Matrix3::eye() - axax) / nosq;
+    }
+
+    inline void
+    ieps(Matrix3 &iep) const
+    {
+      ieps(iep, frame->fromRelativeVec(axis));
+    }
+
+    inline void
+    ieps(Matrix3 &iep, const ReferenceFrame *relTo) const
+    {
+      ieps(iep, relTo->toRelativeVec(frame->fromRelativeVec(axis)));
     }
 
     inline bool
     isotropic() const
     {
       return type == EMMediumVacuum || type == EMMediumIsotropic;
-    }
-
-    inline void
-    advancePhase(
-      Complex &Ex,
-      Complex &Ey,
-      Vec3 const &uEx,
-      Vec3 const &uEy,
-      Real K,
-      Real dt) const {
-      Complex phiEx = 1, phiEy = 1;
-      Real nx, ny;
-      Real ax, ay;
-
-      switch (type) {
-        case EMMediumVacuum:
-          phiEx = phiEy = std::exp(Complex(0, K * dt));
-          break;
-
-        case EMMediumIsotropic:
-          phiEx = phiEy = std::exp(Complex(0, n * K * dt));
-          break;
-
-        case EMMediumUniaxial:
-          ax    = srfAxis * uEx;
-          ax   *= ax;
-
-          ay    = srfAxis * uEy;
-          ay   *= ay;
-
-          nx    = pow(ax * ne2inv + (1 - ax) * no2inv, -0.5);
-          ny    = pow(ay * ne2inv + (1 - ay) * no2inv, -0.5);
-
-          phiEx = std::exp(Complex(0, nx * K * dt));
-          phiEy = std::exp(Complex(0, ny * K * dt));
-          break;
-      }
-
-      Ex *= phiEx;
-      Ey *= phiEy;
-    }
-
-    inline Real
-    power(
-      Complex const &Ex,
-      Complex const &Ey,
-      Vec3 const &uEx,
-      Vec3 const &uEy) const
-    {
-      Real Ex2 = (Ex * std::conj(Ex)).real();
-      Real Ey2 = (Ey * std::conj(Ey)).real();
-      Real nx, ny;
-      Real ax, ay;
-      Real E2 = 0;
-      
-      switch (type) {
-        case EMMediumVacuum:
-          E2 = Ex2 + Ey2;
-          break;
-
-        case EMMediumIsotropic:
-          E2 = n * (Ex2 + Ey2);
-          break;
-
-        case EMMediumUniaxial:
-          ax    = srfAxis * uEx;
-          ax   *= ax;
-
-          ay    = srfAxis * uEy;
-          ay   *= ay;
-
-          nx    = pow(ax * ne2inv + (1 - ax) * no2inv, -0.5);
-          ny    = pow(ay * ne2inv + (1 - ay) * no2inv, -0.5);
-
-          E2    = nx * Ex2 + ny * Ey2;
-          break;
-
-        default:
-          break;
-      }
-
-      return E2;
     }
   };
   

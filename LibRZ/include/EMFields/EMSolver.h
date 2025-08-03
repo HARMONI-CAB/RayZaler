@@ -173,17 +173,6 @@ namespace RZ {
     Vec3 wq; // Parallel to the incidence plane ("w2")
     
     inline void
-    initInverseDielectricTensor(Matrix3 &iep, Real no, Real ne, Vec3 const &ax)
-    {
-      Real nosq = no * no;
-      Real nesq = ne * ne;
-
-      auto axax = Matrix3::outer(ax, ax);
-
-      iep = axax / nesq + (Matrix3::eye() - axax) / nosq;
-    }
-
-    inline void
     setReferenceFrame(const ReferenceFrame *frame)
     {
       this->frame = frame;
@@ -204,14 +193,16 @@ namespace RZ {
         n2ton1sq  = n2sq / n1sq;
       }
 
+      // Calculate dielectric tensor for first medium
       if (!m1->isotropic()) {
         ax1 = frame->toRelativeVec(m1->frame->fromRelativeVec(m1->axis));
-        initInverseDielectricTensor(iep1, m1->no, m1->ne, ax1);
+        m1->ieps(iep1, ax1);
       }
 
+      // Calculate dielectric tensor for second medium
       if (!m2->isotropic()) {
         ax2 = frame->toRelativeVec(m2->frame->fromRelativeVec(m2->axis));
-        initInverseDielectricTensor(iep2, m2->no, m2->ne, ax2);
+        m2->ieps(iep2, ax2);
       }
     }
 
@@ -690,6 +681,118 @@ namespace RZ {
       }
     }
   };
+
+  // Other helper functions
+
+  static inline void
+  calcEdirfromDdir(
+    Vec3 &fx, Vec3 &fy,
+    Matrix3 &ieps,
+    Vec3 const &vDx, Vec3 const &vDy,
+    Vec3 const &direction,
+    const EMMedium *medium,
+    const EMMedium *&prevMedium,
+    const ReferenceFrame *frame)
+  {
+    Real insq;
+
+    switch (medium->type) {
+      case EMMediumVacuum:
+        fx = vDx;
+        fy = vDy;
+        break;
+
+      case EMMediumIsotropic:
+        insq = 1 / (medium->n * medium->n);
+        fx = vDx * insq;
+        fy = vDy * insq;
+        break;
+
+      case EMMediumUniaxial:
+        // E = eps^{-1} D
+        if (prevMedium != medium) {
+          prevMedium = medium;
+
+          if (frame == nullptr)
+            medium->ieps(ieps);
+          else
+            medium->ieps(ieps, frame);
+        }
+
+        fx  = ieps * vDx;
+        fy  = ieps * vDy;
+        break;
+    }
+  }
+
+  static inline void
+  calcPoyntingVector(
+    Vec3 &S,
+    Matrix3 &ieps,
+    Complex Dx, Complex Dy,
+    Vec3 const &vDx, Vec3 const &vDy,
+    Vec3 const &direction,
+    const EMMedium *medium,
+    const EMMedium *&prevMedium,
+    const ReferenceFrame *frame)
+  {
+    Real DxR, DyR;
+    Real DxI, DyI;
+    
+    Vec3 fx,  fy;
+    Vec3 gx,  gy;
+    Vec3 SR, SI;
+
+    Real invn3;
+
+    switch (medium->type) {
+      case EMMediumVacuum:
+        // n = 1, eps0 = 1, then E = D
+        S = ((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * direction;
+        break;
+
+      case EMMediumIsotropic:
+        // D = n^2 eps0 E -> E = D/(eps0 n^2)
+        // H \propto D / n
+        // |S| = |E x H| \propto D/n^3
+        
+        invn3 = 1 / (medium->n * medium->n * medium->n);
+
+        S = invn3 *((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * direction;
+        break;
+
+      case EMMediumUniaxial:
+        // E = eps^{-1} D
+        if (prevMedium != medium) {
+          prevMedium = medium;
+
+          if (frame == nullptr)
+            medium->ieps(ieps);
+          else
+            medium->ieps(ieps, frame);
+        }
+
+        fx  = ieps * vDx;
+        fy  = ieps * vDy;
+
+        gx  = direction.cross(vDx);
+        gy  = direction.cross(vDy);
+        
+        DxR = Dx.real();
+        DyR = Dy.real();
+
+        DxI = Dx.imag();
+        DyI = Dy.imag();
+
+        auto SR  = (DxR * fx + DyR * fy).cross(DxR * gx + DyR * gy);
+        auto SI  = (DxI * fx + DyI * fy).cross(DxI * gx + DyI * gy);
+
+        S = SR + SI;
+        break;
+    }
+  }
+
+
 }
 
 #undef COPYDIR
