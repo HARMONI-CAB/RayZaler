@@ -26,8 +26,6 @@ namespace RZ {
   class EMSolver;
 
   class EMInterfaceSolver {
-      EMInterfaceSolver(const EMMedium *m1, const EMMedium *m2);
-
     protected:
       const EMMedium       *m_m1              = nullptr;
       const EMMedium       *m_m2              = nullptr;
@@ -39,12 +37,18 @@ namespace RZ {
       RayBeam              *m_splinterBeam    = nullptr;
       uint8_t               m_sCount          = 0;
 
+      EMInterfaceSolver(const EMMedium *m1, const EMMedium *m2);
       virtual uint8_t secondaryBeamCount() const = 0;
       
   public:
+      inline const EMMedium *pMedium() { return m_m1; }
+      inline const EMMedium *nMedium() { return m_m2; }
+      
       static EMInterfaceSolver *make(const EMMedium *m1, const EMMedium *m2);
 
       void setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam);
+      void setMedia(const EMMedium *m1, const EMMedium *m2);
+      
       virtual void transmit() = 0;
 
       virtual ~EMInterfaceSolver() = default;

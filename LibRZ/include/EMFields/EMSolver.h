@@ -262,6 +262,8 @@ namespace RZ {
       iiI = DImag / DampI;
 
       calcIncidentFrame();
+
+      return direct;
     }
 
     // "Reflection" coefficients.

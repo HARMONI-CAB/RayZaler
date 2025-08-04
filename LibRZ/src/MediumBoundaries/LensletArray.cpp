@@ -73,9 +73,9 @@ LensletArrayBoundary::setCurvatureRadius(Real rCurv)
 }
 
 void
-LensletArrayBoundary::setRefractiveIndex(Real in, Real out)
+LensletArrayBoundary::setMedia(const EMMedium *m1, const EMMedium *m2)
 {
-  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
+  emInterface<DielectricEMInterface>()->setMedia(m1, m2);
 }
       
 std::string

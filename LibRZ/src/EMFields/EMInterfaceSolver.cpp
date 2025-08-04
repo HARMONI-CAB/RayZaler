@@ -16,22 +16,36 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <EMInterfaceSolver.h>
-#include <bitset>
+#include <EMFields/EMInterfaceSolver.h>
+#include <EMFields/EMSolver.h>
 #include <EMInterface.h>
-#include <EMSolver.h>
+
+#include <EMFields/EMIsoIsoSolver.h>
 
 using namespace RZ;
+
+EMInterfaceSolver::EMInterfaceSolver(const EMMedium *m1, const EMMedium *m2)
+{
+  m_solver = new EMSolver();
+
+  setMedia(m1, m2);
+}
 
 EMInterfaceSolver *
 EMInterfaceSolver::make(const EMMedium *m1, const EMMedium *m2)
 {
-  EMInterfaceSolver *solver = nullptr;
+  if (m1->isotropic() && m2->isotropic())
+    return new EMIsoIsoSolver(m1, m2);
 
-  solver->m_solver = new EMSolver();
-  solver->m_solver->setMedia(m1, m2);
+  return nullptr;
+}
 
-  return solver;
+void
+EMInterfaceSolver::setMedia(const EMMedium *m1, const EMMedium *m2)
+{
+  m_m1 = m1;
+  m_m2 = m2;
+  m_solver->setMedia(m1, m2);
 }
 
 void

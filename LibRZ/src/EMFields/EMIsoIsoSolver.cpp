@@ -16,11 +16,17 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <EMIsoIsoSolver.h>
+#include <EMFields/EMIsoIsoSolver.h>
 #include <EMInterface.h>
-#include <EMSolver.h>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
+
+EMIsoIsoSolver::EMIsoIsoSolver(const EMMedium *m1, const EMMedium *m2) :
+  EMInterfaceSolver(m1, m2)
+{
+
+}
 
 uint8_t
 EMIsoIsoSolver::secondaryBeamCount() const

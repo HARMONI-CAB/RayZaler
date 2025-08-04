@@ -22,48 +22,12 @@
 #include <EMInterface.h>
 
 namespace RZ {
-  enum DielectricInterfaceCase {
-    IsoToIso,
-    AnisoToIso,
-    IsoToAniso,
-    AnisoToAniso
-  };
-
+  class EMInterfaceSolver;
   class DielectricEMInterface : public EMInterface {
-      Real m_n2   = 1.5;
-      Real m_n1   = 1;
-      Real m_n1n2 = 1 / 1.5;
-      DielectricInterfaceCase m_interfaceCase = IsoToIso;
-
-      bool detectInterfaceCase();
-
-      inline void calcIsoToIsoFields(
-        RayBeam *inputBeam,
-        uint64_t inputRay,
-        RayBeam *splinterBeam,
-        uint64_t splinterRay,
-        const Vec3 &ui);
-
-      static inline bool G(Real &bfr, Real &rad, Vec3 const &k_i, Vec3 const &normal, Real n_o, Real n_e, Vec3 const &axis);
-      static inline bool anisoAnisoBreak(
-        Vec3 &sor,
-        Vec3 &ser,
-        Vec3 &sot,
-        Vec3 &set,
-        Vec3 const &k_i,
-        Vec3 const &normal,
-        Real n_o1,
-        Real n_e1,
-        Vec3 const &axis1,
-        Real n_o2,
-        Real n_e2,
-        Vec3 const &axis2);
-      
-      inline void transmitIsoIso(RayBeamSlice const &beam, RayBeam *);
+      EMInterfaceSolver *m_ifaceSolver = nullptr;
 
     public:
-      void setRefractiveIndex(Real , Real);
-      
+
       virtual std::string name() const override;
       virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
       virtual void setSurroundingMedium(const EMMedium *) override;

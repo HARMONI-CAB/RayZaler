@@ -44,7 +44,7 @@ namespace RZ {
 
       LensletArrayBoundary();
       void setCurvatureRadius(Real);
-      void setRefractiveIndex(Real, Real);
+      void setMedia(const EMMedium *m1, const EMMedium *m2);
       void setConvex(bool);
       void setWidth(Real);
       void setConicConstant(Real);

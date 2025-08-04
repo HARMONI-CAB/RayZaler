@@ -85,6 +85,9 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
 
+  ${LIBRZ_SRCDIR}/EMFields/EMInterfaceSolver.cpp
+  ${LIBRZ_SRCDIR}/EMFields/EMIsoIsoSolver.cpp
+
   ${LIBRZ_SRCDIR}/EMInterfaces/DielectricEMInterface.cpp
   ${LIBRZ_SRCDIR}/EMInterfaces/DummyEMInterface.cpp
   ${LIBRZ_SRCDIR}/EMInterfaces/ParaxialEMInterface.cpp
@@ -191,8 +194,10 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
 
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMInterfaceSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoIsoSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMSolver.h
-
+  
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DielectricEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DummyEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/ParaxialEMInterface.h

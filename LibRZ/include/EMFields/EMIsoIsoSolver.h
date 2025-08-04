@@ -19,7 +19,7 @@
 #ifndef _EM_FIELDS_EM_ISO_ISO_SOLVER_H
 #define _EM_FIELDS_EM_ISO_ISO_SOLVER_H
 
-#include <EMInterfaceSolver.h>
+#include "EMInterfaceSolver.h"
 
 namespace RZ {
   class EMIsoIsoSolver : public EMInterfaceSolver {
@@ -28,6 +28,7 @@ namespace RZ {
       virtual    void transmit()           override;
     
     public:
+      EMIsoIsoSolver(const EMMedium *m1, const EMMedium *m2);
       virtual ~EMIsoIsoSolver() override;
   };
 }
