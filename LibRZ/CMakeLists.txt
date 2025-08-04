@@ -85,6 +85,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
 
+  ${LIBRZ_SRCDIR}/EMFields/EMAnisoAnisoSolver.cpp
   ${LIBRZ_SRCDIR}/EMFields/EMInterfaceSolver.cpp
   ${LIBRZ_SRCDIR}/EMFields/EMIsoIsoSolver.cpp
 
@@ -194,6 +195,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
 
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMAnisoAnisoSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMInterfaceSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoIsoSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMSolver.h

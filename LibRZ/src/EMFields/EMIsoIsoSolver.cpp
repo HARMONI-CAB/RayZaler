@@ -22,8 +22,11 @@
 
 using namespace RZ;
 
-EMIsoIsoSolver::EMIsoIsoSolver(const EMMedium *m1, const EMMedium *m2) :
-  EMInterfaceSolver(m1, m2)
+EMIsoIsoSolver::EMIsoIsoSolver(
+  const EMMedium *m1,
+  const EMMedium *m2,
+  const ReferenceFrame *parent) :
+  EMInterfaceSolver(m1, m2, parent)
 {
 
 }

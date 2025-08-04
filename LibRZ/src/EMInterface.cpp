@@ -185,3 +185,10 @@ EMInterface::setMedia(
   m_pMedium = positive;
   m_nMedium = negative;
 }
+
+void
+EMInterface::setParentFrame(const ReferenceFrame *frame)
+{
+  m_parentFrame = frame;
+}
+

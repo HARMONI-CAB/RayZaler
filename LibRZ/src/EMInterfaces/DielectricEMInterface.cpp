@@ -54,7 +54,7 @@ DielectricEMInterface::~DielectricEMInterface()
 void
 DielectricEMInterface::initInterfaceSolver()
 {
-  if (pMedium() == nullptr || nMedium() == nullptr)
+  if (pMedium() == nullptr || nMedium() == nullptr || parentFrame() == nullptr)
     return;
   
   if (m_ifaceSolver != nullptr) {
@@ -66,9 +66,20 @@ DielectricEMInterface::initInterfaceSolver()
   }
 
   if (m_ifaceSolver == nullptr)
-    m_ifaceSolver = EMInterfaceSolver::make(pMedium(), nMedium());
+    m_ifaceSolver = EMInterfaceSolver::make(
+      pMedium(),
+      nMedium(),
+      parentFrame());
   else
     m_ifaceSolver->setMedia(pMedium(), nMedium());
+
+}
+
+void
+DielectricEMInterface::setParentFrame(const ReferenceFrame *frame)
+{
+  EMInterface::setParentFrame(frame);
+  initInterfaceSolver();
 }
 
 void

@@ -16,24 +16,24 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _EM_FIELDS_EM_ISO_ISO_SOLVER_H
-#define _EM_FIELDS_EM_ISO_ISO_SOLVER_H
+#ifndef _EM_FIELDS_EM_ANISO_ANISO_SOLVER_H
+#define _EM_FIELDS_EM_ANISO_ANISO_SOLVER_H
 
 #include "EMInterfaceSolver.h"
 
 namespace RZ {
-  class EMIsoIsoSolver : public EMInterfaceSolver {
+  class EMAnisoAnisoSolver : public EMInterfaceSolver {
     protected:
       virtual uint8_t secondaryBeamCount() const override;
       virtual    void transmit()           override;
     
     public:
-      EMIsoIsoSolver(
+      EMAnisoAnisoSolver(
         const EMMedium *m1,
         const EMMedium *m2,
         const ReferenceFrame *parent);
-      virtual ~EMIsoIsoSolver() override;
+      virtual ~EMAnisoAnisoSolver() override;
   };
 }
 
-#endif // _EM_FIELDS_EM_ISO_ISO_SOLVER_H
+#endif // _EM_FIELDS_EM_ANISO_ANISO_SOLVER_H

@@ -194,12 +194,6 @@ public:
         return beam->hasRay(i) && beam->isIntercepted(i);
       }
       
-      inline void
-      setParentFrame(const ReferenceFrame *frame)
-      {
-        m_parentFrame = frame;
-      }
-
       inline const ReferenceFrame *
       parentFrame() const
       {
@@ -216,7 +210,8 @@ public:
       virtual void setMedia(
         const EMMedium *positive = nullptr,
         const EMMedium *negative = nullptr);
-
+      virtual void setParentFrame(const ReferenceFrame *);
+      
       void setTransmission(Real);
       void setTransmission(
         Real width,

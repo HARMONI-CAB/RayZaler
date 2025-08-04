@@ -41,14 +41,17 @@ namespace RZ {
         const EMMedium *m1,
         const EMMedium *m2,
         const ReferenceFrame *frame = nullptr);
-        
+
       virtual uint8_t secondaryBeamCount() const = 0;
       
   public:
-      inline const EMMedium *pMedium() { return m_m1; }
-      inline const EMMedium *nMedium() { return m_m2; }
-      
-      static EMInterfaceSolver *make(const EMMedium *m1, const EMMedium *m2);
+      inline const EMMedium *pMedium() const { return m_m1; }
+      inline const EMMedium *nMedium() const { return m_m2; }
+      inline       EMSolver *solver()  const { return m_solver; }
+      static EMInterfaceSolver *make(
+        const EMMedium *m1,
+        const EMMedium *m2,
+        const ReferenceFrame *frame);
 
       void setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam);
       void setMedia(const EMMedium *m1, const EMMedium *m2);

@@ -27,11 +27,12 @@ namespace RZ {
       EMInterfaceSolver *m_ifaceSolver = nullptr;
 
       void initInterfaceSolver();
-      
+
     public:
 
       virtual std::string name() const override;
       virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
+      virtual void setParentFrame(const ReferenceFrame *) override;
       virtual void setSurroundingMedium(const EMMedium *) override;
       virtual void setMedia(
         const EMMedium *positive = nullptr,

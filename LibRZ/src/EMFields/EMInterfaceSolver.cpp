@@ -21,6 +21,7 @@
 #include <EMInterface.h>
 
 #include <EMFields/EMIsoIsoSolver.h>
+#include <EMFields/EMAnisoAnisoSolver.h>
 
 using namespace RZ;
 
@@ -32,16 +33,21 @@ EMInterfaceSolver::EMInterfaceSolver(
   m_solver = new EMSolver();
 
   m_solver->setReferenceFrame(frame);
-
+  
   setMedia(m1, m2);
 }
 
 EMInterfaceSolver *
-EMInterfaceSolver::make(const EMMedium *m1, const EMMedium *m2)
+EMInterfaceSolver::make(
+  const EMMedium *m1,
+  const EMMedium *m2,
+  const ReferenceFrame *frame)
 {
   if (m1->isotropic() && m2->isotropic())
-    return new EMIsoIsoSolver(m1, m2);
-
+    return new EMIsoIsoSolver(m1, m2, frame);
+  else if (!m1->isotropic() && !m2->isotropic())
+    return new EMAnisoAnisoSolver(m1, m2, frame);
+  
   return nullptr;
 }
 
@@ -83,3 +89,4 @@ EMInterfaceSolver::setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam)
 
   m_calculateFields = m_secondaryRays && m_mainBeam->fields;
 }
+
