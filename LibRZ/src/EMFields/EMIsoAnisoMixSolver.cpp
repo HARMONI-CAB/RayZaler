@@ -16,13 +16,13 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <EMFields/EMAnisoAnisoSolver.h>
+#include <EMFields/EMIsoAnisoMixSolver.h>
 #include <EMInterface.h>
 #include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
-EMAnisoAnisoSolver::EMAnisoAnisoSolver(
+EMIsoAnisoMixSolver::EMIsoAnisoMixSolver(
   const EMMedium *m1,
   const EMMedium *m2,
   const ReferenceFrame *parent) :
@@ -32,17 +32,16 @@ EMAnisoAnisoSolver::EMAnisoAnisoSolver(
 }
 
 uint8_t
-EMAnisoAnisoSolver::secondaryBeamCount() const
+EMIsoAnisoMixSolver::secondaryBeamCount() const
 {
-  return 3; // RO, RE, TE
+  return 2; // RO and extraordinary
 }
 
 void
-EMAnisoAnisoSolver::transmit()
+EMIsoAnisoMixSolver::transmit()
 {
-  const uint64_t roOff = 0;
-  const uint64_t reOff = m_splinterBeam->count;
-  const uint64_t teOff = 2 * m_splinterBeam->count;
+  const uint64_t oOff = 0;
+  const uint64_t eOff = m_splinterBeam->count;
   
   for (uint64_t i = m_currentSlice->start; i < m_currentSlice->end; ++i) {
     if (EMInterface::mustTransmitRay(m_mainBeam, i)) {
@@ -70,68 +69,62 @@ EMAnisoAnisoSolver::transmit()
 
       if (m_secondaryRays) {
         if (breakMask & ReflectedOrdinary) {
-          m_splinterBeam->neff[roOff + i]  = m_solver->m1->no;
-          m_splinterBeam->media[roOff + i] = m_solver->m1;
+          m_splinterBeam->neff[oOff + i]  = m_solver->m1->no;
+          m_splinterBeam->media[oOff + i] = m_solver->m1;
           m_solver->uo1.copyToArray(
-            m_splinterBeam->directions + 3 * (roOff + i));
+            m_splinterBeam->directions + 3 * (oOff + i));
         } else {
-          m_splinterBeam->prune(roOff + i);
+          m_splinterBeam->prune(oOff + i);
         }
 
         if (breakMask & ReflectedExtraordinary) {
-          m_splinterBeam->neff[reOff + i]  = m_solver->nee1;
-          m_splinterBeam->media[reOff + i] = m_solver->m1;
+          m_splinterBeam->neff[eOff + i]  = m_solver->nee1;
+          m_splinterBeam->media[eOff + i] = m_solver->m1;
           m_solver->ue1.copyToArray(
-            m_splinterBeam->directions + 3 * (reOff + i));
-        } else {
-          m_splinterBeam->prune(reOff + i);
-        }
-
-        if (breakMask & TransmittedExtraordinary) {
-          m_splinterBeam->neff[teOff + i]  = m_solver->nee2;
-          m_splinterBeam->media[teOff + i] = m_solver->m2;
+            m_splinterBeam->directions + 3 * (eOff + i));
+        } else if (breakMask & TransmittedExtraordinary) {
+          m_splinterBeam->neff[eOff + i]  = m_solver->nee2;
+          m_splinterBeam->media[eOff + i] = m_solver->m2;
           m_solver->ue2.copyToArray(
-            m_splinterBeam->directions + 3 * (teOff + i));
+            m_splinterBeam->directions + 3 * (eOff + i));
         } else {
-          m_splinterBeam->prune(teOff + i);
+          m_splinterBeam->prune(eOff + i);
         }
       }
 
       // Calculate fields, only for fully broken rays
       if (m_calculateFields) {
-        if (breakMask == AllRays) {
-          EMFields to, te, ro, re;
-          m_solver->solveAnisoAniso(ro, re, to, te);
-
-          m_mainBeam->Dx[i]     = to.Dx;
-          m_mainBeam->Dy[i]     = to.Dy;
-          to.vDx.copyToArray(m_mainBeam->vDx + 3 * i);
-
-          m_splinterBeam->Dx[roOff + i] = ro.Dx;
-          m_splinterBeam->Dy[roOff + i] = ro.Dy;
-          ro.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + roOff));
-
-          m_splinterBeam->Dx[reOff + i] = re.Dx;
-          m_splinterBeam->Dy[reOff + i] = re.Dy;
-          re.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + reOff));
-
-          m_splinterBeam->Dx[teOff + i] = te.Dx;
-          m_splinterBeam->Dy[teOff + i] = te.Dy;
-          te.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + teOff));
+        EMFields to, ro, ex;
+ 
+        if (breakMask == AllIsoAniso) {
+          m_solver->solveIsoAniso(ro, to, ex);
+        } else if (breakMask == AllAnisoIso) {
+          m_solver->solveAnisoIso(ro, ex, to);
         } else {
           m_mainBeam->prune(i);
-          m_splinterBeam->prune(roOff + i);
-          m_splinterBeam->prune(reOff + i);
-          m_splinterBeam->prune(teOff + i);
-          
+          m_splinterBeam->prune(oOff + i);
+          m_splinterBeam->prune(eOff + i);
+
+          continue;
         }
-      } 
+
+        m_mainBeam->Dx[i]     = to.Dx;
+        m_mainBeam->Dy[i]     = to.Dy;
+        to.vDx.copyToArray(m_mainBeam->vDx + 3 * i);
+
+        m_splinterBeam->Dx[oOff + i] = ro.Dx;
+        m_splinterBeam->Dy[oOff + i] = ro.Dy;
+        ro.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + oOff));
+
+        m_splinterBeam->Dx[eOff + i] = ex.Dx;
+        m_splinterBeam->Dy[eOff + i] = ex.Dy;
+        ex.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + eOff));
+      }
     }
   }
 }
 
-EMAnisoAnisoSolver::~EMAnisoAnisoSolver()
+EMIsoAnisoMixSolver::~EMIsoAnisoMixSolver()
 {
 
 }
-

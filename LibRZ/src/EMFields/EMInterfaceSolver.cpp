@@ -22,6 +22,7 @@
 
 #include <EMFields/EMIsoIsoSolver.h>
 #include <EMFields/EMAnisoAnisoSolver.h>
+#include <EMFields/EMIsoAnisoMixSolver.h>
 
 using namespace RZ;
 
@@ -47,8 +48,8 @@ EMInterfaceSolver::make(
     return new EMIsoIsoSolver(m1, m2, frame);
   else if (!m1->isotropic() && !m2->isotropic())
     return new EMAnisoAnisoSolver(m1, m2, frame);
-  
-  return nullptr;
+  else
+    return new EMIsoAnisoMixSolver(m1, m2, frame);
 }
 
 void

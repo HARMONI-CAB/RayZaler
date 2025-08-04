@@ -88,6 +88,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/EMFields/EMAnisoAnisoSolver.cpp
   ${LIBRZ_SRCDIR}/EMFields/EMInterfaceSolver.cpp
   ${LIBRZ_SRCDIR}/EMFields/EMIsoIsoSolver.cpp
+  ${LIBRZ_SRCDIR}/EMFields/EMIsoAnisoMixSolver.cpp
 
   ${LIBRZ_SRCDIR}/EMInterfaces/DielectricEMInterface.cpp
   ${LIBRZ_SRCDIR}/EMInterfaces/DummyEMInterface.cpp
@@ -198,6 +199,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/EMFields/EMAnisoAnisoSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMInterfaceSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoIsoSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoAnisoMixSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMSolver.h
   
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DielectricEMInterface.h

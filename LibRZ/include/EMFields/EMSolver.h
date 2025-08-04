@@ -35,7 +35,9 @@ namespace RZ {
     ReflectedExtraordinary = 2,
     TransmittedOrdinary = 4,
     TransmittedExtraordinary = 8,
-    AllRays = ReflectedOrdinary | ReflectedExtraordinary | TransmittedOrdinary | TransmittedExtraordinary
+    AllIsoAniso = ReflectedOrdinary | TransmittedOrdinary | TransmittedExtraordinary,
+    AllAnisoIso = ReflectedOrdinary | TransmittedOrdinary | ReflectedExtraordinary,
+    AllRays     = ReflectedOrdinary | ReflectedExtraordinary | TransmittedOrdinary | TransmittedExtraordinary
   };
 
   struct EMFields {
