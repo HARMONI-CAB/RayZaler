@@ -19,6 +19,7 @@
 #include <EMInterfaces/DielectricEMInterface.h>
 #include <RayTracingEngine.h>
 #include <Logger.h>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 

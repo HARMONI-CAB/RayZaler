@@ -177,12 +177,6 @@ public:
         return const_cast<ExprRandomState &>(m_randState);
       }
 
-      static inline bool
-      mustTransmitRay(const RayBeam *beam, uint64_t i)
-      {
-        return beam->hasRay(i) && beam->isIntercepted(i);
-      }
-
       inline void blockLightMap(
         RayBeamSlice const &slice,
         const std::function <void (RayBeam *beam, uint64_t, Real)>&);
@@ -194,6 +188,12 @@ public:
       void blockLight(RayBeamSlice const &slice);
 
     public:
+      static inline bool
+      mustTransmitRay(const RayBeam *beam, uint64_t i)
+      {
+        return beam->hasRay(i) && beam->isIntercepted(i);
+      }
+
       virtual void setSurroundingMedium(const EMMedium *);
       virtual void setMedia(
         const EMMedium *positive = nullptr,

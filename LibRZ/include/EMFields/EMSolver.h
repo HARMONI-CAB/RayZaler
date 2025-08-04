@@ -226,13 +226,14 @@ namespace RZ {
       wq = normal.cross(ws).normalized();
     }
 
-    inline void
+    inline bool
     setIncidentRay(
       Vec3 const &k_i,
       const Vec3 &normal,
       Complex Dx,
       Complex Dy,
       Vec3 const viDx) {
+      bool direct  = true;
       ki           = k_i;
       ni           = k_i.norm();
       ui           = k_i / ni;
@@ -241,6 +242,7 @@ namespace RZ {
       if (ui * normal > 0) {
         setMedia(m2, m1);
         this->normal = -normal;
+        direct = false;
       } else {
         this->normal = normal;
       }
