@@ -47,7 +47,6 @@ ConicLensBoundary::setCurvatureRadius(Real Rc)
   surfaceShape<ConicSurface>()->setCurvatureRadius(Rc);
 }
 
-
 void
 ConicLensBoundary::setConicConstant(Real K)
 {

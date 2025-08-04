@@ -37,6 +37,15 @@ MediumBoundary::~MediumBoundary()
 }
 
 void
+MediumBoundary::setParentFrame(const ReferenceFrame *frame)
+{
+  m_frame = frame;
+
+  if (m_emInterface != nullptr)
+    m_emInterface->setParentFrame(frame);
+}
+
+void
 MediumBoundary::cast(RayBeamSlice const &slice) const
 {
   Vec3 destination;

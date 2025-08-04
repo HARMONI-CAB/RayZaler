@@ -309,7 +309,7 @@ TEST_CASE("Rotated lens: 180 deg flip", THIS_TEST_TAG)
   BeamProperties beamProp;
   Real focalLength = 0.2;
   Real objDistance = 2 * focalLength;
-  Real diameter    = 0.05;
+  Real diameter    = 0.04;
 
   Real idealFNum = objDistance / diameter;
 

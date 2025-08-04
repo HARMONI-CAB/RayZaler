@@ -63,12 +63,6 @@ namespace RZ {
 
   public:
     inline void
-    setParentFrame(const ReferenceFrame *frame)
-    {
-      m_frame = frame;
-    }
-
-    inline void
     setParent(OpticalSurface *element)
     {
       m_parent = element;
@@ -149,6 +143,8 @@ namespace RZ {
     {
       return !m_infinite && (fabs(x) >= m_hWidth || fabs(y) >= m_hHeight);
     }
+
+    void setParentFrame(const ReferenceFrame *frame);
 
     virtual std::string name() const = 0;
     

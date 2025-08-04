@@ -102,7 +102,7 @@ public:
       const EMMedium          *m_pMedium          = nullptr; // Medium in the positive normal
       const EMMedium          *m_nMedium          = nullptr; // Medium in the negative normal
       const EMMedium          *m_surroundings     = nullptr; // Medium if unspecified
-
+      const ReferenceFrame    *m_parentFrame      = nullptr; // Parent frame
       // Only relevant if m_txMap is non-null
       unsigned int             m_cols         = 0;
       unsigned int             m_rows         = 0;
@@ -193,7 +193,25 @@ public:
       {
         return beam->hasRay(i) && beam->isIntercepted(i);
       }
+      
+      inline void
+      setParentFrame(const ReferenceFrame *frame)
+      {
+        m_parentFrame = frame;
+      }
 
+      inline const ReferenceFrame *
+      parentFrame() const
+      {
+        return m_parentFrame;
+      }
+
+      inline const EMMedium *
+      surroundingMedium() const
+      {
+        return m_surroundings;
+      }
+      
       virtual void setSurroundingMedium(const EMMedium *);
       virtual void setMedia(
         const EMMedium *positive = nullptr,

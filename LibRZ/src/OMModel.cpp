@@ -1015,6 +1015,8 @@ OMModel::OMModel()
   auto sing = Singleton::instance();
   auto factory = sing->lookupElementFactory("RayBeamElement");
 
+  m_surroundings = EMMedium::vacuum();
+
   registerFrame(m_world = new WorldFrame("world"));
 
   m_beam = static_cast<RayBeamElement *>(factory->make("beam", m_world));

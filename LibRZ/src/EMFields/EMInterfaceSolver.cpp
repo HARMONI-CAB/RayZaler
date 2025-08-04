@@ -24,9 +24,14 @@
 
 using namespace RZ;
 
-EMInterfaceSolver::EMInterfaceSolver(const EMMedium *m1, const EMMedium *m2)
+EMInterfaceSolver::EMInterfaceSolver(
+  const EMMedium *m1,
+  const EMMedium *m2,
+  const ReferenceFrame *frame)
 {
   m_solver = new EMSolver();
+
+  m_solver->setReferenceFrame(frame);
 
   setMedia(m1, m2);
 }
@@ -78,4 +83,3 @@ EMInterfaceSolver::setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam)
 
   m_calculateFields = m_secondaryRays && m_mainBeam->fields;
 }
-

@@ -127,7 +127,7 @@ namespace RZ {
     // Interface
     const ReferenceFrame *frame = nullptr;
     bool  debug = false; // Calculate intermediate fields
-
+    bool  flipped = false; // To mark flipped sense
     Vec3  normal;
     const EMMedium *m1 = nullptr;
     const EMMedium *m2 = nullptr;
@@ -204,6 +204,8 @@ namespace RZ {
         ax2 = frame->toRelativeVec(m2->frame->fromRelativeVec(m2->axis));
         m2->ieps(iep2, ax2);
       }
+
+      flipped = false;
     }
 
 
@@ -240,11 +242,19 @@ namespace RZ {
 
       // Ray is coming from behind! Need to invert roles
       if (ui * normal > 0) {
-        setMedia(m2, m1);
         this->normal = -normal;
+
+        if (!flipped) {
+          setMedia(m2, m1);
+          flipped = true;
+        }
         direct = false;
       } else {
         this->normal = normal;
+        if (flipped) {
+          setMedia(m2, m1);
+          flipped = false;
+        }
       }
 
       this->Dx   = Dx;

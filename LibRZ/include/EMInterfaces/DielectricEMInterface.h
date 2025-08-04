@@ -26,6 +26,8 @@ namespace RZ {
   class DielectricEMInterface : public EMInterface {
       EMInterfaceSolver *m_ifaceSolver = nullptr;
 
+      void initInterfaceSolver();
+      
     public:
 
       virtual std::string name() const override;

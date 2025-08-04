@@ -18,7 +18,6 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-
 #define PYTHON_SCRIPT_SUPPORT
 #define SWIG_FILE_WITH_INIT
 static PyObject* g_rzException;

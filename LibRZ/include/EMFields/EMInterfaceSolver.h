@@ -37,7 +37,11 @@ namespace RZ {
       RayBeam              *m_splinterBeam    = nullptr;
       uint8_t               m_sCount          = 0;
 
-      EMInterfaceSolver(const EMMedium *m1, const EMMedium *m2);
+      EMInterfaceSolver(
+        const EMMedium *m1,
+        const EMMedium *m2,
+        const ReferenceFrame *frame = nullptr);
+        
       virtual uint8_t secondaryBeamCount() const = 0;
       
   public:

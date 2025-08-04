@@ -98,6 +98,12 @@ namespace RZ {
     }
 
     inline void
+    unprune(uint64_t c)
+    {
+      mask[c >> 6] &= ~(1ull << (c & 63));
+    }
+
+    inline void
     pruneAll()
     {
       size_t maskSize = ((count + 63) >> 6) << 3;
