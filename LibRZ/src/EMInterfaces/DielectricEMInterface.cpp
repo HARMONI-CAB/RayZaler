@@ -37,6 +37,11 @@ DielectricEMInterface::transmit(
 {
   blockLight(slice); // Prune rays according to transmission
 
+  if (m_ifaceSolver != nullptr) {
+    throw std::runtime_error("Cannot transmit rays: interface solver not initialized\n");
+    return;
+  }
+
   m_ifaceSolver->setBeam(slice, splinterBeam);
   m_ifaceSolver->transmit();
 }
@@ -65,6 +70,9 @@ DielectricEMInterface::setMedia(
 {
   EMInterface::setMedia(positive, negative);
 
+  if (pMedium() == nullptr || nMedium() == nullptr)
+    return;
+  
   if (m_ifaceSolver != nullptr) {
     if ((pMedium()->isotropic() != m_ifaceSolver->pMedium()->isotropic())
     || (nMedium()->isotropic() != m_ifaceSolver->nMedium()->isotropic())) {
