@@ -44,6 +44,7 @@ RZ::RZInit()
   // Element factories
   singleton->registerElementFactory(new ApertureStopFactory);
   singleton->registerElementFactory(new BenchElementFactory);
+  singleton->registerElementFactory(new BirefringentPrismFactory);
   singleton->registerElementFactory(new BlockElementFactory);
   singleton->registerElementFactory(new CircularWindowFactory);
   singleton->registerElementFactory(new ConicLensFactory);

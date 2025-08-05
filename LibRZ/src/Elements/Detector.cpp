@@ -28,6 +28,7 @@
 #include <png++/png.hpp>
 #include <cmath>
 #include <complex>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
@@ -242,6 +243,10 @@ DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
   RayBeam &beam = *slice.beam;
   // At this point, the amplitude phasor is already updated.
 
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
+  auto frame = parent()->frame;
+
   for (uint64_t i = slice.start; i < end; ++i) {
     // Check intercept
     if (beam.hasRay(i) && beam.isIntercepted(i)) {
@@ -249,11 +254,24 @@ DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
       Vec3 dest(beam.destinations + 3 * i);
 
       if (beam.fields) {
-        Vec3 uEx(beam.vDx + 3 * i);
-        Vec3 uEy = Vec3(beam.directions + 3 * i).cross(uEx);
+        Vec3 fx, fy;
+        Vec3 uDx(beam.vDx + 3 * i);
+        Vec3 u = Vec3(beam.k + 3 * i).normalized();
+        Vec3 uDy(u.cross(uDx));
 
-        Vec3 In  = beam.Dx[i].real() * uEx + beam.Dy[i].real() * uEy;
-        Vec3 Qu  = beam.Dx[i].imag() * uEx + beam.Dy[i].imag() * uEy;
+        calcEdirfromDdir(
+          fx,
+          fy,
+          ieps,
+          uDx,
+          uDy,
+          u,
+          beam.media[i],
+          prevMedium,
+          frame);
+        
+        Vec3 In  = beam.Dx[i].real() * fx + beam.Dy[i].real() * fy;
+        Vec3 Qu  = beam.Dx[i].imag() * fx + beam.Dy[i].imag() * fy;
 
         Ex = Complex(In.x, Qu.x);
         Ey = Complex(In.y, Qu.y);

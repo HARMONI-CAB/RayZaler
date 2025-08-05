@@ -21,6 +21,7 @@
 
 #include <Elements/ApertureStop.h>
 #include <Elements/BenchElement.h>
+#include <Elements/BirefringentPrism.h>
 #include <Elements/BlockElement.h>
 #include <Elements/CircularWindow.h>
 #include <Elements/ConicLens.h>

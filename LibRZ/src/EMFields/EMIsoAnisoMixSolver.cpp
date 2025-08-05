@@ -41,7 +41,7 @@ void
 EMIsoAnisoMixSolver::transmit()
 {
   const uint64_t oOff = 0;
-  const uint64_t eOff = m_splinterBeam->count;
+  const uint64_t eOff = m_mainBeam->count;
   
   for (uint64_t i = m_currentSlice->start; i < m_currentSlice->end; ++i) {
     if (EMInterface::mustTransmitRay(m_mainBeam, i)) {
@@ -82,7 +82,7 @@ EMIsoAnisoMixSolver::transmit()
           m_splinterBeam->media[eOff + i] = m_solver->m1;
           m_solver->te1.copyToArray(
             m_splinterBeam->directions + 3 * (eOff + i));
-          m_solver->te1.copyToArray(
+          m_solver->ke1.copyToArray(
             m_splinterBeam->k          + 3 * (eOff + i));
         } else if (breakMask & TransmittedExtraordinary) {
           m_splinterBeam->media[eOff + i] = m_solver->m2;

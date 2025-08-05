@@ -64,6 +64,7 @@ set(LIBRZ_SOURCES
 
   ${LIBRZ_SRCDIR}/Elements/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/Elements/BenchElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/BirefringentPrism.cpp
   ${LIBRZ_SRCDIR}/Elements/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Elements/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/Elements/ConicLens.cpp
@@ -108,7 +109,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/MediumBoundaries/PassThrough.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularStop.cpp
-  ${LIBRZ_SRCDIR}/MediumBoundaries/SquareFlatSurface.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularWindow.cpp
 
   ${LIBRZ_SRCDIR}/RayTracingHeuristics/Dummy.cpp
 
@@ -174,6 +175,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/All.h
   ${LIBRZ_INCLUDEDIR}/Elements/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/Elements/BenchElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/BirefringentPrism.h
   ${LIBRZ_INCLUDEDIR}/Elements/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/Elements/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/Elements/ConicLens.h
@@ -220,7 +222,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PassThrough.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularStop.h
-  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/SquareFlatSurface.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularWindow.h
   
   ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/All.h
   ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/Dummy.h

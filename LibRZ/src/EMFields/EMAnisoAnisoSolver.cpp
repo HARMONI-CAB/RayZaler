@@ -41,8 +41,8 @@ void
 EMAnisoAnisoSolver::transmit()
 {
   const uint64_t roOff = 0;
-  const uint64_t reOff = m_splinterBeam->count;
-  const uint64_t teOff = 2 * m_splinterBeam->count;
+  const uint64_t reOff = m_mainBeam->count;
+  const uint64_t teOff = 2 * m_mainBeam->count;
   
   for (uint64_t i = m_currentSlice->start; i < m_currentSlice->end; ++i) {
     if (EMInterface::mustTransmitRay(m_mainBeam, i)) {

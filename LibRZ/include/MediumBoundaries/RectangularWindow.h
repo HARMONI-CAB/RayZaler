@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//  Copyright (c) 2025 Gonzalo José Carracedo Carballal
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as
@@ -16,9 +16,24 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <MediumBoundaries/SquareFlatSurface.h>
-#include <ReferenceFrame.h>
+#ifndef _RAY_PROCESSORS_RECTANGULAR_WINDOW_H
+#define _RAY_PROCESSORS_RECTANGULAR_WINDOW_H
 
-using namespace RZ;
+#include <RayTracingEngine.h>
 
-// TODO: To implement when designing coatings, etc
+namespace RZ {
+  class ReferenceFrame;
+  class EMMedium;
+
+  class RectangularWindowBoundary : public MediumBoundary {
+    public:
+      RectangularWindowBoundary();
+      
+      void setWidth(Real);
+      void setHeight(Real);
+      void setMedia(const EMMedium *positive, const EMMedium *negative);
+      virtual std::string name() const;
+  };
+}
+
+#endif // _RAY_PROCESSORS_CIRCULAR_WINDOW_H
