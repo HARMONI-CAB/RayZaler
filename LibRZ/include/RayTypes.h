@@ -34,15 +34,15 @@ namespace RZ {
     // Defined by input
     Vec3 origin;
     Vec3 direction;
-    Vec3 uDx; // Direction of the Dx vector
+    Vec3 uDx;       // Direction of the Dx vector
 
     Complex Dx, Dy; // Initial complex amplitudes for the X and Y directions
-    Vec3 S; // Poynting vector direction
-
+    Vec3 k;         // Normalized wavevector. This is a calculated quantity
+    Vec3 S;         // Poynting vector (calculated on extraction)
+    
     // Incremented by tracer
     Real length;
     Real cumOptLength;
-    Real neff = 1.;
 
     // Defines whether the ray is susceptible to vignetting
     bool chief;

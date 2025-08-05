@@ -108,7 +108,7 @@ OpticalSurface::power() const
 
   if (powerArray.size() != expectedSize) {
     powerArray.resize(expectedSize);
-
+    
     for (size_t i = 0; i < hits.size(); ++i) {
       if (hits[i].fields)
         powerArray[i] = hits[i].S * hits[i].direction;

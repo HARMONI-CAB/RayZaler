@@ -45,7 +45,7 @@ EMIsoIsoSolver::transmit()
   for (uint64_t i = m_currentSlice->start; i < m_currentSlice->end; ++i) {
     if (EMInterface::mustTransmitRay(m_mainBeam, i)) {
       Vec3 ui = Vec3(m_mainBeam->directions + 3 * i);
-      Vec3 ki = m_mainBeam->neff[i] * ui;
+      Vec3 ki(m_mainBeam->k + i * 3);
       
       // Configure incident ray
       m_solver->setIncidentRay(
@@ -59,27 +59,27 @@ EMIsoIsoSolver::transmit()
       auto breakMask = m_solver->rayBreak();
 
       if (breakMask & TransmittedOrdinary) {
-        m_mainBeam->neff[i]  = m_solver->m2->no;
         m_mainBeam->media[i] = m_solver->m2;
         m_solver->uo2.copyToArray(m_mainBeam->directions + 3 * i);
+        m_solver->ko2.copyToArray(m_mainBeam->k          + 3 * i);
       } else {
         m_mainBeam->prune(i);
       }
 
       if (m_secondaryRays) {
         if (breakMask & ReflectedOrdinary) {
-          m_splinterBeam->neff[i]  = m_solver->m1->no;
           m_splinterBeam->media[i] = m_solver->m1;
           m_solver->uo1.copyToArray(m_splinterBeam->directions + 3 * i);
+          m_solver->ko1.copyToArray(m_splinterBeam->k          + 3 * i);
         } else {
           m_splinterBeam->prune(i);
           
         }
       } else if (!m_mainBeam->hasRay(i)) {
         m_mainBeam->unprune(i);
-        m_mainBeam->neff[i]  = m_solver->m1->no;
         m_mainBeam->media[i] = m_solver->m1;
         m_solver->uo1.copyToArray(m_mainBeam->directions + 3 * i);
+        m_solver->ko1.copyToArray(m_mainBeam->k          + 3 * i);
       }
 
       // Calculate fields, only for fully broken rays

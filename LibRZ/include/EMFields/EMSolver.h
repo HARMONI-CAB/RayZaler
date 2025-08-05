@@ -756,7 +756,7 @@ namespace RZ {
     Matrix3 &ieps,
     Complex Dx, Complex Dy,
     Vec3 const &vDx, Vec3 const &vDy,
-    Vec3 const &direction,
+    Vec3 const &u,
     const EMMedium *medium,
     const EMMedium *&prevMedium,
     const ReferenceFrame *frame)
@@ -773,7 +773,7 @@ namespace RZ {
     switch (medium->type) {
       case EMMediumVacuum:
         // n = 1, eps0 = 1, then E = D
-        S = ((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * direction;
+        S = ((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * u;
         break;
 
       case EMMediumIsotropic:
@@ -783,7 +783,7 @@ namespace RZ {
         
         invn3 = 1 / (medium->n * medium->n * medium->n);
 
-        S = invn3 *((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * direction;
+        S = invn3 *((Dx * std::conj(Dx) + Dy * std::conj(Dy)).real()) * u;
         break;
 
       case EMMediumUniaxial:
@@ -800,8 +800,8 @@ namespace RZ {
         fx  = ieps * vDx;
         fy  = ieps * vDy;
 
-        gx  = direction.cross(vDx);
-        gy  = direction.cross(vDy);
+        gx  = u.cross(vDx);
+        gy  = u.cross(vDy);
         
         DxR = Dx.real();
         DyR = Dy.real();

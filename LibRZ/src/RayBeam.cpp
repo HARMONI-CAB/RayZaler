@@ -36,7 +36,6 @@ Ray::Ray()
   intercepted  = false;
   wavelength   = RZ_WAVELENGTH;
   medium       = EMMedium::vacuum();
-  neff         = 1.;
   id           = 0;
 }
 
@@ -279,11 +278,11 @@ RayBeam::extractRays(
       
       if (shouldExtract) {
         Ray ray;
-
+        
         ray.id           = beam->ids[i];
         ray.chief        = beam->isChief(i);
         ray.wavelength   = beam->wavelengths[i];
-        ray.neff         = beam->neff[i];
+        ray.k            = Vec3(beam->k + 3 * i);
         ray.medium       = beam->media[i];
         ray.cumOptLength = beam->opl[i];
         ray.length       = beam->lengths[i];
@@ -291,11 +290,12 @@ RayBeam::extractRays(
         ray.fields       = beam->fields;
         
         if (beam->fields) {
+          Vec3 u         = ray.k.normalized();
           ray.uDx        = Vec3(beam->vDx + 3 * i);
           ray.Dx         = beam->Dx[i];
           ray.Dy         = beam->Dy[i];
           if (beam->media[i] != nullptr) {
-            auto uDy = ray.direction.cross(ray.uDx);
+            auto uDy = u.cross(ray.uDx);
             const ReferenceFrame *frame = 
               beamIsSurfaceRelative && beam->surfaces[i] != nullptr
               ? frame = beam->surfaces[i]->frame
@@ -309,7 +309,7 @@ RayBeam::extractRays(
               ray.Dy,
               ray.uDx,
               uDy,
-              ray.direction,
+              u,
               ray.medium,
               prevMedium,
               frame);
@@ -336,11 +336,15 @@ RayBeam::extractRays(
             if (beamIsSurfaceRelative) {
               ray.origin    = plane->fromRelative(ray.origin);
               ray.direction = plane->fromRelativeVec(ray.direction);
+              ray.k         = plane->fromRelativeVec(ray.k);
               ray.uDx       = plane->fromRelativeVec(ray.uDx);
+              ray.S         = plane->fromRelativeVec(ray.S);
             } else {
               ray.origin    = plane->toRelative(ray.origin);
               ray.direction = plane->toRelativeVec(ray.direction);
+              ray.k         = plane->toRelativeVec(ray.k);
               ray.uDx       = plane->toRelativeVec(ray.uDx);
+              ray.S         = plane->toRelativeVec(ray.S);
             }
           }
         }
@@ -449,10 +453,12 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
+      plane->toRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(dest->k + 3 * i);
+
       dest->lengths[i]     = lengths[i];
       dest->opl[i]         = opl[i];
       dest->wavelengths[i] = wavelengths[i];
-      dest->neff[i]        = neff[i];
       dest->ids[i]         = ids[i];
       dest->media[i]       = media[i];
 
@@ -518,6 +524,9 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
+      plane->fromRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(k + 3 * i);
+
       if (fields) {
         plane->fromRelativeVec(
           Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
@@ -546,6 +555,9 @@ RayBeam::fromSurfaceRelative()
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
 
+      plane->fromRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(k + 3 * i);
+      
       if (fields) {
         plane->fromRelativeVec(
           Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
@@ -607,11 +619,11 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
+    this->k             = allocBuffer<Real>(3 * count);
     this->lengths       = allocBuffer<Real>(count);
     this->opl           = allocBuffer<Real>(count);
     this->media         = allocBuffer<const EMMedium *>(count);
     this->wavelengths   = allocBuffer<Real>(count);
-    this->neff          = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
     this->prevMask      = allocBuffer<uint64_t>(maskLen);
@@ -633,8 +645,8 @@ RayBeam::allocate(uint64_t count)
     this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
+    this->k             = allocBuffer<Real>(3 * count, 3 * prev, this->k);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
-    this->neff          = allocBuffer<Real>(count, prev, this->neff);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
     this->opl           = allocBuffer<Real>(count, prev, this->opl);
     this->media         = allocBuffer<const EMMedium *>(count, prev, this->media);
@@ -831,7 +843,7 @@ RayBeam::deallocate()
   freeBuffer(normals);
   freeBuffer(lengths);
   freeBuffer(wavelengths);
-  freeBuffer(neff);
+  freeBuffer(k);
   freeBuffer(opl);
   freeBuffer(vDx);
   freeBuffer(Dx);

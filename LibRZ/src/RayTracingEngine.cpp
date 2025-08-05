@@ -143,21 +143,24 @@ RayTracingEngine::toBeam()
           "Wavelength is too short (minimum: %g pm)",
           RZ_BEAM_MINIMUM_WAVELENGTH * 1e12));
           
+    if (m_beam->media[i] == NULL)
+      m_beam->media[i] = EMMedium::vacuum();
+    
+    if (!m_beam->media[i]->isotropic())
+      throw std::runtime_error(
+        "Casting rays from anisotropic media is not currently supported");
+      
     p->origin.copyToArray(m_beam->origins + 3 * i);
     p->origin.copyToArray(m_beam->destinations + 3 * i);
     p->direction.copyToArray(m_beam->directions + 3 * i);
 
+    (p->direction * m_beam->media[i]->n).copyToArray(m_beam->k + 3 * i);
+    
     m_beam->lengths[i]     = p->length;
     m_beam->opl[i]         = p->cumOptLength;
     m_beam->ids[i]         = p->id;
     m_beam->wavelengths[i] = p->wavelength;
-    m_beam->neff[i]        = p->neff;
     m_beam->media[i]       = p->medium;
-
-    if (m_beam->media[i] == NULL) {
-      m_beam->media[i] = EMMedium::vacuum();
-      m_beam->neff[i]  = 1;
-    }
     
     if (p->chief)
       m_beam->setChiefRay(i);

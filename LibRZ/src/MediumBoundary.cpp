@@ -61,16 +61,18 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
+        Vec3 k      = Vec3(beam.k + 3 * i);
+        Real nRay   = k * dir; // Effective n along ray
         Vec3 normal;
 
         // Do intercept. Note we do not do pruning here.
         if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
           if (!clipped(destination.x, destination.y)) {
             beam.lengths[i]   = dt;
-            beam.opl[i]      += beam.neff[i] * dt;
+            beam.opl[i]      += nRay * dt;
 
             if (beam.fields) {
-              auto K = 2 * M_PI * beam.neff[i] / beam.wavelengths[i];
+              auto K = 2 * M_PI * nRay / beam.wavelengths[i];
               auto dPhi = std::exp(Complex(0, K * dt));
 
               beam.Dx[i] *= dPhi;
@@ -90,18 +92,20 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
+        Vec3 k      = Vec3(beam.k + 3 * i);
+        Real nRay   = k * dir; // Effective n along ray
 
         // Intercept only if the ray is not parallel to the surface
         if (!isZero(dir.z)) {
-          dt                     = -origin.z / dir.z;
-          destination            = origin + dt * dir;
+          dt          = -origin.z / dir.z;
+          destination = origin + dt * dir;
           
           if (!clipped(destination.x, destination.y)) {
-            beam.lengths[i]   = dt;
-            beam.opl[i]      += beam.neff[i] * dt;
+            beam.lengths[i]  = dt;
+            beam.opl[i]     += nRay * dt;
             
             if (beam.fields) {
-              auto K = 2 * M_PI * beam.neff[i] / beam.wavelengths[i];
+              auto K = 2 * M_PI * nRay / beam.wavelengths[i];
               auto dPhi = std::exp(Complex(0, K * dt));
 
               beam.Dx[i] *= dPhi;

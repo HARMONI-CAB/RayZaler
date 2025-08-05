@@ -51,7 +51,8 @@ namespace RZ {
     bool fields            = false; // Fields allocated
 
     Real *origins          = nullptr;
-    Real *directions       = nullptr;
+    Real *directions       = nullptr; // Ray direction. This is parallel to S.
+    Real *k                = nullptr; // Normalized wavevector (n * u)
     Real *destinations     = nullptr;
     Real *vDx              = nullptr;
     Complex *Dx            = nullptr;
@@ -60,7 +61,6 @@ namespace RZ {
     Real *opl              = nullptr;
     Real *normals          = nullptr; // Surface normals of the boundary surface
     Real *wavelengths      = nullptr;
-    Real *neff             = nullptr; // Effective refractive index
     const EMMedium **media = nullptr;
 
     uint32_t *ids          = nullptr;
@@ -160,6 +160,7 @@ namespace RZ {
 
       memcpy(origins      + 3 * index, existing->origins      + 3 * index, 3 * sizeof(Real));
       memcpy(directions   + 3 * index, existing->directions   + 3 * index, 3 * sizeof(Real));
+      memcpy(k            + 3 * index, existing->k            + 3 * index, 3 * sizeof(Real));
       memcpy(normals      + 3 * index, existing->normals      + 3 * index, 3 * sizeof(Real));
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
       
@@ -167,7 +168,6 @@ namespace RZ {
       opl[index]         = existing->opl[index];
       media[index]       = existing->media[index];
       wavelengths[index] = existing->wavelengths[index];
-      neff[index]        = existing->neff[index];
       ids[index]         = existing->ids[index];
 
       if (fields && existing->fields) {
@@ -272,7 +272,6 @@ namespace RZ {
     COPYSCALAR(lengths);
     COPYSCALAR(opl);
     COPYSCALAR(wavelengths);
-    COPYSCALAR(neff);
     COPYSCALAR(media);
     COPYSCALAR(ids);
 
@@ -282,6 +281,7 @@ namespace RZ {
     COPYVECTOR(origins);
     COPYVECTOR(destinations);
     COPYVECTOR(directions);
+    COPYVECTOR(k);
 
     if (src->fields && dest->fields) {
       COPYSCALAR(Dx);
