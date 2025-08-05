@@ -619,6 +619,42 @@ verifyFields(
   printf("  <S2, n>  = %g\n", S2);
   REQUIRE(releq(S1, S2));
   putchar(10);
+
+  printf("Checking Poynting vector alignment (%s)\n", component);
+  REQUIRE(Si  * normal < 0);
+  REQUIRE(So2 * normal < 0);
+  REQUIRE(So2 * normal < 0);
+
+  REQUIRE(So1 * normal > 0);
+  REQUIRE(Se1 * normal > 0);
+  
+  if (solver.rayMask & BirefringentRays) {
+    if (solver.rayMask & ReflectedExtraordinary) {
+      auto norm  = solver.te1.norm();
+      auto power = Se1.norm();
+
+      printf("  Se1 ray direction: %s\n", Se1.normalized().toString().c_str());
+      printf("  Se1 power:         %g\n", power);
+      printf("  te1 vector:        %s\n", solver.te1.toString().c_str());
+
+      REQUIRE(releq(norm, 1));
+      REQUIRE(releq(solver.te1 * Se1, power));
+    }
+    
+    if (solver.rayMask & TransmittedExtraordinary) {
+      auto norm  = solver.te2.norm();
+      auto power = Se2.norm();
+
+      printf("  Se2 ray direction: %s\n", Se2.normalized().toString().c_str());
+      printf("  Se2 power:         %g\n", power);
+      printf("  te2 vector:        %s\n", solver.te2.toString().c_str());
+
+      REQUIRE(releq(norm, 1));
+      REQUIRE(releq(solver.te2 * Se2, power));
+    }
+  }
+
+  putchar(10);
 }
 
 TEST_CASE("EMSolver: Iso2Iso", THIS_TEST_TAG)

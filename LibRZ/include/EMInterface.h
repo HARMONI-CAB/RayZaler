@@ -69,6 +69,17 @@ public:
     }
 
     inline void
+    eS(Matrix3 &eS, Vec3 const &ax) const
+    {
+      Real nosq = no * no;
+      Real nesq = ne * ne;
+
+      auto axax = Matrix3::outer(ax, ax);
+
+      eS = axax * nesq + (Matrix3::eye() - axax) * nosq;
+    }
+
+    inline void
     ieps(Matrix3 &iep) const
     {
       ieps(iep, frame->fromRelativeVec(axis));

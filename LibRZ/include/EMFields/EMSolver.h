@@ -35,6 +35,7 @@ namespace RZ {
     ReflectedExtraordinary = 2,
     TransmittedOrdinary = 4,
     TransmittedExtraordinary = 8,
+    BirefringentRays = ReflectedExtraordinary | TransmittedExtraordinary,
     AllIsoAniso = ReflectedOrdinary | TransmittedOrdinary | TransmittedExtraordinary,
     AllAnisoIso = ReflectedOrdinary | TransmittedOrdinary | ReflectedExtraordinary,
     AllRays     = ReflectedOrdinary | ReflectedExtraordinary | TransmittedOrdinary | TransmittedExtraordinary
@@ -147,21 +148,25 @@ namespace RZ {
     Vec3 ko2, ke2;
 
     // Precalculated quantities
-    Vec3 ui;           // Direction of the incident ray
+    Vec3 ui;           // Wave normal of the incident ray
     Real ni = 1;       // Effective refractive index of the incident ray
     Real n2ton1sq = 1; // Square ratio of N2 to N1
 
-    Vec3 uo1;          // Direction of the ordinary reflected ray
-    Vec3 ue1;          // Direction of the extraordinary reflected ray
+    Vec3 uo1;          // Wave normal of the ordinary reflected ray
+    Vec3 ue1;          // Wave normal of the extraordinary reflected ray
     Real nee1 = 1;     // Effective refractive index of the extraordinary reflected ray
+    Vec3 te1;          // Ray direction of the extraordinary reflected ray
     Vec3 ax1;          // Optical axis of the first medium
     Matrix3 iep1;      // Inverse dielectric tensor for the first medium
+    Matrix3 eS1;       // Wave normal-to-ray matrix of the extraordinary reflected ray
 
-    Vec3 uo2;          // Direction of the ordinary transmitted ray
-    Vec3 ue2;          // Direction of the extraordinary transmitted ray
+    Vec3 uo2;          // Wave normal of the ordinary transmitted ray
+    Vec3 ue2;          // Wave normal of the extraordinary transmitted ray
     Real nee2 = 1.5;   // Effective refractive index of the extraordinary transmitted ray
+    Vec3 te2;          // Ray direction of the extraordinary transmitted ray
     Vec3 ax2;          // Optical axis of the second medium
     Matrix3 iep2;      // Inverse dielectric tensor for the second medium
+    Matrix3 eS2;       // Wave normal-to-ray matrix of the extraordinary transmitted ray
 
     EMFieldDirections dirs;
 
@@ -199,12 +204,14 @@ namespace RZ {
       if (!m1->isotropic()) {
         ax1 = frame->toRelativeVec(m1->frame->fromRelativeVec(m1->axis));
         m1->ieps(iep1, ax1);
+        m1->eS(eS1, ax1);
       }
 
       // Calculate dielectric tensor for second medium
       if (!m2->isotropic()) {
         ax2 = frame->toRelativeVec(m2->frame->fromRelativeVec(m2->axis));
         m2->ieps(iep2, ax2);
+        m2->eS(eS2, ax2);
       }
 
       flipped = false;
@@ -348,6 +355,7 @@ namespace RZ {
         ke1   = ki - (B - R) * normal;
         nee1  = ke1.norm();
         ue1   = ke1 / nee1;
+        te1   = (eS1 * ue1).normalized();
         mask |= ReflectedExtraordinary;
       }
 
@@ -356,6 +364,7 @@ namespace RZ {
         ke2   = ki - (B + R) * normal;
         nee2  = ke2.norm();
         ue2   = ke2 / nee2;
+        te2   = (eS2 * ue2).normalized();
         mask |= TransmittedExtraordinary;
       }
 
@@ -431,12 +440,12 @@ namespace RZ {
         dirs.fs2  = dirs.is2 / n2sq;
         dirs.ft2  = dirs.it2 / n2sq;
 
-        dirs.giR  = dirs.iiR.cross(ui) / n1;
-        dirs.giI  = dirs.iiI.cross(ui) / n1;
-        dirs.gs1  = dirs.is1.cross(uo1) / n1;
-        dirs.gt1  = dirs.it1.cross(uo1) / n1;
-        dirs.gs2  = dirs.is2.cross(uo2) / n2;
-        dirs.gt2  = dirs.it2.cross(uo2) / n2;
+        dirs.giR  = ui.cross(dirs.iiR) / n1;
+        dirs.giI  = ui.cross(dirs.iiI) / n1;
+        dirs.gs1  = uo1.cross(dirs.is1) / n1;
+        dirs.gt1  = uo1.cross(dirs.it1) / n1;
+        dirs.gs2  = uo2.cross(dirs.is2) / n2;
+        dirs.gt2  = uo2.cross(dirs.it2) / n2;
       }
     }
 
@@ -462,12 +471,12 @@ namespace RZ {
       auto fe2 = iep2 * ie2;
 
       // D-to-H vectors
-      auto giR = iiR.cross(ui)  / ni;
-      auto giI = iiI.cross(ui)  / ni;
-      auto go1 = io1.cross(uo1) / no1;
-      auto ge1 = ie1.cross(ue1) / nee1;
-      auto go2 = io2.cross(uo2) / no2;
-      auto ge2 = ie2.cross(ue2) / nee2;
+      auto giR = ui.cross(iiR)  / ni;
+      auto giI = ui.cross(iiI)  / ni;
+      auto go1 = uo1.cross(io1) / no1;
+      auto ge1 = ue1.cross(ie1) / nee1;
+      auto go2 = uo2.cross(io2) / no2;
+      auto ge2 = ue2.cross(ie2) / nee2;
 
       // System matrix
       auto M = Matrix4(
@@ -552,12 +561,12 @@ namespace RZ {
       auto ft2 = iep2 * it2;
 
       // D-to-H vectors
-      auto giR = iiR.cross(ui)  / ni;
-      auto giI = iiI.cross(ui)  / ni;
-      auto go1 = io1.cross(uo1) / no1;
-      auto ge1 = ie1.cross(ue1) / nee1;
-      auto gs2 = is2.cross(uo2) / n2;
-      auto gt2 = it2.cross(uo2) / n2;
+      auto giR = ui.cross(iiR)  / ni;
+      auto giI = ui.cross(iiI)  / ni;
+      auto go1 = uo1.cross(io1) / no1;
+      auto ge1 = ue1.cross(ie1) / nee1;
+      auto gs2 = uo2.cross(is2) / n2;
+      auto gt2 = uo2.cross(it2) / n2;
 
       // System matrix
       auto M = Matrix4(
@@ -636,12 +645,12 @@ namespace RZ {
       auto fe2 = iep2 * ie2;
 
       // D-to-H vectors
-      auto giR = iiR.cross(ui)  / ni;
-      auto giI = iiI.cross(ui)  / ni;
-      auto gs1 = is1.cross(uo1) / n1;
-      auto gt1 = it1.cross(uo1) / n1;
-      auto go2 = io2.cross(uo2) / no2;
-      auto ge2 = ie2.cross(ue2) / nee2;
+      auto giR = ui.cross(iiR)  / ni;
+      auto giI = ui.cross(iiI)  / ni;
+      auto gs1 = uo1.cross(is1) / n1;
+      auto gt1 = uo1.cross(it1) / n1;
+      auto go2 = uo2.cross(io2) / no2;
+      auto ge2 = ue2.cross(ie2) / nee2;
 
       // System matrix
       auto M = Matrix4(
