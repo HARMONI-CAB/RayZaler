@@ -19,6 +19,7 @@
 #include <EMFields/EMIsoAnisoMixSolver.h>
 #include <EMInterface.h>
 #include <EMFields/EMSolver.h>
+#include <Logger.h>
 
 using namespace RZ;
 
@@ -111,8 +112,8 @@ EMIsoAnisoMixSolver::transmit()
           continue;
         }
 
-        m_mainBeam->Dx[i]     = to.Dx;
-        m_mainBeam->Dy[i]     = to.Dy;
+        m_mainBeam->Dx[i] = to.Dx;
+        m_mainBeam->Dy[i] = to.Dy;
         to.vDx.copyToArray(m_mainBeam->vDx + 3 * i);
 
         m_splinterBeam->Dx[oOff + i] = ro.Dx;
@@ -122,6 +123,22 @@ EMIsoAnisoMixSolver::transmit()
         m_splinterBeam->Dx[eOff + i] = ex.Dx;
         m_splinterBeam->Dy[eOff + i] = ex.Dy;
         ex.vDx.copyToArray(m_splinterBeam->vDx + 3 * (i + eOff));
+
+#if 0
+        try {
+          assertFields(i);
+        } catch (std::runtime_error const &e) {
+          RZError("NaN catched! Case: %s\n", breakMask == AllIsoAniso ? "Iso->Aniso" : "Aniso->Iso");
+          RZError("  DReal:  %s\n", m_solver->DReal.toString().c_str());
+          RZError("  DImag:  %s\n", m_solver->DImag.toString().c_str());
+          RZError("  normal: %s\n", m_solver->normal.toString().c_str());
+          RZError("  ws:     %s\n", m_solver->ws.toString().c_str());
+          RZError("  is2:    %s\n", to.vDx.toString().c_str());
+          RZError("  it2:    %s\n", to.vDy.toString().c_str());
+          
+          throw e;
+        }
+#endif
       }
     }
   }

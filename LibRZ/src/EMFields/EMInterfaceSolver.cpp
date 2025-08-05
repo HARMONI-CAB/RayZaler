@@ -60,6 +60,35 @@ EMInterfaceSolver::setMedia(const EMMedium *m1, const EMMedium *m2)
   m_solver->setMedia(m1, m2);
 }
 
+static inline void
+assertBeamFields(const RayBeam *beam, uint64_t i, uint64_t off, std::string const &name)
+{
+    if (std::isnan(beam->Dx[i + off].real()))
+    throw std::runtime_error(string_printf("NaN detected: Dx[%d].real() [%s]", i, name.c_str()));
+
+  if (std::isnan(beam->Dx[i + off].imag()))
+    throw std::runtime_error(string_printf("NaN detected: Dx[%d].imag() [%s]", i, name.c_str()));
+
+  if (std::isnan(beam->Dy[i + off].real()))
+    throw std::runtime_error(string_printf("NaN detected: Dy[%d].real() [%s]", i, name.c_str()));
+
+  if (std::isnan(beam->Dy[i + off].imag()))
+    throw std::runtime_error(string_printf("NaN detected: Dy[%d].imag() [%s]", i, name.c_str()));
+}
+
+void
+EMInterfaceSolver::assertFields(uint64_t i) const
+{
+  assertBeamFields(m_mainBeam, i, 0, "main beam");
+
+  for (auto j = 0; j < m_sCount; ++j)
+    assertBeamFields(
+      m_splinterBeam,
+      i,
+      m_mainBeam->count * j,
+      string_printf("splinter #%d", j + 1));
+}
+
 void
 EMInterfaceSolver::setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam)
 {

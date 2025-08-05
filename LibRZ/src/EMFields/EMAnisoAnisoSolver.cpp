@@ -127,7 +127,7 @@ EMAnisoAnisoSolver::transmit()
           m_splinterBeam->prune(reOff + i);
           m_splinterBeam->prune(teOff + i);
         }
-      } 
+      }
     }
   }
 }

@@ -223,7 +223,7 @@ namespace RZ {
     calcIncidentFrame() {
       ws = ui.cross(normal);
   
-      if (ws.isNull()) {
+      if (ws * ws < 1e-13) {
         auto v1 = normal.cross(Vec3::eX());
         auto v2 = normal.cross(Vec3::eY());
 
@@ -277,8 +277,15 @@ namespace RZ {
       DampR = DReal.norm();
       DampI = DImag.norm();
 
-      iiR = DReal / DampR;
-      iiI = DImag / DampI;
+      if (isZero(DampR))
+        iiR = viDx;
+      else
+        iiR = DReal / DampR;
+
+      if (isZero(DampI))
+        iiI = viDx;
+      else
+        iiI = DImag / DampI;
 
       calcIncidentFrame();
 

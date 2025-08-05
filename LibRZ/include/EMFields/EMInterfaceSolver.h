@@ -43,7 +43,8 @@ namespace RZ {
         const ReferenceFrame *frame = nullptr);
 
       virtual uint8_t secondaryBeamCount() const = 0;
-      
+      void assertFields(uint64_t i) const;
+
   public:
       inline const EMMedium *pMedium() const { return m_m1; }
       inline const EMMedium *nMedium() const { return m_m2; }
