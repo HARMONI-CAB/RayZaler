@@ -139,6 +139,7 @@ namespace std {
 
 %include "Elements/ApertureStop.h"
 %include "Elements/BenchElement.h"
+%include "Elements/BirefringentPrism.h"
 %include "Elements/BlockElement.h"
 %include "Elements/CircularWindow.h"
 %include "Elements/ConicLens.h"
@@ -159,6 +160,7 @@ namespace std {
 %include "Elements/StlMesh.h"
 %include "Elements/Tripod.h"
 %include "Elements/TubeElement.h"
+%include "Elements/WedgeElement.h"
 
 %include "RayTracingHeuristics/Dummy.h"
 

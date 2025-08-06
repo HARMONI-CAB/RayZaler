@@ -42,6 +42,7 @@
 #include <Elements/StlMesh.h>
 #include <Elements/Tripod.h>
 #include <Elements/TubeElement.h>
+#include <Elements/WedgeElement.h>
 
 #endif // _ELEMENTS_ALL_H
 

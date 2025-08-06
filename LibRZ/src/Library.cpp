@@ -65,6 +65,7 @@ RZ::RZInit()
   singleton->registerElementFactory(new StlMeshFactory);
   singleton->registerElementFactory(new TripodFactory);
   singleton->registerElementFactory(new TubeElementFactory);
+  singleton->registerElementFactory(new WedgeElementFactory);
 
   // Ray tracing heuristics for non-sequential mode
   singleton->registerRayTracingHeuristicFactory(new DummyHeuristicFactory);

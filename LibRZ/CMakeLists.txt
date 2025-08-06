@@ -85,6 +85,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/StlMesh.cpp
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/WedgeElement.cpp
 
   ${LIBRZ_SRCDIR}/EMFields/EMAnisoAnisoSolver.cpp
   ${LIBRZ_SRCDIR}/EMFields/EMInterfaceSolver.cpp
@@ -197,6 +198,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/stl_reader.h
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/WedgeElement.h
 
   ${LIBRZ_INCLUDEDIR}/EMFields/EMAnisoAnisoSolver.h
   ${LIBRZ_INCLUDEDIR}/EMFields/EMInterfaceSolver.h
