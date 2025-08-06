@@ -100,9 +100,9 @@ EMInterfaceSolver::setBeam(RayBeamSlice const &slice, RayBeam *splinterBeam)
     m_secondaryRays = true;
     m_sCount = secondaryBeamCount();
 
-    if (splinterBeam->count < m_mainBeam->count) {
-      splinterBeam->allocate(m_mainBeam->count * m_sCount);
-    }
+    auto splinterRays = m_mainBeam->count * m_sCount;
+    if (splinterBeam->count < splinterRays)
+      splinterBeam->allocate(splinterRays);
 
     // There is a buch of properties in each ray that we can just keep here
     for (auto i = 0; i < m_sCount; ++i) {

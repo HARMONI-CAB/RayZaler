@@ -63,6 +63,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/DataProducts/ScatterTree.cpp
 
   ${LIBRZ_SRCDIR}/Elements/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/Elements/Babinet.cpp
   ${LIBRZ_SRCDIR}/Elements/BenchElement.cpp
   ${LIBRZ_SRCDIR}/Elements/BirefringentPrism.cpp
   ${LIBRZ_SRCDIR}/Elements/BlockElement.cpp
@@ -175,6 +176,7 @@ set(LIBRZ_HEADERS
   
   ${LIBRZ_INCLUDEDIR}/Elements/All.h
   ${LIBRZ_INCLUDEDIR}/Elements/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/Elements/Babinet.h
   ${LIBRZ_INCLUDEDIR}/Elements/BenchElement.h
   ${LIBRZ_INCLUDEDIR}/Elements/BirefringentPrism.h
   ${LIBRZ_INCLUDEDIR}/Elements/BlockElement.h

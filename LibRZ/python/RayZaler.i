@@ -138,6 +138,7 @@ namespace std {
 %include "WorldFrame.h"
 
 %include "Elements/ApertureStop.h"
+%include "Elements/Babinet.h"
 %include "Elements/BenchElement.h"
 %include "Elements/BirefringentPrism.h"
 %include "Elements/BlockElement.h"
