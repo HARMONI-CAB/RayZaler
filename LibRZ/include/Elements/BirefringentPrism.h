@@ -37,7 +37,7 @@ namespace RZ {
 
       Real m_length  = 5e-2;
       Real m_width   = 3e-2;
-      Real m_height  = 1;
+      Real m_height  = 1e-2;
       Real m_axis[3] = {1, 0, 0};
 
       void recalcModel();

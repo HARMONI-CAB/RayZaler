@@ -184,7 +184,7 @@ RayBeamElement::raysToVertices()
 
   if (!m_scalar)
     for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
-      auto power = p->k.normalized() * p->S;
+      auto power = p->direction * p->S;
       if (power > maxPower)
         maxPower = power;
     }
@@ -213,7 +213,7 @@ RayBeamElement::raysToVertices()
     }
 
     if (!m_scalar) {
-      Real power = 5 * p->S * p->k.normalized() / maxPower;
+      Real power = 5 * p->S * p->direction / maxPower;
 
       if (power > 1)
         power = 1;
