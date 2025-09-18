@@ -102,12 +102,14 @@ ConicLens::recalcModel()
   m_inputBoundary->setRefractiveIndex(1, m_mu);
   m_inputBoundary->setConicConstant(m_K[0]);
   m_inputBoundary->setConvex(convex[0]);
+  m_inputBoundary->setCenterOffset(m_x0, m_y0);
 
   m_frontCap.setRadius(m_radius);
   m_frontCap.setCurvatureRadius(Rc[0]);
   m_frontCap.setConicConstant(m_K[0]);
   m_frontCap.setConvex(convex[0]);
   m_frontCap.setInvertNormals(false);
+  m_frontCap.setCenterOffset(m_x0, m_y0);
   m_frontCap.requestRecalc();
 
   // Output focal plane: opposite side
@@ -118,6 +120,7 @@ ConicLens::recalcModel()
   m_outputBoundary->setCurvatureRadius(Rc[1]);
   m_outputBoundary->setRefractiveIndex(m_mu, 1);
   m_outputBoundary->setConicConstant(m_K[1]);
+  m_outputBoundary->setCenterOffset(m_x0, m_y0);
   m_outputBoundary->setConvex(!convex[1]);
   
   m_backCap.setRadius(m_radius);
@@ -125,7 +128,9 @@ ConicLens::recalcModel()
   m_backCap.setConicConstant(m_K[1]);
   m_backCap.setConvex(!convex[1]);
   m_backCap.setInvertNormals(true);
+  m_backCap.setCenterOffset(m_x0, m_y0);
   m_backCap.requestRecalc();
+  
   
   m_cylinder.setHeight(m_thickness);
   m_cylinder.setRadius(m_radius);
@@ -138,8 +143,8 @@ ConicLens::recalcModel()
   m_outputFrame->recalculate();
 
   setBoundingBox(
-      Vec3(-m_radius, -m_radius, fmin(-(.5 * m_thickness + m_displacement[1]), -m_thickness / 2)),
-      Vec3(+m_radius, +m_radius, fmax(+(.5 * m_thickness + m_displacement[0]), +m_thickness / 2)));
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(-(.5 * m_thickness + m_displacement[1]), -m_thickness / 2)),
+      Vec3(+m_radius + m_x0, +m_radius + m_y0, fmax(+(.5 * m_thickness + m_displacement[0]), +m_thickness / 2)));
 
   refreshFrames();
 
