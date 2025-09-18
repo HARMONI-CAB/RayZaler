@@ -18,6 +18,9 @@
 
 #include <EMInterfaces/DielectricEMInterface.h>
 #include <RayTracingEngine.h>
+#include <Logger.h>
+#include <EMFields/EMSolver.h>
+#include <EMFields/EMInterfaceSolver.h>
 
 using namespace RZ;
 
@@ -28,44 +31,75 @@ DielectricEMInterface::name() const
 }
 
 void
-DielectricEMInterface::setRefractiveIndex(Real in, Real out)
-{
-  m_muIn    = in;
-  m_muOut   = out;
-  m_IOratio = in / out;
-}
-
-void
-DielectricEMInterface::transmit(RayBeamSlice const &slice)
+DielectricEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterBeam)
 {
   blockLight(slice); // Prune rays according to transmission
 
-  //
-  // TODO: TEST FOR SPECULAR REFLECTION
-  //
-
-  auto beam = slice.beam;
-  Real rdir = m_IOratio, rinv = 1 / m_IOratio;
-  Real nIn  = m_muIn;
-  Real nOu  = m_muOut;
-
-  for (auto i = slice.start; i < slice.end; ++i) {
-    if (mustTransmitRay(slice.beam, i)) {
-      const Vec3 direct(beam->directions + 3 * i);
-      const Vec3 normal(beam->normals    + 3 * i);
-      
-      if (direct * normal < 0) {
-        snell(direct, normal, rdir).copyToArray(beam->directions + 3 * i);
-        beam->refNdx[i] = nOu;
-      } else {
-        snell(direct, -normal, rinv).copyToArray(beam->directions + 3 * i);
-        beam->refNdx[i] = nIn;
-      }
-    }
+  if (m_ifaceSolver == nullptr) {
+    throw std::runtime_error("Cannot transmit rays: interface solver not initialized\n");
+    return;
   }
+
+  m_ifaceSolver->setBeam(slice, splinterBeam);
+  m_ifaceSolver->transmit();
 }
 
 DielectricEMInterface::~DielectricEMInterface()
 {
 
+}
+
+void
+DielectricEMInterface::initInterfaceSolver()
+{
+  if (pMedium() == nullptr || nMedium() == nullptr || parentFrame() == nullptr)
+    return;
+  
+  if (m_ifaceSolver != nullptr) {
+    if ((pMedium()->isotropic() != m_ifaceSolver->pMedium()->isotropic())
+    || (nMedium()->isotropic() != m_ifaceSolver->nMedium()->isotropic())) {
+      delete m_ifaceSolver;
+      m_ifaceSolver = nullptr;
+    }
+  }
+
+  if (m_ifaceSolver == nullptr)
+    m_ifaceSolver = EMInterfaceSolver::make(
+      pMedium(),
+      nMedium(),
+      parentFrame());
+  else
+    m_ifaceSolver->setMedia(pMedium(), nMedium());
+
+}
+
+void
+DielectricEMInterface::setParentFrame(const ReferenceFrame *frame)
+{
+  EMInterface::setParentFrame(frame);
+  initInterfaceSolver();
+}
+
+void
+DielectricEMInterface::setSurroundingMedium(const EMMedium *medium)
+{
+  auto pOld = pMedium();
+  auto nOld = nMedium();
+
+  EMInterface::setSurroundingMedium(medium);
+  
+  if (pOld != pMedium() || nOld != nMedium())
+    setMedia(pMedium(), nMedium());
+}
+
+void
+DielectricEMInterface::setMedia(
+  const EMMedium *positive,
+  const EMMedium *negative)
+{
+  EMInterface::setMedia(positive, negative);
+
+  initInterfaceSolver();
 }

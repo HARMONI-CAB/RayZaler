@@ -40,7 +40,8 @@ ImageNavWidget::pixelValue(unsigned p)
     const uint32_t *photons = m_detector->data();
     return photons[p]; 
   } else {
-    const RZ::Complex A = m_detector->amplitude()[p];
+    auto B = m_amplitudeBasis;
+    const qcomplex A = B[0] * m_detector->Ex()[p] + B[1] * m_detector->Ey()[p];
     RZ::Real E = std::real(A * std::conj(A));
     return E;
   }
@@ -49,7 +50,9 @@ ImageNavWidget::pixelValue(unsigned p)
 inline qreal
 ImageNavWidget::pixelPhase(unsigned p)
 {
-  const RZ::Complex A = m_detector->amplitude()[p];
+  auto B = m_amplitudeBasis;
+  const qcomplex A = B[0] * m_detector->Ex()[p] + B[1] * m_detector->Ey()[p];
+
   return std::arg(A);
 }
 
@@ -295,6 +298,15 @@ ImageNavWidget::zoomToPoint(QPointF const & xy)
 {
   m_currPos = -xy * m_zoom;
   emit viewChanged();
+  update();
+}
+
+void
+ImageNavWidget::setAmplitudeBasis(qcomplex ux, qcomplex uy)
+{
+  m_amplitudeBasis[0] = ux;
+  m_amplitudeBasis[1] = uy;
+  recalcImage();
   update();
 }
 

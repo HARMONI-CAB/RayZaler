@@ -20,14 +20,11 @@
 #ifndef _RAY_BEAM_H
 #define _RAY_BEAM_H
 
-#include <cassert>
-#include <stdint.h>
 #include <vector>
-#include <list>
 #include <map>
 #include <functional>
 
-#include <Vector.h>
+#include "RayTypes.h"
 #include "MediumBoundary.h"
 
 #define RZ_BEAM_MINIMUM_WAVELENGTH 1e-12
@@ -35,44 +32,6 @@
 namespace RZ {
   class ReferenceFrame;
   class OpticalSurface;
-
-  struct Ray {
-    // Defined by input
-    Vec3 origin;
-    Vec3 direction;
-
-    // Incremented by tracer
-    Real length = 0;
-    Real cumOptLength = 0;
-
-    // Defines whether the ray is susceptible to vignetting
-    bool chief = false;
-    bool intercepted = false;
-
-    Real wavelength = RZ_WAVELENGTH;
-    Real refNdx     = 1.; // Refractive index of the medium
-
-    // Defined by the user
-    uint32_t id = 0;
-  };
-
-  class RayList : public std::list<RZ::Ray, std::allocator<RZ::Ray>> { };
-
-struct RayBeamStatistics {
-    uint64_t intercepted = 0;
-    uint64_t vignetted   = 0;
-    uint64_t pruned      = 0;
-
-    inline RayBeamStatistics &
-    operator +=(RayBeamStatistics const &existing)
-    {
-      intercepted += existing.intercepted;
-      vignetted   += existing.vignetted;
-      pruned      += existing.pruned;
-
-      return *this;
-    }
-  };
 
   enum RayExtractionMask {
     OriginPOV                  = 1,
@@ -85,39 +44,31 @@ struct RayBeamStatistics {
     ExtractAll                 = ExtractIntercepted | ExtractVignetted
   };
 
-  struct RayBeam;
-
-  struct RayBeamSlice {
-    RayBeam *beam  = nullptr;
-    uint64_t start = 0;
-    uint64_t end   = 0;
-
-    inline RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end);
-    inline RayBeamSlice(RayBeam *beam);
-    inline RayBeamSlice();
-  };
-  
   struct RayBeam {
-    uint64_t count      = 0;
-    uint64_t allocation = 0;
-    bool nonSeq         = false; // Non sequential beam (allocs surfaces)
+    uint64_t count         = 0;
+    uint64_t allocation    = 0;
+    bool nonSeq            = false; // Non sequential beam (allocs surfaces)
+    bool fields            = false; // Fields allocated
 
-    Real *origins       = nullptr;
-    Real *directions    = nullptr;
-    Real *destinations  = nullptr;
-    Complex *amplitude  = nullptr;
-    Real *lengths       = nullptr;
-    Real *cumOptLengths = nullptr;
-    Real *normals       = nullptr; // Surface normals of the boundary surface
-    Real *wavelengths   = nullptr;
-    Real *refNdx        = nullptr;
+    Real *origins          = nullptr;
+    Real *directions       = nullptr; // Ray direction. This is parallel to S.
+    Real *k                = nullptr; // Normalized wavevector (n * u)
+    Real *destinations     = nullptr;
+    Real *vDx              = nullptr;
+    Complex *Dx            = nullptr;
+    Complex *Dy            = nullptr;
+    Real *lengths          = nullptr;
+    Real *opl              = nullptr;
+    Real *normals          = nullptr; // Surface normals of the boundary surface
+    Real *wavelengths      = nullptr;
+    const EMMedium **media = nullptr;
 
-    uint32_t *ids       = nullptr;
+    uint32_t *ids          = nullptr;
 
-    uint64_t *mask      = nullptr;
-    uint64_t *intMask   = nullptr;
-    uint64_t *prevMask  = nullptr;
-    uint64_t *chiefMask = nullptr;
+    uint64_t *mask         = nullptr;
+    uint64_t *intMask      = nullptr;
+    uint64_t *prevMask     = nullptr;
+    uint64_t *chiefMask    = nullptr;
     
     OpticalSurface **surfaces     = nullptr;
 
@@ -144,6 +95,12 @@ struct RayBeamStatistics {
     {
       if (!isChief(c) && hasRay(c))
         mask[c >> 6] |= 1ull << (c & 63);
+    }
+
+    inline void
+    unprune(uint64_t c)
+    {
+      mask[c >> 6] &= ~(1ull << (c & 63));
     }
 
     inline void
@@ -203,15 +160,21 @@ struct RayBeamStatistics {
 
       memcpy(origins      + 3 * index, existing->origins      + 3 * index, 3 * sizeof(Real));
       memcpy(directions   + 3 * index, existing->directions   + 3 * index, 3 * sizeof(Real));
+      memcpy(k            + 3 * index, existing->k            + 3 * index, 3 * sizeof(Real));
       memcpy(normals      + 3 * index, existing->normals      + 3 * index, 3 * sizeof(Real));
       memcpy(destinations + 3 * index, existing->destinations + 3 * index, 3 * sizeof(Real));
+      
+      lengths[index]     = existing->lengths[index];
+      opl[index]         = existing->opl[index];
+      media[index]       = existing->media[index];
+      wavelengths[index] = existing->wavelengths[index];
+      ids[index]         = existing->ids[index];
 
-      amplitude[index]     = existing->amplitude[index];
-      lengths[index]       = existing->lengths[index];
-      cumOptLengths[index] = existing->cumOptLengths[index];
-      refNdx[index]        = existing->refNdx[index];
-      wavelengths[index]   = existing->wavelengths[index];
-      ids[index]           = existing->ids[index];
+      if (fields && existing->fields) {
+        Dx[index] = existing->Dx[index];
+        Dy[index] = existing->Dy[index];
+        memcpy(vDx + 3 * index, existing->vDx + 3 * index, 3 * sizeof(Real));
+      }
 
       SETMASK(mask);
       SETMASK(chiefMask);
@@ -221,6 +184,7 @@ struct RayBeamStatistics {
     #undef SETMASK
 
     virtual void allocate(uint64_t);
+    virtual void shrink(uint64_t);
     virtual void deallocate();
 
     template <class T> void extractRays(
@@ -237,6 +201,7 @@ struct RayBeamStatistics {
       RayBeamSlice const &beam = RayBeamSlice());
 
 
+    Real power() const;
     void clearMask();
     void computeInterceptStatistics(OpticalSurface * = nullptr);
     void updateOrigins();
@@ -252,11 +217,14 @@ struct RayBeamStatistics {
     // EMInterface calculations
     //
     void copyTo(RayBeam *) const;
+    void appendTo(RayBeam *) const;
     void toRelative(const ReferenceFrame *plane);
     void toRelative(RayBeam *, const ReferenceFrame *plane) const;
 
     void fromRelative(const ReferenceFrame *plane);
     void fromSurfaceRelative();
+    void pruneStrayLight();
+    void compactify();
 
     void walk(
       OpticalSurface *,
@@ -267,31 +235,84 @@ struct RayBeamStatistics {
       OpticalSurface *,
       const std::function <void (OpticalSurface *, RayBeamSlice const &)>& f);
 
+    void walk(const std::function <void (ConstRayBeamSlice const &)>& f) const;
+
     uint64_t updateFromVisible(
       const OpticalSurface *currentSurface,
       const RayBeam *beam);
     void debug() const;
 
-    RayBeam(uint64_t, bool surfaces = false);
+    RayBeam(uint64_t, bool surfaces = false, bool field = false);
     ~RayBeam();
 
   private:
     void addInterceptMetrics(OpticalSurface *surface, RayBeamSlice const &slice);
   };
 
-  inline 
-  RayBeamSlice::RayBeamSlice(RayBeam *beam, uint64_t start, uint64_t end) : beam(beam) {
-    assert(start <= end);
-    assert(end <= beam->count);
-    assert(start < beam->count);
+  template<typename T> inline void
+  Slice<T>::copyTo(Slice<RayBeam> const &slice) const
+  {
+    auto len = length();
+    assert(len == slice.length());
 
-    this->start = start;
-    this->end   = end;
+    uint64_t sOff   = this->start;
+    uint64_t dOff   = slice.start;
+    uint64_t sOffV = 3 * sOff;
+    uint64_t dOffV = 3 * dOff;
+
+    auto dest = slice.beam;
+    auto src  = this->beam;
+
+#define COPYSCALAR(field) \
+    memmove(dest->field + dOff, src->field + sOff, len * sizeof(src->field[0]))
+  
+#define COPYVECTOR(field) \
+    memmove(dest->field + dOffV, src->field + sOffV, 3 * len * sizeof(src->field[0]))
+  
+    COPYSCALAR(lengths);
+    COPYSCALAR(opl);
+    COPYSCALAR(wavelengths);
+    COPYSCALAR(media);
+    COPYSCALAR(ids);
+
+    if (src->nonSeq && dest->nonSeq)
+      COPYSCALAR(surfaces);
+
+    COPYVECTOR(origins);
+    COPYVECTOR(destinations);
+    COPYVECTOR(directions);
+    COPYVECTOR(k);
+
+    if (src->fields && dest->fields) {
+      COPYSCALAR(Dx);
+      COPYSCALAR(Dy);
+      COPYVECTOR(vDx);
+    }
+    
+    uint64_t d = dOff;
+
+    // TODO: Optimize.
+    
+#define COPYMASKBIT(field) \
+    dest->field[dBlock] = (dest->field[dBlock] & ~(1ull << dBit)) | (((src->field[sBlock] >> sBit) & 1ull) << dBit)
+
+    for (uint64_t i = this->start; i < this->end; ++i, ++d) {
+      uint64_t sBlock = i >> 6;
+      uint64_t sBit   = i & 63;
+
+      uint64_t dBlock = d >> 6;
+      uint64_t dBit   = d & 63;
+
+      COPYMASKBIT(mask);
+      COPYMASKBIT(intMask);
+      COPYMASKBIT(prevMask);
+      COPYMASKBIT(chiefMask);
+    }
+
+#undef COPYMASKBIT
+#undef COPYVECTOR
+#undef COPYSCALAR
   }
-
-  inline RayBeamSlice::RayBeamSlice(RayBeam *beam) : RayBeamSlice(beam, 0, beam->count) { }
-
-  inline RayBeamSlice::RayBeamSlice() : beam(nullptr), start(0), end(0) { }
 }
 
 #endif // _RAY_BEAM_H

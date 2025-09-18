@@ -28,6 +28,7 @@
 #include <png++/png.hpp>
 #include <cmath>
 #include <complex>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
@@ -71,7 +72,8 @@ DetectorStorage::recalculate()
 
   if (m_photons.size() != newSize) {
     m_photons.resize(newSize);
-    m_amplitude.resize(newSize);
+    m_Ex.resize(newSize);
+    m_Ey.resize(newSize);
     clear();
   }
 }
@@ -119,16 +121,23 @@ DetectorStorage::data() const
 }
 
 const Complex *
-DetectorStorage::amplitude() const
+DetectorStorage::Ex() const
 {
-  return m_amplitude.data();
+  return m_Ex.data();
+}
+
+const Complex *
+DetectorStorage::Ey() const
+{
+  return m_Ey.data();
 }
 
 void
 DetectorStorage::clear()
 {
   std::fill(m_photons.begin(), m_photons.end(), 0);
-  std::fill(m_amplitude.begin(), m_amplitude.end(), 0.);
+  std::fill(m_Ex.begin(), m_Ex.end(), 0.);
+  std::fill(m_Ey.begin(), m_Ey.end(), 0.);
 
   m_maxCounts = 0;
   m_maxEnergy = 0;
@@ -194,7 +203,15 @@ DetectorStorage::saveAmplitude(std::string const &path) const
   }
 
   for (auto j = 0; j < m_rows; ++j) {
-    const RZ::Complex *data = m_amplitude.data() + j * m_stride;
+    const RZ::Complex *data = Ex() + j * m_stride;
+    if (fwrite(data, chunkSize, 1, fp) < 1) {
+      RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
+      goto done;
+    }
+  }
+
+  for (auto j = 0; j < m_rows; ++j) {
+    const RZ::Complex *data = Ey() + j * m_stride;
     if (fwrite(data, chunkSize, 1, fp) < 1) {
       RZError("Failed to write complex amplitude to `%s': %s\n", path.c_str(), strerror(errno));
       goto done;
@@ -220,22 +237,51 @@ DetectorBoundary::name() const
 #define WAVENUMBER (2 * M_PI * 4e9 / 3e8)
 
 void
-DetectorBoundary::transmit(RayBeamSlice const &slice) const
+DetectorBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinter) const
 {
   uint64_t end = slice.end;
   RayBeam &beam = *slice.beam;
   // At this point, the amplitude phasor is already updated.
 
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
+  auto frame = parent()->frame;
+
   for (uint64_t i = slice.start; i < end; ++i) {
     // Check intercept
-    if (beam.hasRay(i) && beam.isIntercepted(i))
-      m_storage->hit(
-        beam.destinations[3 * i + 0], 
-        beam.destinations[3 * i + 1], 
-        beam.amplitude[i]);
+    if (beam.hasRay(i) && beam.isIntercepted(i)) {
+      Complex Ex = 0, Ey = 0;
+      Vec3 dest(beam.destinations + 3 * i);
+
+      if (beam.fields) {
+        Vec3 fx, fy;
+        Vec3 uDx(beam.vDx + 3 * i);
+        Vec3 u = Vec3(beam.k + 3 * i).normalized();
+        Vec3 uDy(u.cross(uDx));
+
+        calcEdirfromDdir(
+          fx,
+          fy,
+          ieps,
+          uDx,
+          uDy,
+          u,
+          beam.media[i],
+          prevMedium,
+          frame);
+        
+        Vec3 In  = beam.Dx[i].real() * fx + beam.Dy[i].real() * fy;
+        Vec3 Qu  = beam.Dx[i].imag() * fx + beam.Dy[i].imag() * fy;
+
+        Ex = Complex(In.x, Qu.x);
+        Ey = Complex(In.y, Qu.y);
+      }
+      
+      m_storage->hit(dest.x, dest.y, Ex, Ey);
+    }
   }
 
-  MediumBoundary::transmit(slice);
+  MediumBoundary::transmit(slice, splinter);
 }
 
 DetectorBoundary::DetectorBoundary(DetectorStorage *storage)
@@ -313,6 +359,8 @@ Detector::Detector(
 
   pushOpticalSurface("detSurf", m_detectorSurface, m_boundary);
 
+  addPort("surface", m_detectorSurface);
+
   refreshProperties();
   recalcModel();
 }
@@ -375,9 +423,15 @@ Detector::data() const
 }
 
 const Complex *
-Detector::amplitude() const
+Detector::Ex() const
 {
-  return m_storage->amplitude();
+  return m_storage->Ex();
+}
+
+const Complex *
+Detector::Ey() const
+{
+  return m_storage->Ey();
 }
 
 void

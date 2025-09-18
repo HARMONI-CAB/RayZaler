@@ -67,6 +67,7 @@ namespace RZ {
   class RayBeamElement : public Element {
       static RayColoring   m_defaultColoring;
       const RayColoring   *m_rayColoring = nullptr;
+      GLfloat              m_bgcolor[4] = {0, 0, 0, 0};
       ExprRandomState      m_randState;
       unsigned int         m_maxRays = 5000;
       uint64_t             m_strayRays = 0;
@@ -75,6 +76,8 @@ namespace RZ {
       std::list<Ray>       m_rays;
       LineVertexSet        m_commonRayVert;
       LineVertexSet        m_chiefRayVert;
+
+      bool                 m_scalar = true;
       bool                 m_dynamicAlpha = false;
       void raysToVertices();
 
@@ -93,6 +96,8 @@ namespace RZ {
       virtual ~RayBeamElement() override;
 
       void clear();
+      void setScalarRays(bool);
+      void setBgColor(GLfloat const *);
       void setList(std::list<Ray> const &);
       void setRayColoring(RayColoring const *);
       void setRayColoring(RayColoring const &);

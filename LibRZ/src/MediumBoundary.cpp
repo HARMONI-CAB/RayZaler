@@ -24,6 +24,8 @@
 
 using namespace RZ;
 
+static const EMMedium g_vacuum;
+
 /////////////////////////////// MediumBoundary ///////////////////////////
 MediumBoundary::~MediumBoundary()
 {
@@ -35,12 +37,22 @@ MediumBoundary::~MediumBoundary()
 }
 
 void
+MediumBoundary::setParentFrame(const ReferenceFrame *frame)
+{
+  m_frame = frame;
+
+  if (m_emInterface != nullptr)
+    m_emInterface->setParentFrame(frame);
+}
+
+void
 MediumBoundary::cast(RayBeamSlice const &slice) const
 {
   Vec3 destination;
   auto &beam = *slice.beam;
   uint64_t end = slice.end;
-  Real K, dt, opd;
+  Real dt;
+  
   auto shape     = surfaceShape();
 
   if (shape != nullptr) {
@@ -49,21 +61,26 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
-
+        Vec3 k      = Vec3(beam.k + 3 * i);
+        Real nRay   = k * dir; // Effective n along ray
         Vec3 normal;
-        Real dt, opd;
 
         // Do intercept. Note we do not do pruning here.
         if (surfaceShape()->intercept(destination, normal, dt, origin, dir)) {
           if (!clipped(destination.x, destination.y)) {
-            K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = beam.refNdx[i] * dt;
-            beam.lengths[i]        = dt;
-            beam.cumOptLengths[i] += opd;
-            beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
+            beam.lengths[i]   = dt;
+            beam.opl[i]      += nRay * dt;
+
+            if (beam.fields) {
+              auto K = 2 * M_PI * nRay / beam.wavelengths[i];
+              auto dPhi = std::exp(Complex(0, K * dt));
+
+              beam.Dx[i] *= dPhi;
+              beam.Dy[i] *= dPhi;
+            }
 
             destination.copyToArray(beam.destinations + 3 * i);
-            normal.copyToArray(beam.normals     + 3 * i);
+            normal.copyToArray(beam.normals + 3 * i);
             beam.intercept(i);
           }
         }
@@ -75,19 +92,26 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
       if (beam.hasRay(i)) {
         Vec3 origin = Vec3(beam.origins + 3 * i);
         Vec3 dir    = Vec3(beam.directions + 3 * i);
-        
+        Vec3 k      = Vec3(beam.k + 3 * i);
+        Real nRay   = k * dir; // Effective n along ray
+
         // Intercept only if the ray is not parallel to the surface
         if (!isZero(dir.z)) {
-          dt                     = -origin.z / dir.z;
-          destination            = origin + dt * dir;
+          dt          = -origin.z / dir.z;
+          destination = origin + dt * dir;
           
           if (!clipped(destination.x, destination.y)) {
-            K                      = 2 * M_PI / beam.wavelengths[i];
-            opd                    = beam.refNdx[i] * dt;
-            beam.lengths[i]        = dt;
-            beam.cumOptLengths[i] += opd;
-            beam.amplitude[i]     *= std::exp(Complex(0, K * opd));
+            beam.lengths[i]  = dt;
+            beam.opl[i]     += nRay * dt;
+            
+            if (beam.fields) {
+              auto K = 2 * M_PI * nRay / beam.wavelengths[i];
+              auto dPhi = std::exp(Complex(0, K * dt));
 
+              beam.Dx[i] *= dPhi;
+              beam.Dy[i] *= dPhi;
+            }
+            
             destination.copyToArray(beam.destinations + 3 * i);
             Vec3::eZ().copyToArray(beam.normals + 3 * i);
             beam.intercept(i);
@@ -99,9 +123,9 @@ MediumBoundary::cast(RayBeamSlice const &slice) const
 }
 
 void
-MediumBoundary::transmit(RayBeamSlice const &slice) const
+MediumBoundary::transmit(RayBeamSlice const &slice, RayBeam *splinterRays) const
 {
   // Transmit rays through this interface with the intercepted beams
   if (emInterface() != nullptr)
-    emInterface()->transmit(slice);
+    emInterface()->transmit(slice, splinterRays);
 }

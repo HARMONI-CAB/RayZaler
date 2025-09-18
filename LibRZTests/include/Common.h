@@ -23,9 +23,12 @@
 
 namespace RZ {
   struct BeamTestStatistics {
-    Real maxRad = 0.0;
-    Real rmsRad = 0.0;
-    
+    Real maxRad        = 0.0;
+    Real rmsRad        = 0.0;
+    Real incidentPower = 0.0;
+
+    Real S[4] = {0, 0, 0, 0}; // Stokes parameters
+
     Real x0     = 0.0;
     Real y0     = 0.0;
 

@@ -310,6 +310,8 @@ TEST_CASE("Ideal lens: center and focus (infinity)", THIS_TEST_TAG)
   delete model;
 }
 
+#include <EMInterface.h>
+
 TEST_CASE("Positive lens: center and focus (infinity)", THIS_TEST_TAG)
 {
   auto model = TopLevelModel::fromString(g_focusLens);

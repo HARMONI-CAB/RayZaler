@@ -36,6 +36,13 @@ class SimulationSession;
 class QFileDialog;
 class QLabel;
 
+enum DetectorPolarization {
+  Horizontal,
+  Vertical,
+  RHCP,
+  LHCP
+};
+
 class DetectorWindow : public QMainWindow
 {
   Q_OBJECT
@@ -44,7 +51,7 @@ class DetectorWindow : public QMainWindow
   RZ::Detector         *m_detector;
   SimulationSession    *m_session = nullptr;
   QFileDialog          *m_saveDialog = nullptr;
-
+  DetectorPolarization  m_polarization = Horizontal;
   QLabel               *m_pxSizeLabel  = nullptr;
   QLabel               *m_detSizeLabel = nullptr;
   QLabel               *m_pixelsLabel  = nullptr;
@@ -66,6 +73,7 @@ class DetectorWindow : public QMainWindow
   void connectAll();
   void refreshUi();
   void refreshDetectorParams();
+  void applyPolarization();
 
 public:
   explicit DetectorWindow(QWidget *parent = nullptr);
@@ -90,6 +98,7 @@ public slots:
   void onToggleShowPhase();
   void onToggleGrid();
   void onExport();
+  void onTogglePolarization();
 
 private:
   Ui::DetectorWindow *ui;

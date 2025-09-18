@@ -22,6 +22,7 @@
 #include <OpticalElement.h>
 #include <MediumBoundaries/LensletArray.h>
 #include <GLHelpers.h>
+#include <EMInterface.h>
 
 namespace RZ {
   class TranslatedFrame;  
@@ -40,6 +41,8 @@ namespace RZ {
       TranslatedFrame        *m_objectPlane      = nullptr;
       TranslatedFrame        *m_imagePlane       = nullptr;
 
+      EMMedium                m_glass;
+
       Real m_thickness = 1e-2;
       Real m_width     = 1e-1;
       Real m_height    = 1e-1;
@@ -47,7 +50,6 @@ namespace RZ {
       unsigned m_rows  = 10;
       unsigned m_cols  = 10;
       Real m_rCurv     = 1;
-      Real m_mu        = 1.5;
       Real m_depth     = 0;
       Real m_f         = 0;
 

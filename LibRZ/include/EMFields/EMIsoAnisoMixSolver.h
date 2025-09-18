@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//  Copyright (c) 2025 Gonzalo José Carracedo Carballal
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as
@@ -16,9 +16,24 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#include <MediumBoundaries/SquareFlatSurface.h>
-#include <ReferenceFrame.h>
+#ifndef _EM_FIELDS_EM_ISO_ANISO_MIX_SOLVER_H
+#define _EM_FIELDS_EM_ISO_ANISO_MIX_SOLVER_H
 
-using namespace RZ;
+#include "EMInterfaceSolver.h"
 
-// TODO: To implement when designing coatings, etc
+namespace RZ {
+  class EMIsoAnisoMixSolver : public EMInterfaceSolver {
+    protected:
+      virtual uint8_t secondaryBeamCount() const override;
+      virtual    void transmit()           override;
+    
+    public:
+      EMIsoAnisoMixSolver(
+        const EMMedium *m1,
+        const EMMedium *m2,
+        const ReferenceFrame *parent);
+      virtual ~EMIsoAnisoMixSolver() override;
+  };
+}
+
+#endif // _EM_FIELDS_EM_ISO_ANISO_MIX_SOLVER_H

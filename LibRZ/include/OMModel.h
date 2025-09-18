@@ -43,6 +43,8 @@ namespace RZ {
   class GenericCompositeModel;
   class Simulation;
   
+  struct EMMedium;
+
   //
   // An Opto-Mechanical model consists of:
   //
@@ -121,6 +123,7 @@ namespace RZ {
     Real diameter            = .5;           // [m]
     Real wavelength          = 535e-9;
     unsigned int numRays     = 1000;
+    bool coherent            = false;
     bool random              = false;
     Vec3 direction           = -Vec3::eZ();  // [1]
     Vec3 offset              = Vec3::zero(); // [m]
@@ -221,6 +224,7 @@ namespace RZ {
       // Convenience elements
       RayBeamElement *m_beam = nullptr;
       Simulation     *m_sim  = nullptr;
+      const EMMedium *m_surroundings = nullptr;
 
       bool registerElement(Element *);
       bool registerOpticalElement(OpticalElement *);
@@ -317,6 +321,9 @@ namespace RZ {
 
       ReferenceFrameContext translate(Vec3 const &, ReferenceFrame *parent = nullptr);
       ReferenceFrameContext translate(Real, Real, Real, ReferenceFrame *parent = nullptr);
+
+      // EM medium configuration
+      virtual void setSurroundingMedium(EMMedium const *);
 
       // Optical path configuration
       bool addOpticalPath(std::string const &, std::list<std::string> const &); // Just elements

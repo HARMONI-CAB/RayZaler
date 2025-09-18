@@ -241,6 +241,17 @@ namespace RZ {
         && (this->row.vy == other.row.vy)
         && (this->row.vz == other.row.vz);
     }
+
+    static inline Matrix3
+    outer(Vec3 const &a, Vec3 const &b)
+    {
+      Matrix3 out;
+      for (auto j = 0; j < 3; ++j)
+        for (auto i = 0; i < 3; ++i)
+          out.coef[i][j] = a.coords[i] * b.coords[j];
+
+      return out;
+    }
   };
 
   static inline RZ::Matrix3

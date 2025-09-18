@@ -228,7 +228,6 @@ RZ::GLCube(GLfloat size, bool wireFrame)
     glVertex3fv(v[faces[i][3]]);
     glEnd();
   }
-  
 }
 
 
@@ -2242,4 +2241,149 @@ GLText::display()
 
     glBindTexture(GL_TEXTURE_2D, 0);
   glPopAttrib();
+}
+
+
+////////////////////////////////// GLWedge /////////////////////////////////////
+GLWedge::GLWedge()
+{
+
+}
+
+GLWedge::~GLWedge()
+{
+
+}
+
+void
+GLWedge::recalculate()
+{
+  GLfloat mHeight = .5 * (m_heights[0] + m_heights[1]);
+  
+  ///////////////////// Vertices ////////////////////
+
+  // Bottom side
+  m_vertices[0][0] = +m_length     / 2; // Top-right
+  m_vertices[0][1] = +m_width      / 2;
+  m_vertices[0][2] = -mHeight;
+
+  m_vertices[1][0] = -m_length     / 2; // Top-left
+  m_vertices[1][1] = +m_width      / 2;
+  m_vertices[1][2] = -mHeight;
+
+  m_vertices[2][0] = -m_length     / 2; // Bottom-left
+  m_vertices[2][1] = -m_width      / 2;
+  m_vertices[2][2] = -mHeight;
+
+  m_vertices[3][0] = +m_length     / 2; // Bottom-left
+  m_vertices[3][1] = -m_width      / 2;
+  m_vertices[3][2] = -mHeight;
+
+  // Top side
+  m_vertices[4][0] = +m_length     / 2; // Top-right
+  m_vertices[4][1] = +m_width      / 2;
+  m_vertices[4][2] = -mHeight + m_heights[1];
+
+  m_vertices[5][0] = -m_length     / 2; // Top-left
+  m_vertices[5][1] = +m_width      / 2;
+  m_vertices[5][2] = -mHeight + m_heights[0];
+
+  m_vertices[6][0] = -m_length     / 2; // Bottom-left
+  m_vertices[6][1] = -m_width      / 2;
+  m_vertices[6][2] = -mHeight + m_heights[0];
+
+  m_vertices[7][0] = +m_length     / 2; // Bottom-left
+  m_vertices[7][1] = -m_width      / 2;
+  m_vertices[7][2] = -mHeight + m_heights[1];
+
+  /////////////////////// Normals /////////////////////
+  // The tilted face normal can be calculated as:
+  //
+  // nx = -(heights[1] - heights[0])
+  // ny = 0
+  // nz = length
+
+  GLfloat nx = m_heights[0] - m_heights[1];
+  GLfloat nz = m_length;
+  GLfloat n  = sqrt(nx * nx + nz * nz);
+
+  nx /= n;
+  nz /= n;
+
+  GLfloat normals[6][3] = {
+    { 0,  0, -1},
+    {nx,  0, nz},
+    {+1,  0,  0},
+    {-1,  0,  0},
+    {0,  -1,  0},
+    {0,  +1,  0},
+  };
+
+  memcpy(m_normals, normals, sizeof(normals));
+
+  m_dirty = false;
+}
+
+void
+GLWedge::setLength(GLdouble length)
+{
+  if (!releq(m_length, length)) {
+    m_length = length;
+    m_dirty  = true;
+  }
+}
+
+void
+GLWedge::setWidth(GLdouble width)
+{
+  if (!releq(m_width, width)) {
+    m_width = width;
+    m_dirty = true;
+  }
+}
+
+void
+GLWedge::setHeights(GLdouble h0, GLdouble h1)
+{
+  if (!releq(m_heights[0], h0) || !releq(m_heights[1], h1)) {
+    m_heights[0] = h0;
+    m_heights[1] = h1;
+    m_dirty      = true;
+  }
+}
+
+const GLuint GLWedge::m_indices[12][3] = {
+  {0, 3, 2}, // Bottom
+  {2, 1, 0},
+  {4, 5, 6}, // Top
+  {6, 7, 4},
+  {0, 4, 7}, // Front
+  {7, 3, 0},
+  {1, 2, 6}, // Back
+  {6, 5, 1},
+  {3, 7, 6}, // Left
+  {6, 2, 3},
+  {0, 1, 5}, // Right
+  {5, 4, 0}
+};
+
+void
+GLWedge::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  for (auto i = 0; i < 6; ++i) {
+    glBegin(GL_TRIANGLES);
+    glNormal3fv(m_normals[i]);
+    
+    glVertex3fv(m_vertices[m_indices[2 * i + 0][0]]);
+    glVertex3fv(m_vertices[m_indices[2 * i + 0][1]]);
+    glVertex3fv(m_vertices[m_indices[2 * i + 0][2]]);
+
+    glVertex3fv(m_vertices[m_indices[2 * i + 1][0]]);
+    glVertex3fv(m_vertices[m_indices[2 * i + 1][1]]);
+    glVertex3fv(m_vertices[m_indices[2 * i + 1][2]]);
+    glEnd();
+  }
 }

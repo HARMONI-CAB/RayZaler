@@ -20,7 +20,9 @@
 #define _ELEMENTS_ALL_H
 
 #include <Elements/ApertureStop.h>
+#include <Elements/Babinet.h>
 #include <Elements/BenchElement.h>
+#include <Elements/BirefringentPrism.h>
 #include <Elements/BlockElement.h>
 #include <Elements/CircularWindow.h>
 #include <Elements/ConicLens.h>
@@ -43,6 +45,7 @@
 #include <Elements/StlMesh.h>
 #include <Elements/Tripod.h>
 #include <Elements/TubeElement.h>
+#include <Elements/WedgeElement.h>
 
 #endif // _ELEMENTS_ALL_H
 

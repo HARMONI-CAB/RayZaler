@@ -36,14 +36,14 @@ CircularWindow::recalcModel()
   m_cylinder.setRadius(m_radius);
 
   m_inputBoundary->setRadius(m_radius);
-  m_inputBoundary->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setMedia(nullptr, &m_glass);
 
   m_outputBoundary->setRadius(m_radius);
-  m_outputBoundary->setRefractiveIndex(m_mu, 1);
-
+  m_outputBoundary->setMedia(&m_glass, nullptr);
+  
   // Intercept surfaces
-  m_inputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
-  m_outputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+  m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
 
   setBoundingBox(
       Vec3(-m_radius, -m_radius, -m_thickness/2),
@@ -70,7 +70,7 @@ CircularWindow::propertyChanged(
     m_radius = 0.5 * static_cast<Real>(value);
     recalcModel();
   } else if (name == "n") {
-    m_mu = value;
+    m_glass.n = value;
     recalcModel();
   } else {
     return Element::propertyChanged(name, value);
@@ -91,8 +91,13 @@ CircularWindow::CircularWindow(
   m_inputFrame  = new TranslatedFrame("inputSurf",  frame, Vec3::zero());
   m_outputFrame = new TranslatedFrame("outputSurf", frame, Vec3::zero());
 
+  m_glass.type = EMMediumIsotropic;
+
   pushOpticalSurface("inputFace",  m_inputFrame,  m_inputBoundary);
+  m_inputBoundary->setMedia(nullptr, &m_glass);
+
   pushOpticalSurface("outputFace", m_outputFrame, m_outputBoundary);
+  m_outputBoundary->setMedia(&m_glass, nullptr);
 
   addPort("inputPort", m_inputFrame);
   addPort("outputPort", m_outputFrame);

@@ -63,7 +63,9 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/DataProducts/ScatterTree.cpp
 
   ${LIBRZ_SRCDIR}/Elements/ApertureStop.cpp
+  ${LIBRZ_SRCDIR}/Elements/Babinet.cpp
   ${LIBRZ_SRCDIR}/Elements/BenchElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/BirefringentPrism.cpp
   ${LIBRZ_SRCDIR}/Elements/BlockElement.cpp
   ${LIBRZ_SRCDIR}/Elements/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/Elements/ConicLens.cpp
@@ -86,6 +88,12 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/Elements/StlMesh.cpp
   ${LIBRZ_SRCDIR}/Elements/Tripod.cpp
   ${LIBRZ_SRCDIR}/Elements/TubeElement.cpp
+  ${LIBRZ_SRCDIR}/Elements/WedgeElement.cpp
+
+  ${LIBRZ_SRCDIR}/EMFields/EMAnisoAnisoSolver.cpp
+  ${LIBRZ_SRCDIR}/EMFields/EMInterfaceSolver.cpp
+  ${LIBRZ_SRCDIR}/EMFields/EMIsoIsoSolver.cpp
+  ${LIBRZ_SRCDIR}/EMFields/EMIsoAnisoMixSolver.cpp
 
   ${LIBRZ_SRCDIR}/EMInterfaces/DielectricEMInterface.cpp
   ${LIBRZ_SRCDIR}/EMInterfaces/DummyEMInterface.cpp
@@ -107,7 +115,7 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/MediumBoundaries/PassThrough.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/PhaseScreen.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularStop.cpp
-  ${LIBRZ_SRCDIR}/MediumBoundaries/SquareFlatSurface.cpp
+  ${LIBRZ_SRCDIR}/MediumBoundaries/RectangularWindow.cpp
 
   ${LIBRZ_SRCDIR}/RayTracingHeuristics/Dummy.cpp
 
@@ -140,6 +148,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Linalg.h
   ${LIBRZ_INCLUDEDIR}/Logger.h
   ${LIBRZ_INCLUDEDIR}/Matrix.h
+  ${LIBRZ_INCLUDEDIR}/Matrix4.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundary.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries.h
   ${LIBRZ_INCLUDEDIR}/ModelRenderer.h
@@ -163,6 +172,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/TranslatedFrame.h
   ${LIBRZ_INCLUDEDIR}/WorldFrame.h
   ${LIBRZ_INCLUDEDIR}/Vector.h
+  ${LIBRZ_INCLUDEDIR}/Vector4.h
   ${LIBRZ_INCLUDEDIR}/Zernike.h
 
   ${LIBRZ_INCLUDEDIR}/DataProducts/Scatter.h
@@ -170,7 +180,9 @@ set(LIBRZ_HEADERS
   
   ${LIBRZ_INCLUDEDIR}/Elements/All.h
   ${LIBRZ_INCLUDEDIR}/Elements/ApertureStop.h
+  ${LIBRZ_INCLUDEDIR}/Elements/Babinet.h
   ${LIBRZ_INCLUDEDIR}/Elements/BenchElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/BirefringentPrism.h
   ${LIBRZ_INCLUDEDIR}/Elements/BlockElement.h
   ${LIBRZ_INCLUDEDIR}/Elements/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/Elements/ConicLens.h
@@ -194,7 +206,14 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/Elements/stl_reader.h
   ${LIBRZ_INCLUDEDIR}/Elements/Tripod.h
   ${LIBRZ_INCLUDEDIR}/Elements/TubeElement.h
+  ${LIBRZ_INCLUDEDIR}/Elements/WedgeElement.h
 
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMAnisoAnisoSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMInterfaceSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoIsoSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMIsoAnisoMixSolver.h
+  ${LIBRZ_INCLUDEDIR}/EMFields/EMSolver.h
+  
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DielectricEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/DummyEMInterface.h
   ${LIBRZ_INCLUDEDIR}/EMInterfaces/ParaxialEMInterface.h
@@ -215,7 +234,7 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PassThrough.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/PhaseScreen.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularStop.h
-  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/SquareFlatSurface.h
+  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/RectangularWindow.h
   
   ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/All.h
   ${LIBRZ_INCLUDEDIR}/RayTracingHeuristics/Dummy.h

@@ -25,6 +25,7 @@
 #include <RotatedFrame.h>
 #include <cstdlib>
 #include <iostream>
+#include <Matrix4.h>
 
 using namespace RZ;
 
@@ -78,7 +79,7 @@ TEST_CASE("Testing helper functions", THIS_TEST_TAG)
   }
 }
 
-TEST_CASE("Testing vector comparison", THIS_TEST_TAG)
+TEST_CASE("Vector comparison (3D)", THIS_TEST_TAG)
 {
   REQUIRE(Vec3::zero() == Vec3(0, 0, 0));
   REQUIRE(Vec3::zero() != Vec3::eX());
@@ -89,7 +90,7 @@ TEST_CASE("Testing vector comparison", THIS_TEST_TAG)
   REQUIRE(Vec3(1, 2, 3) != Vec3(1, 2, -3));
 }
 
-TEST_CASE("Testing basic vector algebra", THIS_TEST_TAG)
+TEST_CASE("Basic vector algebra (3D)", THIS_TEST_TAG)
 {
   Vec3 sum = Vec3::eX() + 2 * Vec3::eY() - 3 * Vec3::eZ();
 
@@ -98,7 +99,7 @@ TEST_CASE("Testing basic vector algebra", THIS_TEST_TAG)
   REQUIRE(sum - Vec3(1, 2, -3) == Vec3::zero());
 }
 
-TEST_CASE("Testing cross products", THIS_TEST_TAG)
+TEST_CASE("Vector cross products (3D)", THIS_TEST_TAG)
 {
   REQUIRE(Vec3::eX().cross(Vec3::eY()) == Vec3::eZ());
   REQUIRE(Vec3::eY().cross(Vec3::eZ()) == Vec3::eX());
@@ -109,7 +110,7 @@ TEST_CASE("Testing cross products", THIS_TEST_TAG)
   REQUIRE(Vec3::eX().cross(Vec3::eZ()) == -Vec3::eY());
 }
 
-TEST_CASE("Testing basic matrix algebra", THIS_TEST_TAG)
+TEST_CASE("Basic matrix algebra (3D)", THIS_TEST_TAG)
 {
   Matrix3 eye = Matrix3::eye();
   Real x, y, z;
@@ -127,7 +128,7 @@ TEST_CASE("Testing basic matrix algebra", THIS_TEST_TAG)
   }
 }
 
-TEST_CASE("Testing composed rotations", THIS_TEST_TAG)
+TEST_CASE("Composed rotations (3D)", THIS_TEST_TAG)
 {
   Real x, y, z;
 
@@ -153,7 +154,7 @@ TEST_CASE("Testing composed rotations", THIS_TEST_TAG)
   }
 }
 
-TEST_CASE("Testing matrix-vector poducts", THIS_TEST_TAG)
+TEST_CASE("Matrix-vector poducts (3D)", THIS_TEST_TAG)
 {
   Real x, y, z;
   Matrix3 M(Vec3::eY(), Vec3::eZ(), Vec3::eX());
@@ -173,7 +174,7 @@ TEST_CASE("Testing matrix-vector poducts", THIS_TEST_TAG)
 }
 
 
-TEST_CASE("Testing rotation around different axes", THIS_TEST_TAG)
+TEST_CASE("Rotation around different axes (3D)", THIS_TEST_TAG)
 {
   Real x, y, z, angle;
 
@@ -195,6 +196,96 @@ TEST_CASE("Testing rotation around different axes", THIS_TEST_TAG)
     Vec3 rotated = R * vec;
 
     REQUIRE(rotated == rotVec);
+  }
+}
+
+TEST_CASE("Vector comparison (4D)", THIS_TEST_TAG)
+{
+  REQUIRE(Vec4::zero() == Vec4(0, 0, 0, 0));
+  REQUIRE(Vec4::zero() != Vec4::eX());
+  REQUIRE(Vec4::eX()   != Vec4::eY());
+  REQUIRE(Vec4::eY()   != Vec4::eZ());
+  REQUIRE(Vec4::eZ()   != Vec4::eT());
+  REQUIRE(Vec4::eT()   != Vec4::eX());
+  REQUIRE(Vec4::eT()   != Vec4::eY());
+  REQUIRE(Vec4::eT()   != Vec4::eZ());
+  REQUIRE(Vec4::eX()   == Vec4::eX());
+  REQUIRE(Vec4::eT()   == Vec4::eT());
+
+  REQUIRE(Vec4(1, 2, 3, 4) == Vec4(1, 2,  3,  4));
+  REQUIRE(Vec4(1, 2, 3, 4) != Vec4(1, 2, -3,  4));
+  REQUIRE(Vec4(1, 2, 3, 4) != Vec4(1, 2,  3, -4));
+}
+
+TEST_CASE("Basic vector algebra (4D)", THIS_TEST_TAG)
+{
+  Vec4 sum = Vec4::eX() + 2 * Vec4::eY() - 3 * Vec4::eZ() - 4 * Vec4::eT();
+
+  // Test sums
+  REQUIRE(sum == Vec4(1, 2, -3, -4));
+  REQUIRE(sum - Vec4(1, 2, -3, -4) == Vec4::zero());
+}
+
+TEST_CASE("Basic matrix algebra (4D)", THIS_TEST_TAG)
+{
+  Matrix4 eye = Matrix4::eye();
+  Real x, y, z, t;
+
+  unsigned int i;
+
+  for (i = 0; i < 10000; ++i) {
+    x = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    y = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    z = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    t = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+
+    Vec4 vec(x, y, z, t);
+
+    REQUIRE(eye * vec == vec);
+  }
+}
+
+TEST_CASE("Matrix-vector poducts (4D)", THIS_TEST_TAG)
+{
+  Real x, y, z, t;
+  Matrix4 M(Vec4::eT(), Vec4::eY(), Vec4::eZ(), Vec4::eX());
+
+  unsigned int i;
+
+  for (i = 0; i < 1000; ++i) {
+    x = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    y = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    z = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+    t = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+
+    Vec4 v(x, y, z, t);
+    Vec4 expected(t, y, z, x);
+  
+    REQUIRE(M * v == expected);
+  }
+}
+
+TEST_CASE("Matrix inversion (4D)", THIS_TEST_TAG)
+{
+  Real x, y, z, t;
+  Matrix4 M(Vec4::eT(), Vec4::eY(), Vec4::eZ(), Vec4::eX());
+
+  unsigned int i;
+
+  for (i = 0; i < 1000; ++i) {
+    Matrix4 matrix, inv;
+
+    for (auto j = 0; j < 4; ++j) {
+      x = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      y = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      z = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+      t = 2 * (static_cast<Real>(rand()) / RAND_MAX - .5);
+
+      matrix.rows[j] = Vec4(x, y, z, t);
+    }
+    
+    REQUIRE(matrix.invert(inv));
+    REQUIRE(inv * matrix == Matrix4::eye());
   }
 }
 

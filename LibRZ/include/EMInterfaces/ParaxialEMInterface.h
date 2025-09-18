@@ -28,7 +28,7 @@ namespace RZ {
     public:
       void setFocalLength(Real);
       virtual std::string name() const override;
-      virtual void transmit(RayBeamSlice const &beam) override;
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
       virtual ~ParaxialEMInterface() override;
   };
 }

@@ -17,6 +17,7 @@
 //
 
 #include <Elements/RayBeamElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
@@ -138,19 +139,34 @@ LineVertexSet::push(
   memcpy(&colors[p + 4], color2, 4 * sizeof(GLfloat));
 }
 
+void 
+RayBeamElement::setScalarRays(bool scalar)
+{
+  m_scalar = scalar;
+  raysToVertices();
+}
+
+void
+RayBeamElement::setBgColor(GLfloat const *color)
+{
+  memcpy(m_bgcolor, color, 4 * sizeof(GLfloat));
+  raysToVertices();
+}
+
 void
 RayBeamElement::raysToVertices()
 {
   size_t size = m_rays.size();
   size_t actualCount = 0;
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
-  GLfloat black[4] = {0, 0, 0, 1.};
 
   uint32_t currId = 0;
   GLfloat currColor[4];
+  GLfloat rayColor[4];
   bool tooMany = m_rays.size() > m_maxRays;
   Real drawP = 1;
   Real length;
+  Real maxPower = 0;
 
   if (transp > 1)
     transp = 1;
@@ -162,12 +178,23 @@ RayBeamElement::raysToVertices()
   m_chiefRayVert.clear();
 
   m_rayColoring->id2color(currId, transp, currColor);
-
+  memcpy(rayColor, currColor, sizeof (rayColor));
+  
   m_strayRays = 0;
+
+  if (!m_scalar)
+    for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
+      auto power = p->direction * p->S;
+      if (power > maxPower)
+        maxPower = power;
+    }
+  
+  if (isZero(maxPower))
+    maxPower = 1;
 
   for (auto p = m_rays.begin(); p != m_rays.end(); ++p) {
     if (!p->intercepted) {
-      length = fmax(p->length, p->cumOptLength / p->refNdx);
+      length = fmax(p->length, p->cumOptLength / p->medium->n);
       ++m_strayRays;
     } else {
       length = p->length;
@@ -182,13 +209,26 @@ RayBeamElement::raysToVertices()
     if (p->id != currId) {
       currId = p->id;
       m_rayColoring->id2color(currId, transp, currColor);
+      memcpy(rayColor, currColor, sizeof (rayColor));
+    }
+
+    if (!m_scalar) {
+      Real power = 5 * p->S * p->direction / maxPower;
+
+      if (power > 1)
+        power = 1;
+
+      rayColor[0] = power * currColor[0] + (1 - power) * m_bgcolor[0];
+      rayColor[1] = power * currColor[1] + (1 - power) * m_bgcolor[1];
+      rayColor[2] = power * currColor[2] + (1 - power) * m_bgcolor[2];
+      rayColor[3] = currColor[3];
     }
 
     set->push(
       p->origin,
       destination,
-      currColor,
-      p->intercepted ? nullptr : black);
+      rayColor,
+      p->intercepted ? nullptr : m_bgcolor);
   }
 }
 

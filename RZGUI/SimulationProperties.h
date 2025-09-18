@@ -26,8 +26,8 @@
 #define MAX_SIMULATION_CONFIG_FILE_SIZE (1 << 20)
 
 enum TracerType {
-  TRACER_TYPE_GEOMETRIC_OPTICS,
-  TRACER_TYPE_DIFFRACTION
+  TRACER_TYPE_SCALAR_RAYS,
+  TRACER_TYPE_VECTOR_RAYS
 };
 
 enum SimulationType {
@@ -77,7 +77,7 @@ struct SimulationBeamProperties : public JsonSerializable {
   bool    negativeZ    = true;
   bool    colorByWl    = false;
   bool    random       = false; // Random sampling
-
+  bool    coherent     = false;
   int     index        = -1;
 
   virtual QJsonObject serialize() const override;
@@ -101,11 +101,16 @@ protected:
 struct SimulationProperties : public JsonSerializable {
   using JsonSerializable::deserialize;
 
-  TracerType     ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
+  TracerType     ttype = TRACER_TYPE_SCALAR_RAYS;
   SimulationType type  = SIM_TYPE_ONE_SHOT;
-  bool nonSeq          = false;
-  int  Ni              = 10;
-  int  Nj              = 10;
+
+  bool nonSeq                 = false;
+  bool secondaryRays          = false;
+  bool keepStrayLight         = true;
+  int compactifyInterval      = 1;
+  int maxProp                 = 8;
+  int  Ni                     = 10;
+  int  Nj                     = 10;
 
   std::list<SimulationBeamProperties>      beams;
   std::vector<SimulationBeamProperties *>  beamVector;

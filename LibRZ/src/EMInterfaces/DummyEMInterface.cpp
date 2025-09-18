@@ -28,7 +28,7 @@ DummyEMInterface::name() const
 }
 
 void
-DummyEMInterface::transmit(RayBeamSlice const &slice)
+DummyEMInterface::transmit(RayBeamSlice const &slice, RayBeam *)
 {
   blockLight(slice);
 }

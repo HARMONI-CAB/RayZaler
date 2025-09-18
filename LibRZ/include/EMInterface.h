@@ -22,9 +22,82 @@
 #include <string>
 #include "RayBeam.h"
 #include "Random.h"
+#include "ReferenceFrame.h"
 
 namespace RZ {
   class ReferenceFrame;
+
+  //
+  // EMMedium characterizes the dielectric properties of an electromagnetic
+  // medium where waves can propagate.
+  //
+
+  enum EMMediumType {
+    EMMediumVacuum,     // Ref index is just 1
+    EMMediumIsotropic,  // Ref index is > 1
+    EMMediumUniaxial    // Two indicies + reference frame + axis
+
+    // No biaxial media so far, but it will come soon.
+  };
+
+  struct EMMedium {
+    EMMediumType    type = EMMediumVacuum;
+    
+    union {
+      Real   n = 1.;
+      struct {
+        Real no;
+        Real ne;
+      };
+    };
+
+    const ReferenceFrame *frame = nullptr;
+    Vec3                  axis = Vec3::eZ();  // Axis relative to existing frame
+
+public:
+    static const EMMedium *vacuum();
+
+    inline void
+    ieps(Matrix3 &iep, Vec3 const &ax) const
+    {
+      Real nosq = no * no;
+      Real nesq = ne * ne;
+
+      auto axax = Matrix3::outer(ax, ax);
+
+      iep = axax / nesq + (Matrix3::eye() - axax) / nosq;
+    }
+
+    inline void
+    eS(Matrix3 &eS, Vec3 const &ax) const
+    {
+      Real nosq = no * no;
+      Real nesq = ne * ne;
+
+      auto axax = Matrix3::outer(ax, ax);
+
+      eS = axax * nesq + (Matrix3::eye() - axax) * nosq;
+    }
+
+    inline void
+    ieps(Matrix3 &iep) const
+    {
+      ieps(iep, frame->fromRelativeVec(axis));
+    }
+
+    inline void
+    ieps(Matrix3 &iep, const ReferenceFrame *relTo) const
+    {
+      ieps(iep, relTo->toRelativeVec(frame->fromRelativeVec(axis)));
+    }
+
+    inline bool
+    isotropic() const
+    {
+      return type == EMMediumVacuum || type == EMMediumIsotropic;
+    }
+  };
+  
 
   //
   // It is important to remark that the EMInterface works in the reference
@@ -32,12 +105,15 @@ namespace RZ {
   // to the absolute reference frames until all transfer took place.
   //
   class EMInterface {
-      ExprRandomState m_randState;
+      ExprRandomState          m_randState;
       Real                     m_transmission     = 1.;
       std::vector<Real> const *m_txMap            = nullptr;
       bool                     m_fullyOpaque      = false;
       bool                     m_fullyTransparent = true;
-
+      const EMMedium          *m_pMedium          = nullptr; // Medium in the positive normal
+      const EMMedium          *m_nMedium          = nullptr; // Medium in the negative normal
+      const EMMedium          *m_surroundings     = nullptr; // Medium if unspecified
+      const ReferenceFrame    *m_parentFrame      = nullptr; // Parent frame
       // Only relevant if m_txMap is non-null
       unsigned int             m_cols         = 0;
       unsigned int             m_rows         = 0;
@@ -46,6 +122,24 @@ namespace RZ {
       Real                     m_hy           = 0;
 
     protected:
+      inline const EMMedium *
+      pMedium() const
+      {
+        return m_pMedium == nullptr ? m_surroundings : m_pMedium;
+      }
+
+      inline const EMMedium *
+      nMedium() const
+      {
+        return m_nMedium == nullptr ? m_surroundings : m_nMedium;
+      }
+
+      inline const EMMedium *
+      surroundings() const
+      {
+        return m_surroundings;
+      }
+
       static inline void
       reflection(Vec3 &u, Vec3 const &normal)
       {
@@ -94,15 +188,41 @@ namespace RZ {
         return const_cast<ExprRandomState &>(m_randState);
       }
 
+      inline void blockLightMap(
+        RayBeamSlice const &slice,
+        const std::function <void (RayBeam *beam, uint64_t, Real)>&);
+
+      inline void blockLightUniform(
+        RayBeamSlice const &slice,
+        const std::function <void (RayBeam *beam, uint64_t, Real)>&);
+
+      void blockLight(RayBeamSlice const &slice);
+
+    public:
       static inline bool
       mustTransmitRay(const RayBeam *beam, uint64_t i)
       {
         return beam->hasRay(i) && beam->isIntercepted(i);
       }
+      
+      inline const ReferenceFrame *
+      parentFrame() const
+      {
+        return m_parentFrame;
+      }
 
-      void blockLight(RayBeamSlice const &slice);
-
-    public:
+      inline const EMMedium *
+      surroundingMedium() const
+      {
+        return m_surroundings;
+      }
+      
+      virtual void setSurroundingMedium(const EMMedium *);
+      virtual void setMedia(
+        const EMMedium *positive = nullptr,
+        const EMMedium *negative = nullptr);
+      virtual void setParentFrame(const ReferenceFrame *);
+      
       void setTransmission(Real);
       void setTransmission(
         Real width,
@@ -113,7 +233,7 @@ namespace RZ {
         unsigned int stride);
 
       virtual std::string name() const = 0;
-      virtual void transmit(RayBeamSlice const &beam) = 0;
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *splinterRays) = 0;
       virtual ~EMInterface();
   };
 }

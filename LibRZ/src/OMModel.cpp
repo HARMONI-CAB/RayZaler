@@ -30,10 +30,14 @@
 #include <Samplers/Point.h>
 #include <Samplers/Map.h>
 #include <Simulation.h>
+#include <EMInterface.h>
+#include <Random.h>
 
 #define TRACE_PROGRESS_INTERVAL_MS 250
 
 using namespace RZ;
+
+static ExprRandomState g_randState;
 
 void
 BeamProperties::debug() const
@@ -202,6 +206,8 @@ OMModel::registerOpticalElement(OpticalElement *element)
     return false;
 
   m_nameToOpticalElement[element->name()] = element;
+  
+  element->setSurroundingMedium(m_surroundings);
 
   return true;
 }
@@ -441,6 +447,23 @@ OMModel::genReferenceFrameName(std::string const &type)
   } while (lookupReferenceFrame(hint) != nullptr);
 
   return hint;
+}
+
+void
+OMModel::setSurroundingMedium(EMMedium const *medium)
+{
+  m_surroundings = medium;
+
+  for (auto &p : m_nameToOpticalElement) {
+    p.second->setSurroundingMedium(medium);
+    
+    // Some elements may have a nested OM model with a specific interpretation
+    // of the concept of surroundings. Let the underlying OM model handle this
+    // request.
+    auto nestedModel = p.second->nestedModel();
+    if (nestedModel != nullptr)
+      nestedModel->setSurroundingMedium(medium);
+  }
 }
 
 bool
@@ -780,6 +803,7 @@ OMModel::trace(
   properties.clearDetectors = clear;
   properties.startTime      = startTime;
   properties.clearPrevious  = clearIntermediate;
+  properties.keepStrayRays  = true;
 
   return m_sim->trace(properties);
 }
@@ -803,6 +827,7 @@ OMModel::traceNonSequential(
   properties.startTime       = startTime;
   properties.clearPrevious   = clearIntermediate;
   properties.maxPropagations = maxProps;
+  properties.keepStrayRays   = true;
 
   return m_sim->trace(properties);
 }
@@ -990,6 +1015,8 @@ OMModel::OMModel()
   auto sing = Singleton::instance();
   auto factory = sing->lookupElementFactory("RayBeamElement");
 
+  m_surroundings = EMMedium::vacuum();
+
   registerFrame(m_world = new WorldFrame("world"));
 
   m_beam = static_cast<RayBeamElement *>(factory->make("beam", m_world));
@@ -1010,6 +1037,15 @@ OMModel::~OMModel()
     delete m_sim;
 }
 
+static inline Vec3
+makeUEx(Vec3 const &dir)
+{
+  auto ax1 = Vec3::eX().cross(dir);
+  auto ax2 = Vec3::eY().cross(dir);
+
+  return ax1 * ax1 > ax2 * ax2 ? ax1.normalized() : ax2.normalized();
+}
+
 void
 OMModel::addBeam(RayList &dest, BeamProperties const &properties)
 {
@@ -1018,6 +1054,7 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
   WorldFrame worldFrame("sky");
   const char *except = nullptr;
   const OpticalElement *optEl;
+  
 
   if (properties.wavelength <= RZ_BEAM_MINIMUM_WAVELENGTH)
     throw std::runtime_error(
@@ -1115,6 +1152,11 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
   ray.wavelength = properties.wavelength;
   ray.length     = properties.length; // Length of the stray light ray
 
+  if (properties.coherent) {
+    ray.Dx      = Complex(g_randState.randn(), g_randState.randn());
+    ray.Dy      = Complex(g_randState.randn(), g_randState.randn());
+  }
+
   if (properties.shape == Point 
     || std::isinf(properties.focusZ)
     || isZero(properties.diameter)) {
@@ -1132,6 +1174,11 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
         origin = center - direction * properties.length;
       ray.origin    = system * coord + origin;
       ray.direction = direction;
+      if (!properties.coherent) {
+        ray.Dx      = Complex(g_randState.randn(), g_randState.randn());
+        ray.Dy      = Complex(g_randState.randn(), g_randState.randn());
+      }
+      ray.uDx       = makeUEx(direction);
       dest.push_back(ray);
     }
   } else {
@@ -1152,6 +1199,11 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (focus - ray.origin).normalized();
+        ray.uDx       = makeUEx(direction);
+        if (!properties.coherent) {
+          ray.Dx         = Complex(g_randState.randn(), g_randState.randn());
+          ray.Dy         = Complex(g_randState.randn(), g_randState.randn());
+        }
         dest.push_back(ray);
       }
     } else {
@@ -1160,6 +1212,11 @@ OMModel::addBeam(RayList &dest, BeamProperties const &properties)
       while (raySampler->get(coord)) {
         ray.origin    = system * coord + origin;
         ray.direction = (ray.origin - focus).normalized();
+        ray.uDx       = makeUEx(direction);
+        if (!properties.coherent) {
+          ray.Dx         = Complex(g_randState.randn(), g_randState.randn());
+          ray.Dy         = Complex(g_randState.randn(), g_randState.randn());
+        }
         dest.push_back(ray);
       }
     }

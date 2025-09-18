@@ -28,16 +28,39 @@ ReflectiveEMInterface::name() const
 }
 
 void
-ReflectiveEMInterface::transmit(RayBeamSlice const &slice)
+ReflectiveEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterRays)
 {
   blockLight(slice); // Prune rays according to transmission
 
   auto beam = slice.beam;
   for (auto i = slice.start; i < slice.end; ++i)
-    if (mustTransmitRay(slice.beam, i))
-      reflection(
-        Vec3(beam->directions + 3 * i),
-        Vec3(beam->normals    + 3 * i)).copyToArray(beam->directions + 3 * i);
+    if (mustTransmitRay(slice.beam, i)) {
+      if (!beam->media[i]->isotropic())
+        throw std::runtime_error("Reflection on birefringent media is not currently implemented");
+      
+      const Vec3 normal(beam->normals + 3 * i);
+      const Vec3 dir(beam->directions + 3 * i);
+
+      auto reflected = reflection(dir, normal);
+
+      reflected.copyToArray(beam->directions + 3 * i);
+      (beam->media[i]->n * reflected).copyToArray(beam->k + 3 * i);
+
+      if (beam->fields) {
+        const Vec3 iix(beam->vDx + 3 * i);
+        const Vec3 iiy = dir.cross(iix);
+        
+        reflection(iix, normal).copyToArray(beam->vDx + 3 * i);
+
+        auto iixn = iix * normal;
+        auto iiyn = iiy * normal;
+
+        beam->Dx[i] *= 1 / (2 * iixn * iixn - 1);
+        beam->Dy[i] *= 1 / (2 * iiyn * iiyn - 1);
+      }
+    }
 }
 
 ReflectiveEMInterface::~ReflectiveEMInterface()

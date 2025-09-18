@@ -26,6 +26,7 @@ ConicLensBoundary::ConicLensBoundary()
 {
   setSurfaceShape(new ConicSurface(0.5, 1, 0));
   setEMInterface(new DielectricEMInterface);
+  emInterface<DielectricEMInterface>()->setSurroundingMedium(nullptr);
 }
 
 std::string
@@ -46,7 +47,6 @@ ConicLensBoundary::setCurvatureRadius(Real Rc)
   surfaceShape<ConicSurface>()->setCurvatureRadius(Rc);
 }
 
-
 void
 ConicLensBoundary::setConicConstant(Real K)
 {
@@ -60,9 +60,9 @@ ConicLensBoundary::setCenterOffset(Real x, Real y)
 }
 
 void
-ConicLensBoundary::setRefractiveIndex(Real in, Real out)
+ConicLensBoundary::setMedia(const EMMedium *positive, const EMMedium *negative)
 {
-  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
+  emInterface<DielectricEMInterface>()->setMedia(positive, negative);
 }
 
 void

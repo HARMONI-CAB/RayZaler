@@ -18,7 +18,6 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-
 #define PYTHON_SCRIPT_SUPPORT
 #define SWIG_FILE_WITH_INIT
 static PyObject* g_rzException;
@@ -68,6 +67,7 @@ namespace std {
 #include <ModelRenderer.h>
 #include <ParserContext.h>
 #include <RayBeam.h>
+#include <RayTypes.h>
 #include <Recipe.h>
 #include <RotatedFrame.h>
 #include <Singleton.h>
@@ -124,6 +124,7 @@ namespace std {
 %include "MediumBoundary.h"
 %include "ModelRenderer.h"
 %include "ParserContext.h"
+%include "RayTypes.h"
 %include "RayBeam.h"
 %include "RayTracingEngine.h"
 
@@ -137,7 +138,9 @@ namespace std {
 %include "WorldFrame.h"
 
 %include "Elements/ApertureStop.h"
+%include "Elements/Babinet.h"
 %include "Elements/BenchElement.h"
+%include "Elements/BirefringentPrism.h"
 %include "Elements/BlockElement.h"
 %include "Elements/CircularWindow.h"
 %include "Elements/ConicLens.h"
@@ -158,6 +161,7 @@ namespace std {
 %include "Elements/StlMesh.h"
 %include "Elements/Tripod.h"
 %include "Elements/TubeElement.h"
+%include "Elements/WedgeElement.h"
 
 %include "RayTracingHeuristics/Dummy.h"
 
@@ -226,8 +230,6 @@ namespace std {
     unsigned int rows = self->hits(name).size() / 3;
     const Real *data  = self->hits(name).data();
 
-    unsigned int i, j;
-        
     npy_intp dims[]    = {rows, cols};
     npy_intp strides[] = {
       static_cast<npy_intp>(cols * sizeof(Real)),
@@ -253,8 +255,6 @@ namespace std {
     unsigned int rows = self->directions(name).size() / 3;
     const Real *data  = self->directions(name).data();
 
-    unsigned int i, j;
-        
     npy_intp dims[]    = {rows, cols};
     npy_intp strides[] = {
       static_cast<npy_intp>(cols * sizeof(Real)),
@@ -272,6 +272,60 @@ namespace std {
 
     return outArray;
   }
+
+  PyObject *
+  powerArray(std::string const &name = "") const
+  {
+    unsigned int rows = self->power(name).size();
+    const Real *data  = self->power(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(sizeof(Real))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      1,
+      dims,
+      NPY_DOUBLE,
+      strides,
+      const_cast<Real *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
+
+  PyObject *
+  EArray(std::string const &name = "") const
+  {
+    unsigned int cols   = 2;
+    unsigned int rows   = self->Efield(name).size() / 2;
+    const Complex *data = self->Efield(name).data();
+
+    unsigned int i, j;
+        
+    npy_intp dims[]    = {rows, cols};
+    npy_intp strides[] = {
+      static_cast<npy_intp>(cols * sizeof(Complex)),
+      static_cast<npy_intp>(sizeof(Complex))};
+    PyObject *outArray = PyArray_New(
+      &PyArray_Type,
+      2,
+      dims,
+      NPY_COMPLEX128,
+      strides,
+      const_cast<Complex *>(data),
+      0,
+      NPY_ARRAY_CARRAY,
+      nullptr);
+
+    return outArray;
+  }
+
 }
 
 %extend RZ::Matrix3 {

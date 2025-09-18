@@ -43,7 +43,7 @@ LensletArray::recalcModel()
   m_inputBoundary->setCols(m_cols);
   m_inputBoundary->setRows(m_rows);
   m_inputBoundary->setCurvatureRadius(m_rCurv);
-  m_inputBoundary->setRefractiveIndex(1, m_mu);
+  m_inputBoundary->setMedia(nullptr, &m_glass);
   m_inputBoundary->setConicConstant(m_K);
 
   m_outputBoundary->setWidth(m_width);
@@ -51,7 +51,7 @@ LensletArray::recalcModel()
   m_outputBoundary->setCols(m_cols);
   m_outputBoundary->setRows(m_rows);
   m_outputBoundary->setCurvatureRadius(-m_rCurv);
-  m_outputBoundary->setRefractiveIndex(m_mu, 1);
+  m_outputBoundary->setMedia(&m_glass, nullptr);
   m_outputBoundary->setConicConstant(m_K);
   
   // Get lenslet radius
@@ -64,7 +64,7 @@ LensletArray::recalcModel()
   m_cylinder.setRadius(radius);
 
   m_depth = m_rCurv - sqrt(m_rCurv * m_rCurv - radius * radius);
-  m_f     = .5 * m_rCurv /  (m_mu - 1);
+  m_f     = .5 * m_rCurv /  (m_glass.n - 1);
 
   m_inputFocalPlane->setDistance(-(.5 * m_thickness + m_f)* Vec3::eZ());
   m_outputFocalPlane->setDistance(+(.5 * m_thickness + m_f)* Vec3::eZ());
@@ -116,10 +116,10 @@ LensletArray::propertyChanged(
     m_rCurv = value;
     recalcModel();
   } else if (name == "focalLength") {
-    m_rCurv = 2 * (Real) value * (m_mu - 1);
+    m_rCurv = 2 * (Real) value * (m_glass.n - 1);
     recalcModel();
   } else if (name == "n") {
-    m_mu = value;
+    m_glass.n = value;
     recalcModel();
   } else {
     return Element::propertyChanged(name, value);
@@ -134,6 +134,9 @@ LensletArray::LensletArray(
   ReferenceFrame *frame,
   Element *parent) : OpticalElement(factory, name, frame, parent)
 {
+  m_glass.type     = EMMediumIsotropic;
+  m_glass.n        = 1.5;
+
   m_inputBoundary  = new LensletArrayBoundary;
   m_outputBoundary = new LensletArrayBoundary;
 

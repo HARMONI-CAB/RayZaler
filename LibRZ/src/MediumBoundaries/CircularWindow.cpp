@@ -26,6 +26,8 @@ CircularWindowBoundary::CircularWindowBoundary()
 {
   setSurfaceShape(new CircularFlatSurface(.5));
   setEMInterface(new DielectricEMInterface);
+  emInterface<DielectricEMInterface>()->setSurroundingMedium(nullptr);
+  setReversible(true);
 }
 
 std::string
@@ -41,7 +43,7 @@ CircularWindowBoundary::setRadius(Real R)
 }
 
 void
-CircularWindowBoundary::setRefractiveIndex(Real in, Real out)
+CircularWindowBoundary::setMedia(const EMMedium *positive, const EMMedium *negative)
 {
-  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
+  emInterface<DielectricEMInterface>()->setMedia(positive, negative);
 }

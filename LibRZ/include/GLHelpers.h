@@ -496,6 +496,49 @@ public:
       ~GLRectangle();
   };
 
+  class GLWedge : public GLPrimitive {
+      bool m_dirty = true;
+
+      // 6 faces * 2 triangles / face = 12 triangles
+      // 3 vertices / triangle * 12 triangles = 36 
+      GLfloat m_vertices[8][3];
+      GLfloat m_normals[6][3];
+      static const GLuint m_indices[12][3];
+
+      GLdouble m_length     = 1;
+      GLdouble m_width      = 1;
+      GLdouble m_heights[2] = {.5, 1};
+
+      void recalculate();
+
+    public:
+      inline GLdouble
+      length() const
+      {
+        return m_length;
+      }
+
+      inline GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      inline GLdouble
+      height(int which) const
+      {
+        return m_heights[which];
+      }
+
+      void setLength(GLdouble);
+      void setWidth(GLdouble);
+      void setHeights(GLdouble, GLdouble);
+
+      virtual void display() override;
+
+      GLWedge();
+      ~GLWedge();
+  };
 
   class GLReferenceFrame : public GLPrimitive {
       GLCappedCylinder     m_axisCylinder;

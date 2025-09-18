@@ -25,6 +25,7 @@
 #include <exception>
 #include <sys/param.h>
 #include <OpticalElement.h>
+#include <EMInterface.h>
 
 using namespace RZ;
 
@@ -121,9 +122,6 @@ RayTracingEngine::pushRays(RayList const &rays)
 
   // Assume rays come from a flat surface
   memcpy(m_beam->normals, m_beam->directions, 3 * m_beam->count * sizeof(Real));
-
-  for (auto i = 0; i < m_beam->count; ++i)
-    m_beam->amplitude[i] = 1;
 }
 
 void
@@ -145,18 +143,33 @@ RayTracingEngine::toBeam()
           "Wavelength is too short (minimum: %g pm)",
           RZ_BEAM_MINIMUM_WAVELENGTH * 1e12));
           
+    if (m_beam->media[i] == NULL)
+      m_beam->media[i] = EMMedium::vacuum();
+    
+    if (!m_beam->media[i]->isotropic())
+      throw std::runtime_error(
+        "Casting rays from anisotropic media is not currently supported");
+      
     p->origin.copyToArray(m_beam->origins + 3 * i);
     p->origin.copyToArray(m_beam->destinations + 3 * i);
     p->direction.copyToArray(m_beam->directions + 3 * i);
 
-    m_beam->lengths[i]       = p->length;
-    m_beam->cumOptLengths[i] = p->cumOptLength;
-    m_beam->ids[i]           = p->id;
-    m_beam->wavelengths[i]   = p->wavelength;
-    m_beam->refNdx[i]        = p->refNdx;
-
+    (p->direction * m_beam->media[i]->n).copyToArray(m_beam->k + 3 * i);
+    
+    m_beam->lengths[i]     = p->length;
+    m_beam->opl[i]         = p->cumOptLength;
+    m_beam->ids[i]         = p->id;
+    m_beam->wavelengths[i] = p->wavelength;
+    m_beam->media[i]       = p->medium;
+    
     if (p->chief)
       m_beam->setChiefRay(i);
+
+    if (m_beam->fields) {
+      m_beam->Dx[i] = p->Dx;
+      m_beam->Dy[i] = p->Dy;
+      p->uDx.copyToArray(m_beam->vDx + 3 * i);
+    }
     
     ++i;
   }
@@ -201,8 +214,21 @@ RayTracingEngine::transmitThrough(const OpticalSurface *surface)
   
   stageProgress(PROGRESS_TYPE_TRANSFER, m_stageName, m_currStage, m_numStages);
 
-  transmit(surface, m_beam);
+  if (m_beamSplintering) {
+    RayBeam splinteredBeam(0);
 
+    splinteredBeam.fields = m_beam->fields;
+    splinteredBeam.nonSeq = m_beam->nonSeq;
+
+    transmit(surface, m_beam, &splinteredBeam);
+
+    if (splinteredBeam.count > 0)
+      splinteredBeam.appendTo(m_beam);
+    
+  } else {
+    transmit(surface, m_beam, nullptr);
+  }
+  
   if (surface != nullptr)
     m_beam->fromRelative(surface->frame);
   else
@@ -235,13 +261,15 @@ RayTracingEngine::getRays(bool keepPruned)
 RayBeam *
 RayTracingEngine::makeBeam()
 {
-  return new RayBeam(m_rays.size());
+  auto beam = new RayBeam(m_rays.size(), false, m_calculateFields);
+
+  return beam;
 }
 
 RayBeam *
 RayTracingEngine::makeNSBeam()
 {
-  auto nsBeam = new RayBeam(beam()->count, true);
+  auto nsBeam = new RayBeam(beam()->count, true, m_calculateFields);
 
   beam()->copyTo(nsBeam);
 

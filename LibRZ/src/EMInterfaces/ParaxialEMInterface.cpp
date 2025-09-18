@@ -34,7 +34,7 @@ ParaxialEMInterface::setFocalLength(Real fLen)
 }
 
 void
-ParaxialEMInterface::transmit(RayBeamSlice const &slice)
+ParaxialEMInterface::transmit(RayBeamSlice const &slice, RayBeam *splinter)
 {
   blockLight(slice); // Prune rays according to transmission
 

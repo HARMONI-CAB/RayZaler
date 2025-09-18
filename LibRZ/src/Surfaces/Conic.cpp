@@ -155,7 +155,7 @@ ConicSurface::generateConicSectionVertices(
 
     for (unsigned i = 0; i < segments + 1; ++i) {
       x = ux * r + x0;
-      y = ux * r + y0;
+      y = uy * r + y0;
       rho2 = x * x + y * y;
       z = -sigma * (inv2R * rho2 - m_depth);
 

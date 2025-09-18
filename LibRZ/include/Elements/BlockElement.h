@@ -16,8 +16,8 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _BLOCKELEMENT_H
-#define _BLOCKELEMENT_H
+#ifndef _ELEMENTS_BLOCKELEMENT_H
+#define _ELEMENTS_BLOCKELEMENT_H
 
 #include <Element.h>
 #include <GLHelpers.h>
@@ -51,4 +51,4 @@ namespace RZ {
   RZ_DECLARE_ELEMENT(BlockElement);
 }
 
-#endif // _BlockELEMENT_H
+#endif // _ELEMENTS_BLOCKELEMENT_H

@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//  Copyright (c) 2025 Gonzalo José Carracedo Carballal
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as
@@ -16,28 +16,24 @@
 //  <http://www.gnu.org/licenses/>
 //
 
-#ifndef _RAY_PROCESSORS_SQUARE_FLAT_SURFACE_H
-#define _RAY_PROCESSORS_SQUARE_FLAT_SURFACE_H
+#ifndef _EM_FIELDS_EM_ISO_ISO_SOLVER_H
+#define _EM_FIELDS_EM_ISO_ISO_SOLVER_H
 
-#include <RayTracingEngine.h>
+#include "EMInterfaceSolver.h"
 
 namespace RZ {
-  class ReferenceFrame;
-
-  class SquareFlatSurfaceBoundary: public MediumBoundary {
-      Real m_width  = .1;
-      Real m_height = .1;
-      Real m_muOut  = 1.5;
-      Real m_muIn   = 1;
-      Real m_IOratio = 1 / 1.5;
-
+  class EMIsoIsoSolver : public EMInterfaceSolver {
+    protected:
+      virtual uint8_t secondaryBeamCount() const override;
+      virtual    void transmit()           override;
+    
     public:
-      void setWidth(Real);
-      void setHeight(Real);
-      void setRefractiveIndex(Real , Real);
-      virtual std::string name() const override;
-      virtual void transfer(RayBeam &beam, const ReferenceFrame *) const;
+      EMIsoIsoSolver(
+        const EMMedium *m1,
+        const EMMedium *m2,
+        const ReferenceFrame *parent);
+      virtual ~EMIsoIsoSolver() override;
   };
 }
 
-#endif // _RAY_PROCESSORS_SQUARE_FLAT_SURFACE_H
+#endif // _EM_FIELDS_EM_ISO_ISO_SOLVER_H

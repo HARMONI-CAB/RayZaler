@@ -33,6 +33,12 @@ BeamPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->coherentCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->negZCheck,
         SIGNAL(toggled(bool)),
         this,
@@ -237,6 +243,7 @@ BeamPropertiesDialog::parseProperties()
   m_properties.rays         = ui->rayNumberSpin->value();
   m_properties.length       = ui->lengthEdit->text();
   m_properties.negativeZ    = ui->negZCheck->isChecked();
+  m_properties.coherent     = ui->coherentCheck->isChecked();
 }
 
 void
@@ -265,7 +272,8 @@ BeamPropertiesDialog::refreshUi()
   BLOCKSIG(ui->rayNumberSpin,     setValue(m_properties.rays));
   BLOCKSIG(ui->lengthEdit,        setText(m_properties.length));
   BLOCKSIG(ui->negZCheck,         setChecked(m_properties.negativeZ));
-
+  BLOCKSIG(ui->coherentCheck,     setChecked(m_properties.coherent));
+  
   switch (m_properties.ref) {
     case BEAM_REFERENCE_INPUT_ELEMENT:
       originIndex = 0;

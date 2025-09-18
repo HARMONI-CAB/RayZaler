@@ -20,6 +20,7 @@
 #define _MEDIUM_BOUNDARY_H
 
 #include "Random.h"
+#include "RayTypes.h"
 
 #define RZ_SPEED_OF_LIGHT 299792458 // m/s
 #define RZ_WAVELENGTH     555e-9
@@ -28,13 +29,14 @@ namespace RZ {
   class SurfaceShape;
   class ReferenceFrame;
   class EMInterface;
-
-  struct RayBeam;
-  struct RayBeamSlice;
+  class OpticalSurface;
 
   class MediumBoundary {
     SurfaceShape   *m_surfaceShape  = nullptr;
     EMInterface    *m_emInterface   = nullptr;
+    OpticalSurface *m_parent        = nullptr;
+    const ReferenceFrame *m_frame   = nullptr;
+
     bool            m_reversible    = false;
     bool            m_infinite      = true;
     Real            m_hWidth        = .5;
@@ -60,6 +62,18 @@ namespace RZ {
     }
 
   public:
+    inline void
+    setParent(OpticalSurface *element)
+    {
+      m_parent = element;
+    }
+
+    inline OpticalSurface *
+    parent() const
+    {
+      return m_parent;
+    }
+
     inline bool
     reversible() const
     {
@@ -130,10 +144,12 @@ namespace RZ {
       return !m_infinite && (fabs(x) >= m_hWidth || fabs(y) >= m_hHeight);
     }
 
+    void setParentFrame(const ReferenceFrame *frame);
+
     virtual std::string name() const = 0;
     
     virtual void cast(RayBeamSlice const &) const;
-    virtual void transmit(RayBeamSlice const &) const;
+    virtual void transmit(RayBeamSlice const &, RayBeam *) const;
 
     virtual ~MediumBoundary();
   };

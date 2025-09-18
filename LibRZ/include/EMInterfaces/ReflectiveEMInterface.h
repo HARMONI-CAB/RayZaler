@@ -25,7 +25,7 @@ namespace RZ {
   class ReflectiveEMInterface : public EMInterface {
     public:
       virtual std::string name() const;
-      virtual void transmit(RayBeamSlice const &beam);
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
       virtual ~ReflectiveEMInterface() override;
   };
 }

@@ -66,7 +66,7 @@ Simulation::traceSequential(TracingProperties const &props)
           OriginPOV | BeamIsSurfaceRelative | ExtractIntercepted,
         surface);
 
-    m_engine->transmitThrough(surface);
+    m_engine->transmitThrough(surface);    
 
     m_engine->updateOrigins(); // Destinations == origins
 
@@ -74,6 +74,12 @@ Simulation::traceSequential(TracingProperties const &props)
       return false;
 
     ++n;
+
+    if (!props.keepStrayRays)
+      m_engine->beam()->pruneStrayLight();
+
+    if (props.compactifyInterval > 0 && n % props.compactifyInterval == 0)
+      m_engine->beam()->compactify();
   }
 
   if (props.beamElement != nullptr)
@@ -82,19 +88,6 @@ Simulation::traceSequential(TracingProperties const &props)
       OriginPOV | ExtractVignetted);
 
   return true;
-}
-
-void
-Simulation::initNSBeam()
-{
-  if (m_NSBeam != nullptr) {
-    delete m_NSBeam;
-    m_NSBeam = nullptr;
-  }
-
-  m_transferredRays = 0;
-  m_NSBeam = new RayBeam(m_engine->beam()->count, true);
-  m_NSBeam->pruneAll();
 }
 
 bool
@@ -142,7 +135,11 @@ Simulation::traceNonSequential(TracingProperties const &props)
     // Non sequential beams are all-pruned by default, but they keep the
     // origins and directions of the original beam
     auto nsBeam   = m_engine->makeNSBeam();
-    
+
+    // Needed only to handle splintered beams
+    if (props.secondaryRays)
+      tempBeam->allocate(m_engine->beam()->count);
+      
     //
     // In the engine: 
     //   - Make non-sequential beam.
@@ -156,7 +153,7 @@ Simulation::traceNonSequential(TracingProperties const &props)
     size_t n = 0;
     for (auto surface : candidates) {
       assert(surface != nullptr);
-
+      
       m_engine->setCurrentStage(surface->name, n, candidates.size());
 
       // Convert this beam to relative and store it in tempBeam
@@ -181,21 +178,30 @@ Simulation::traceNonSequential(TracingProperties const &props)
     m_engine->beam()->computeInterceptStatistics();
 
     // Save intermediate rays for representation
-    if (props.beamElement != nullptr)
+    if (props.beamElement != nullptr) {
       m_engine->beam()->extractRays(
         m_intermediateRays,
           OriginPOV 
         | BeamIsSurfaceRelative
         | ExtractIntercepted);
-    
+    }
+
     // Transmit through all these surfaces
     m_engine->transmitThroughIntercepted();
-
     m_engine->updateOrigins();
 
     if (m_engine->cancelled())
       return false;
 
+    if (!props.keepStrayRays)
+      m_engine->beam()->pruneStrayLight();
+
+    if (props.compactifyInterval > 0 && (propagations + 1) % props.compactifyInterval == 0) {
+      m_engine->beam()->compactify();
+
+      if (tempBeam->count > m_engine->beam()->count)
+        tempBeam->shrink(m_engine->beam()->count);
+    }
   } while (++propagations <= props.maxPropagations && m_transferredRays > 0);
 
   if (props.beamElement != nullptr)
@@ -224,6 +230,8 @@ Simulation::trace(TracingProperties const &props)
     for (auto p : m_model->detectors())
       m_model->lookupDetectorOrEx(p)->clear();
 
+  m_engine->setCalculateFields(props.calculateFields);
+  m_engine->setBeamSplintering(props.secondaryRays);
   m_engine->pushRays(*pRays);
 
   if (props.startTime != nullptr)
@@ -244,8 +252,10 @@ Simulation::trace(TracingProperties const &props)
       throw std::runtime_error("Unrecognized simulation type");
   }
 
-  if (ok && props.beamElement != nullptr)
+  if (ok && props.beamElement != nullptr) {
+    props.beamElement->setScalarRays(!props.calculateFields);
     props.beamElement->setList(m_intermediateRays);
+  }
 
   m_lastTick = m_engine->lastTick();
 

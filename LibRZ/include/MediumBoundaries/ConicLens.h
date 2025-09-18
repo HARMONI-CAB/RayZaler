@@ -23,7 +23,8 @@
 
 namespace RZ {
   class ReferenceFrame;
-
+  struct EMMedium;
+  
   class ConicLensBoundary : public MediumBoundary {
       bool m_convex  = false;
 
@@ -35,7 +36,7 @@ namespace RZ {
 
       void setCurvatureRadius(Real);
       void setConicConstant(Real);
-      void setRefractiveIndex(Real , Real);
+      void setMedia(const EMMedium *positive, const EMMedium *negative);
       void setConvex(bool);
 
       virtual std::string name() const;

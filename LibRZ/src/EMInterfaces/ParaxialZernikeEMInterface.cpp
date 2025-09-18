@@ -111,10 +111,15 @@ ParaxialZernikeEMInterface::dZdy(Real x, Real y) const
 }
 
 void
-ParaxialZernikeEMInterface::transmit(RayBeamSlice const &slice)
+ParaxialZernikeEMInterface::transmit(
+  RayBeamSlice const &slice,
+  RayBeam *splinterRays)
 {
   Real Rinv    = 1. / m_radius;
   Real Rsq     = m_radius * m_radius;
+  Real rdir = m_IOratio, rinv = 1 / m_IOratio;
+  Real nIn  = m_muIn;
+  Real nOu  = m_muOut;
 
   blockLight(slice); // Prune rays according to transmission
 
@@ -163,16 +168,18 @@ ParaxialZernikeEMInterface::transmit(RayBeamSlice const &slice)
         // happens to have the same direction as the equivalent surface normal.
         //
         
-        Vec3 tiltNormal = Vy.cross(Vx).normalized();
+        const Vec3 normal = Vy.cross(Vx).normalized();
 
         // And apply Snell again
-        snell(
-          Vec3(beam->directions + 3 * i),
-          Vec3(tiltNormal),
-          m_IOratio).copyToArray(beam->directions + 3 * i);
-      
-        // This ray has entered a new medium. Mark accordingly.
-        beam->refNdx[i] = m_muOut;
+        const Vec3 direct(beam->directions + 3 * i);
+        
+        if (direct * normal < 0) {
+          snell(direct, normal, rdir).copyToArray(beam->directions + 3 * i);
+          beam->media[i] = nMedium();
+        } else {
+          snell(direct, -normal, rinv).copyToArray(beam->directions + 3 * i);
+          beam->media[i] = pMedium();
+        }
       }
     }
   }

@@ -22,12 +22,14 @@
 #include <OpticalElement.h>
 #include <MediumBoundaries/CircularWindow.h>
 #include <GLHelpers.h>
+#include <EMInterface.h>
 
 namespace RZ {
   class TranslatedFrame;
   class CircularWindowBoundary;
 
   class CircularWindow : public OpticalElement {
+      EMMedium                 m_glass;
       GLCappedCylinder         m_cylinder;
       CircularWindowBoundary  *m_inputBoundary  = nullptr;
       CircularWindowBoundary  *m_outputBoundary = nullptr;
@@ -36,7 +38,6 @@ namespace RZ {
 
       Real m_thickness = 1e-2;
       Real m_radius    = 1e-2;
-      Real m_mu        = 1.5;
 
       void recalcModel();
 

@@ -21,9 +21,23 @@
 #include "RayBeam.h"
 #include <ReferenceFrame.h>
 #include <OpticalElement.h>
+#include <EMInterface.h>
+#include <EMFields/EMSolver.h>
 
 using namespace RZ;
 
+Ray::Ray()
+{
+  direction    = Vec3::eZ();
+  uDx          = Vec3::eX();
+  length       = 0;
+  cumOptLength = 0;
+  chief        = false;
+  intercepted  = false;
+  wavelength   = RZ_WAVELENGTH;
+  medium       = EMMedium::vacuum();
+  id           = 0;
+}
 
 //
 // Under the refactored raytracing abstraction, ray beams go through several
@@ -128,7 +142,7 @@ RayBeam::debug() const
   printf("Allocation:  %ld rays\n", allocation);
   
   Real minLength = +INFINITY, maxLength = -INFINITY;
-  Real minOPL = +INFINITY, maxOPL = -INFINITY;
+  Real minOPL    = +INFINITY, maxOPL    = -INFINITY;
   Real minLambda = +INFINITY, maxLambda = -INFINITY;
   
   uint64_t intercepted = 0;
@@ -141,8 +155,8 @@ RayBeam::debug() const
       minLength = fmin(lengths[i], minLength);
       maxLength = fmax(lengths[i], maxLength);
       
-      minOPL = fmin(cumOptLengths[i], minOPL);
-      maxOPL = fmax(cumOptLengths[i], maxOPL);
+      minOPL     = fmin(opl[i], minOPL);
+      maxOPL     = fmax(opl[i], maxOPL);
       
       minLambda = fmin(wavelengths[i], minLambda);
       maxLambda = fmax(wavelengths[i], maxLambda);
@@ -177,13 +191,13 @@ RayBeam::debug() const
   if (nonSeq) {
     for (auto &p : surfIntercepts) {
       if (p.first == nullptr)
-        printf("* Default surface: %ld intercepts\n", p.second);
+        printf("* [0x%016llx] Default surface: %ld intercepts\n", 0, p.second);
       else {
         auto name = string_printf(
           "%s.%s:",
           p.first->parent->name().c_str(), p.first->name.c_str());
 
-        printf("* %-15s %ld intercepts\n", name.c_str(), p.second);
+        printf("* [0x%016llx] %-15s %ld intercepts\n", p.first, name.c_str(), p.second);
       }
     }
   }
@@ -221,6 +235,9 @@ RayBeam::extractRays(
       OpticalSurface *surface,
       RayBeamSlice const &exclude)
 {
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
+  
   bool originPOV             = (mask & OriginPOV) != 0;
   bool destinationPOV        = (mask & DestinationPOV) != 0;
   bool beamIsSurfaceRelative = (mask & BeamIsSurfaceRelative) != 0;
@@ -261,16 +278,46 @@ RayBeam::extractRays(
       
       if (shouldExtract) {
         Ray ray;
-
+        
         ray.id           = beam->ids[i];
         ray.chief        = beam->isChief(i);
         ray.wavelength   = beam->wavelengths[i];
-        ray.refNdx       = beam->refNdx[i];
-        ray.cumOptLength = beam->cumOptLengths[i];
+        ray.k            = Vec3(beam->k + 3 * i);
+        ray.medium       = beam->media[i];
+        ray.cumOptLength = beam->opl[i];
         ray.length       = beam->lengths[i];
         ray.direction    = Vec3(beam->directions + 3 * i);
-        ray.intercepted  = beam->isIntercepted(i);
+        ray.fields       = beam->fields;
+        
+        if (beam->fields) {
+          Vec3 u         = ray.k.normalized();
+          ray.uDx        = Vec3(beam->vDx + 3 * i);
+          ray.Dx         = beam->Dx[i];
+          ray.Dy         = beam->Dy[i];
+          if (beam->media[i] != nullptr) {
+            auto uDy = u.cross(ray.uDx);
+            const ReferenceFrame *frame = 
+              beamIsSurfaceRelative && beam->surfaces[i] != nullptr
+              ? frame = beam->surfaces[i]->frame
+              : nullptr;
 
+            // Calculate poynting vector here and deduce power
+            calcPoyntingVector(
+              ray.S,
+              ieps,
+              ray.Dx,
+              ray.Dy,
+              ray.uDx,
+              uDy,
+              u,
+              ray.medium,
+              prevMedium,
+              frame);
+          }
+        }
+        
+        ray.intercepted  = beam->isIntercepted(i);
+        
         ray.origin       = originPOV 
           ? Vec3(beam->origins + 3 * i) 
           : Vec3(beam->destinations + 3 * i);
@@ -289,9 +336,15 @@ RayBeam::extractRays(
             if (beamIsSurfaceRelative) {
               ray.origin    = plane->fromRelative(ray.origin);
               ray.direction = plane->fromRelativeVec(ray.direction);
+              ray.k         = plane->fromRelativeVec(ray.k);
+              ray.uDx       = plane->fromRelativeVec(ray.uDx);
+              ray.S         = plane->fromRelativeVec(ray.S);
             } else {
               ray.origin    = plane->toRelative(ray.origin);
               ray.direction = plane->toRelativeVec(ray.direction);
+              ray.k         = plane->toRelativeVec(ray.k);
+              ray.uDx       = plane->toRelativeVec(ray.uDx);
+              ray.S         = plane->toRelativeVec(ray.S);
             }
           }
         }
@@ -360,30 +413,22 @@ RayBeam::computeInterceptStatistics(OpticalSurface *surface)
 void
 RayBeam::copyTo(RayBeam *dest) const
 {
-  assert(count == dest->count);
-  size_t maskLen = ((count + 63) >> 6) << 3;
+  ConstRayBeamSlice(this).copyTo(RayBeamSlice(dest));
+}
 
-  memcpy(dest->mask, mask, maskLen);
-  memcpy(dest->prevMask, prevMask, maskLen);
-  memcpy(dest->chiefMask, chiefMask, maskLen);
-  
-  // All non-intercepted by default
-  memset(dest->intMask, 0, maskLen);
+void
+RayBeam::appendTo(RayBeam *dest) const
+{
+  walk(
+    [&] (ConstRayBeamSlice const &slice) {
+      uint64_t length = slice.length();
+      uint64_t dOff = dest->count;
 
-  memcpy(dest->lengths,       lengths,       count * sizeof(Real));
-  memcpy(dest->cumOptLengths, cumOptLengths, count * sizeof(Real));
-  memcpy(dest->wavelengths,   wavelengths,   count * sizeof(Real));
-  memcpy(dest->refNdx,        refNdx,        count * sizeof(Real));
+      dest->allocate(dest->count + length);
 
-  memcpy(dest->ids,           ids,           count * sizeof(uint32_t));
-  memcpy(dest->amplitude,     amplitude,     count * sizeof(Complex));
-
-  memcpy(dest->origins,       origins,       3 * count * sizeof(Real));
-  memcpy(dest->destinations,  destinations,  3 * count * sizeof(Real));
-  memcpy(dest->directions,    directions,    3 * count * sizeof(Real));
-
-  if (nonSeq && dest->nonSeq)
-    memcpy(dest->surfaces,    surfaces,      count * sizeof(OpticalSurface *));
+      slice.copyTo(RayBeamSlice(dest, dOff, dOff + length));
+    }
+  );
 }
 
 void
@@ -408,14 +453,52 @@ RayBeam::toRelative(RayBeam *dest, const ReferenceFrame *plane) const
       plane->toRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(dest->directions + 3 * i);
 
-      dest->lengths[i]       = lengths[i];
-      dest->amplitude[i]     = amplitude[i];
-      dest->cumOptLengths[i] = cumOptLengths[i];
-      dest->wavelengths[i]   = wavelengths[i];
-      dest->ids[i]           = ids[i];
-      dest->refNdx[i]        = refNdx[i];
+      plane->toRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(dest->k + 3 * i);
+
+      dest->lengths[i]     = lengths[i];
+      dest->opl[i]         = opl[i];
+      dest->wavelengths[i] = wavelengths[i];
+      dest->ids[i]         = ids[i];
+      dest->media[i]       = media[i];
+
+      if (fields && dest->fields) {
+        dest->Dx[i] = Dx[i];
+        dest->Dy[i] = Dy[i];
+        plane->toRelativeVec(
+          Vec3(vDx + 3 * i)).copyToArray(dest->vDx + 3 * i);
+      }
     }
   }
+}
+
+void
+RayBeam::compactify()
+{
+  uint64_t p = 0;
+
+  walk(
+    [&] (ConstRayBeamSlice const &slice) {
+      uint64_t length = slice.length();
+
+      if (p < slice.start)
+        slice.copyTo(RayBeamSlice(this, p, p + length));
+      p += length;
+    }
+  );
+
+  if (p < this->count)
+    this->count = p;
+}
+
+void
+RayBeam::pruneStrayLight()
+{
+  uint64_t i = 0;
+
+  for (i = 0; i < count; ++i)
+    if (hasRay(i) && !isIntercepted(i))
+      prune(i);
 }
 
 void
@@ -440,6 +523,14 @@ RayBeam::fromRelative(const ReferenceFrame *plane)
 
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+
+      plane->fromRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(k + 3 * i);
+
+      if (fields) {
+        plane->fromRelativeVec(
+          Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
+      }
     }
   }
 }
@@ -463,6 +554,14 @@ RayBeam::fromSurfaceRelative()
 
       plane->fromRelativeVec(
         Vec3(directions + 3 * i)).copyToArray(directions + 3 * i);
+
+      plane->fromRelativeVec(
+        Vec3(k + 3 * i)).copyToArray(k + 3 * i);
+      
+      if (fields) {
+        plane->fromRelativeVec(
+          Vec3(vDx + 3 * i)).copyToArray(vDx + 3 * i);
+      }
 
       ++total;
     }
@@ -510,17 +609,20 @@ RayBeam::allocate(uint64_t count)
 {
   size_t maskLen = (count + 63) >> 6;
   size_t prev = this->count;
-  size_t prevMaskLen = (this->count + 63) >> 6;
+  size_t prevMaskLen = (prev + 63) >> 6;
 
-  if (prev == 0) {
+  if (prev == count) {
+    // NO-OP
+    return;
+  } if (prev == 0) {
     this->origins       = allocBuffer<Real>(3 * count);
     this->directions    = allocBuffer<Real>(3 * count);
     this->normals       = allocBuffer<Real>(3 * count);
     this->destinations  = allocBuffer<Real>(3 * count);
-    this->amplitude     = allocBuffer<Complex>(count);
+    this->k             = allocBuffer<Real>(3 * count);
     this->lengths       = allocBuffer<Real>(count);
-    this->cumOptLengths = allocBuffer<Real>(count);
-    this->refNdx        = allocBuffer<Real>(count);
+    this->opl           = allocBuffer<Real>(count);
+    this->media         = allocBuffer<const EMMedium *>(count);
     this->wavelengths   = allocBuffer<Real>(count);
     this->ids           = allocBuffer<uint32_t>(count);
     this->mask          = allocBuffer<uint64_t>(maskLen);
@@ -528,34 +630,44 @@ RayBeam::allocate(uint64_t count)
     this->intMask       = allocBuffer<uint64_t>(maskLen);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen);
     
-    if (this->nonSeq) {
+    if (this->nonSeq)
       this->surfaces     = allocBuffer<OpticalSurface *>(count);
+    
+    if (this->fields) {
+      this->vDx          = allocBuffer<Real>(3 * count);
+      this->Dx           = allocBuffer<Complex>(count);
+      this->Dy           = allocBuffer<Complex>(count);
     }
     
     this->allocation    = count;
-  } else if (count >= this->count) {
+  } else if (count > this->count) {
     this->origins       = allocBuffer<Real>(3 * count, 3 * prev, this->origins);
     this->directions    = allocBuffer<Real>(3 * count, 3 * prev, this->directions);
     this->normals       = allocBuffer<Real>(3 * count, 3 * prev, this->normals);
     this->destinations  = allocBuffer<Real>(3 * count, 3 * prev, this->destinations);
-    this->amplitude     = allocBuffer<Complex>(count, prev, this->amplitude);
+    this->k             = allocBuffer<Real>(3 * count, 3 * prev, this->k);
     this->wavelengths   = allocBuffer<Real>(count, prev, this->wavelengths);
     this->lengths       = allocBuffer<Real>(count, prev, this->lengths);
-    this->cumOptLengths = allocBuffer<Real>(count, prev, this->cumOptLengths);
-    this->refNdx        = allocBuffer<Real>(count, prev, this->refNdx);
+    this->opl           = allocBuffer<Real>(count, prev, this->opl);
+    this->media         = allocBuffer<const EMMedium *>(count, prev, this->media);
     this->ids           = allocBuffer<uint32_t>(count, prev, this->ids);
     this->mask          = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->mask);
     this->prevMask      = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->prevMask);
     this->intMask       = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->intMask);
     this->chiefMask     = allocBuffer<uint64_t>(maskLen, prevMaskLen, this->chiefMask);
 
-    if (this->nonSeq) {
-      this->surfaces     = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    if (this->nonSeq)
+      this->surfaces    = allocBuffer<OpticalSurface *>(count, prev, this->surfaces);
+    
+    if (this->fields) {
+      this->vDx         = allocBuffer<Real>(3 * count, 3 * prev, this->vDx);
+      this->Dx          = allocBuffer<Complex>(count, prev, this->Dx);
+      this->Dy          = allocBuffer<Complex>(count, prev, this->Dy);
     }
 
     this->allocation    = count;
   } else {
-    throw std::runtime_error("Cannot shrink ray list");
+    throw std::runtime_error("Cannot shrink beam from allocate(). Call shrink() instead.");
   }
 
   memset(
@@ -563,8 +675,23 @@ RayBeam::allocate(uint64_t count)
     0,
     (maskLen - prevMaskLen) * sizeof(uint64_t));
   
-  for (int64_t i = this->count; i < count; ++i)
-    this->refNdx[i] = 1.;
+  memset(
+    this->mask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
+  memset(
+    this->intMask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
+  memset(
+    this->prevMask + prevMaskLen,
+    0,
+    (maskLen - prevMaskLen) * sizeof(uint64_t));
+
+  for (int64_t i = prev; i < count; ++i)
+    this->media[i] = nullptr;
 
   this->count = count;
 }
@@ -577,26 +704,27 @@ RayBeam::walk(
       const std::function <bool (OpticalSurface *, RayBeam const *, uint64_t)>& include)
 {
   auto slice = RayBeamSlice(this); // Start at 0
+  OpticalSurface *sliceSurf = nullptr;
 
   for (uint64_t i = 0; i < count; ++i) {
-    auto currSurf = hasRay(i) && include(surface, this, i) 
+    auto currSurf = hasRay(i) && include(surface, this, i)
     ? (nonSeq ? surfaces[i] : surface) 
     : nullptr;
 
-    if (surface != currSurf) {
+    if (sliceSurf != currSurf) {
       // Sequence of equal surfaces has finished. Transmit this slice.
-      if (surface != nullptr) {
+      if (sliceSurf != nullptr) {
         slice.end = i;
         func(surface, slice);
       }
 
-      surface = currSurf;
+      sliceSurf = currSurf;
 
       slice.start = i;
     }
   }
 
-  if (surface != nullptr) {
+  if (sliceSurf != nullptr) {
     slice.end = count;
     func(surface, slice);
   }
@@ -613,30 +741,97 @@ RayBeam::walk(
     assert(!nonSeq);
     func(surface, slice);
   } else {
+    OpticalSurface *sliceSurf = nullptr;
     uint64_t i = 0;
     assert(nonSeq);
     
     for (i = 0; i < count; ++i) {
       auto currSurf = hasRay(i) ? surfaces[i] : nullptr;
 
-      if (surface != currSurf) {
+      if (sliceSurf != currSurf) {
         // Sequence of equal surfaces has finished. Transmit this slice.
-        if (surface != nullptr) {
+        if (sliceSurf != nullptr) {
           slice.end = i;
-          func(surface, slice);
+          func(sliceSurf, slice);
         }
 
-        surface = currSurf;
+        sliceSurf = currSurf;
 
         slice.start = i;
       }
     }
 
-    if (surface != nullptr) {
+    if (sliceSurf != nullptr) {
       slice.end = count;
-      func(surface, slice);
+      func(sliceSurf, slice);
     }
   }
+}
+
+void
+RayBeam::walk(const std::function <void (ConstRayBeamSlice const &)>& func) const
+{
+  ConstRayBeamSlice slice(this); // Start at 0
+  int64_t firstExisting = -1;
+  uint64_t i = 0;
+  
+
+  for (i = 0; i < count; ++i) {
+    if (firstExisting < 0 && hasRay(i)) {
+      firstExisting = slice.start = i;
+    } else if (firstExisting >= 0 && !hasRay(i)) {
+      slice.end = i;
+      func(slice);
+      firstExisting = -1;
+    }
+  }
+
+  if (firstExisting >= 0) {
+    slice.end = count;
+    func(slice);
+  }
+}
+
+Real
+RayBeam::power() const
+{
+  if (!fields)
+    return -1;
+
+  Matrix3 ieps;
+  const EMMedium *prevMedium = nullptr;
+  Real c = 0;
+  Real y, t;
+  Real sum = 0;
+
+  auto N = count;
+  while (N-- > 0) if (hasRay(N) && media[N] != NULL) {
+    const auto ui = Vec3(directions + 3 * N);
+    const auto ex = Vec3(vDx + 3 * N);
+    const auto ey = ui.cross(ex);
+    
+    Vec3 S;
+
+    // Calculate poynting vector here and deduce power of ray
+    calcPoyntingVector(
+      S,
+      ieps,
+      Dx[N],
+      Dy[N],
+      ex,
+      ey,
+      ui,
+      media[N],
+      prevMedium,
+      nullptr);
+    
+    y = S * ui - c;
+    t = sum + y;
+    c = (t - sum) - y;
+    sum = t;
+  }
+
+  return sum;
 }
 
 void
@@ -648,8 +843,12 @@ RayBeam::deallocate()
   freeBuffer(normals);
   freeBuffer(lengths);
   freeBuffer(wavelengths);
-  freeBuffer(cumOptLengths);
-  freeBuffer(amplitude);
+  freeBuffer(k);
+  freeBuffer(opl);
+  freeBuffer(vDx);
+  freeBuffer(Dx);
+  freeBuffer(Dy);
+  freeBuffer(media);
   freeBuffer(ids);
   freeBuffer(mask);
   freeBuffer(prevMask);
@@ -659,9 +858,19 @@ RayBeam::deallocate()
   this->count = 0;
 }
 
-RayBeam::RayBeam(uint64_t count, bool nonSeq)
+void
+RayBeam::shrink(uint64_t count)
+{
+  if (count > this->count)
+    throw std::runtime_error("Cannot incrase beam allocation from shrink(). Use allocate() instead.");
+
+  this->count = count;
+}
+
+RayBeam::RayBeam(uint64_t count, bool nonSeq, bool fields)
 {
   this->nonSeq = nonSeq;
+  this->fields = fields;
 
   allocate(count);
 

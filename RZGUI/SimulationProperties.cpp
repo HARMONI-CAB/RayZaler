@@ -244,6 +244,7 @@ SimulationBeamProperties::serialize() const
   SERIALIZE(wavelength);
   SERIALIZE(length);
   SERIALIZE(random);
+  SERIALIZE(coherent);
   SERIALIZE(rays);
 #undef SERIALIZE
 
@@ -280,6 +281,7 @@ SimulationBeamProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(wavelength);
   DESERIALIZE(length);
   DESERIALIZE(random);
+  DESERIALIZE(coherent);
   DESERIALIZE(rays);
 #undef DESERIALIZE
 
@@ -323,12 +325,12 @@ SimulationProperties::serialize() const
   QJsonObject dofObj;
 
   switch (ttype) {
-    case TRACER_TYPE_GEOMETRIC_OPTICS:
-      object["ttype"] = "GEOMETRIC_OPTICS";
+    case TRACER_TYPE_SCALAR_RAYS:
+      object["ttype"] = "SCALAR";
       break;
 
-    case TRACER_TYPE_DIFFRACTION:
-      object["ttype"] = "DIFFRACTION";
+    case TRACER_TYPE_VECTOR_RAYS:
+      object["ttype"] = "VECTOR";
       break;
   }
 
@@ -350,11 +352,15 @@ SimulationProperties::serialize() const
 #define SERIALIZE(what) object[#what] = what
   SERIALIZE(Ni);
   SERIALIZE(Nj);
+  SERIALIZE(keepStrayLight);
+  SERIALIZE(maxProp);
+  SERIALIZE(compactifyInterval);
   SERIALIZE(path);
   SERIALIZE(nonSeq);
   SERIALIZE(saveArtifacts);
   SERIALIZE(clearDetector);
   SERIALIZE(overwrite);
+  SERIALIZE(secondaryRays);
   SERIALIZE(saveDir);
   SERIALIZE(saveDetector);
 #undef SERIALIZE
@@ -391,10 +397,10 @@ SimulationProperties::deserialize(
 
     auto asString = obj[key].toString();
 
-    if (asString == "GEOMETRIC_OPTICS")
-      value = TRACER_TYPE_GEOMETRIC_OPTICS;
-    else if (asString == "DIFFRACTION")
-      value = TRACER_TYPE_DIFFRACTION;
+    if (asString == "GEOMETRIC_OPTICS" || asString == "SCALAR")
+      value = TRACER_TYPE_SCALAR_RAYS;
+    else if (asString == "VECTOR")
+      value = TRACER_TYPE_VECTOR_RAYS;
     else {
       setLastError("Unknown tracer type `" + asString + "'");
       return false;
@@ -456,6 +462,10 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(beams);
   DESERIALIZE(Ni);
   DESERIALIZE(Nj);
+  DESERIALIZE(keepStrayLight);
+  DESERIALIZE(maxProp);
+  DESERIALIZE(compactifyInterval);
+
   DESERIALIZE(path);
   DESERIALIZE(dofs);
   DESERIALIZE(footprints);
@@ -464,6 +474,7 @@ SimulationProperties::deserialize(QJsonObject const &obj)
   DESERIALIZE(saveArtifacts);
   DESERIALIZE(clearDetector);
   DESERIALIZE(overwrite);
+  DESERIALIZE(secondaryRays);
   DESERIALIZE(saveDir);
   DESERIALIZE(saveDetector);
 
@@ -543,21 +554,25 @@ SimulationProperties::removeBeam(int index)
 
 SimulationProperties::SimulationProperties(const SimulationProperties &prop)
 {
-  ttype         = prop.ttype;
-  type          = prop.type;
-  Ni            = prop.Ni;
-  Nj            = prop.Nj;
-  beams         = prop.beams;
-  footprints    = prop.footprints;
-  path          = prop.path;
-  dofs          = prop.dofs;
-  nonSeq        = prop.nonSeq;
-  saveArtifacts = prop.saveArtifacts;
-  saveCSV       = prop.saveCSV;
-  clearDetector = prop.clearDetector;
-  overwrite     = prop.overwrite;
-  saveDir       = prop.saveDir;
-  saveDetector  = prop.saveDetector;
+  ttype              = prop.ttype;
+  type               = prop.type;
+  Ni                 = prop.Ni;
+  Nj                 = prop.Nj;
+  beams              = prop.beams;
+  footprints         = prop.footprints;
+  path               = prop.path;
+  dofs               = prop.dofs;
+  nonSeq             = prop.nonSeq;
+  saveArtifacts      = prop.saveArtifacts;
+  saveCSV            = prop.saveCSV;
+  clearDetector      = prop.clearDetector;
+  overwrite          = prop.overwrite;
+  secondaryRays      = prop.secondaryRays;
+  compactifyInterval = prop.compactifyInterval;
+  maxProp            = prop.maxProp;
+  keepStrayLight     = prop.keepStrayLight;
+  saveDir            = prop.saveDir;
+  saveDetector       = prop.saveDetector;
   
 
   regenerateBeamVector();
@@ -578,8 +593,13 @@ SimulationProperties::SimulationProperties(SimulationProperties &&prop)
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);
   std::swap(overwrite     , prop.overwrite);
+  std::swap(secondaryRays , prop.secondaryRays);
   std::swap(saveDir       , prop.saveDir);
   std::swap(saveDetector  , prop.saveDetector);
+
+  std::swap(keepStrayLight ,    prop.keepStrayLight);
+  std::swap(maxProp        ,    prop.maxProp);
+  std::swap(compactifyInterval, prop.compactifyInterval);
 
   regenerateBeamVector();
 }
@@ -587,21 +607,26 @@ SimulationProperties::SimulationProperties(SimulationProperties &&prop)
 SimulationProperties&
 SimulationProperties::operator=(const SimulationProperties &prop)
 {
-  ttype         = prop.ttype;
-  type          = prop.type;
-  Ni            = prop.Ni;
-  Nj            = prop.Nj;
-  beams         = prop.beams;
-  footprints    = prop.footprints;
-  path          = prop.path;
-  dofs          = prop.dofs;
-  nonSeq        = prop.nonSeq;
-  saveArtifacts = prop.saveArtifacts;
-  saveCSV       = prop.saveCSV;
-  clearDetector = prop.clearDetector;
-  overwrite     = prop.overwrite;
-  saveDir       = prop.saveDir;
-  saveDetector  = prop.saveDetector;
+  ttype              = prop.ttype;
+  type               = prop.type;
+  Ni                 = prop.Ni;
+  Nj                 = prop.Nj;
+  beams              = prop.beams;
+  footprints         = prop.footprints;
+  path               = prop.path;
+  dofs               = prop.dofs;
+  nonSeq             = prop.nonSeq;
+  saveArtifacts      = prop.saveArtifacts;
+  saveCSV            = prop.saveCSV;
+  clearDetector      = prop.clearDetector;
+  overwrite          = prop.overwrite;
+  secondaryRays      = prop.secondaryRays;
+  compactifyInterval = prop.compactifyInterval;
+  maxProp            = prop.maxProp;
+  keepStrayLight     = prop.keepStrayLight;
+  saveDir            = prop.saveDir;
+  saveDetector       = prop.saveDetector;
+  
   regenerateBeamVector();
 
   return *this;
@@ -623,8 +648,13 @@ SimulationProperties::operator=(SimulationProperties &&prop)
   std::swap(saveCSV       , prop.saveCSV);
   std::swap(clearDetector , prop.clearDetector);
   std::swap(overwrite     , prop.overwrite);
+  std::swap(secondaryRays , prop.secondaryRays);
   std::swap(saveDir       , prop.saveDir);
   std::swap(saveDetector  , prop.saveDetector);
+
+  std::swap(keepStrayLight ,    prop.keepStrayLight);
+  std::swap(maxProp        ,    prop.maxProp);
+  std::swap(compactifyInterval, prop.compactifyInterval);
 
   regenerateBeamVector();
 

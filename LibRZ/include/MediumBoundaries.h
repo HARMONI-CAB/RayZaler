@@ -29,7 +29,7 @@
 #include "MediumBoundaries/PassThrough.h"
 #include "MediumBoundaries/PhaseScreen.h"
 #include "MediumBoundaries/RectangularStop.h"
-#include "MediumBoundaries/SquareFlatSurface.h"
+#include "MediumBoundaries/RectangularWindow.h"
 
 namespace RZ {
   void registerMediumBoundaries();

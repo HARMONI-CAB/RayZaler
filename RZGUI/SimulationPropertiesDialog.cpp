@@ -177,6 +177,12 @@ SimulationPropertiesDialog::connectAll()
         SLOT(onDataChanged()));
 
   connect(
+        ui->secondaryRaysCheck,
+        SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
         ui->simTypeCombo,
         SIGNAL(activated(int)),
         this,
@@ -185,6 +191,30 @@ SimulationPropertiesDialog::connectAll()
   connect(
         ui->saveCheck,
         SIGNAL(toggled(bool)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->steps1Spin,
+        SIGNAL(valueChanged(int)),
+        this,
+        SLOT(onDataChanged()));
+      
+  connect(
+        ui->steps2Spin,
+        SIGNAL(valueChanged(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->maxPropSpin,
+        SIGNAL(valueChanged(int)),
+        this,
+        SLOT(onDataChanged()));
+
+  connect(
+        ui->compactSpin,
+        SIGNAL(valueChanged(int)),
         this,
         SLOT(onDataChanged()));
 
@@ -314,7 +344,12 @@ SimulationPropertiesDialog::applyProperties(bool setEdited)
   BLOCKSIG(ui->steps1Spin,            setValue(m_properties.Ni));
   BLOCKSIG(ui->steps2Spin,            setValue(m_properties.Nj));
 
+  BLOCKSIG(ui->maxPropSpin,           setValue(m_properties.maxProp));
+  BLOCKSIG(ui->compactSpin,           setValue(m_properties.compactifyInterval));
+
   BLOCKSIG(ui->nonSeqCheck,           setChecked(m_properties.nonSeq));
+  BLOCKSIG(ui->secondaryRaysCheck,    setChecked(m_properties.secondaryRays));
+  BLOCKSIG(ui->keepStrayLightCheck,   setChecked(m_properties.keepStrayLight));
   BLOCKSIG(ui->saveCheck,             setChecked(m_properties.saveArtifacts));
   BLOCKSIG(ui->saveCSVCheck,          setChecked(m_properties.saveCSV));
   BLOCKSIG(ui->clearDetCheck,         setChecked(m_properties.clearDetector));
@@ -391,11 +426,11 @@ SimulationPropertiesDialog::parseProperties()
 
   switch (ui->tracingType->currentIndex()) {
     case 0:
-      m_properties.ttype = TRACER_TYPE_GEOMETRIC_OPTICS;
+      m_properties.ttype = TRACER_TYPE_SCALAR_RAYS;
       break;
 
     case 1:
-      m_properties.ttype = TRACER_TYPE_DIFFRACTION;
+      m_properties.ttype = TRACER_TYPE_VECTOR_RAYS;
       break;
   }
 
@@ -413,8 +448,12 @@ SimulationPropertiesDialog::parseProperties()
       break;
   }
 
-  m_properties.nonSeq        = ui->nonSeqCheck->isChecked();
-
+  m_properties.nonSeq             = ui->nonSeqCheck->isChecked();
+  m_properties.secondaryRays      = ui->secondaryRaysCheck->isChecked();
+  m_properties.keepStrayLight     = ui->keepStrayLightCheck->isChecked();
+  m_properties.compactifyInterval = ui->compactSpin->value();
+  m_properties.maxProp            = ui->maxPropSpin->value();
+  
   // Artifact generation
   m_properties.saveArtifacts = ui->saveCheck->isChecked();
   m_properties.saveCSV       = ui->saveCSVCheck->isChecked();

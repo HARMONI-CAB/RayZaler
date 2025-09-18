@@ -22,16 +22,21 @@
 #include <EMInterface.h>
 
 namespace RZ {
+  class EMInterfaceSolver;
   class DielectricEMInterface : public EMInterface {
-      Real m_muOut  = 1.5;
-      Real m_muIn   = 1;
-      Real m_IOratio = 1 / 1.5;
+      EMInterfaceSolver *m_ifaceSolver = nullptr;
+
+      void initInterfaceSolver();
 
     public:
-      void setRefractiveIndex(Real , Real);
-      
+
       virtual std::string name() const override;
-      virtual void transmit(RayBeamSlice const &beam) override;
+      virtual void transmit(RayBeamSlice const &beam, RayBeam *) override;
+      virtual void setParentFrame(const ReferenceFrame *) override;
+      virtual void setSurroundingMedium(const EMMedium *) override;
+      virtual void setMedia(
+        const EMMedium *positive = nullptr,
+        const EMMedium *negative = nullptr) override;
       virtual ~DielectricEMInterface() override;
   };
 }

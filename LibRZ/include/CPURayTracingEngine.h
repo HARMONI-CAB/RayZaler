@@ -25,7 +25,10 @@ namespace RZ {
   class CPURayTracingEngine : public RayTracingEngine {
     protected:
       virtual void cast(const OpticalSurface *, RayBeam *) override;
-      virtual void transmit(const OpticalSurface *, RayBeam *) override;
+      virtual void transmit(
+        const OpticalSurface *,
+        RayBeam *,
+        RayBeam *) override;
 
     public:
       CPURayTracingEngine();
