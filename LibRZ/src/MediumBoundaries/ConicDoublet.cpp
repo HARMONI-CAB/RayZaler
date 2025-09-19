@@ -60,9 +60,9 @@ ConicDoubletBoundary::setCenterOffset(Real x, Real y)
 }
 
 void
-ConicDoubletBoundary::setRefractiveIndex(Real in, Real out)
+ConicDoubletBoundary::setMedia(const EMMedium *positive, const EMMedium *negative)
 {
-  emInterface<DielectricEMInterface>()->setRefractiveIndex(in, out);
+  emInterface<DielectricEMInterface>()->setMedia(positive, negative);
 }
 
 void

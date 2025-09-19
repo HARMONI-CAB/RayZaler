@@ -46,6 +46,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves
 void
 ConicLens::recalcModel()
 {
+
   Real R2  = m_radius * m_radius;
 
   Real Rc[2], Rc2[2], sigma[2];
@@ -94,6 +95,20 @@ ConicLens::recalcModel()
 #endif 
 
   dZ[0] = dZ[1] = .5 * m_thickness;
+  
+  // CHECK OFFSET IS WITHIN EXPECTED VALUE
+  //double maxOffset = ((m_displacement[1] + m_displacement[2]) * (m_displacement[1] + m_displacement[2])) / ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2]));
+  //double r_max = ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2])) / ((m_displacement[1] + m_displacement[2]) * (m_displacement[1] + m_displacement[2]));
+  //double r_max = ((m_thickness * m_thickness) / ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2]))) / 2;
+  double maxOffset = sqrt(m_radius * m_radius - 0.25 * (m_thickness + m_displacement[1] + m_displacement[2]) * (m_thickness + m_displacement[1] + m_displacement[2]));
+  double offset = std::sqrt(m_x0 * m_x0 + m_y0 * m_y0);
+  
+  if (offset > maxOffset) {
+    double factor = maxOffset / offset;
+    m_x0 *= factor;
+    m_y0 *= factor;
+  }
+  //
 
   // Input focal plane: located at -f minus half the thickness
   m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
@@ -135,7 +150,8 @@ ConicLens::recalcModel()
   
   
   m_cylinder.setHeight(m_thickness);
-  m_cylinder.setRadius(m_radius);
+  //m_cylinder.setRadius(m_radius);
+  m_cylinder.setCaps(&m_frontCap, &m_backCap);
 
   // Intercept surfaces
   m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());

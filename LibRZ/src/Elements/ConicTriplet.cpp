@@ -27,13 +27,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
   property("thickness2",         1e-2,       "Thickness of the second lens [m]");
   property("thickness3",         1e-2,       "Thickness of the second lens [m]");
   property("radius",            2.5e-2,      "Radius of the conic lense triplet [m]");
-  property("radius1",            2.5e-2,     "Radius of the first lens [m]");
-  property("radius2",            2.5e-2,     "Radius of the second lens [m]");
-  property("radius3",            2.5e-2,     "Radius of the second lens [m]");
   property("diameter",          2 * 2.5e-2,  "Diameter of the conic lense triplet [m]");
-  property("diameter1",          2 * 2.5e-2, "Diameter of the first lens [m]");
-  property("diameter2",          2 * 2.5e-2, "Diameter of the second lens [m]");
-  property("diameter3",          2 * 2.5e-2, "Diameter of the second lens [m]"); // check if radius and offset must be the same for both lenses or can be different
   property("x0",                 0.0,        "X-axis offset [m]");
   property("y0",                 0.0,        "Y-axis offset [m]");
   property("n1",                  1.5,        "Refractive index");
@@ -64,40 +58,32 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
 void
 ConicTriplet::recalcModel()
 {
-  Real R2_1  = m_radius1 * m_radius1;
-  Real R2_2  = m_radius2 * m_radius2;
-  Real R2_3  = m_radius3 * m_radius3;
+  Real R2  = m_radius * m_radius;
 
   Real Rc[4], Rc2[4], sigma[4];
   Real dZ[4];
+  
+  Real n1 = m_glass1.n;
+  Real n2 = m_glass2.n;
+  Real n3 = m_glass3.n;
 
   bool convex[4];
 
   // Calculate properties of the four surfaces.
   for (auto i = 0; i < 4; ++i) {
-
-    //double m_mu    = (i < 2) ? m_mu1 : m_mu2;
-    //double R2 = (i < 2) ? R2_1 : R2_2;
     
-    double m_mu;
+    double n;
     if (i == 0)
-      m_mu = m_mu1;
+      n = n1;
     else if (i == 1)
-      m_mu = m_mu2;
+      n = n2;
     else 
-      m_mu = m_mu3;
-    double R2;
-    if (i == 0)
-      R2 = R2_1;
-    else if (i == 1)
-      R2= R2_2;
-    else 
-      R2 = R2_3;
+      n = n3;
 
     if (m_fromFlen[i])
-      m_rCurv[i]       = 2 * m_focalLength[i] * (m_mu - 1);
+      m_rCurv[i]       = 2 * m_focalLength[i] * (n - 1);
     else
-      m_focalLength[i] = .5 * m_rCurv[i] / (m_mu - 1);
+      m_focalLength[i] = .5 * m_rCurv[i] / (n - 1);
 
     Rc[i]     = fabs(m_rCurv[i]);
     Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
@@ -137,13 +123,13 @@ ConicTriplet::recalcModel()
   m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
   m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
 
-  m_inputBoundary->setRadius(m_radius1);
+  m_inputBoundary->setRadius(m_radius);
   m_inputBoundary->setCurvatureRadius(Rc[0]);
-  m_inputBoundary->setRefractiveIndex(1, m_mu1);
+  m_inputBoundary->setMedia(nullptr, &m_glass1);
   m_inputBoundary->setConicConstant(m_K[0]);
   m_inputBoundary->setConvex(convex[0]);
 
-  m_frontCap.setRadius(m_radius1);
+  m_frontCap.setRadius(m_radius);
   m_frontCap.setCurvatureRadius(Rc[0]);
   m_frontCap.setConicConstant(m_K[0]);
   m_frontCap.setConvex(convex[0]);
@@ -154,13 +140,13 @@ ConicTriplet::recalcModel()
   m_frontFocalPlane->setDistance(+(dZ[1] + m_focalLength[1])* Vec3::eZ());
   m_objectPlane->setDistance(+(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
 
-  m_middleBoundary1->setRadius(fmin(m_radius1, m_radius2));
+  m_middleBoundary1->setRadius(m_radius);
   m_middleBoundary1->setCurvatureRadius(Rc[1]);
-  m_middleBoundary1->setRefractiveIndex(m_mu1, m_mu2);
+  m_middleBoundary1->setMedia(&m_glass1, &m_glass2);
   m_middleBoundary1->setConicConstant(m_K[1]);
   m_middleBoundary1->setConvex(convex[1]);
   
-  m_middleCap1.setRadius(fmin(m_radius1, m_radius2));
+  m_middleCap1.setRadius(m_radius);
   m_middleCap1.setCurvatureRadius(Rc[1]);
   m_middleCap1.setConicConstant(m_K[1]);
   m_middleCap1.setConvex(convex[1]);
@@ -171,13 +157,13 @@ ConicTriplet::recalcModel()
   m_frontFocalPlane->setDistance(+(dZ[2] + m_focalLength[2])* Vec3::eZ());
   m_objectPlane->setDistance(+(dZ[2] + 2 * m_focalLength[2]) * Vec3::eZ());
 
-  m_middleBoundary2->setRadius(fmin(m_radius2, m_radius3));
+  m_middleBoundary2->setRadius(m_radius);
   m_middleBoundary2->setCurvatureRadius(Rc[2]);
-  m_middleBoundary2->setRefractiveIndex(m_mu2, m_mu3);
+  m_middleBoundary2->setMedia(&m_glass2, &m_glass3);
   m_middleBoundary2->setConicConstant(m_K[2]);
   m_middleBoundary2->setConvex(convex[2]);
   
-  m_middleCap2.setRadius(fmin(m_radius2, m_radius3));
+  m_middleCap2.setRadius(m_radius);
   m_middleCap2.setCurvatureRadius(Rc[2]);
   m_middleCap2.setConicConstant(m_K[2]);
   m_middleCap2.setConvex(convex[2]);
@@ -189,13 +175,13 @@ ConicTriplet::recalcModel()
   m_backFocalPlane->setDistance(-(dZ[3] + m_focalLength[3]) * Vec3::eZ());
   m_imagePlane->setDistance(-(dZ[3] + 2 * m_focalLength[3]) * Vec3::eZ());
 
-  m_outputBoundary->setRadius(m_radius2);
+  m_outputBoundary->setRadius(m_radius);
   m_outputBoundary->setCurvatureRadius(Rc[3]);
-  m_outputBoundary->setRefractiveIndex(m_mu3, 1);
+  m_outputBoundary->setMedia(&m_glass3, nullptr);
   m_outputBoundary->setConicConstant(m_K[3]);
   m_outputBoundary->setConvex(!convex[3]);
   
-  m_backCap.setRadius(m_radius2);
+  m_backCap.setRadius(m_radius);
   m_backCap.setCurvatureRadius(Rc[3]);
   m_backCap.setConicConstant(m_K[3]);
   m_backCap.setConvex(!convex[3]);
@@ -204,7 +190,7 @@ ConicTriplet::recalcModel()
   
   
   m_cylinder.setHeight(m_thickness1 + m_thickness2 + m_thickness3);
-  m_cylinder.setRadius(std::min({m_radius1, m_radius2, m_radius3}));
+  m_cylinder.setRadius(m_radius);
 
   // Intercept surfaces
   //m_inputFrame->setDistance(+.5 * (m_thickness1 + m_thickness2 + m_thickness3) * Vec3::eZ());
@@ -222,16 +208,16 @@ ConicTriplet::recalcModel()
   m_outputFrame->recalculate();
 
   setBoundingBox(
-      Vec3(-std::max({m_radius1, m_radius2, m_radius3}), -std::max({m_radius1, m_radius2, m_radius3}), fmin(-(m_thickness1 + m_thickness2 + m_thickness3 + m_displacement[3]) / 4, -(m_thickness1 + m_thickness2 + m_thickness3) / 3)),
-      Vec3(+std::max({m_radius1, m_radius2, m_radius3}), +std::max({m_radius1, m_radius2, m_radius3}), fmax(+(m_thickness1 + m_thickness2 + m_thickness3 + m_displacement[0]) / 4, +(m_thickness1 + m_thickness2 + m_thickness3) / 3)));
+      Vec3(-m_radius, -m_radius, fmin(-(.5 * (m_thickness1 + m_thickness2 + m_thickness3) + m_displacement[3]) , -(m_thickness1 + m_thickness2 + m_thickness3) / 2)), 
+      Vec3(m_radius, m_radius, fmax(+(.5 * (m_thickness1 + m_thickness2 + m_thickness3) + m_displacement[0]) , +(m_thickness1 + m_thickness2 + m_thickness3) / 2))); 
 
   refreshFrames();
 
   updatePropertyValue("focalLength", (m_focalLength[0] + m_focalLength[1] + m_focalLength[2] + m_focalLength[3]) / 4);
   updatePropertyValue("curvature",   (m_rCurv[0] + m_rCurv[1] + m_rCurv[2] + m_rCurv[3]) / 4);
 
-  updatePropertyValue("radius",   std::max({m_radius1, m_radius2, m_radius2}));
-  updatePropertyValue("diameter", 2 * std::max({m_radius1, m_radius2, m_radius2}));
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool
@@ -245,18 +231,10 @@ ConicTriplet::propertyChanged(
     m_thickness2 = value;
   } else if (name == "thickness3") {
     m_thickness3 = value;
-  } else if (name == "radius1") {
-    m_radius1 = value;
-  } else if (name == "radius2") {
-    m_radius2 = value;
-  } else if (name == "radius3") {
-    m_radius3 = value;
-  } else if (name == "diameter1") {
-    m_radius1 = .5 * static_cast<Real>(value);
-  } else if (name == "diameter2") {
-    m_radius2 = .5 * static_cast<Real>(value);
-  } else if (name == "diameter3") {
-    m_radius3 = .5 * static_cast<Real>(value);
+  } else if (name == "radius") {
+    m_radius = value;
+  } else if (name == "diameter") {
+    m_radius = .5 * static_cast<Real>(value);
   } else if (name == "focalLength") {
     return propertyChanged("frontFocalLength", value) 
         && propertyChanged("middleFocalLength1", value)
@@ -309,11 +287,11 @@ ConicTriplet::propertyChanged(
   } else if (name == "y0") {
     m_y0 = value;
   } else if (name == "n1") {
-    m_mu1 = value;
+    m_glass1.n = value;
   } else if (name == "n2") {
-    m_mu2 = value;
+    m_glass2.n = value;
   } else if (name == "n3") {
-    m_mu3 = value;
+    m_glass3.n = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -440,7 +418,7 @@ ConicTriplet::renderOpenGL()
   material("lens");
   m_cylinder.display();
 
-  glTranslatef(0, 0, m_thickness3);
+  glTranslatef(0, 0, (m_thickness1 + m_thickness2 + m_thickness3));
   material("input.lens");
   m_frontCap.display();
   
