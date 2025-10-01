@@ -18,6 +18,8 @@
 
 #include <Elements/ConicLens.h>
 #include <TranslatedFrame.h>
+#include <Logger.h>
+#include <Surfaces/Conic.h>
 
 using namespace RZ;
 
@@ -51,10 +53,16 @@ ConicLens::recalcModel()
 
   Real Rc[2], Rc2[2], sigma[2];
   Real dZ[2];
+  //Real Rmax[2];
+  
+  double A[2];
+  double B[2];
+  double C[2];
 
   Real n = m_glass.n;
 
   bool convex[2];
+  
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 2; ++i) {
@@ -72,6 +80,7 @@ ConicLens::recalcModel()
       m_displacement[i] = .5 * R2 / m_rCurv[i];
     else
       m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
+      
   }
 
 #if  0
@@ -96,81 +105,72 @@ ConicLens::recalcModel()
 
   dZ[0] = dZ[1] = .5 * m_thickness;
   
-  // CHECK OFFSET IS WITHIN EXPECTED VALUE
-  //double maxOffset = ((m_displacement[1] + m_displacement[2]) * (m_displacement[1] + m_displacement[2])) / ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2]));
-  //double r_max = ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2])) / ((m_displacement[1] + m_displacement[2]) * (m_displacement[1] + m_displacement[2]));
-  //double r_max = ((m_thickness * m_thickness) / ((m_K[1] + m_K[2]) * (m_K[1] + m_K[2]))) / 2;
-  double maxOffset = sqrt(m_radius * m_radius - 0.25 * (m_thickness + m_displacement[1] + m_displacement[2]) * (m_thickness + m_displacement[1] + m_displacement[2]));
-  double offset = std::sqrt(m_x0 * m_x0 + m_y0 * m_y0);
+  Real Rmax = RZ::ConicSurface::Rmax(1 * sigma[0], Rc[0], m_K[0], m_displacement[0], -1 * sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness);
   
-  if (offset > maxOffset) {
-    double factor = maxOffset / offset;
-    m_x0 *= factor;
-    m_y0 *= factor;
-  }
-  //
-
-  // Input focal plane: located at -f minus half the thickness
-  m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
-  m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
-
-  m_inputBoundary->setRadius(m_radius);
-  m_inputBoundary->setCurvatureRadius(Rc[0]);
-  m_inputBoundary->setMedia(nullptr, &m_glass);
-  m_inputBoundary->setConicConstant(m_K[0]);
-  m_inputBoundary->setConvex(convex[0]);
-  m_inputBoundary->setCenterOffset(m_x0, m_y0);
-
-  m_frontCap.setRadius(m_radius);
-  m_frontCap.setCurvatureRadius(Rc[0]);
-  m_frontCap.setConicConstant(m_K[0]);
-  m_frontCap.setConvex(convex[0]);
-  m_frontCap.setInvertNormals(false);
-  m_frontCap.setCenterOffset(m_x0, m_y0);
-  m_frontCap.requestRecalc();
-
-  // Output focal plane: opposite side
-  m_backFocalPlane->setDistance(-(dZ[1] + m_focalLength[1]) * Vec3::eZ());
-  m_imagePlane->setDistance(-(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
-
-  m_outputBoundary->setRadius(m_radius);
-  m_outputBoundary->setCurvatureRadius(Rc[1]);
-  m_outputBoundary->setMedia(&m_glass, nullptr);
-  m_outputBoundary->setConicConstant(m_K[1]);
-  m_outputBoundary->setCenterOffset(m_x0, m_y0);
-  m_outputBoundary->setConvex(!convex[1]);
+  if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) + m_radius > Rmax) {
+    RZWarning("Current radius is incompatible with conic offset.\n");
+  } else {
   
-  m_backCap.setRadius(m_radius);
-  m_backCap.setCurvatureRadius(Rc[1]);
-  m_backCap.setConicConstant(m_K[1]);
-  m_backCap.setConvex(!convex[1]);
-  m_backCap.setInvertNormals(true);
-  m_backCap.setCenterOffset(m_x0, m_y0);
-  m_backCap.requestRecalc();
+    // Input focal plane: located at -f minus half the thickness
+    m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
+    m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
+
+    m_inputBoundary->setRadius(m_radius);
+    m_inputBoundary->setCurvatureRadius(Rc[0]);
+    m_inputBoundary->setMedia(nullptr, &m_glass);
+    m_inputBoundary->setConicConstant(m_K[0]);
+    m_inputBoundary->setConvex(convex[0]);
+    m_inputBoundary->setCenterOffset(m_x0, m_y0);
+
+    // Output focal plane: opposite side
+    m_backFocalPlane->setDistance(-(dZ[1] + m_focalLength[1]) * Vec3::eZ());
+    m_imagePlane->setDistance(-(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
+
+    m_outputBoundary->setRadius(m_radius);
+    m_outputBoundary->setCurvatureRadius(Rc[1]);
+    m_outputBoundary->setMedia(&m_glass, nullptr);
+    m_outputBoundary->setConicConstant(m_K[1]);
+    m_outputBoundary->setCenterOffset(m_x0, m_y0);
+    m_outputBoundary->setConvex(!convex[1]);
   
+    m_frontCap.setRadius(m_radius);
+    m_frontCap.setCurvatureRadius(Rc[0]);
+    m_frontCap.setConicConstant(m_K[0]);
+    m_frontCap.setConvex(convex[0]);
+    m_frontCap.setInvertNormals(false);
+    m_frontCap.setCenterOffset(m_x0, m_y0);
+    m_frontCap.requestRecalc();
+
+    m_backCap.setRadius(m_radius);
+    m_backCap.setCurvatureRadius(Rc[1]);
+    m_backCap.setConicConstant(m_K[1]);
+    m_backCap.setConvex(!convex[1]);
+    m_backCap.setInvertNormals(true);
+    m_backCap.setCenterOffset(m_x0, m_y0);
+    m_backCap.requestRecalc();
   
-  m_cylinder.setHeight(m_thickness);
-  //m_cylinder.setRadius(m_radius);
-  m_cylinder.setCaps(&m_frontCap, &m_backCap);
-
-  // Intercept surfaces
-  m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
-  m_inputFrame->recalculate();
-
-  m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
-  m_outputFrame->recalculate();
-
-  setBoundingBox(
+    m_cylinder.setHeight(m_thickness);
+    m_cylinder.setCaps(&m_frontCap, &m_backCap);
+    
+    setBoundingBox(
       Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(-(.5 * m_thickness + m_displacement[1]), -m_thickness / 2)),
       Vec3(+m_radius + m_x0, +m_radius + m_y0, fmax(+(.5 * m_thickness + m_displacement[0]), +m_thickness / 2)));
+      
+    // Intercept surfaces
+    m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+    m_inputFrame->recalculate();
 
-  refreshFrames();
+    m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
+    m_outputFrame->recalculate();
 
-  updatePropertyValue("focalLength", 0.5 * (m_focalLength[0] + m_focalLength[1]));
-  updatePropertyValue("curvature",   0.5 * (m_rCurv[0]       + m_rCurv[1]));
+    refreshFrames();
 
-  updatePropertyValue("radius",   m_radius);
-  updatePropertyValue("diameter", 2 * m_radius);
+    updatePropertyValue("focalLength", 0.5 * (m_focalLength[0] + m_focalLength[1]));
+    updatePropertyValue("curvature",   0.5 * (m_rCurv[0]       + m_rCurv[1]));
+
+    updatePropertyValue("radius",   m_radius);
+    updatePropertyValue("diameter", 2 * m_radius);
+  } 
 }
 
 bool
