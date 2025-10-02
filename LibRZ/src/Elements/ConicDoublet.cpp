@@ -1,5 +1,6 @@
 //
 //  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//  Copyright (c) 2025 Pablo Álvarez Martín
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as
@@ -28,7 +29,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic cur
   property("thickness1",         1e-2,       "Thickness of the first lens [m]");
   property("thickness2",         1e-2,       "Thickness of the second lens [m]");
   property("radius",            2.5e-2,      "Radius of the conic lense doublet [m]");
-  property("diameter",          2 * 2.5e-2,  "Diameter of the conic lense doublet [m]"); 
+  property("diameter",          2 * 2.5e-2,  "Diameter of the conic lens doublet [m]"); 
   property("x0",                 0.0,        "X-axis offset [m]");
   property("y0",                 0.0,        "Y-axis offset [m]");
   property("n1",                  1.5,        "Refractive index");
@@ -85,36 +86,16 @@ ConicDoublet::recalcModel()
       m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
   }
 
-#if  0
-  auto R_1 = m_rCurv[0];
-  auto R_2 = m_rCurv[1];
-  auto dn  = (m_mu - 1) * m_thickness / m_mu;
-
-  Real d    = m_thickness + m_displacement[0] + m_displacement[1];
-  Real fInv = (m_mu - 1) * (1 / R_1 + 1 / R_2 + dn / (R_1 * R_2));
-  Real FFD  = (1 + dn/ R_1) / fInv;
-  Real BFD  = (1 + dn/ R_2) / fInv;
-
-  printf("Effective F: %g\n", 1 / fInv);
-  printf("Thickness: %g\n", m_thickness);
-  printf("%g, %g\n", R_1, R_2);
-  printf("FFD, BFD: %g, %g\n", FFD, BFD);
-  printf("ffL, bfL: %g, %g\n", m_focalLength[0], m_focalLength[1]);
-
-  dZ[0] = FFD - m_focalLength[0];
-  dZ[1] = BFD - m_focalLength[1];
-#endif 
-
   dZ[0] = dZ[1] = .5 * m_thickness1;
   dZ[2] = .5 * m_thickness2;
   
-  Real Rmax1 = RZ::ConicSurface::Rmax(1 * sigma[0], Rc[0], m_K[0], m_displacement[0], 1 * sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness1);
+  Real Rmax1 = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness1);
   
-  Real Rmax2 = RZ::ConicSurface::Rmax(1 * sigma[1], Rc[1], m_K[1], m_displacement[1], -1 * sigma[2], Rc[2], m_K[2], m_displacement[2], m_thickness2);
+  Real Rmax2 = RZ::ConicSurface::Rmax(sigma[1], Rc[1], m_K[1], m_displacement[1], sigma[2], Rc[2], m_K[2], m_displacement[2], m_thickness2);
   
   Real Rmax = std::min(Rmax1, Rmax2);
   
-  if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) + m_radius > Rmax) {
+  if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
 
@@ -164,13 +145,13 @@ ConicDoublet::recalcModel()
     m_outputBoundary->setCurvatureRadius(Rc[2]);
     m_outputBoundary->setMedia(&m_glass2, nullptr);
     m_outputBoundary->setConicConstant(m_K[2]);
-    m_outputBoundary->setConvex(!convex[2]);
+    m_outputBoundary->setConvex(convex[2]);
     m_outputBoundary->setCenterOffset(m_x0, m_y0);
   
     m_backCap.setRadius(m_radius);
     m_backCap.setCurvatureRadius(Rc[2]);
     m_backCap.setConicConstant(m_K[2]);
-    m_backCap.setConvex(!convex[2]);
+    m_backCap.setConvex(convex[2]);
     m_backCap.setInvertNormals(true);
     m_backCap.setCenterOffset(m_x0, m_y0);
     m_backCap.requestRecalc();
@@ -190,17 +171,18 @@ ConicDoublet::recalcModel()
     m_outputFrame->recalculate();
 
     setBoundingBox(
-        Vec3(-m_radius, -m_radius, fmin(-(.5 * (m_thickness1 + m_thickness2) + m_displacement[2]) , -(m_thickness1 + m_thickness2) / 2)), 
-        Vec3(m_radius, m_radius, fmax(+(.5 * (m_thickness1 + m_thickness2) + m_displacement[0]) , +(m_thickness1 + m_thickness2) / 2))); 
+        Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(-(.5 * (m_thickness1 + m_thickness2) + m_displacement[2]) , -(m_thickness1 + m_thickness2) / 2)), 
+        Vec3(m_radius + m_x0, m_radius + m_y0, fmax(+(.5 * (m_thickness1 + m_thickness2) + m_displacement[0]) , +(m_thickness1 + m_thickness2) / 2))); 
 
     refreshFrames();
 
-    updatePropertyValue("focalLength", (m_focalLength[0] + m_focalLength[1] + m_focalLength[2]) / 3);
-    updatePropertyValue("curvature",   (m_rCurv[0] + m_rCurv[1] + m_rCurv[2]) / 3);
-
-    updatePropertyValue("radius",   m_radius);
-    updatePropertyValue("diameter", 2 * m_radius);
   }
+  
+  updatePropertyValue("focalLength", (m_focalLength[0] + m_focalLength[1] + m_focalLength[2]) / 3);
+  updatePropertyValue("curvature",   (m_rCurv[0] + m_rCurv[1] + m_rCurv[2]) / 3);
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool

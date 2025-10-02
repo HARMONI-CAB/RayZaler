@@ -83,31 +83,11 @@ ConicLens::recalcModel()
       
   }
 
-#if  0
-  auto R_1 = m_rCurv[0];
-  auto R_2 = m_rCurv[1];
-  auto dn  = (n - 1) * m_thickness / n;
-
-  Real d    = m_thickness + m_displacement[0] + m_displacement[1];
-  Real fInv = (n - 1) * (1 / R_1 + 1 / R_2 + dn / (R_1 * R_2));
-  Real FFD  = (1 + dn/ R_1) / fInv;
-  Real BFD  = (1 + dn/ R_2) / fInv;
-
-  printf("Effective F: %g\n", 1 / fInv);
-  printf("Thickness: %g\n", m_thickness);
-  printf("%g, %g\n", R_1, R_2);
-  printf("FFD, BFD: %g, %g\n", FFD, BFD);
-  printf("ffL, bfL: %g, %g\n", m_focalLength[0], m_focalLength[1]);
-
-  dZ[0] = FFD - m_focalLength[0];
-  dZ[1] = BFD - m_focalLength[1];
-#endif 
-
   dZ[0] = dZ[1] = .5 * m_thickness;
   
-  Real Rmax = RZ::ConicSurface::Rmax(1 * sigma[0], Rc[0], m_K[0], m_displacement[0], -1 * sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness);
+  Real Rmax = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], -sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness);
   
-  if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) + m_radius > Rmax) {
+  if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
   
@@ -165,12 +145,13 @@ ConicLens::recalcModel()
 
     refreshFrames();
 
-    updatePropertyValue("focalLength", 0.5 * (m_focalLength[0] + m_focalLength[1]));
-    updatePropertyValue("curvature",   0.5 * (m_rCurv[0]       + m_rCurv[1]));
-
-    updatePropertyValue("radius",   m_radius);
-    updatePropertyValue("diameter", 2 * m_radius);
   } 
+  
+  updatePropertyValue("focalLength", 0.5 * (m_focalLength[0] + m_focalLength[1]));
+  updatePropertyValue("curvature",   0.5 * (m_rCurv[0]       + m_rCurv[1]));
+
+  updatePropertyValue("radius",   m_radius);
+  updatePropertyValue("diameter", 2 * m_radius);
 }
 
 bool

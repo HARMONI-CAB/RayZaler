@@ -1,5 +1,6 @@
 //
 //  Copyright (c) 2024 Gonzalo José Carracedo Carballal
+//  Copyright (c) 2025 Pablo Álvarez Martín
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as

@@ -76,22 +76,6 @@ ConicSurface::setCenterOffset(Real x, Real y)
   m_dirty = true;
 }
 
-//Real
-//ConicSurface::Rmax(Real K, Real Rc)
-//{
-//  Real R_max;
-  
-//  if (K == 0) {
-//    R_max = Rc
-//  } else if (K < 0 && K > -1) {
-//    R_max = Rc * sqrt(1 + k)
-//  } else {
-//    R_max = inf //??
-//  }
-  
-//  return R_max
-//}
-
 void
 ConicSurface::setRadius(Real R)
 {
@@ -317,7 +301,7 @@ ConicSurface::recalcSelectionGL()
     generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_uy, -m_ux, -1, n);
   }
 }
-
+  
 void
 ConicSurface::recalcGL()
 { 

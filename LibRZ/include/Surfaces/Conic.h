@@ -107,8 +107,7 @@ namespace RZ {
       Real c = Bp4 + Bn4 + D4 - 2 * (Bp2 * Bn2 + Bp2 * D2 + Bn2 * D2);
 
       Real eps = 1e-12;
-      if (abs(a) > eps)
-      {
+      if (!isZero(a, eps)) {
         Real disc = b * b - 4 * a * c;
         if (disc < 0)
         {
@@ -124,9 +123,9 @@ namespace RZ {
         Real eq1 = Ap + Bp * sqrt(1 + Cp * r1 * r1) - An - Bn * sqrt(1 + Cn * r1 * r1) + t;
         Real eq2 = Ap + Bp * sqrt(1 + Cp * r2 * r2) - An - Bn * sqrt(1 + Cn * r2 * r2) + t;
         
-        if (abs(eq1) < eps){
+        if (isZero(eq1, eps)) {
           Rmax = sqrt(y1);
-        } else if (abs(eq2) < eps) {
+        } else if (isZero(eq2, eps)) {
           Rmax = sqrt(y2);
         } else {
           RZWarning("There are no real solutions.\n");
@@ -134,8 +133,7 @@ namespace RZ {
         }
       } else {
         Real y = -c / b;
-        if (y < 0)
-        {
+        if (y < 0) {
           RZWarning("There are no real solutions.\n");
           Rmax = NAN;
         }
@@ -170,7 +168,7 @@ namespace RZ {
       Real c = D2 - B2;
         
       Real eps = 1e-12;
-      if (abs(a) > eps) {
+      if (isZero(a, eps)) {
         Real disc = b * b - 4 * a * c;
         if (disc < 0) {
           RZWarning("There are no real solutions.\n");
@@ -185,9 +183,9 @@ namespace RZ {
         Real eq1 = X + Y * r1 * r1 - A - B * sqrt(1 + C * r1 * r1) + t;
         Real eq2 = X + Y * r2 * r2 - A - B * sqrt(1 + C * r2 * r2) + t;
         
-        if (abs(eq1) < eps){
+        if (isZero(eq1, eps)) {
           Rmax = sqrt(y1);
-        } else if (abs(eq2) < eps) {
+        } else if (isZero(eq2, eps)) {
           Rmax = sqrt(y2);
         } else {
           RZWarning("There are no real solutions.\n");
@@ -224,15 +222,14 @@ namespace RZ {
       Real Rmax;
       bool isParabolicP = isZero(Kp + 1);
       bool isParabolicN = isZero(Kn + 1);
-      if (!isParabolicP && !isParabolicN) {
+      if (!isParabolicP && !isParabolicN)
         Rmax = RmaxNonParNonPar(Sp, Rcp, Kp, dp, Sn, Rcn, Kn, dn, t);
-      } else if (!isParabolicP && isParabolicN) {
+      else if (!isParabolicP && isParabolicN) 
         Rmax = RmaxParNonPar(Sp, Rcp, Kp, dp, Sn, Rcn, Kn, dn, t);
-      } else if (isParabolicP && !isParabolicN) {
-        Rmax = RmaxParNonPar(Sp, Rcp, Kp, dp, Sn, Rcn, Kn, dn, -1 * t);
-      } else {
+      else if (isParabolicP && !isParabolicN) 
+        Rmax = RmaxParNonPar(Sp, Rcp, Kp, dp, Sn, Rcn, Kn, dn, -t);
+      else 
         Rmax = RmaxParPar(Sp, Rcp, Kp, dp, Sn, Rcn, Kn, dn, t);
-      }
       return Rmax;
     }
     
