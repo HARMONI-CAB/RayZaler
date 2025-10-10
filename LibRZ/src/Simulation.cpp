@@ -254,7 +254,7 @@ Simulation::trace(TracingProperties const &props)
 
   if (ok && props.beamElement != nullptr) {
     props.beamElement->setScalarRays(!props.calculateFields);
-    props.beamElement->setList(m_intermediateRays);
+    props.beamElement->setList(m_intermediateRays, props.powerThreshold);
   }
 
   m_lastTick = m_engine->lastTick();

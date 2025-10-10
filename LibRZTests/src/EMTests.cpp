@@ -613,8 +613,16 @@ verifyFields(
   So2 = Eo2.cross(Ho2);
   Se2 = Ee2.cross(He2);
 
-  S1 = (Si + So1 + Se1) * normal;
-  S2 = (So2 + Se2) * normal;
+  auto Sp = Si + So1 + Se1;
+  auto Sn =  So2 + Se2;
+
+  S1 = Sp * normal;
+  S2 = Sn * normal;
+  printf("  ||Si||   = %g\n", Si.norm());
+  printf("  ||So1||  = %g\n", So1.norm());
+  printf("  ||Se1||  = %g\n", Se1.norm());
+  printf("  ||So2||  = %g\n", So2.norm());
+  printf("  ||Se2||  = %g\n", Se2.norm());
   printf("  <S1, n>  = %g\n", S1);
   printf("  <S2, n>  = %g\n", S2);
   REQUIRE(releq(S1, S2));
