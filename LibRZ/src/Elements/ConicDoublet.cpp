@@ -64,6 +64,9 @@ ConicDoublet::recalcModel()
   Real n2 = m_glass2.n;
 
   bool convex[3];
+  
+  Real z_sup[4];
+  Real z_inf[4];
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 3; ++i) {
@@ -95,9 +98,40 @@ ConicDoublet::recalcModel()
   
   Real Rmax = std::min(Rmax1, Rmax2);
   
+  auto z_val = [&](int i, Real rad) { 
+    Real r = sqrt(m_x0*m_x0 + m_y0*m_y0) - rad;
+    Real r2 = r*r;
+    if (m_K[i] == -1) {
+      return -sigma[i] * (.5 / Rc[i] * r2 - m_displacement[i]);
+    } else {
+      return -sigma[i] * ((Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - m_displacement[i]);
+    }
+  };
+  
+  Real z_sup_val;
+  Real z_inf_val;
+  
+  z_sup[0] = (z_val(2, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  z_sup[1] = (z_val(2, 0));                       // z(x0, y0)
+  z_sup[2] = (z_val(2, +m_radius));               // z(x0-r, y0-r)
+  z_sup[3] = (z_val(2, -m_radius));               // z(x0+r, y0+r)
+  z_inf[0] = (z_val(0, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  z_inf[1] = (z_val(0, 0));                       // z(x0, y0)
+  z_inf[2] = (z_val(0, +m_radius));               // z(x0-r, y0-r)
+  z_inf[3] = (z_val(0, -m_radius));               // z(x0+r, y0+r)
+  
   if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
+    if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) < m_radius) {
+      z_sup_val = fmin(z_sup[0], fmin(z_sup[1], fmin(z_sup[2], z_sup[3]))) - m_thickness2;
+      z_inf_val = fmax(z_inf[0], fmax(z_inf[1], fmax(z_inf[2], z_inf[3]))) + m_thickness1;
+    } else {
+      z_sup_val = fmin(z_sup[1], fmin(z_sup[2], z_sup[3])) - m_thickness2;
+      z_inf_val = fmax(z_inf[1], fmax(z_inf[2], z_inf[3])) + m_thickness1;
+    }
+    
+    ///
 
     // Input focal plane: located at -f minus half the thickness
     m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
@@ -171,10 +205,12 @@ ConicDoublet::recalcModel()
     m_outputFrame->recalculate();
 
     setBoundingBox(
-        Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(-(.5 * (m_thickness1 + m_thickness2) + m_displacement[2]) , -(m_thickness1 + m_thickness2) / 2)), 
-        Vec3(m_radius + m_x0, m_radius + m_y0, fmax(+(.5 * (m_thickness1 + m_thickness2) + m_displacement[0]) , +(m_thickness1 + m_thickness2) / 2))); 
-
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, z_sup_val), 
+      Vec3(m_radius + m_x0, m_radius + m_y0, z_inf_val)
+    );
+  
     refreshFrames();
+    
 
   }
   
@@ -273,8 +309,6 @@ ConicDoublet::ConicDoublet(
   m_outputBoundary = new ConicDoubletBoundary;
   m_outputBoundary->setConvex(false);
   m_outputBoundary->setMedia(&m_glass2, nullptr);
-  
-  
 
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_middleFrame  = new TranslatedFrame("middleFrame",  frame, Vec3::zero());
