@@ -86,7 +86,6 @@ ConicLens::recalcModel()
   
   Real Rmax = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], -sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness);
   
-  bool invalid_value = false;
   auto z_val = [&](int i, Real rad) { 
     Real r = sqrt(m_x0*m_x0 + m_y0*m_y0) - rad;
     Real r2 = r*r;
@@ -109,21 +108,13 @@ ConicLens::recalcModel()
   Real z_inf_val;
   
   z_sup[0] = (z_val(1, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
-  //if (invalid_value) return;
   z_sup[1] = (z_val(1, 0));                       // z(x0, y0)
-  //if (invalid_value) return;
   z_sup[2] = (z_val(1, +m_radius));               // z(x0-r, y0-r)
-  //if (invalid_value) return;
   z_sup[3] = (z_val(1, -m_radius));               // z(x0+r, y0+r)
-  //if (invalid_value) return;
   z_inf[0] = (z_val(0, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
-  //if (invalid_value) return;
   z_inf[1] = (z_val(0, 0));                       // z(x0, y0)
-  //if (invalid_value) return;
   z_inf[2] = (z_val(0, +m_radius));               // z(x0-r, y0-r)
-  //if (invalid_value) return;
   z_inf[3] = (z_val(0, -m_radius));               // z(x0+r, y0+r)
-  //if (invalid_value) return;
   
   if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
