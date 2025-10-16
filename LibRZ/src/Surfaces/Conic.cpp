@@ -301,7 +301,7 @@ ConicSurface::recalcSelectionGL()
     generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_uy, -m_ux, -1, n);
   }
 }
-
+  
 void
 ConicSurface::recalcGL()
 { 

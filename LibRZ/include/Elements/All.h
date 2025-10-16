@@ -26,6 +26,8 @@
 #include <Elements/BlockElement.h>
 #include <Elements/CircularWindow.h>
 #include <Elements/ConicLens.h>
+#include <Elements/ConicDoublet.h>
+#include <Elements/ConicTriplet.h>
 #include <Elements/ConicMirror.h>
 #include <Elements/Detector.h>
 #include <Elements/FlatMirror.h>

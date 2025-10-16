@@ -49,6 +49,8 @@ RZ::RZInit()
   singleton->registerElementFactory(new BlockElementFactory);
   singleton->registerElementFactory(new CircularWindowFactory);
   singleton->registerElementFactory(new ConicLensFactory);
+  singleton->registerElementFactory(new ConicDoubletFactory);
+  singleton->registerElementFactory(new ConicTripletFactory);
   singleton->registerElementFactory(new ConicMirrorFactory);
   singleton->registerElementFactory(new DetectorFactory);
   singleton->registerElementFactory(new IdealLensFactory);
