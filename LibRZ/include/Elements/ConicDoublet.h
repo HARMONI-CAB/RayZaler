@@ -41,19 +41,13 @@ namespace RZ {
       TranslatedFrame        *m_middleFrame      = nullptr;
       TranslatedFrame        *m_outputFrame      = nullptr;
 
-      TranslatedFrame        *m_frontFocalPlane  = nullptr;
-      TranslatedFrame        *m_middleFocalPlane   = nullptr;
-      TranslatedFrame        *m_backFocalPlane   = nullptr;
-
       TranslatedFrame        *m_objectPlane      = nullptr;
       TranslatedFrame        *m_middlePlane      = nullptr;
       TranslatedFrame        *m_imagePlane       = nullptr;
 
       // Per-surface properties
       Real m_K[3]           = {0, 0, 0};
-      Real m_focalLength[3] = {5e-2, 5e-2, 5e-2};
       Real m_rCurv[3]       = {1e-1, 1e-1, 1e-1};
-      bool m_fromFlen[3]    = {false, false, false};
       
       // Common properties
       Real m_radius         = 2.5e-2;
