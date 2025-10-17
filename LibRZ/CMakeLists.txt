@@ -104,8 +104,6 @@ set(LIBRZ_SOURCES
   ${LIBRZ_SRCDIR}/MediumBoundaries/ApertureStop.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/CircularWindow.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/ConicLens.cpp
-  ${LIBRZ_SRCDIR}/MediumBoundaries/ConicDoublet.cpp
-  ${LIBRZ_SRCDIR}/MediumBoundaries/ConicTriplet.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/ConicMirror.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/FlatMirror.cpp
   ${LIBRZ_SRCDIR}/MediumBoundaries/IdealLens.cpp
@@ -223,8 +221,6 @@ set(LIBRZ_HEADERS
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ApertureStop.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/CircularWindow.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicLens.h
-  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicDoublet.h
-  ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicTriplet.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/ConicMirror.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/FlatMirror.h
   ${LIBRZ_INCLUDEDIR}/MediumBoundaries/IdealLens.h

@@ -21,7 +21,7 @@
 #define _CONIC_TRIPLET_H
 
 #include <OpticalElement.h>
-#include <MediumBoundaries/ConicTriplet.h>
+#include <MediumBoundaries/ConicLens.h>
 #include <GLHelpers.h>
 #include <EMInterface.h>
 
@@ -34,19 +34,19 @@ namespace RZ {
       EMMedium                m_glass1;
       EMMedium                m_glass2;
       EMMedium                m_glass3;
-      ConicTripletBoundary      *m_inputBoundary    = nullptr;
-      ConicTripletBoundary      *m_middleBoundary1   = nullptr;
-      ConicTripletBoundary      *m_middleBoundary2   = nullptr;
-      ConicTripletBoundary      *m_outputBoundary   = nullptr;
+      ConicLensBoundary      *m_inputBoundary    = nullptr;
+      ConicLensBoundary      *m_middleBoundary1  = nullptr;
+      ConicLensBoundary      *m_middleBoundary2  = nullptr;
+      ConicLensBoundary      *m_outputBoundary   = nullptr;
 
       TranslatedFrame        *m_inputFrame       = nullptr;
-      TranslatedFrame        *m_middleFrame1      = nullptr;
-      TranslatedFrame        *m_middleFrame2      = nullptr;
+      TranslatedFrame        *m_middleFrame1     = nullptr;
+      TranslatedFrame        *m_middleFrame2     = nullptr;
       TranslatedFrame        *m_outputFrame      = nullptr;
 
       TranslatedFrame        *m_objectPlane      = nullptr;
-      TranslatedFrame        *m_middlePlane1      = nullptr;
-      TranslatedFrame        *m_middlePlane2      = nullptr;
+      TranslatedFrame        *m_middlePlane1     = nullptr;
+      TranslatedFrame        *m_middlePlane2     = nullptr;
       TranslatedFrame        *m_imagePlane       = nullptr;
 
       // Per-surface properties
@@ -57,9 +57,9 @@ namespace RZ {
       Real m_radius         = 2.5e-2;
       Real m_x0             = 0;
       Real m_y0             = 0;
-      Real m_thickness1      = 1e-2;
-      Real m_thickness2      = 1e-2;
-      Real m_thickness3      = 1e-2;
+      Real m_thickness1     = 1e-2;
+      Real m_thickness2     = 1e-2;
+      Real m_thickness3     = 1e-2;
       
       // Calculated properties
       Real m_displacement[4];
