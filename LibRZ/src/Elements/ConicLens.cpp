@@ -26,6 +26,7 @@ using namespace RZ;
 RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves")
 {
   property("thickness",         1e-2,       "Thickness of the lens [m]");
+  property("edgeThickness",     1e-2,       "Thickness of side of the lens [m]");
   property("radius",            2.5e-2,     "Radius of the lens [m]");
   property("diameter",          2 * 2.5e-2, "Diameter of the lens [m]");
   property("x0",                0.0,        "X-axis offset [m]");
@@ -43,6 +44,8 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves
   property("backCurvature",     1e-1,       "Radius of curvature of the front surface [m]");
   property("backFocalLength",   5e-2,       "Focal length of the back surface [m]");
   property("backConic",         0.0,        "Conic constant (K) of the back surface");
+  
+  property("vertexRelative",    false,      "Thickness is relative to the vertex of the reflective surface");
 }
 
 void
@@ -81,10 +84,16 @@ ConicLens::recalcModel()
       m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
       
   }
-
-  dZ[0] = dZ[1] = .5 * m_thickness;
   
-  Real Rmax = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], -sigma[1], Rc[1], m_K[1], m_displacement[1], m_thickness);
+  if (m_fromEdge) {
+    m_thickness = m_edgeThickness + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
+  } else {
+    m_edgeThickness = m_thickness - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
+  }
+
+  dZ[0] = dZ[1] = .5 * m_edgeThickness;
+  
+  Real Rmax = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], -sigma[1], Rc[1], m_K[1], m_displacement[1], m_edgeThickness);
   
   auto z_val = [&](int i, Real rad) { 
     Real r = sqrt(m_x0*m_x0 + m_y0*m_y0) - rad;
@@ -120,11 +129,11 @@ ConicLens::recalcModel()
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
     if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) < m_radius) {
-      z_sup_val = fmin(z_sup[0], fmin(z_sup[1], fmin(z_sup[2], z_sup[3]))) - .5 * m_thickness;
-      z_inf_val = fmax(z_inf[0], fmax(z_inf[1], fmax(z_inf[2], z_inf[3]))) + .5 * m_thickness;
+      z_sup_val = fmin(z_sup[0], fmin(z_sup[1], fmin(z_sup[2], z_sup[3]))) - .5 * m_edgeThickness;
+      z_inf_val = fmax(z_inf[0], fmax(z_inf[1], fmax(z_inf[2], z_inf[3]))) + .5 * m_edgeThickness;
     } else {
-      z_sup_val = fmin(z_sup[1], fmin(z_sup[2], z_sup[3])) - .5 * m_thickness;
-      z_inf_val = fmax(z_inf[1], fmax(z_inf[2], z_inf[3])) + .5 * m_thickness;
+      z_sup_val = fmin(z_sup[1], fmin(z_sup[2], z_sup[3])) - .5 * m_edgeThickness;
+      z_inf_val = fmax(z_inf[1], fmax(z_inf[2], z_inf[3])) + .5 * m_edgeThickness;
     }
   
     // Input focal plane: located at -f minus half the thickness
@@ -165,7 +174,7 @@ ConicLens::recalcModel()
     m_backCap.setCenterOffset(m_x0, m_y0);
     m_backCap.requestRecalc();
   
-    m_cylinder.setHeight(m_thickness);
+    m_cylinder.setHeight(m_edgeThickness);
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
     
     setBoundingBox(
@@ -174,10 +183,10 @@ ConicLens::recalcModel()
     );
       
     // Intercept surfaces
-    m_inputFrame->setDistance(+.5 * m_thickness * Vec3::eZ());
+    m_inputFrame->setDistance(+.5 * m_edgeThickness * Vec3::eZ());
     m_inputFrame->recalculate();
 
-    m_outputFrame->setDistance(-.5 * m_thickness * Vec3::eZ());
+    m_outputFrame->setDistance(-.5 * m_edgeThickness * Vec3::eZ());
     m_outputFrame->recalculate();
 
     refreshFrames();
@@ -198,6 +207,10 @@ ConicLens::propertyChanged(
 {
   if (name == "thickness") {
     m_thickness = value;
+    m_fromEdge    = false;
+  } else if (name == "edgeThickness") {
+    m_edgeThickness = value;
+    m_fromEdge    = true;
   } else if (name == "radius") {
     m_radius = value;
   } else if (name == "diameter") {
@@ -233,6 +246,8 @@ ConicLens::propertyChanged(
     m_y0 = value;
   } else if (name == "n") {
     m_glass.n = value;
+  } else if (name == "vertexRelative") {
+    m_vertexRelative = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -321,14 +336,14 @@ ConicLens::nativeMaterialOpenGL(std::string const &role)
 void
 ConicLens::renderOpenGL()
 {
-  glTranslatef(0, 0,  -.5 * m_thickness);
+  glTranslatef(0, 0,  -.5 * m_edgeThickness);
   material("output.lens");
   m_backCap.display();
   
   material("lens");
   m_cylinder.display();
 
-  glTranslatef(0, 0, m_thickness);
+  glTranslatef(0, 0, m_edgeThickness);
   material("input.lens");
   m_frontCap.display();
   
