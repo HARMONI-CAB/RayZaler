@@ -35,20 +35,13 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic cur
   property("n1",                  1.5,        "Refractive index");
   property("n2",                  1.5,        "Refractive index");
 
-  property("curvature",          1e-1,       "Radius of curvature of the three surfaces [m]");
-  property("focalLength",        5e-2,       "Focal length of the three surfaces [m]");
-  property("conic",              0.0,        "Conic constant (K) of the three surfaces");
-
   property("frontCurvature",     1e-1,       "Radius of curvature of the front surface [m]");
-  property("frontFocalLength",   5e-2,       "Focal length of the front surface [m]");
   property("frontConic",         0.0,        "Conic constant (K) of the front surface");
 
   property("middleCurvature",      1e-1,       "Radius of curvature of the middle surface [m]");
-  property("middleFocalLength",    5e-2,       "Focal length of the middle surface [m]");
   property("middleConic",          0.0,        "Conic constant (K) of the middle surface");
 
   property("backCurvature",      1e-1,       "Radius of curvature of the back surface [m]");
-  property("backFocalLength",    5e-2,       "Focal length of the back surface [m]");
   property("backConic",          0.0,        "Conic constant (K) of the back surface");
 }
 
@@ -64,16 +57,14 @@ ConicDoublet::recalcModel()
   Real n2 = m_glass2.n;
 
   bool convex[3];
+  
+  Real z_sup[4];
+  Real z_inf[4];
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 3; ++i) {
 
     double n    = (i < 2) ? n1 : n2;
-
-    if (m_fromFlen[i])
-      m_rCurv[i]       = 2 * m_focalLength[i] * (n - 1);
-    else
-      m_focalLength[i] = .5 * m_rCurv[i] / (n - 1);
 
     Rc[i]     = fabs(m_rCurv[i]);
     Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
@@ -95,13 +86,40 @@ ConicDoublet::recalcModel()
   
   Real Rmax = std::min(Rmax1, Rmax2);
   
+  auto z_val = [&](int i, Real rad) { 
+    Real r = sqrt(m_x0*m_x0 + m_y0*m_y0) - rad;
+    Real r2 = r*r;
+    if (m_K[i] == -1) {
+      return -sigma[i] * (.5 / Rc[i] * r2 - m_displacement[i]);
+    } else {
+      return -sigma[i] * ((Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - m_displacement[i]);
+    }
+  };
+  
+  Real z_sup_val;
+  Real z_inf_val;
+  
+  z_sup[0] = (z_val(2, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  z_sup[1] = (z_val(2, 0));                       // z(x0, y0)
+  z_sup[2] = (z_val(2, +m_radius));               // z(x0-r, y0-r)
+  z_sup[3] = (z_val(2, -m_radius));               // z(x0+r, y0+r)
+  z_inf[0] = (z_val(0, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  z_inf[1] = (z_val(0, 0));                       // z(x0, y0)
+  z_inf[2] = (z_val(0, +m_radius));               // z(x0-r, y0-r)
+  z_inf[3] = (z_val(0, -m_radius));               // z(x0+r, y0+r)
+  
   if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
-
-    // Input focal plane: located at -f minus half the thickness
-    m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
-    m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
+    if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) < m_radius) {
+      z_sup_val = fmin(z_sup[0], fmin(z_sup[1], fmin(z_sup[2], z_sup[3]))) - m_thickness2;
+      z_inf_val = fmax(z_inf[0], fmax(z_inf[1], fmax(z_inf[2], z_inf[3]))) + m_thickness1;
+    } else {
+      z_sup_val = fmin(z_sup[1], fmin(z_sup[2], z_sup[3])) - m_thickness2;
+      z_inf_val = fmax(z_inf[1], fmax(z_inf[2], z_inf[3])) + m_thickness1;
+    }
+   
+    // Input plane: located at -f minus half the thickness
 
     m_inputBoundary->setRadius(m_radius);
     m_inputBoundary->setCurvatureRadius(Rc[0]);
@@ -118,9 +136,7 @@ ConicDoublet::recalcModel()
     m_frontCap.setCenterOffset(m_x0, m_y0);
     m_frontCap.requestRecalc();
 
-    // Central focal plane: middle lens
-    m_frontFocalPlane->setDistance(+(dZ[1] + m_focalLength[1])* Vec3::eZ());
-    m_objectPlane->setDistance(+(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
+    // Central plane: middle lens
 
     m_middleBoundary->setRadius(m_radius);
     m_middleBoundary->setCurvatureRadius(Rc[1]);
@@ -137,9 +153,7 @@ ConicDoublet::recalcModel()
     m_middleCap.setCenterOffset(m_x0, m_y0);
     m_middleCap.requestRecalc();
 
-    // Output focal plane: opposite side
-    m_backFocalPlane->setDistance(-(dZ[2] + m_focalLength[2]) * Vec3::eZ());
-    m_imagePlane->setDistance(-(dZ[2] + 2 * m_focalLength[2]) * Vec3::eZ());
+    // Output plane: opposite side
 
     m_outputBoundary->setRadius(m_radius);
     m_outputBoundary->setCurvatureRadius(Rc[2]);
@@ -171,16 +185,14 @@ ConicDoublet::recalcModel()
     m_outputFrame->recalculate();
 
     setBoundingBox(
-        Vec3(-m_radius + m_x0, -m_radius + m_y0, fmin(-(.5 * (m_thickness1 + m_thickness2) + m_displacement[2]) , -(m_thickness1 + m_thickness2) / 2)), 
-        Vec3(m_radius + m_x0, m_radius + m_y0, fmax(+(.5 * (m_thickness1 + m_thickness2) + m_displacement[0]) , +(m_thickness1 + m_thickness2) / 2))); 
-
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, z_sup_val), 
+      Vec3(m_radius + m_x0, m_radius + m_y0, z_inf_val)
+    );
+  
     refreshFrames();
 
   }
   
-  updatePropertyValue("focalLength", (m_focalLength[0] + m_focalLength[1] + m_focalLength[2]) / 3);
-  updatePropertyValue("curvature",   (m_rCurv[0] + m_rCurv[1] + m_rCurv[2]) / 3);
-
   updatePropertyValue("radius",   m_radius);
   updatePropertyValue("diameter", 2 * m_radius);
 }
@@ -198,10 +210,6 @@ ConicDoublet::propertyChanged(
     m_radius = value;
   } else if (name == "diameter") {
     m_radius = .5 * static_cast<Real>(value);
-  } else if (name == "focalLength") {
-    return propertyChanged("frontFocalLength", value) 
-        && propertyChanged("middleFocalLength", value)
-        && propertyChanged("backFocalLength", value);
   } else if (name == "curvature") {
     return propertyChanged("frontCurvature", value)
         && propertyChanged("middleCurvature", value)
@@ -210,28 +218,16 @@ ConicDoublet::propertyChanged(
     return propertyChanged("frontConic", value)
         && propertyChanged("middleConic", value)
         && propertyChanged("backConic", value);
-  } else if (name == "frontFocalLength") {
-    m_focalLength[0] = static_cast<Real>(value);
-    m_fromFlen[0]    = true;
   } else if (name == "frontCurvature") {
     m_rCurv[0]    = value;
-    m_fromFlen[0] = false;
   } else if (name == "frontConic") {
     m_K[0] = value;
-  } else if (name == "middleFocalLength") {
-    m_focalLength[1] = static_cast<Real>(value);
-    m_fromFlen[1]    = true;
   } else if (name == "middleCurvature") {
     m_rCurv[1]    = value;
-    m_fromFlen[1] = false;
   } else if (name == "middleConic") {
     m_K[1] = value;
-  } else if (name == "backFocalLength") {
-    m_focalLength[2] = static_cast<Real>(value);
-    m_fromFlen[2]    = true;
   } else if (name == "backCurvature") {
     m_rCurv[2]    = value;
-    m_fromFlen[2] = false;
   } else if (name == "backConic") {
     m_K[2] = value;
   } else if (name == "x0") {
@@ -273,8 +269,6 @@ ConicDoublet::ConicDoublet(
   m_outputBoundary = new ConicDoubletBoundary;
   m_outputBoundary->setConvex(false);
   m_outputBoundary->setMedia(&m_glass2, nullptr);
-  
-  
 
   m_inputFrame  = new TranslatedFrame("inputFrame",  frame, Vec3::zero());
   m_middleFrame  = new TranslatedFrame("middleFrame",  frame, Vec3::zero());
@@ -284,11 +278,6 @@ ConicDoublet::ConicDoublet(
   pushOpticalSurface("middleSurface",  m_middleFrame,  m_middleBoundary);
   pushOpticalSurface("outputSurface", m_outputFrame, m_outputBoundary);
 
-  // Create helper planes. These are exposed as ports
-  m_frontFocalPlane  = new TranslatedFrame("frontFocalPlane", frame, Vec3::zero());
-  m_middleFocalPlane   = new TranslatedFrame("middleFocalPlane", frame, Vec3::zero());
-  m_backFocalPlane   = new TranslatedFrame("backFocalPlane", frame, Vec3::zero());
-
   m_objectPlane      = new TranslatedFrame("objectPlane", frame, Vec3::zero());
   m_middlePlane       = new TranslatedFrame("middlePlane", frame, Vec3::zero());
   m_imagePlane       = new TranslatedFrame("imagePlane", frame, Vec3::zero());
@@ -297,9 +286,6 @@ ConicDoublet::ConicDoublet(
   addPort("middleAperture",   m_middleFrame);
   addPort("outputAperture",   m_outputFrame);
   
-  addPort("frontFocalPlane",  m_frontFocalPlane);
-  addPort("middleFocalPlane", m_middleFocalPlane);
-  addPort("backFocalPlane",   m_backFocalPlane);
   addPort("objectPlane",      m_objectPlane);
   addPort("middlePlane",       m_middlePlane);
   addPort("imagePlane",       m_imagePlane);
@@ -319,15 +305,6 @@ ConicDoublet::~ConicDoublet()
 
   if (m_outputBoundary != nullptr)
     delete m_outputBoundary;
-
-  if (m_frontFocalPlane != nullptr)
-    delete m_frontFocalPlane;
-
-  if (m_middleFocalPlane != nullptr)
-    delete m_middleFocalPlane;
-  
-  if (m_backFocalPlane != nullptr)
-    delete m_backFocalPlane;
   
   if (m_objectPlane != nullptr)
     delete m_objectPlane;
@@ -361,7 +338,6 @@ ConicDoublet::renderOpenGL()
   material("lens");
   m_cylinder.display();
 
-  //glTranslatef(0, 0, m_thickness2);
   glTranslatef(0, 0, (m_thickness1 + m_thickness2));
   material("input.lens");
   m_frontCap.display();
