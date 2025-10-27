@@ -87,8 +87,18 @@ ConicLens::recalcModel()
   
   if (m_fromEdge) {
     m_thickness = m_edgeThickness + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
+    if (m_thickness < 0.0) {
+      m_thickness = 0.0;
+      m_edgeThickness = m_thickness - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
+      RZWarning("Invalid lens geometry: calculated thickness is negative.\n");
+    }
   } else {
     m_edgeThickness = m_thickness - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
+    if (m_edgeThickness < 0.0) {
+      m_edgeThickness = 0.0;
+      m_thickness = m_edgeThickness + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
+      RZWarning("Invalid lens geometry: calculated edge thickness is negative.\n");
+    }
   }
 
   dZ[0] = dZ[1] = .5 * m_edgeThickness;
