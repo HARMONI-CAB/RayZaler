@@ -21,7 +21,7 @@
 #define _CONIC_DOUBLET_H
 
 #include <OpticalElement.h>
-#include <MediumBoundaries/ConicDoublet.h>
+#include <MediumBoundaries/ConicLens.h>
 #include <GLHelpers.h>
 #include <EMInterface.h>
 
@@ -33,9 +33,9 @@ namespace RZ {
       GLConicCap              m_frontCap, m_middleCap, m_backCap;
       EMMedium                m_glass1;
       EMMedium                m_glass2;
-      ConicDoubletBoundary      *m_inputBoundary    = nullptr;
-      ConicDoubletBoundary      *m_middleBoundary   = nullptr;
-      ConicDoubletBoundary      *m_outputBoundary   = nullptr;
+      ConicLensBoundary      *m_inputBoundary    = nullptr;
+      ConicLensBoundary      *m_middleBoundary   = nullptr;
+      ConicLensBoundary      *m_outputBoundary   = nullptr;
 
       TranslatedFrame        *m_inputFrame       = nullptr;
       TranslatedFrame        *m_middleFrame      = nullptr;
@@ -53,8 +53,13 @@ namespace RZ {
       Real m_radius         = 2.5e-2;
       Real m_x0             = 0;
       Real m_y0             = 0;
-      Real m_thickness1      = 1e-2;
-      Real m_thickness2     = 1e-2;
+      
+      Real m_thickness1      = 2e-2;
+      Real m_edgeThickness1  = 1e-2;
+      bool m_fromEdge1       = false;
+      Real m_thickness2      = 2e-2;
+      Real m_edgeThickness2  = 1e-2;
+      bool m_fromEdge2       = false;
       
       // Calculated properties
       Real m_displacement[3];
@@ -81,4 +86,3 @@ namespace RZ {
 }
 
 #endif // _CONIC_DOUBLET_H
-
