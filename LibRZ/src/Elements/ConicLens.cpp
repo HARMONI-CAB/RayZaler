@@ -25,7 +25,7 @@ using namespace RZ;
 
 RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves")
 {
-  property("thickness",         1e-2,       "Thickness of the lens [m]");
+  property("thickness",         2e-2,       "Thickness of the lens [m]");
   property("edgeThickness",     1e-2,       "Thickness of side of the lens [m]");
   property("radius",            2.5e-2,     "Radius of the lens [m]");
   property("diameter",          2 * 2.5e-2, "Diameter of the lens [m]");
