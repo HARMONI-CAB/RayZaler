@@ -32,6 +32,7 @@ AsyncRayTracer::AsyncRayTracer(RZ::OMModel *model, QObject *parent)
   m_tracingProperties.listener        = this;
   m_tracingProperties.clearDetectors  = false;
   m_tracingProperties.maxPropagations = 8;
+  m_tracingProperties.powerThreshold  = 1e-6;
 }
 
 bool

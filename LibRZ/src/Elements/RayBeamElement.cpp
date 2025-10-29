@@ -283,10 +283,18 @@ RayBeamElement::clear()
 }
 
 void
-RayBeamElement::setList(std::list<Ray> const &list)
+RayBeamElement::setList(std::list<Ray> const &list, Real S_threshold)
 {
   pthread_mutex_lock(&m_rayMutex);
-  m_rays = list;
+  if (S_threshold < 0) {
+    m_rays = list;
+  } else {
+    auto S2 = S_threshold * S_threshold;
+    m_rays.clear();
+    for (const auto &ray : list)
+      if (ray.S * ray.S >= S2)
+        m_rays.push_back(ray);
+  }
   raysToVertices();
   pthread_mutex_unlock(&m_rayMutex);
 }

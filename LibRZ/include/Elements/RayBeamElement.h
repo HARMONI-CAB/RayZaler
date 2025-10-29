@@ -98,7 +98,7 @@ namespace RZ {
       void clear();
       void setScalarRays(bool);
       void setBgColor(GLfloat const *);
-      void setList(std::list<Ray> const &);
+      void setList(std::list<Ray> const &, Real S_threshold = -1);
       void setRayColoring(RayColoring const *);
       void setRayColoring(RayColoring const &);
       void setRayWidth(Real width);

@@ -380,82 +380,6 @@ namespace RZ {
     }
 
 
-    // Solve fields for the isotropic-to-isotropic case
-    inline void
-    solveIsoIso(EMFields &reflected, EMFields &transmitted) {
-      Real n1   = m1->no;
-      Real n2   = m2->no;
-
-      auto uin  = ui  * normal;
-      auto utn  = uo2 * normal;
-
-      /////////////////// Reflection and transmission coefficients /////////////////
-      // Secant component
-      auto rs  = (n1 * uin - n2 * utn) / (n1 * uin + n2 * utn);
-      auto ts  = (2 * n1 * uin)        / (n1 * uin + n2 * utn);
-
-      // Parallel component
-      auto rp  = (n2 * uin - n1 * utn) / (n2 * uin + n1 * utn);
-      auto tp  = (2 * n1 * uin)        / (n2 * uin + n1 * utn);
-
-      // Deduction of the parallel components of each ray
-      auto wip = ui.cross(ws).normalized();
-      auto wrp = uo1.cross(ws).normalized();
-      auto wtp = uo2.cross(ws).normalized();
-
-      auto Dis  = Complex(DReal * ws,  DImag * ws);
-      auto Dip  = Complex(DReal * wip, DImag * wip);
-
-      // Calculation of the field amplitudes of the transmitted ray, in the SxP plane
-      // The n2ton1sq "undoes" the effect of the refractive index on the
-      // Fresnel equations.
-      transmitted.Dx  = ts * Dis * n2ton1sq;
-      transmitted.Dy  = tp * Dip * n2ton1sq;
-      transmitted.vDx = ws;
-      transmitted.vDy = wtp;
-
-      // Calculation of the field amplitudes of the reflected ray, in the SxP plane
-      // The n2ton1sq term is not needed here, as both the incident and reflected
-      // rays lie on the same medium.
-      reflected.Dx  = rs * Dis;
-      reflected.Dy  = rp * Dip;
-      reflected.vDx = ws;
-      reflected.vDy = wrp;
-
-      // Copy debug vectors, if requested to do so
-      if (debug) {
-        auto n1sq = n1 * n1;
-        auto n2sq = n2 * n2;
-
-        dirs.DiR  = DReal;
-        dirs.DiI  = DImag;
-
-        dirs.DR   = Vec4(reflected.Dx.real(), reflected.Dy.real(), transmitted.Dx.real(), transmitted.Dy.real());
-        dirs.DI   = Vec4(reflected.Dx.imag(), reflected.Dy.imag(), transmitted.Dx.imag(), transmitted.Dy.imag());
-
-        dirs.iiR  = iiR;
-        dirs.iiI  = iiI;
-        dirs.is1  = ws;
-        dirs.it1  = wrp;
-        dirs.is2  = ws;
-        dirs.it2  = wtp;
-        
-        dirs.fiR  = dirs.iiR / n1sq;
-        dirs.fiI  = dirs.iiI / n1sq;
-        dirs.fs1  = dirs.is1 / n1sq;
-        dirs.ft1  = dirs.it1 / n1sq;
-        dirs.fs2  = dirs.is2 / n2sq;
-        dirs.ft2  = dirs.it2 / n2sq;
-
-        dirs.giR  = ui.cross(dirs.iiR) / n1;
-        dirs.giI  = ui.cross(dirs.iiI) / n1;
-        dirs.gs1  = uo1.cross(dirs.is1) / n1;
-        dirs.gt1  = uo1.cross(dirs.it1) / n1;
-        dirs.gs2  = uo2.cross(dirs.is2) / n2;
-        dirs.gt2  = uo2.cross(dirs.it2) / n2;
-      }
-    }
-
     // Solve fields for the anisotropic-to-anisotropic case
     inline void
     solveAnisoAniso(EMFields &ro, EMFields &re, EMFields &to, EMFields &te)
@@ -710,6 +634,83 @@ namespace RZ {
         COPYDIR(iR); COPYDIR(iI);
         COPYDIR(s1); COPYDIR(t1);
         COPYDIR(o2); COPYDIR(e2);
+      }
+    }
+
+
+    // Solve fields for the isotropic-to-isotropic case
+    inline void
+    solveIsoIso(EMFields &reflected, EMFields &transmitted) {
+      Real n1   = m1->no;
+      Real n2   = m2->no;
+
+      auto uin  = ui  * normal;
+      auto utn  = uo2 * normal;
+
+      /////////////////// Reflection and transmission coefficients /////////////////
+      // Secant component
+      auto rs  = (n1 * uin - n2 * utn) / (n1 * uin + n2 * utn);
+      auto ts  = (2 * n1 * uin)        / (n1 * uin + n2 * utn);
+
+      // Parallel component
+      auto rp  = (n2 * uin - n1 * utn) / (n2 * uin + n1 * utn);
+      auto tp  = (2 * n1 * uin)        / (n2 * uin + n1 * utn);
+
+      // Deduction of the parallel components of each ray
+      auto wip = ui.cross(ws).normalized();
+      auto wrp = uo1.cross(ws).normalized();
+      auto wtp = uo2.cross(ws).normalized();
+
+      auto Dis  = Complex(DReal * ws,  DImag * ws);
+      auto Dip  = Complex(DReal * wip, DImag * wip);
+
+      // Calculation of the field amplitudes of the transmitted ray, in the SxP plane
+      // The n2ton1sq "undoes" the effect of the refractive index on the
+      // Fresnel equations.
+      transmitted.Dx  = ts * Dis * n2ton1sq;
+      transmitted.Dy  = tp * Dip * n2ton1sq;
+      transmitted.vDx = ws;
+      transmitted.vDy = wtp;
+
+      // Calculation of the field amplitudes of the reflected ray, in the SxP plane
+      // The n2ton1sq term is not needed here, as both the incident and reflected
+      // rays lie on the same medium.
+      reflected.Dx  = rs * Dis;
+      reflected.Dy  = rp * Dip;
+      reflected.vDx = ws;
+      reflected.vDy = wrp;
+
+      // Copy debug vectors, if requested to do so
+      if (debug) {
+        auto n1sq = n1 * n1;
+        auto n2sq = n2 * n2;
+
+        dirs.DiR  = DReal; // Real component
+        dirs.DiI  = DImag; // Imaginary component
+
+        dirs.DR   = Vec4(reflected.Dx.real(), reflected.Dy.real(), transmitted.Dx.real(), transmitted.Dy.real());
+        dirs.DI   = Vec4(reflected.Dx.imag(), reflected.Dy.imag(), transmitted.Dx.imag(), transmitted.Dy.imag());
+
+        dirs.iiR  = iiR;
+        dirs.iiI  = iiI;
+        dirs.is1  = ws;
+        dirs.it1  = wrp;
+        dirs.is2  = ws;
+        dirs.it2  = wtp;
+        
+        dirs.fiR  = dirs.iiR / n1sq;
+        dirs.fiI  = dirs.iiI / n1sq;
+        dirs.fs1  = dirs.is1 / n1sq;
+        dirs.ft1  = dirs.it1 / n1sq;
+        dirs.fs2  = dirs.is2 / n2sq;
+        dirs.ft2  = dirs.it2 / n2sq;
+
+        dirs.giR  = ui.cross(dirs.iiR) / n1;
+        dirs.giI  = ui.cross(dirs.iiI) / n1;
+        dirs.gs1  = uo1.cross(dirs.is1) / n1;
+        dirs.gt1  = uo1.cross(dirs.it1) / n1;
+        dirs.gs2  = uo2.cross(dirs.is2) / n2;
+        dirs.gt2  = uo2.cross(dirs.it2) / n2;
       }
     }
   };

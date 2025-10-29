@@ -183,7 +183,8 @@ TEST_CASE("Well known property tests", THIS_TEST_TAG)
     }
 
     if (element->hasProperty("focalLength") && element->hasProperty("curvature")) {
-      bool isLens = p.find("Lens") != -1;
+      bool isLens   = p.find("Lens") != -1;
+      bool isMirror = p.find("Mirror") != -1;
       Real mu;
 
       // For lenses, the relationship between curvature radius and focal
@@ -208,7 +209,7 @@ TEST_CASE("Well known property tests", THIS_TEST_TAG)
 
         if (isLens)
           REQUIRE(releq(val, 2 * focalLength * (mu - 1)));
-        else
+        else if (isMirror)
           REQUIRE(releq(val, 2 * focalLength));
       }
 
@@ -222,7 +223,7 @@ TEST_CASE("Well known property tests", THIS_TEST_TAG)
 
         if (isLens)
           REQUIRE(releq(val, .5 * curvature / (mu - 1)));
-        else
+        else if (isMirror)
           REQUIRE(releq(val, .5 * curvature));
       }
     }

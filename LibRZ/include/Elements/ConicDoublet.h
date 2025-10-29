@@ -53,11 +53,15 @@ namespace RZ {
       Real m_radius         = 2.5e-2;
       Real m_x0             = 0;
       Real m_y0             = 0;
-      Real m_thickness1     = 1e-2;
+      Real m_thickness1      = 1e-2;
       Real m_thickness2     = 1e-2;
       
-      // Calculated properties
-      Real m_displacement[3];
+      Real m_thickness1      = 2e-2;
+      Real m_edgeThickness1  = 1e-2;
+      bool m_fromEdge1       = false;
+      Real m_thickness2      = 2e-2;
+      Real m_edgeThickness2  = 1e-2;
+      bool m_fromEdge2       = false;
       
       void recalcModel();
 
