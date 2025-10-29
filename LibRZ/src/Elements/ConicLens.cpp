@@ -20,6 +20,7 @@
 #include <TranslatedFrame.h>
 #include <Logger.h>
 #include <Surfaces/Conic.h>
+#include <lensHelpers.h>
 
 using namespace RZ;
 
@@ -53,16 +54,14 @@ ConicLens::recalcModel()
 {
 
   Real R2  = m_radius * m_radius;
-
-  Real Rc[2], Rc2[2], sigma[2];
   Real dZ[2];
 
   Real n = m_glass.n;
-
-  bool convex[2];
   
-  Real z_sup[4];
-  Real z_inf[4];
+  LensSurfaceProperties surf[2];
+  
+  Real zSup[4];
+  Real zInf[4];
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 2; ++i) {
@@ -72,78 +71,68 @@ ConicLens::recalcModel()
     else {
       m_focalLength[i] = .5 * m_rCurv[i] / (n - 1);
       }
-
-    Rc[i]     = fabs(m_rCurv[i]);
-    Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
-    convex[i] = m_rCurv[i] > 0;
-    sigma[i]  = convex[i] ? 1 : -1;
-    
-    if (isZero(m_K[i] + 1))
-      m_displacement[i] = .5 * R2 / m_rCurv[i];
-    else
-      m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
       
+    surf[i].setProperties(m_rCurv[i], m_K[i], R2);
   }
   
-  if (m_fromEdge) {
-    m_thickness = m_edgeThickness + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
-    if (m_thickness < 0.0) {
-      m_thickness = 0.0;
-      m_edgeThickness = m_thickness - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
-      RZWarning("Invalid lens geometry: calculated thickness is negative.\n");
-    }
-  } else {
-    m_edgeThickness = m_thickness - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
-    if (m_edgeThickness < 0.0) {
-      m_edgeThickness = 0.0;
-      m_thickness = m_edgeThickness + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
-      RZWarning("Invalid lens geometry: calculated edge thickness is negative.\n");
-    }
+  bool thicknessConversion = adjustThickness(
+    m_edgeThickness,
+    m_thickness,
+    m_fromEdge,
+    surf[0].sigma, 
+    surf[0].displacement,
+    surf[1].sigma, 
+    surf[1].displacement
+  );
+  if (!thicknessConversion) {
+     RZWarning("Invalid lens geometry: negative thickness or edge thickness.\n");
   }
 
   dZ[0] = dZ[1] = .5 * m_edgeThickness;
   
-  Real Rmax = RZ::ConicSurface::Rmax(sigma[0], Rc[0], m_K[0], m_displacement[0], -sigma[1], Rc[1], m_K[1], m_displacement[1], m_edgeThickness);
-  
-  auto z_val = [&](int i, Real rad) { 
-    Real r = sqrt(m_x0*m_x0 + m_y0*m_y0) - rad;
-    Real r2 = r*r;
+  const Real Rmax = RZ::ConicSurface::Rmax(surf[0].sigma, surf[0].Rc, m_K[0], surf[0].displacement, -surf[1].sigma, surf[1].Rc, m_K[1], surf[1].displacement, m_edgeThickness);   
+  const Real rho2 = m_x0 * m_x0 + m_y0 * m_y0;
+  const Real rho  = sqrt(rho2);
+    
+  auto zVal = [&](int i, Real rad) { 
+    Real r = rho - rad;
+    Real r2 = r * r;
     if (m_K[i] == -1) {
       if (i == 1) {
-        return sigma[i] * (.5 / Rc[i] * r2 - m_displacement[i]);
+        return surf[i].sigma * (.5 / surf[i].Rc * r2 - surf[i].displacement);
       } else {
-        return -sigma[i] * (.5 / Rc[i] * r2 - m_displacement[i]);
+        return -surf[i].sigma * (.5 / surf[i].Rc * r2 - surf[i].displacement);
       }
     } else {
       if (i == 1) {
-        return sigma[i] * ((Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - m_displacement[i]);
+        return surf[i].sigma * ((surf[i].Rc - sqrt(surf[i].Rc2 - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - surf[i].displacement);
       } else {
-        return -sigma[i] * ((Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - m_displacement[i]);
+        return -surf[i].sigma * ((surf[i].Rc - sqrt(surf[i].Rc2 - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - surf[i].displacement);
       }
     }
   };
   
-  Real z_sup_val;
-  Real z_inf_val;
+  Real zSupVal;
+  Real zInfVal;
   
-  z_sup[0] = (z_val(1, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
-  z_sup[1] = (z_val(1, 0));                       // z(x0, y0)
-  z_sup[2] = (z_val(1, +m_radius));               // z(x0-r, y0-r)
-  z_sup[3] = (z_val(1, -m_radius));               // z(x0+r, y0+r)
-  z_inf[0] = (z_val(0, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
-  z_inf[1] = (z_val(0, 0));                       // z(x0, y0)
-  z_inf[2] = (z_val(0, +m_radius));               // z(x0-r, y0-r)
-  z_inf[3] = (z_val(0, -m_radius));               // z(x0+r, y0+r)
+  zSup[0] = (zVal(1, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  zSup[1] = (zVal(1, 0));                       // z(x0, y0)
+  zSup[2] = (zVal(1, +m_radius));               // z(x0-r, y0-r)
+  zSup[3] = (zVal(1, -m_radius));               // z(x0+r, y0+r)
+  zInf[0] = (zVal(0, m_x0*m_x0 + m_y0*m_y0));   // z(0,0) -> vertex
+  zInf[1] = (zVal(0, 0));                       // z(x0, y0)
+  zInf[2] = (zVal(0, +m_radius));               // z(x0-r, y0-r)
+  zInf[3] = (zVal(0, -m_radius));               // z(x0+r, y0+r)
   
   if ((m_x0 * m_x0 + m_y0 * m_y0) > (Rmax - m_radius) * (Rmax - m_radius)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
     if (sqrt(m_x0 * m_x0 + m_y0 * m_y0) < m_radius) {
-      z_sup_val = fmin(z_sup[0], fmin(z_sup[1], fmin(z_sup[2], z_sup[3]))) - .5 * m_edgeThickness;
-      z_inf_val = fmax(z_inf[0], fmax(z_inf[1], fmax(z_inf[2], z_inf[3]))) + .5 * m_edgeThickness;
+      zSupVal = fmin(zSup[0], fmin(zSup[1], fmin(zSup[2], zSup[3]))) - .5 * m_edgeThickness;
+      zInfVal = fmax(zInf[0], fmax(zInf[1], fmax(zInf[2], zInf[3]))) + .5 * m_edgeThickness;
     } else {
-      z_sup_val = fmin(z_sup[1], fmin(z_sup[2], z_sup[3])) - .5 * m_edgeThickness;
-      z_inf_val = fmax(z_inf[1], fmax(z_inf[2], z_inf[3])) + .5 * m_edgeThickness;
+      zSupVal = fmin(zSup[1], fmin(zSup[2], zSup[3])) - .5 * m_edgeThickness;
+      zInfVal = fmax(zInf[1], fmax(zInf[2], zInf[3])) + .5 * m_edgeThickness;
     }
   
     // Input focal plane: located at -f minus half the thickness
@@ -151,10 +140,10 @@ ConicLens::recalcModel()
     m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
 
     m_inputBoundary->setRadius(m_radius);
-    m_inputBoundary->setCurvatureRadius(Rc[0]);
+    m_inputBoundary->setCurvatureRadius(surf[0].Rc);
     m_inputBoundary->setMedia(nullptr, &m_glass);
     m_inputBoundary->setConicConstant(m_K[0]);
-    m_inputBoundary->setConvex(convex[0]);
+    m_inputBoundary->setConvex(surf[0].convex);
     m_inputBoundary->setCenterOffset(m_x0, m_y0);
 
     // Output focal plane: opposite side
@@ -162,24 +151,24 @@ ConicLens::recalcModel()
     m_imagePlane->setDistance(-(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
 
     m_outputBoundary->setRadius(m_radius);
-    m_outputBoundary->setCurvatureRadius(Rc[1]);
+    m_outputBoundary->setCurvatureRadius(surf[1].Rc);
     m_outputBoundary->setMedia(&m_glass, nullptr);
     m_outputBoundary->setConicConstant(m_K[1]);
     m_outputBoundary->setCenterOffset(m_x0, m_y0);
-    m_outputBoundary->setConvex(!convex[1]);
+    m_outputBoundary->setConvex(!surf[1].convex);
   
     m_frontCap.setRadius(m_radius);
-    m_frontCap.setCurvatureRadius(Rc[0]);
+    m_frontCap.setCurvatureRadius(surf[0].Rc);
     m_frontCap.setConicConstant(m_K[0]);
-    m_frontCap.setConvex(convex[0]);
+    m_frontCap.setConvex(surf[0].convex);
     m_frontCap.setInvertNormals(false);
     m_frontCap.setCenterOffset(m_x0, m_y0);
     m_frontCap.requestRecalc();
 
     m_backCap.setRadius(m_radius);
-    m_backCap.setCurvatureRadius(Rc[1]);
+    m_backCap.setCurvatureRadius(surf[1].Rc);
     m_backCap.setConicConstant(m_K[1]);
-    m_backCap.setConvex(!convex[1]);
+    m_backCap.setConvex(!surf[1].convex);
     m_backCap.setInvertNormals(true);
     m_backCap.setCenterOffset(m_x0, m_y0);
     m_backCap.requestRecalc();
@@ -188,8 +177,8 @@ ConicLens::recalcModel()
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
     
     setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, z_sup_val), 
-      Vec3(m_radius + m_x0, m_radius + m_y0, z_inf_val)
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, zSupVal), 
+      Vec3(m_radius + m_x0, m_radius + m_y0, zInfVal)
     );
       
     // Intercept surfaces
