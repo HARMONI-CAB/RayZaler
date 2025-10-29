@@ -68,9 +68,6 @@ namespace RZ {
       Real m_edgeThickness3  = 1e-2;
       bool m_fromEdge3       = false;
       
-      // Calculated properties
-      Real m_displacement[4];
-      
       void recalcModel();
 
     protected:

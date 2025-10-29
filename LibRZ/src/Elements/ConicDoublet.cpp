@@ -21,6 +21,7 @@
 #include <TranslatedFrame.h>
 #include <Logger.h>
 #include <Surfaces/Conic.h>
+#include <lensHelpers.h>
 
 using namespace RZ;
 
@@ -51,89 +52,51 @@ void
 ConicDoublet::recalcModel()
 {
   Real R2  = m_radius * m_radius;
-
-  Real Rc[3], Rc2[3], sigma[3];
   Real dZ[3];
   
   Real n1 = m_glass1.n;
   Real n2 = m_glass2.n;
 
-  bool convex[3];
-  
+  LensSurfaceProperties surf[3];
+
   Real zSup[4];
   Real zInf[4];
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 3; ++i) {
-    double n    = (i < 2) ? n1 : n2;
-
-    Rc[i]     = fabs(m_rCurv[i]);
-    Rc2[i]    = m_rCurv[i]  * m_rCurv[i];
-    convex[i] = m_rCurv[i] > 0;
-    sigma[i]  = convex[i] ? 1 : -1;
-    
-    if (isZero(m_K[i] + 1))
-      m_displacement[i] = .5 * R2 / m_rCurv[i];
-    else
-      m_displacement[i] = (Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * R2)) / (m_K[i] + 1);
+    surf[i].setProperties(m_rCurv[i], m_K[i], R2);
   }
   
-  if (m_fromEdge1) {
-    m_thickness1 = m_edgeThickness1 + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
-    if (m_thickness1 < 0.0) {
-      m_thickness1 = 0.0;
-      m_edgeThickness1 = m_thickness1 - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
-      RZWarning("Invalid lens geometry: calculated thickness is negative.\n");
-    }
-  } else {
-    m_edgeThickness1 = m_thickness1 - sigma[0] * m_displacement[0] - sigma[1] * m_displacement[1];
-    if (m_edgeThickness1 < 0.0) {
-      m_edgeThickness1 = 0.0;
-      m_thickness1 = m_edgeThickness1 + sigma[0] * m_displacement[0] + sigma[1] * m_displacement[1];
-      RZWarning("Invalid lens geometry: calculated edge thickness is negative.\n");
-    }
+  bool thicknessConversion1 = adjustThickness(
+    m_edgeThickness1,
+    m_thickness1,
+    m_fromEdge1,
+    surf[0].sigma, 
+    surf[0].displacement,
+    surf[1].sigma, 
+    surf[1].displacement
+  );
+  if (!thicknessConversion1) {
+     RZWarning("Invalid lens geometry: negative thickness or edge thickness in the first lens.\n");
   }
-  if (m_fromEdge2) {
-    m_thickness2 = m_edgeThickness2 + sigma[1] * m_displacement[1] + sigma[2] * m_displacement[2];
-    if (m_thickness2 < 0.0) {
-      m_thickness2 = 0.0;
-      m_edgeThickness2 = m_thickness2 - sigma[1] * m_displacement[1] - sigma[2] * m_displacement[2];
-      RZWarning("Invalid lens geometry: calculated thickness is negative.\n");
-    }
-  } else {
-    m_edgeThickness2 = m_thickness2 - sigma[1] * m_displacement[1] - sigma[2] * m_displacement[2];
-    if (m_edgeThickness2 < 0.0) {
-      m_edgeThickness2 = 0.0;
-      m_thickness2 = m_edgeThickness2 + sigma[1] * m_displacement[1] + sigma[2] * m_displacement[2];
-      RZWarning("Invalid lens geometry: calculated edge thickness is negative.\n");
-    }
+  bool thicknessConversion2 = adjustThickness(
+    m_edgeThickness2,
+    m_thickness2,
+    m_fromEdge2,
+    surf[1].sigma, 
+    surf[1].displacement,
+    surf[2].sigma, 
+    surf[2].displacement
+  );
+  if (!thicknessConversion2) {
+     RZWarning("Invalid lens geometry: negative thickness or edge thickness in the second lens.\n");
   }
 
   dZ[0] = dZ[1] = .5 * m_edgeThickness1;
   dZ[2] = .5 * m_edgeThickness2;
   
-  const Real Rmax1 = RZ::ConicSurface::Rmax(
-    sigma[0],
-    Rc[0],
-    m_K[0],
-    m_displacement[0],
-    sigma[1],
-    Rc[1],
-    m_K[1],
-    m_displacement[1],
-    m_edgeThickness1);
-
-  const Real Rmax2 = RZ::ConicSurface::Rmax(
-    sigma[1],
-    Rc[1],
-    m_K[1],
-    m_displacement[1],
-    sigma[2],
-    Rc[2],
-    m_K[2],
-    m_displacement[2],
-    m_edgeThickness2);
-  
+  const Real Rmax1 = RZ::ConicSurface::Rmax(surf[0].sigma, surf[0].Rc, m_K[0], surf[0].displacement, surf[1].sigma, surf[1].Rc, m_K[1], surf[1].displacement, m_edgeThickness1);
+  const Real Rmax2 = RZ::ConicSurface::Rmax(surf[1].sigma, surf[1].Rc, m_K[1], surf[1].displacement, surf[2].sigma, surf[2].Rc, m_K[2], surf[2].displacement, m_edgeThickness2);
   const Real Rmax = std::min(Rmax1, Rmax2);
   const Real rho2 = m_x0 * m_x0 + m_y0 * m_y0;
   const Real rho  = sqrt(rho2);
@@ -142,9 +105,9 @@ ConicDoublet::recalcModel()
     Real r = rho - rad;
     Real r2 = r * r;
     if (m_K[i] == -1)
-      return -sigma[i] * (.5 / Rc[i] * r2 - m_displacement[i]);
+      return -surf[i].sigma * (.5 / surf[i].Rc * r2 - surf[i].displacement);
     else
-      return -sigma[i] * ((Rc[i] - sqrt(Rc2[i] - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - m_displacement[i]);
+      return -surf[i].sigma * ((surf[i].Rc - sqrt(surf[i].Rc2 - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - surf[i].displacement);
   };
   
   Real zSupVal;
@@ -173,16 +136,16 @@ ConicDoublet::recalcModel()
     // Input plane: located at -f minus half the thickness
 
     m_inputBoundary->setRadius(m_radius);
-    m_inputBoundary->setCurvatureRadius(Rc[0]);
+    m_inputBoundary->setCurvatureRadius(surf[0].Rc);
     m_inputBoundary->setMedia(nullptr, &m_glass1);
     m_inputBoundary->setConicConstant(m_K[0]);
-    m_inputBoundary->setConvex(convex[0]);
+    m_inputBoundary->setConvex(surf[0].convex);
     m_inputBoundary->setCenterOffset(m_x0, m_y0);
 
     m_frontCap.setRadius(m_radius);
-    m_frontCap.setCurvatureRadius(Rc[0]);
+    m_frontCap.setCurvatureRadius(surf[0].Rc);
     m_frontCap.setConicConstant(m_K[0]);
-    m_frontCap.setConvex(convex[0]);
+    m_frontCap.setConvex(surf[0].convex);
     m_frontCap.setInvertNormals(false);
     m_frontCap.setCenterOffset(m_x0, m_y0);
     m_frontCap.requestRecalc();
@@ -190,33 +153,33 @@ ConicDoublet::recalcModel()
     // Central plane: middle lens
 
     m_middleBoundary->setRadius(m_radius);
-    m_middleBoundary->setCurvatureRadius(Rc[1]);
+    m_middleBoundary->setCurvatureRadius(surf[1].Rc);
     m_middleBoundary->setMedia(&m_glass1, &m_glass2);
     m_middleBoundary->setConicConstant(m_K[1]);
-    m_middleBoundary->setConvex(convex[1]);
+    m_middleBoundary->setConvex(surf[1].convex);
     m_middleBoundary->setCenterOffset(m_x0, m_y0);
     
     m_middleCap.setRadius(m_radius);
-    m_middleCap.setCurvatureRadius(Rc[1]);
+    m_middleCap.setCurvatureRadius(surf[1].Rc);
     m_middleCap.setConicConstant(m_K[1]);
-    m_middleCap.setConvex(convex[1]);
-    m_middleCap.setInvertNormals(false); // ???
+    m_middleCap.setConvex(surf[1].convex);
+    m_middleCap.setInvertNormals(false);
     m_middleCap.setCenterOffset(m_x0, m_y0);
     m_middleCap.requestRecalc();
 
     // Output plane: opposite side
 
     m_outputBoundary->setRadius(m_radius);
-    m_outputBoundary->setCurvatureRadius(Rc[2]);
+    m_outputBoundary->setCurvatureRadius(surf[2].Rc);
     m_outputBoundary->setMedia(&m_glass2, nullptr);
     m_outputBoundary->setConicConstant(m_K[2]);
-    m_outputBoundary->setConvex(convex[2]);
+    m_outputBoundary->setConvex(surf[2].convex);
     m_outputBoundary->setCenterOffset(m_x0, m_y0);
   
     m_backCap.setRadius(m_radius);
-    m_backCap.setCurvatureRadius(Rc[2]);
+    m_backCap.setCurvatureRadius(surf[2].Rc);
     m_backCap.setConicConstant(m_K[2]);
-    m_backCap.setConvex(convex[2]);
+    m_backCap.setConvex(surf[2].convex);
     m_backCap.setInvertNormals(true);
     m_backCap.setCenterOffset(m_x0, m_y0);
     m_backCap.requestRecalc();
