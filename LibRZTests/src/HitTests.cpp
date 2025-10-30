@@ -44,7 +44,7 @@ static const char *g_focusLens =
   "dof D = 5e-2;"
 
   "ConicLens L1("
-  "  thickness   = 2e-3,"
+  "  edgeThickness   = 2e-3,"
   "  conic       = K,"
   "  focalLength = focalLength,"
   "  diameter    = D);"
@@ -78,10 +78,10 @@ static const char *g_asymetricLens =
   "dof frontFocalLength(.1, .5) = .2;"
   "dof backFocalLength(.1, .5)  = .2;"
 
-  "dof D = 5e-2;"
+  "dof D = 4e-2;"
 
   "ConicLens L1("
-  "  thickness        = 2e-3,"
+  "  edgeThickness    = 2e-3,"
   "  frontConic       = Kf,"
   "  backConic        = Kb,"
   "  frontFocalLength = frontFocalLength,"

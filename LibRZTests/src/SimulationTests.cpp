@@ -54,10 +54,10 @@ static const char *g_rotatedFocusLens =
   "var op = .5 * thickness + 2 * focalLength;"
   
   "rotate(angle, 1, 0, 0) ConicLens L1("
-    "thickness   = thickness,"
-    "conic       = K,"
-    "focalLength = focalLength,"
-    "diameter    = D);"
+    "edgeThickness = thickness,"
+    "conic         = K,"
+    "focalLength   = focalLength,"
+    "diameter      = D);"
   
   "translate(dz = -fp) Detector bfpDet(flip = true);"
   "translate(dz = -op) Detector imgDet(flip = true);"

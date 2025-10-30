@@ -179,7 +179,7 @@ AsyncRayTracer::onStartRequested(QString path, int step, int total)
 
   m_tracingProperties.beamElement = m_updateBeam ? m_model->beam() : nullptr;
   m_tracingProperties.startTime   = &m_batchStart;
-  
+  m_tracingProperties.path        = path.toStdString();
   
   if (m_tracingProperties.pRays == nullptr) {
     emit error("Undefined beam object");
