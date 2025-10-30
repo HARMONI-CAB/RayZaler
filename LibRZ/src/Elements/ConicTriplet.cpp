@@ -21,7 +21,7 @@
 #include <TranslatedFrame.h>
 #include <Logger.h>
 #include <Surfaces/Conic.h>
-#include <lensHelpers.h>
+#include <LensHelpers.h>
 
 using namespace RZ;
 
@@ -59,103 +59,64 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
 void
 ConicTriplet::recalcModel()
 {
-  Real R2  = m_radius * m_radius;
   Real dZ[4];
   
-  Real n1 = m_glass1.n;
-  Real n2 = m_glass2.n;
-  Real n3 = m_glass3.n;
-
   LensSurfaceProperties surf[4];
   
-  Real zSup[4];
-  Real zInf[4];
-
   // Calculate properties of the four surfaces.
-  for (auto i = 0; i < 4; ++i) {
-    surf[i].setProperties(m_rCurv[i], m_K[i], R2);
-  }
+  for (auto i = 0; i < 4; ++i)
+    surf[i].setProperties(m_rCurv[i], m_K[i], m_radius, m_x0, m_y0);
   
-  bool thicknessConversion1 = adjustThickness(
+  if (!adjustThickness(
     m_edgeThickness1,
     m_thickness1,
     m_fromEdge1,
     surf[0].sigma, 
     surf[0].displacement,
     surf[1].sigma, 
-    surf[1].displacement
-  );
-  if (!thicknessConversion1) {
+    surf[1].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the first lens.\n");
-  }
-  bool thicknessConversion2 = adjustThickness(
+
+  if (!adjustThickness(
     m_edgeThickness2,
     m_thickness2,
     m_fromEdge2,
     surf[1].sigma, 
     surf[1].displacement,
     surf[2].sigma, 
-    surf[2].displacement
-  );
-  if (!thicknessConversion2) {
+    surf[2].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the second lens.\n");
-  }
-  bool thicknessConversion3 = adjustThickness(
+  
+  if (!adjustThickness(
     m_edgeThickness3,
     m_thickness3,
     m_fromEdge3,
     surf[2].sigma, 
     surf[2].displacement,
     surf[3].sigma, 
-    surf[3].displacement
-  );
-  if (!thicknessConversion3) {
+    surf[3].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the third lens.\n");
-  }
   
   dZ[0] = dZ[1] = .5 * m_edgeThickness1;
   dZ[2] = dZ[3] = .5 * m_edgeThickness2; 
   
-  const Real Rmax1 = RZ::ConicSurface::Rmax(surf[0].sigma, surf[0].Rc, m_K[0], surf[0].displacement, surf[1].sigma, surf[1].Rc, m_K[1], surf[1].displacement, m_edgeThickness1);
-  const Real Rmax2 = RZ::ConicSurface::Rmax(surf[1].sigma, surf[1].Rc, m_K[1], surf[1].displacement, surf[2].sigma, surf[2].Rc, m_K[2], surf[2].displacement, m_edgeThickness2);
-  const Real Rmax3 = RZ::ConicSurface::Rmax(surf[2].sigma, surf[2].Rc, m_K[2], surf[2].displacement, surf[3].sigma, surf[3].Rc, m_K[3], surf[3].displacement, m_edgeThickness3);
+  const Real Rmax1 = LensSurfaceProperties::Rmax(surf[0], surf[1], m_edgeThickness1);
+  const Real Rmax2 = LensSurfaceProperties::Rmax(surf[1], surf[2], m_edgeThickness2);
+  const Real Rmax3 = LensSurfaceProperties::Rmax(surf[2], surf[3], m_edgeThickness3);
+  
   const Real Rmax  = std::min(Rmax1, std::min(Rmax2, Rmax3));
-  const Real rho2  = m_x0 * m_x0 + m_y0 * m_y0;
-  const Real rho   = sqrt(rho2);
-
-  auto zVal = [&](int i, Real rad) { 
-    Real r = sqrt(rho2) - rad;
-    Real r2 = r * r;
-    if (m_K[i] == -1) {
-      return -surf[i].sigma * (.5 / surf[i].Rc * r2 - surf[i].displacement);
-    } else {
-      return -surf[i].sigma * ((surf[i].Rc - sqrt(surf[i].Rc2 - (m_K[i] + 1) * r2)) / (m_K[i] + 1) - surf[i].displacement);
-    }
-  };
   
-  Real zSupVal;
-  Real zInfVal;
+  Real zSupVal = - (.5 * m_edgeThickness2 + m_edgeThickness3);
+  Real zInfVal = + (.5 * m_edgeThickness2 + m_edgeThickness1);
   
-  zSup[0] = (zVal(3, rho2));   // z(0,0) -> vertex
-  zSup[1] = (zVal(3, 0));                       // z(x0, y0)
-  zSup[2] = (zVal(3, +m_radius));               // z(x0-r, y0-r)
-  zSup[3] = (zVal(3, -m_radius));               // z(x0+r, y0+r)
-  zInf[0] = (zVal(0, rho2));   // z(0,0) -> vertex
-  zInf[1] = (zVal(0, 0));                       // z(x0, y0)
-  zInf[2] = (zVal(0, +m_radius));               // z(x0-r, y0-r)
-  zInf[3] = (zVal(0, -m_radius));               // z(x0+r, y0+r)
-  
-  if (rho > (Rmax - m_radius)) {
+  if (!LensSurfaceProperties::zLimits(
+    zSupVal,
+    zInfVal,
+    surf[0],
+    surf[3],
+    Rmax)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
-    if (rho < m_radius) {
-        zSupVal = fmin(zSup[0], fmin(zSup[1], fmin(zSup[2], zSup[3]))) - (.5 * m_edgeThickness2 + m_edgeThickness3);
-        zInfVal = fmax(zInf[0], fmax(zInf[1], fmax(zInf[2], zInf[3]))) + (.5 * m_edgeThickness2 + m_edgeThickness1);
-      } else {
-        zSupVal = fmin(zSup[1], fmin(zSup[2], zSup[3])) - (.5 * m_edgeThickness2 + m_edgeThickness3);
-        zInfVal = fmax(zInf[1], fmax(zInf[2], zInf[3])) + (.5 * m_edgeThickness2 + m_edgeThickness1);
-      }
-    
     // Input surface: located at -f minus half the thickness
 
     m_inputBoundary->setRadius(m_radius);
