@@ -161,12 +161,13 @@ RayBeamElement::raysToVertices()
   GLfloat transp = m_dynamicAlpha ? sqrt(.125 * 250. / size) : 1;
 
   uint32_t currId = 0;
-  GLfloat currColor[4];
-  GLfloat rayColor[4];
+  GLfloat currColor[4] = {0, 0, 0, 1};
+  GLfloat rayColor[4] = {0, 0, 0, 1};
   bool tooMany = m_rays.size() > m_maxRays;
   Real drawP = 1;
   Real length;
   Real maxPower = 0;
+  Real relPwr = 1;
 
   if (transp > 1)
     transp = 1;
@@ -213,16 +214,16 @@ RayBeamElement::raysToVertices()
     }
 
     if (!m_scalar) {
-      Real power = 5 * p->S * p->direction / maxPower;
+      relPwr = 5 * p->S * p->direction / maxPower;
 
-      if (power > 1)
-        power = 1;
-
-      rayColor[0] = power * currColor[0] + (1 - power) * m_bgcolor[0];
-      rayColor[1] = power * currColor[1] + (1 - power) * m_bgcolor[1];
-      rayColor[2] = power * currColor[2] + (1 - power) * m_bgcolor[2];
-      rayColor[3] = currColor[3];
+      if (relPwr > 1)
+        relPwr = 1;
     }
+
+    rayColor[0] = relPwr * currColor[0] + (1 - relPwr) * m_bgcolor[0];
+    rayColor[1] = relPwr * currColor[1] + (1 - relPwr) * m_bgcolor[1];
+    rayColor[2] = relPwr * currColor[2] + (1 - relPwr) * m_bgcolor[2];
+    rayColor[3] = currColor[3];
 
     set->push(
       p->origin,
@@ -286,7 +287,7 @@ void
 RayBeamElement::setList(std::list<Ray> const &list, Real S_threshold)
 {
   pthread_mutex_lock(&m_rayMutex);
-  if (S_threshold < 0) {
+  if (S_threshold < 0 || m_scalar) {
     m_rays = list;
   } else {
     auto S2 = S_threshold * S_threshold;
