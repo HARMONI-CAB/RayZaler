@@ -191,21 +191,25 @@ ConicTriplet::recalcModel()
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
 
     // Intercept surfaces
-    m_inputFrame->setDistance(.5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3) * Vec3::eZ());
+    //  vertexRleative = false
+    //    m_inputFrame->setDistance(.5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3) * Vec3::eZ());
+    //  vertexRelative = true
+    m_inputFrame->setDistance(-surf[0].sigma * surf[0].displacement * Vec3::eZ());
     m_inputFrame->recalculate();
 
-    m_middleFrame1->setDistance(-.5 * (m_edgeThickness1 - m_edgeThickness2 - m_edgeThickness3) * Vec3::eZ()); 
+    m_middleFrame1->setDistance(-m_edgeThickness1 * Vec3::eZ()); 
     m_middleFrame1->recalculate();
   
-    m_middleFrame2->setDistance(-.5 * (m_edgeThickness1 + m_edgeThickness2 - m_edgeThickness3) * Vec3::eZ()); 
+    m_middleFrame2->setDistance(-m_edgeThickness2 * Vec3::eZ()); 
     m_middleFrame2->recalculate();
 
-    m_outputFrame->setDistance(-.5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3) * Vec3::eZ());
+    m_outputFrame->setDistance(-m_edgeThickness3 * Vec3::eZ());
     m_outputFrame->recalculate();
 
+    // WIP: Fix this.
     setBoundingBox(
       Vec3(-m_radius + m_x0, -m_radius + m_y0, zSupVal - .5 * (m_edgeThickness1 - m_edgeThickness3)), 
-      Vec3(m_radius + m_x0, m_radius + m_y0, zInfVal - .5 * (m_edgeThickness1 - m_edgeThickness3))
+      Vec3(+m_radius + m_x0, +m_radius + m_y0, zInfVal - .5 * (m_edgeThickness1 - m_edgeThickness3))
     );
 
     refreshFrames();
@@ -305,9 +309,9 @@ ConicTriplet::ConicTriplet(
   m_outputBoundary->setConvex(false);
 
   m_inputFrame    = new TranslatedFrame("inputFrame",    frame, Vec3::zero());
-  m_middleFrame1  = new TranslatedFrame("middleFrame1",  frame, Vec3::zero());
-  m_middleFrame2  = new TranslatedFrame("middleFrame2",  frame, Vec3::zero());
-  m_outputFrame   = new TranslatedFrame("outputFrame",   frame, Vec3::zero());
+  m_middleFrame1  = new TranslatedFrame("middleFrame1",  m_inputFrame, Vec3::zero());
+  m_middleFrame2  = new TranslatedFrame("middleFrame2",  m_middleFrame1, Vec3::zero());
+  m_outputFrame   = new TranslatedFrame("outputFrame",   m_middleFrame2, Vec3::zero());
 
   pushOpticalSurface("inputSurface",   m_inputFrame,   m_inputBoundary);
   pushOpticalSurface("middleSurface1", m_middleFrame1, m_middleBoundary1);
@@ -316,20 +320,10 @@ ConicTriplet::ConicTriplet(
 
   // Create helper planes. These are exposed as ports
 
-  m_objectPlane   = new TranslatedFrame("objectPlane",  frame, Vec3::zero());
-  m_middlePlane1  = new TranslatedFrame("middlePlane1", frame, Vec3::zero());
-  m_middlePlane2  = new TranslatedFrame("middlePlane2", frame, Vec3::zero());
-  m_imagePlane    = new TranslatedFrame("imagePlane",   frame, Vec3::zero());
-
   addPort("inputAperture",    m_inputFrame);
   addPort("middleAperture1",  m_middleFrame1);
   addPort("middleAperture2",  m_middleFrame2);
   addPort("outputAperture",   m_outputFrame);
-  
-  addPort("objectPlane",      m_objectPlane);
-  addPort("middlePlane1",     m_middlePlane1);
-  addPort("middlePlane2",     m_middlePlane2);
-  addPort("imagePlane",       m_imagePlane);
 
   m_cylinder.setVisibleCaps(false, false);
 
@@ -349,18 +343,6 @@ ConicTriplet::~ConicTriplet()
 
   if (m_outputBoundary != nullptr)
     delete m_outputBoundary;
-  
-  if (m_objectPlane != nullptr)
-    delete m_objectPlane;
-
-  if (m_middlePlane1 != nullptr)
-    delete m_middlePlane1;
-    
-  if (m_middlePlane2 != nullptr)
-    delete m_middlePlane2;
-  
-  if (m_imagePlane != nullptr)
-    delete m_imagePlane;
 }
 
 void
@@ -378,15 +360,20 @@ ConicTriplet::nativeMaterialOpenGL(std::string const &role)
 void
 ConicTriplet::renderOpenGL()
 {
-  glTranslatef(0, 0,  -.5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3));
+  // Full edge thickness of the multiplet
+  Real fullThickness = m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3;
+  Real locZ;
+
+  locZ = parentFrame()->toRelative(m_inputFrame->getCenter()).z;
+
+  glTranslatef(0, 0, locZ);
+  material("input.lens");
+  m_frontCap.display();
+
+  glTranslatef(0, 0, -fullThickness);
   material("output.lens");
   m_backCap.display();
   
   material("lens");
   m_cylinder.display();
-
-  glTranslatef(0, 0, (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3));
-  material("input.lens");
-  m_frontCap.display();
-  
 }

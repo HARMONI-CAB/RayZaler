@@ -44,11 +44,6 @@ namespace RZ {
       TranslatedFrame        *m_middleFrame2     = nullptr;
       TranslatedFrame        *m_outputFrame      = nullptr;
 
-      TranslatedFrame        *m_objectPlane      = nullptr;
-      TranslatedFrame        *m_middlePlane1     = nullptr;
-      TranslatedFrame        *m_middlePlane2     = nullptr;
-      TranslatedFrame        *m_imagePlane       = nullptr;
-
       // Per-surface properties
       Real m_K[4]           = {0, 0, 0, 0};
       Real m_rCurv[4]       = {1e-1, 1e-1, 1e-1, 1e-1};
