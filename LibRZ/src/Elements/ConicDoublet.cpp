@@ -46,14 +46,17 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic cur
 
   property("backCurvature",    1e-1, "Radius of curvature of the back surface [m]");
   property("backConic",         0.0, "Conic constant (K) of the back surface");
+  
+  property("vertexRelative",  false, "Thickness is relative to the vertex of the reflective surface");
 }
 
 void
 ConicDoublet::recalcModel()
 {
-  Real dZ[3];
 
   LensSurfaceProperties surf[3];
+  
+  Real frontPlaneZ, middlePlaneZ, backPlaneZ;
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 3; ++i)
@@ -79,15 +82,20 @@ ConicDoublet::recalcModel()
     surf[2].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the second lens.\n");
 
-  dZ[0] = dZ[1] = .5 * m_edgeThickness1;
-  dZ[2] = .5 * m_edgeThickness2;
+  if (m_vertexRelative) {           
+    frontPlaneZ = -surf[0].sigma * surf[0].displacement;
+  } else {
+    frontPlaneZ = .5 * (m_edgeThickness1 + m_edgeThickness2);
+  }
+  middlePlaneZ = frontPlaneZ - m_edgeThickness1;
+  backPlaneZ = middlePlaneZ - m_edgeThickness2;
   
   const Real Rmax1 = LensSurfaceProperties::Rmax(surf[0], surf[1], m_edgeThickness1);
   const Real Rmax2 = LensSurfaceProperties::Rmax(surf[1], surf[2], m_edgeThickness2);
   const Real Rmax = std::min(Rmax1, Rmax2);
 
-  Real zSupVal = -m_edgeThickness2;
-  Real zInfVal = +m_edgeThickness1;
+  Real zSupVal = 0;
+  Real zInfVal = 0;
 
   if (!LensSurfaceProperties::zLimits(
     zSupVal,
@@ -152,18 +160,20 @@ ConicDoublet::recalcModel()
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
 
     // Intercept surfaces
-    m_inputFrame->setDistance(+.5 * (m_edgeThickness1 + m_edgeThickness2) * Vec3::eZ());
+    m_inputFrame->setDistance(frontPlaneZ * Vec3::eZ());
     m_inputFrame->recalculate();
 
-    m_middleFrame->setDistance(-.5 * (m_edgeThickness1 - m_edgeThickness2) * Vec3::eZ());
+    m_middleFrame->setDistance(middlePlaneZ * Vec3::eZ());
     m_middleFrame->recalculate();
 
-    m_outputFrame->setDistance(-.5 * (m_edgeThickness1 + m_edgeThickness2) * Vec3::eZ());
+    m_outputFrame->setDistance(backPlaneZ * Vec3::eZ());
     m_outputFrame->recalculate();
 
+    RZInfo("frontPlaneZ = %g, backPlaneZ = %g, m_thickness1 = %g, m_edgeThickness1 = %g, m_thickness2 = %g, m_edgeThickness2 = %g, m_rCurv = %g %g %g\n",frontPlaneZ, backPlaneZ, m_thickness1, m_edgeThickness1, m_thickness2, m_edgeThickness2, m_rCurv[0], m_rCurv[1], m_rCurv[2]);
+    
     setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, zSupVal - .5 * (m_edgeThickness1 - m_edgeThickness2)), 
-      Vec3(m_radius + m_x0, m_radius + m_y0, zInfVal - .5 * (m_edgeThickness1 - m_edgeThickness2))
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, backPlaneZ + zSupVal),
+      Vec3(m_radius + m_x0, m_radius + m_y0, frontPlaneZ + zInfVal)
     );
   
     refreshFrames();
@@ -223,6 +233,8 @@ ConicDoublet::propertyChanged(
     m_glass1.n = value;
   } else if (name == "n2") {
     m_glass2.n = value;
+  } else if (name == "vertexRelative") {
+    m_vertexRelative = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -248,7 +260,7 @@ ConicDoublet::ConicDoublet(
   m_inputBoundary->setMedia(nullptr, &m_glass1);
   
   m_middleBoundary = new ConicLensBoundary;
-  m_middleBoundary->setConvex(true); // ??
+  m_middleBoundary->setConvex(true); 
   m_middleBoundary->setMedia(&m_glass1, &m_glass2);
   
   m_outputBoundary = new ConicLensBoundary;
@@ -316,15 +328,20 @@ ConicDoublet::nativeMaterialOpenGL(std::string const &role)
 void
 ConicDoublet::renderOpenGL()
 {
-  glTranslatef(0, 0,  -.5 * (m_edgeThickness1 + m_edgeThickness2));
+  // Full edge thickness of the multiplet
+  Real fullThickness = m_edgeThickness1 + m_edgeThickness2;
+  Real locZ;
+  locZ = parentFrame()->toRelative(m_inputFrame->getCenter()).z;
+  
+  glTranslatef(0, 0,  locZ);
+  material("input.lens");
+  m_frontCap.display();
+
+  glTranslatef(0, 0, -fullThickness);
   material("output.lens");
   m_backCap.display();
   
   material("lens");
   m_cylinder.display();
-
-  glTranslatef(0, 0, (m_edgeThickness1 + m_edgeThickness2));
-  material("input.lens");
-  m_frontCap.display();
   
 }

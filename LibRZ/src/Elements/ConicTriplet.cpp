@@ -54,14 +54,17 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
 
   property("backCurvature",     1e-1, "Radius of curvature of the back surface [m]");
   property("backConic",          0.0, "Conic constant (K) of the back surface");
+  
+  property("vertexRelative",    false,      "Thickness is relative to the vertex of the reflective surface");
 }
 
 void
 ConicTriplet::recalcModel()
 {
-  Real dZ[4];
   
   LensSurfaceProperties surf[4];
+  
+  Real frontPlaneZ, middlePlane1Z, middlePlane2Z, backPlaneZ;
   
   // Calculate properties of the four surfaces.
   for (auto i = 0; i < 4; ++i)
@@ -96,9 +99,15 @@ ConicTriplet::recalcModel()
     surf[3].sigma, 
     surf[3].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the third lens.\n");
-  
-  dZ[0] = dZ[1] = .5 * m_edgeThickness1;
-  dZ[2] = dZ[3] = .5 * m_edgeThickness2; 
+     
+  if (m_vertexRelative) {           
+    frontPlaneZ = -surf[0].sigma * surf[0].displacement;
+  } else {
+    frontPlaneZ = .5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3);
+  }
+  middlePlane1Z = frontPlaneZ - m_edgeThickness1;
+  middlePlane2Z = middlePlane1Z - m_edgeThickness2;
+  backPlaneZ = middlePlane2Z - m_edgeThickness3;
   
   const Real Rmax1 = LensSurfaceProperties::Rmax(surf[0], surf[1], m_edgeThickness1);
   const Real Rmax2 = LensSurfaceProperties::Rmax(surf[1], surf[2], m_edgeThickness2);
@@ -106,8 +115,8 @@ ConicTriplet::recalcModel()
   
   const Real Rmax  = std::min(Rmax1, std::min(Rmax2, Rmax3));
   
-  Real zSupVal = - (.5 * m_edgeThickness2 + m_edgeThickness3);
-  Real zInfVal = + (.5 * m_edgeThickness2 + m_edgeThickness1);
+  Real zSupVal = 0;
+  Real zInfVal = 0;
   
   if (!LensSurfaceProperties::zLimits(
     zSupVal,
@@ -190,26 +199,21 @@ ConicTriplet::recalcModel()
     m_cylinder.setHeight(m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3);
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
 
-    // Intercept surfaces
-    //  vertexRleative = false
-    //    m_inputFrame->setDistance(.5 * (m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3) * Vec3::eZ());
-    //  vertexRelative = true
-    m_inputFrame->setDistance(-surf[0].sigma * surf[0].displacement * Vec3::eZ());
+    m_inputFrame->setDistance(frontPlaneZ * Vec3::eZ());
     m_inputFrame->recalculate();
 
-    m_middleFrame1->setDistance(-m_edgeThickness1 * Vec3::eZ()); 
+    m_middleFrame1->setDistance(middlePlane1Z * Vec3::eZ()); 
     m_middleFrame1->recalculate();
   
-    m_middleFrame2->setDistance(-m_edgeThickness2 * Vec3::eZ()); 
+    m_middleFrame2->setDistance(middlePlane2Z * Vec3::eZ()); 
     m_middleFrame2->recalculate();
 
-    m_outputFrame->setDistance(-m_edgeThickness3 * Vec3::eZ());
+    m_outputFrame->setDistance(backPlaneZ * Vec3::eZ());
     m_outputFrame->recalculate();
 
-    // WIP: Fix this.
     setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, zSupVal - .5 * (m_edgeThickness1 - m_edgeThickness3)), 
-      Vec3(+m_radius + m_x0, +m_radius + m_y0, zInfVal - .5 * (m_edgeThickness1 - m_edgeThickness3))
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, backPlaneZ + zSupVal),
+      Vec3(+m_radius + m_x0, +m_radius + m_y0, frontPlaneZ + zInfVal)
     );
 
     refreshFrames();
@@ -283,6 +287,8 @@ ConicTriplet::propertyChanged(
     m_glass2.n = value;
   } else if (name == "n3") {
     m_glass3.n = value;
+  } else if (name == "vertexRelative") {
+    m_vertexRelative = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -309,9 +315,9 @@ ConicTriplet::ConicTriplet(
   m_outputBoundary->setConvex(false);
 
   m_inputFrame    = new TranslatedFrame("inputFrame",    frame, Vec3::zero());
-  m_middleFrame1  = new TranslatedFrame("middleFrame1",  m_inputFrame, Vec3::zero());
-  m_middleFrame2  = new TranslatedFrame("middleFrame2",  m_middleFrame1, Vec3::zero());
-  m_outputFrame   = new TranslatedFrame("outputFrame",   m_middleFrame2, Vec3::zero());
+  m_middleFrame1  = new TranslatedFrame("middleFrame1",  frame, Vec3::zero());
+  m_middleFrame2  = new TranslatedFrame("middleFrame2",  frame, Vec3::zero());
+  m_outputFrame   = new TranslatedFrame("outputFrame",   frame, Vec3::zero());
 
   pushOpticalSurface("inputSurface",   m_inputFrame,   m_inputBoundary);
   pushOpticalSurface("middleSurface1", m_middleFrame1, m_middleBoundary1);

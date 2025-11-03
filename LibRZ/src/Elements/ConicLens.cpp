@@ -52,14 +52,12 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves
 void
 ConicLens::recalcModel()
 {
-  Real dZ[2];
 
   Real n = m_glass.n;
   
   LensSurfaceProperties surf[2];
   
-  Real zSup[4];
-  Real zInf[4];
+  Real frontPlaneZ, backPlaneZ;
 
   // Calculate properties of both surfaces.
   for (auto i = 0; i < 2; ++i) {
@@ -81,20 +79,25 @@ ConicLens::recalcModel()
     surf[1].sigma, 
     surf[1].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness.\n");
-
-  dZ[0] = dZ[1] = .5 * m_edgeThickness;
+     
+  if (m_vertexRelative) {           
+    frontPlaneZ = -surf[0].sigma * surf[0].displacement;
+  } else {
+    frontPlaneZ = .5 * m_edgeThickness;
+  }
+  backPlaneZ = frontPlaneZ - m_edgeThickness;
   
   const Real Rmax = LensSurfaceProperties::Rmax(surf[0], surf[1], m_edgeThickness);
 
-  Real zSupVal = -.5 * m_edgeThickness;
-  Real zInfVal = +.5 * m_edgeThickness;
+  Real zSupVal = 0;
+  Real zInfVal = 0;
   
   if (!LensSurfaceProperties::zLimits(zSupVal, zInfVal, surf[0], surf[1], Rmax)) {
     RZWarning("Current radius is incompatible with conic offset.\n");
   } else {
     // Input focal plane: located at -f minus half the thickness
-    m_frontFocalPlane->setDistance(+(dZ[0] + m_focalLength[0])* Vec3::eZ());
-    m_objectPlane->setDistance(+(dZ[0] + 2 * m_focalLength[0]) * Vec3::eZ());
+    m_frontFocalPlane->setDistance(frontPlaneZ * Vec3::eZ());
+    m_objectPlane->setDistance(frontPlaneZ * Vec3::eZ());
 
     m_inputBoundary->setRadius(m_radius);
     m_inputBoundary->setCurvatureRadius(surf[0].Rc);
@@ -104,8 +107,8 @@ ConicLens::recalcModel()
     m_inputBoundary->setCenterOffset(m_x0, m_y0);
 
     // Output focal plane: opposite side
-    m_backFocalPlane->setDistance(-(dZ[1] + m_focalLength[1]) * Vec3::eZ());
-    m_imagePlane->setDistance(-(dZ[1] + 2 * m_focalLength[1]) * Vec3::eZ());
+    m_backFocalPlane->setDistance(backPlaneZ * Vec3::eZ());
+    m_imagePlane->setDistance(backPlaneZ * Vec3::eZ());
 
     m_outputBoundary->setRadius(m_radius);
     m_outputBoundary->setCurvatureRadius(surf[1].Rc);
@@ -133,17 +136,17 @@ ConicLens::recalcModel()
     m_cylinder.setHeight(m_edgeThickness);
     m_cylinder.setCaps(&m_frontCap, &m_backCap);
     
-    setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, zSupVal), 
-      Vec3(m_radius + m_x0, m_radius + m_y0, zInfVal)
-    );
-      
     // Intercept surfaces
-    m_inputFrame->setDistance(+.5 * m_edgeThickness * Vec3::eZ());
+    m_inputFrame->setDistance(frontPlaneZ * Vec3::eZ());
     m_inputFrame->recalculate();
 
-    m_outputFrame->setDistance(-.5 * m_edgeThickness * Vec3::eZ());
+    m_outputFrame->setDistance(backPlaneZ * Vec3::eZ());
     m_outputFrame->recalculate();
+    
+    setBoundingBox(
+      Vec3(-m_radius + m_x0, -m_radius + m_y0, backPlaneZ + zSupVal),
+      Vec3(m_radius + m_x0, m_radius + m_y0, frontPlaneZ + zInfVal)
+    );
 
     refreshFrames();
 
@@ -292,15 +295,18 @@ ConicLens::nativeMaterialOpenGL(std::string const &role)
 void
 ConicLens::renderOpenGL()
 {
-  glTranslatef(0, 0,  -.5 * m_edgeThickness);
+  Real locZ;
+  locZ = parentFrame()->toRelative(m_inputFrame->getCenter()).z;
+  
+  glTranslatef(0, 0, locZ);
+  material("input.lens");
+  m_frontCap.display();
+
+  glTranslatef(0, 0, -m_edgeThickness);
   material("output.lens");
   m_backCap.display();
   
   material("lens");
   m_cylinder.display();
-
-  glTranslatef(0, 0, m_edgeThickness);
-  material("input.lens");
-  m_frontCap.display();
   
 }
