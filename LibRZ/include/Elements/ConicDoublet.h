@@ -61,6 +61,8 @@ namespace RZ {
       Real m_edgeThickness2  = 1e-2;
       bool m_fromEdge2       = false;
       
+      bool m_vertexRelative = false;
+      
       void recalcModel();
 
     protected:
