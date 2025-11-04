@@ -28,9 +28,9 @@ using namespace RZ;
 RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic curves")
 {
   property("thickness1",       2e-2, "Thickness of the first lens [m]");
-  property("edgeThickness1",   1e-2,       "Thickness of side of the lens [m]");
+  property("edgeThickness1",   1e-2, "Thickness of side of the lens [m]");
   property("thickness2",       2e-2, "Thickness of the second lens [m]");
-  property("edgeThickness2",   1e-2,       "Thickness of side of the lens [m]");
+  property("edgeThickness2",   1e-2, "Thickness of side of the lens [m]");
   property("radius",         2.5e-2, "Radius of the conic lense doublet [m]");
   property("diameter",         5e-2, "Diameter of the conic lens doublet [m]"); 
   property("x0",                0.0, "X-axis offset [m]");
@@ -47,7 +47,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic cur
   property("backCurvature",    1e-1, "Radius of curvature of the back surface [m]");
   property("backConic",         0.0, "Conic constant (K) of the back surface");
   
-  property("vertexRelative",  false, "Thickness is relative to the vertex of the reflective surface");
+  property("vertexRelative",  false, "Thickness is relative to the vertex of the first optical surface");
 }
 
 void
@@ -168,8 +168,6 @@ ConicDoublet::recalcModel()
 
     m_outputFrame->setDistance(backPlaneZ * Vec3::eZ());
     m_outputFrame->recalculate();
-
-    RZInfo("frontPlaneZ = %g, backPlaneZ = %g, m_thickness1 = %g, m_edgeThickness1 = %g, m_thickness2 = %g, m_edgeThickness2 = %g, m_rCurv = %g %g %g\n",frontPlaneZ, backPlaneZ, m_thickness1, m_edgeThickness1, m_thickness2, m_edgeThickness2, m_rCurv[0], m_rCurv[1], m_rCurv[2]);
     
     setBoundingBox(
       Vec3(-m_radius + m_x0, -m_radius + m_y0, backPlaneZ + zSupVal),

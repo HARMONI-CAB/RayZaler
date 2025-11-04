@@ -35,7 +35,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
   property("edgeThickness3",    1e-2, "Thickness of the edge of the third lens [m]");
   property("radius",            5e-2, "Radius of the conic lens triplet [m]");
   property("diameter",          5e-2, "Diameter of the conic lense triplet [m]");
-  property("x0",                0.0, "X-axis offset [m]");
+  property("x0",                 0.0, "X-axis offset [m]");
   property("y0",                 0.0, "Y-axis offset [m]");
   property("n1",                 1.5, "Refractive index");
   property("n2",                 1.5, "Refractive index");
@@ -55,7 +55,7 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
   property("backCurvature",     1e-1, "Radius of curvature of the back surface [m]");
   property("backConic",          0.0, "Conic constant (K) of the back surface");
   
-  property("vertexRelative",    false,      "Thickness is relative to the vertex of the reflective surface");
+  property("vertexRelative",   false, "Thickness is relative to the vertex of the first optical surface");
 }
 
 void
