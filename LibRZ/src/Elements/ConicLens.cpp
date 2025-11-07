@@ -46,7 +46,8 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicLens, "Lens with surfaces given by conic curves
   property("backFocalLength",   5e-2, "Focal length of the back surface [m]");
   property("backConic",          0.0, "Conic constant (K) of the back surface");
   
-  property("vertexRelative",   false, "Thickness is relative to the vertex of the first optical surface");
+  property("vertexRelative",  false, "The element is placed with respect to a surface a vertex");
+  property("referenceVertex",     0, "Surface index where the reference vertex is");
 }
 
 void
@@ -82,6 +83,10 @@ ConicLens::recalcModel()
      
   if (m_vertexRelative) {           
     frontPlaneZ = -surf[0].sigma * surf[0].displacement;
+
+    if (m_referenceVtx > 0)
+      frontPlaneZ += m_thickness;
+
   } else {
     frontPlaneZ = .5 * m_edgeThickness;
   }
@@ -207,6 +212,14 @@ ConicLens::propertyChanged(
     m_glass.n = value;
   } else if (name == "vertexRelative") {
     m_vertexRelative = value;
+  } else if (name == "referenceVertex") {
+    int vtx = floor(static_cast<Real>(value));
+    if (vtx < 0 || vtx > 1) {
+      RZError("%s: surface index %d out of bounds\n", name.c_str(), vtx);
+      return false;
+    }
+
+    m_referenceVtx = vtx;
   } else {
     return Element::propertyChanged(name, value);
   }

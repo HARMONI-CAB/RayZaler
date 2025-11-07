@@ -58,6 +58,7 @@ namespace RZ {
       bool m_fromEdge       = false;
       
       bool m_vertexRelative = false;
+      int  m_referenceVtx   = 0;
       
       void recalcModel();
 

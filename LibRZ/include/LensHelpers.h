@@ -102,7 +102,7 @@ namespace RZ {
       const Real radius = surf1.radius;
       const Real rho    = surf1.rho0;
       
-      if (rho > abs(Rmax - radius))
+      if (rho > Rmax - radius)
         return false;
 
       zSup[0] = surf2.zVal(rho);     // z(0,0) -> vertex

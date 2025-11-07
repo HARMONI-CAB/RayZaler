@@ -82,38 +82,37 @@ namespace RZ {
       Real Rc2p = Rcp * Rcp;
       Real Rc2n = Rcn * Rcn;
 
-      Real Ap = Sp * (dp * (Kp + 1) - Rcp) / (Kp + 1);
-      Real Bp = Sp * Rcp / (Kp + 1);
-      Real Cp = -(Kp + 1) / Rc2p;
+      // NOTE: BE CAREFUL WITH THE ORDERS OF MAGNITUDE!!
+      Real Ap = Sp * (dp * (Kp + 1) - Rcp) / (Kp + 1); // -1e9
+      Real Bp = Sp * Rcp / (Kp + 1);                   // 1e9
+      Real Cp = -(Kp + 1) / Rc2p;                      // -1e-18
 
-      Real An = Sn * (dn * (Kn + 1) - Rcn) / (Kn + 1);
-      Real Bn = Sn * Rcn / (Kn + 1);
-      Real Cn = -(Kn + 1) / Rc2n;
+      Real An = Sn * (dn * (Kn + 1) - Rcn) / (Kn + 1); // -1e9
+      Real Bn = Sn * Rcn / (Kn + 1);                   // 1e9
+      Real Cn = -(Kn + 1) / Rc2n;                      // -1e-18
 
-      Real Bp2 = Bp * Bp;
-      Real Cp2 = Cp * Cp;
-      Real Bn2 = Bn * Bn;
-      Real Cn2 = Cn * Cn;
+      Real Bp2 = Bp * Bp;                              // 1e18
+      Real Cp2 = Cp * Cp;                              // 1e-36
+      Real Bn2 = Bn * Bn;                              // 1e18
+      Real Cn2 = Cn * Cn;                              // 1e-36
 
-      Real Bp4 = Bp2 * Bp2;
-      Real Bn4 = Bn2 * Bn2;
+      Real Bp4 = Bp2 * Bp2;                            // 1e36
+      Real Bn4 = Bn2 * Bn2;                            // 1e36
 
-      Real D = Ap - An + t;
-      Real D2 = D * D;
-      Real D4 = D2 * D2;
+      Real D =  (Ap - An) + t;                         // 0.02
+      Real D2 = D * D;                                 // 0.0004
+      Real D4 = D2 * D2;                               // 0.000000016
 
       Real a = Bp4 * Cp2 + Bn4 * Cn2 - 2 * Bp2 * Bn2 * Cp * Cn;
       Real b = 2 * (Bp4 * Cp + Bn4 * Cn - Bp2 * Bn2 * (Cp + Cn) - Bp2 * D2 * Cp - Bn2 * D2 * Cn);
-      Real c = Bp4 + Bn4 + D4 - 2 * (Bp2 * Bn2 + Bp2 * D2 + Bn2 * D2);
+      Real c = D4 - 2 * (-.5 * (Bp4 + Bn4) + Bp2 * Bn2 + Bp2 * D2 + Bn2 * D2);
 
       Real eps = 1e-12;
       if (!isZero(a, eps)) {
         Real disc = b * b - 4 * a * c;
         if (disc < 0)
-        {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
-        }
+          return INFINITY;
+        
         Real y1 = (-b + sqrt(disc)) / (2 * a);
         Real y2 = (-b - sqrt(disc)) / (2 * a);
         
@@ -128,16 +127,11 @@ namespace RZ {
         } else if (isZero(eq2, eps)) {
           Rmax = sqrt(y2);
         } else {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
+          return INFINITY;
         }
       } else {
         Real y = -c / b;
-        if (y < 0) {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
-        }
-        Rmax = sqrt(y);
+        Rmax = y < 0 ? INFINITY : sqrt(y);
       }
 
       return Rmax;
@@ -170,10 +164,9 @@ namespace RZ {
       Real eps = 1e-12;
       if (isZero(a, eps)) {
         Real disc = b * b - 4 * a * c;
-        if (disc < 0) {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
-        }
+        if (disc < 0)
+          return INFINITY;
+
         Real y1 = (-b + sqrt(disc)) / (2 * a);
         Real y2 = (-b - sqrt(disc)) / (2 * a);
         
@@ -188,16 +181,11 @@ namespace RZ {
         } else if (isZero(eq2, eps)) {
           Rmax = sqrt(y2);
         } else {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
+          Rmax = INFINITY;
         }
       } else {
         Real y = -c / b;
-        if (y < 0) {
-          RZWarning("There are no real solutions.\n");
-          Rmax = NAN;
-        } 
-        Rmax = sqrt(y);
+        Rmax = y < 0 ? INFINITY : sqrt(y);
       }
       
       return Rmax;

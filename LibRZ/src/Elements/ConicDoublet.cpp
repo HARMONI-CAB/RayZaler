@@ -47,7 +47,8 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicDoublet, "Lens with surfaces given by conic cur
   property("backCurvature",    1e-1, "Radius of curvature of the back surface [m]");
   property("backConic",         0.0, "Conic constant (K) of the back surface");
   
-  property("vertexRelative",  false, "Thickness is relative to the vertex of the first optical surface");
+  property("vertexRelative",  false, "The element is placed around a vertex");
+  property("referenceVertex",     0, "Surface index where the reference vertex is");
 }
 
 void
@@ -82,8 +83,13 @@ ConicDoublet::recalcModel()
     surf[2].displacement))
      RZWarning("Invalid lens geometry: negative thickness or edge thickness in the second lens.\n");
 
-  if (m_vertexRelative) {           
+  if (m_vertexRelative) {
     frontPlaneZ = -surf[0].sigma * surf[0].displacement;
+
+    if (m_referenceVtx > 0)
+      frontPlaneZ += m_thickness1;
+    if (m_referenceVtx > 1)
+      frontPlaneZ += m_thickness2;
   } else {
     frontPlaneZ = .5 * (m_edgeThickness1 + m_edgeThickness2);
   }
@@ -233,6 +239,14 @@ ConicDoublet::propertyChanged(
     m_glass2.n = value;
   } else if (name == "vertexRelative") {
     m_vertexRelative = value;
+  } else if (name == "referenceVertex") {
+    int vtx = floor(static_cast<Real>(value));
+    if (vtx < 0 || vtx > 2) {
+      RZError("%s: surface index %d out of bounds\n", name.c_str(), vtx);
+      return false;
+    }
+
+    m_referenceVtx = vtx;
   } else {
     return Element::propertyChanged(name, value);
   }
