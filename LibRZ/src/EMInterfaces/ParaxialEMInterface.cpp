@@ -39,6 +39,7 @@ ParaxialEMInterface::transmit(RayBeamSlice const &slice, RayBeam *splinter)
   blockLight(slice); // Prune rays according to transmission
 
   auto beam = slice.beam;
+
   for (auto i = slice.start; i < slice.end; ++i) {
     if (mustTransmitRay(slice.beam, i)) {
       Vec3 coord(beam->destinations + 3 * i);
@@ -49,7 +50,15 @@ ParaxialEMInterface::transmit(RayBeamSlice const &slice, RayBeam *splinter)
       Real tanY   = inDir.y / tanRho;
 
       Vec3 dest(m_fLen * tanX, m_fLen * tanY, -m_fLen);
-      (dest - coord).normalized().copyToArray(beam->directions + 3 * i);
+      Vec3 outDir = dest - coord;
+
+      if (outDir.z * inDir.z < 0)
+        outDir = -outDir;
+
+      outDir = outDir.normalized();
+
+      outDir.copyToArray(beam->directions + 3 * i);
+      (beam->media[i]->n * outDir).copyToArray(beam->k + 3 * i);
     }
   }
 }
