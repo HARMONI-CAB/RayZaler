@@ -20,6 +20,7 @@
 #define _RAY_PROCESSORS_CONIC_MIRROR_H
 
 #include <RayTracingEngine.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
   class ReferenceFrame;
@@ -32,6 +33,10 @@ namespace RZ {
       virtual ~ConicMirrorBoundary() = default;
       void setRadius(Real);
       void setCenterOffset(Real, Real);
+
+      void setApertureWidth(Real);
+      void setApertureHeight(Real);
+      void setApertureType(ApertureType);
 
       void setCurvatureRadius(Real);
       void setConicConstant(Real);

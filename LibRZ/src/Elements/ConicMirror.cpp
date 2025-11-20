@@ -20,6 +20,7 @@
 #include <Surfaces/Conic.h>
 #include <TranslatedFrame.h>
 #include <Logger.h>
+#include <SurfaceShape.h>
 
 using namespace RZ;
 
@@ -36,12 +37,26 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicMirror, "Circular mirror with a surface given b
   property("x0",             0.0,       "X-axis offset [m]");
   property("y0",             0.0,       "Y-axis offset [m]");
   property("vertexRelative", false,     "Positioning is relative to the vertex of the reflective surface");
+  property("apertureType", "elliptical", "Shape of the conic mirror.");
+  property("apertureHeight", 2.5e-2, "Height of the conic mirror.");
+  property("apertureWidth",  2.5e-2, "Width of the conic mirror.");
 }
+
+GLAbstractCap *cap, *rearCap;
 
 void
 ConicMirror::recalcModel()
 {
-  Real R2  = m_radius * m_radius;
+  //Real R2  = m_radius * m_radius;
+  Real R = 2.5e-2;
+  Real R2 = R * R;
+  if (m_apertureType == Elliptical) {
+    R = fmax(m_apertureHeight, m_apertureWidth);
+    R2 = R * R;
+  } else if (m_apertureType == Rectangular) {
+    R = sqrt(m_apertureHeight * m_apertureHeight + m_apertureWidth * m_apertureWidth);
+    R2 = R * R;
+  }
   Real Rc  = fabs(m_rCurv);
   Real Rc2 = m_rCurv  * m_rCurv;
   bool convex = m_rCurv < 0;
@@ -60,8 +75,9 @@ ConicMirror::recalcModel()
 
   Real backPlaneZ, apertureZ;
   Real center = sqrt(m_x0 * m_x0 + m_y0 * m_y0);
-  Real zPlus  = m_boundary->surfaceShape<ConicSurface>()->z(center + m_radius);
-  Real zMinus = m_boundary->surfaceShape<ConicSurface>()->z(fmax(0, center - m_radius));
+  Real zPlus  = m_boundary->surfaceShape<ConicSurface>()->z(center + R);
+  Real zMinus = m_boundary->surfaceShape<ConicSurface>()->z(fmax(0, center - R));
+
 
   if (m_vertexRelative) {
     // Mirror is centered around vertex
@@ -78,27 +94,54 @@ ConicMirror::recalcModel()
     m_y0,
     apertureZ + m_boundary->surfaceShape<ConicSurface>()->z(center));
 
-  m_cap.setRadius(m_radius);
-  m_cap.setCurvatureRadius(Rc);
-  m_cap.setConicConstant(m_K);
-  m_cap.setConvex(convex);
-  m_cap.setInvertNormals(false);
-  m_cap.setCenterOffset(m_x0, m_y0);
-  m_cap.setHoleRadius(m_rHole);
+  if (m_apertureType == Elliptical) {
+      m_ellipCap.setWidth(m_apertureWidth);
+      m_ellipCap.setHeight(m_apertureHeight);
+      m_ellipCap.setCurvatureRadius(Rc);
+      m_ellipCap.setConicConstant(m_K);
+      m_ellipCap.setConvex(convex);
+      m_ellipCap.setInvertNormals(false);
+      m_ellipCap.setCenterOffset(m_x0, m_y0);
+      m_ellipCap.setHoleRadius(m_rHole);
+      m_ellipCap.requestRecalc();
 
-  m_rearCap.setRadius(m_radius);
-  m_rearCap.setCurvatureRadius(Rc);
-  m_rearCap.setConicConstant(m_K);
-  m_rearCap.setConvex(convex);
-  m_rearCap.setInvertNormals(true);
-  m_rearCap.setCenterOffset(m_x0, m_y0);
-  m_rearCap.setHoleRadius(m_rHole);
+      m_rearEllipCap.setWidth(m_apertureWidth);
+      m_rearEllipCap.setHeight(m_apertureHeight);
+      m_rearEllipCap.setCurvatureRadius(Rc);
+      m_rearEllipCap.setConicConstant(m_K);
+      m_rearEllipCap.setConvex(convex);
+      m_rearEllipCap.setInvertNormals(true);
+      m_rearEllipCap.setCenterOffset(m_x0, m_y0);
+      m_rearEllipCap.setHoleRadius(m_rHole);
+      m_rearEllipCap.requestRecalc();
+      cap = &m_ellipCap;
+      rearCap = &m_rearEllipCap;
+    } else if (m_apertureType == Rectangular) {
+      m_rectCap.setWidth(m_apertureWidth);
+      m_rectCap.setHeight(m_apertureHeight);
+      m_rectCap.setCurvatureRadius(Rc);
+      m_rectCap.setConicConstant(m_K);
+      m_rectCap.setConvex(convex);
+      m_rectCap.setInvertNormals(false);
+      m_rectCap.setCenterOffset(m_x0, m_y0);
+      m_rectCap.setHoleRadius(m_rHole);
+      m_rectCap.requestRecalc();
 
-  //m_cap.requestRecalc();
-  //m_rearCap.requestRecalc();
+      m_rearRectCap.setWidth(m_apertureWidth);
+      m_rearRectCap.setHeight(m_apertureHeight);
+      m_rearRectCap.setCurvatureRadius(Rc);
+      m_rearRectCap.setConicConstant(m_K);
+      m_rearRectCap.setConvex(convex);
+      m_rearRectCap.setInvertNormals(true);
+      m_rearRectCap.setCenterOffset(m_x0, m_y0);
+      m_rearRectCap.setHoleRadius(m_rHole);
+      m_rearRectCap.requestRecalc();
+      cap = &m_rectCap;
+      rearCap = &m_rearRectCap;
+    }
 
   m_cylinder.setHeight(m_thickness);
-  m_cylinder.setCaps(&m_cap, &m_rearCap);
+  m_cylinder.setCaps(cap, rearCap);
 
   m_reflectiveSurfaceFrame->setDistance(apertureZ * Vec3::eZ());
   m_aperturePort->setDistance(apertureZ * Vec3::eZ());
@@ -109,6 +152,9 @@ ConicMirror::recalcModel()
   m_boundary->setConicConstant(m_K);
   m_boundary->setConvex(convex);
   m_boundary->setCenterOffset(m_x0, m_y0);
+  m_boundary->setApertureHeight(m_apertureHeight);
+  m_boundary->setApertureWidth(m_apertureWidth);
+  m_boundary->setApertureType(m_apertureType);
 
   m_hole.setRadius(m_rHole);
   m_hole.setInvertNormals(true);
@@ -120,8 +166,8 @@ ConicMirror::recalcModel()
   Real maxZ = apertureZ + fmax(zPlus, zMinus);
 
   setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, minZ),
-      Vec3(+m_radius + m_x0, +m_radius + m_y0, maxZ));
+      Vec3(-m_apertureWidth + m_x0, -m_apertureHeight + m_y0, minZ),
+      Vec3(+m_apertureWidth + m_x0, +m_apertureHeight + m_y0, maxZ));
 
   updatePropertyValue("hole",        m_rHole);
   updatePropertyValue("focalLength", 0.5 * m_rCurv);
@@ -158,7 +204,22 @@ ConicMirror::propertyChanged(
     m_x0 = value;
   else if (name == "y0")
     m_y0 = value;
-  else
+  else if (name == "apertureType") {
+    std::string type = std::get<std::string>(value);
+    
+    if (type == "elliptical") {
+      m_apertureType = Elliptical;
+    } else if (type == "rectangular") {
+      m_apertureType = Rectangular;
+    } else {
+      m_apertureType = Elliptical;
+      RZWarning("Only valid types are: elliptical and rectangular. Type has been set as elliptical as default.");
+    }
+  } else if (name == "apertureWidth") {
+    m_apertureWidth = value;
+    } else if (name == "apertureHeight") {
+    m_apertureHeight = value;
+  } else
     return Element::propertyChanged(name, value);
 
   recalcModel();
@@ -230,13 +291,13 @@ ConicMirror::renderOpenGL()
   material("mirror");
   glTranslatef(0, 0, dz - sigma * m_displacement);
 
-  m_rearCap.display();
+  rearCap->display();
   m_cylinder.display();
 
   material("input.mirror");
 
   glTranslatef(0, 0, m_thickness);
-  m_cap.display();
+  cap->display();
   glPopMatrix();
 
   glTranslatef(0, 0, dz - sigma * m_rHoleHeight);

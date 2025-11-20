@@ -19,16 +19,19 @@
 
 #include <Surfaces/Conic.h>
 #include <Logger.h>
+#include <SurfaceShape.h>
 
 using namespace RZ;
 
-ConicSurface::ConicSurface(Real R, Real RCurv, Real K)
+ConicSurface::ConicSurface(Real R, Real RCurv, Real K, Real W, Real H)
 {
   m_edges.resize(2);
 
   setRadius(R);
   setCurvatureRadius(RCurv);
   setConicConstant(K);
+  setApertureHeight(H);
+  setApertureWidth(W);
   recalcGL();
 }
 
@@ -47,11 +50,22 @@ ConicSurface::recalcDistribution()
 {
   Real x2, y2, invnorm;
   /* TODO */
+  Real apertureRadius = 0;
+  Real apertureRadius2 = 0;
+  if (m_apertureType == Elliptical) {
+    apertureRadius = fmax(m_apertureHeight, m_apertureWidth);
+    apertureRadius2 = apertureRadius * apertureRadius;
+  } else if (m_apertureType == Rectangular) {
+    apertureRadius = sqrt(m_apertureHeight * m_apertureHeight + m_apertureWidth * m_apertureWidth);
+    apertureRadius2 = apertureRadius * apertureRadius;
+  }
 
   if (m_parabola)
-    m_depth = .5 * m_radius2 / m_rCurv;
+    //m_depth = .5 * m_radius2 / m_rCurv;
+    m_depth = .5 * apertureRadius2 / m_rCurv;
   else
-    m_depth = (m_rCurv - sqrt(m_rCurv2 - (m_K + 1) * m_radius2)) / (m_K + 1);
+    //m_depth = (m_rCurv - sqrt(m_rCurv2 - (m_K + 1) * m_radius2)) / (m_K + 1);
+    m_depth = (m_rCurv - sqrt(m_rCurv2 - (m_K + 1) * apertureRadius2)) / (m_K + 1);
   
   x2 = m_x0 * m_x0;
   y2 = m_y0 * m_y0;
@@ -81,6 +95,35 @@ ConicSurface::setRadius(Real R)
 {
   m_radius  = R;
   m_radius2 = R * R;
+
+  recalcDistribution();
+  m_dirty = true;
+}
+
+void
+ConicSurface::setApertureWidth(Real W)
+{
+  m_apertureWidth  = W;
+  m_apertureWidth2 = W * W;
+
+  recalcDistribution();
+  m_dirty = true;
+}
+
+void
+ConicSurface::setApertureHeight(Real H)
+{
+  m_apertureHeight  = H;
+  m_apertureHeight2 = H * H;
+
+  recalcDistribution();
+  m_dirty = true;
+}
+
+void
+ConicSurface::setApertureType(ApertureType shape)
+{
+  m_apertureType  = shape;
 
   recalcDistribution();
   m_dirty = true;
@@ -187,6 +230,71 @@ ConicSurface::generateConicSectionVertices(
   }
 }
 
+void
+ConicSurface::generateConicSectionVertices2(
+      std::vector<GLfloat> &dest,
+      Real w0,
+      Real h0,
+      Real wn,
+      Real hn,
+      Real x0, Real y0,
+      Real ux, Real uy,
+      Real sign,
+      unsigned int segments)
+{
+  //Real dh = (rn - r0) / segments;
+
+  Real dw = (wn - w0) / segments;
+  Real dh = (hn - h0) / segments;
+  
+  Real w = w0;
+  Real h = h0;
+
+  //Real r = r0;
+  Real x, y, z, rho2;
+  Real sigma = m_convex ? 1 : -1;
+
+  if (m_parabola) {
+    auto inv2R = .5 / m_rCurv;
+
+    for (unsigned i = 0; i < segments + 1; ++i) {
+      x = ux * w + x0;
+      y = uy * h + y0;
+      rho2 = x * x + y * y;
+      z = -sigma * (inv2R * rho2 - m_depth);
+
+      dest.push_back(x);
+      dest.push_back(y);
+      dest.push_back(z);
+
+      //r += dh;
+      w += dw;
+      h += dh;
+    }
+  } else {
+    auto K1    = m_K + 1;
+    auto invK1 = 1 / K1;
+
+    if (K1 < 0)
+      sign = 1;
+
+    for (unsigned i = 0; i < segments + 1; ++i) {
+      x = ux * w + x0;
+      y = uy * h + y0;
+      rho2 = x * x + y * y;
+      z = -sigma * (invK1 * (m_rCurv - sign * sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+      dest.push_back(x);
+      dest.push_back(y);
+      dest.push_back(z);
+
+      //r += dh;
+      w += dw;
+      h += dh;
+    }
+  }
+}
+
 template<class T> void
 ConicSurface::generateConicCircle(
       T &dest,
@@ -204,9 +312,9 @@ ConicSurface::generateConicCircle(
   if (m_parabola) {
     auto inv2R = .5 / m_rCurv;
     
-    for (unsigned i = 0; i < segments; ++i) {
-      x = r * cos(theta) + x0;
-      y = r * sin(theta) + y0;
+    for (unsigned i = 0; i < dest.size(); ++i) { // o poner i < segments
+      x = r * cos(theta) + x0; //x = -w/2
+      y = r * sin(theta) + y0; //y = -h/2 + i * dy -> h/segments
       
       rho2 = x * x + y * y;
       z = -sigma * (inv2R * rho2 - m_depth);
@@ -236,6 +344,127 @@ ConicSurface::generateConicCircle(
     }
   }
 }
+
+template<class T> void
+ConicSurface::generateConicEllipse(
+      T &dest,
+      Real w,
+      Real h,
+      Real x0, Real y0,
+      Real sign,
+      unsigned int segments)
+{
+  Real x, y, z;
+  Real rho2;
+  Real theta = 0;
+  Real dTheta = 2 * M_PI / segments;
+  Real sigma = m_convex ? 1 : -1;
+
+  if (m_parabola) {
+    auto inv2R = .5 / m_rCurv;
+    
+    for (unsigned i = 0; i < segments; ++i) {
+      x = w * cos(theta) + x0; 
+      y = h * sin(theta) + y0; 
+      
+      rho2 = x * x + y * y;
+      z = -sigma * (inv2R * rho2 - m_depth);
+
+      dest.push_back(x);
+      dest.push_back(y);
+      dest.push_back(z);
+
+      theta += dTheta;
+    }
+  } else {
+    auto K1 = m_K + 1; 
+    auto invK1 = 1 / K1;
+
+    for (unsigned i = 0; i < segments; ++i) {
+      x = w  * cos(theta) + x0;
+      y = h * sin(theta) + y0;
+      
+      rho2 = x * x + y * y;
+      z = -sigma * (invK1 * (m_rCurv - sign * sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+      dest.push_back(x);
+      dest.push_back(y);
+      dest.push_back(z);
+
+      theta += dTheta;
+    }
+  }
+}
+
+template<class T> void
+ConicSurface::generateConicRectangle(
+      T &dest,
+      Real w,
+      Real h,
+      Real x0, Real y0,
+      Real sign,
+      unsigned int segments)
+{
+  Real x, y, z;
+  Real rho2;
+  Real sigma = m_convex ? 1 : -1;
+
+  Real dx = 2 * w / (segments / 4);
+  Real dy = 2 * h / (segments / 4);
+
+  for (unsigned i = 0; i < (segments / 4); ++i) {
+    x = -w;
+    y = -h + i * dy;
+
+    dest.push_back(x);
+    dest.push_back(y);
+    dest.push_back(0);
+  }
+  for (unsigned i = 0; i < (segments / 4); ++i) {
+    x = -w + i * dx;
+    y = h;
+
+    dest.push_back(x);
+    dest.push_back(y);
+    dest.push_back(0);
+  }
+  for (unsigned i = 0; i < (segments / 4); ++i) {
+    x = w;
+    y = h - i * dy;
+
+    dest.push_back(x);
+    dest.push_back(y);
+    dest.push_back(0);
+  }
+  for (unsigned i = 0; i < (segments / 4); ++i) {
+    x = w - i * dx;
+    y = -h;
+
+    dest.push_back(x);
+    dest.push_back(y);
+    dest.push_back(0);
+  } 
+  
+  for (unsigned i = 0; i < dest.size(); i = i + 3) {
+    if (m_parabola) {
+      auto inv2R = .5 / m_rCurv;
+      
+      rho2 = dest[i] * dest[i] + dest[i + 1] * dest[i + 1];
+      z = -sigma * (inv2R * rho2 - m_depth);
+
+      dest[i + 2] = z;
+    } else {
+      auto K1 = m_K + 1;
+      auto invK1 = 1 / K1;
+
+      rho2 = dest[i] * dest[i] + dest[i + 1] * dest[i + 1];
+      z = -sigma * (invK1 * (m_rCurv - sign * sqrt(m_rCurv2 - K1 * rho2)) - m_depth);
+
+      dest[i + 2] = z;
+    }
+  }
+  
+  }
 
 //
 // For closed conics (K > -1) we find the equator where the curve becomes
@@ -268,6 +497,8 @@ ConicSurface::recalcSelectionGL()
 {
   Real segScale = DEFAULT_SEG_SCALE;
   Real rEq = DEFAULT_SEG_SCALE * m_radius;
+  Real rW = DEFAULT_SEG_SCALE * m_apertureWidth;
+  Real rH = DEFAULT_SEG_SCALE * m_apertureHeight;
   bool closed = false;
 
   if (m_K > -1) {
@@ -277,28 +508,51 @@ ConicSurface::recalcSelectionGL()
       segScale = rEq / m_radius;
       closed   = true;
     }
+    if (betterREq < DEFAULT_SEG_SCALE * m_apertureWidth) {
+      rEq      = betterREq * .999999;
+      segScale = rEq / m_apertureWidth;
+      closed   = true;
+    }
+    if (betterREq < DEFAULT_SEG_SCALE * m_apertureHeight) {
+      rEq      = betterREq * .999999;
+      segScale = rEq / m_apertureHeight;
+      closed   = true;
+    }
   }
 
   m_selectedAxes.clear();
   m_selectedAxesClosed.clear();
   m_selectedEquator.clear();
 
-  generateConicCircle(m_selectedEquator, rEq);
+  //generateConicCircle(m_selectedEquator, rEq);
+  if (m_apertureType == Elliptical) {
+    generateConicEllipse(m_selectedEquator, rW, rH);
+  } else if (m_apertureType == Rectangular) {
+    generateConicRectangle(m_selectedEquator, rW, rH);
+  }
 
   auto n = fmin(
     static_cast<unsigned>(DEFAULT_SEG_SCALE * GENERIC_APERTURE_NUM_SEGMENTS),
     static_cast<unsigned>(segScale * GENERIC_APERTURE_NUM_SEGMENTS));
 
-  generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, +m_ux, +m_uy, +1, n);
-  generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, -m_ux, -m_uy, +1, n);
-  generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, -m_uy, +m_ux, +1, n);
-  generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, +m_uy, -m_ux, +1, n);
+  //generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, +m_ux, +m_uy, +1, n);
+  //generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, -m_ux, -m_uy, +1, n);
+  //generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, -m_uy, +m_ux, +1, n);
+  //generateConicSectionVertices(m_selectedAxes, 0, rEq, 0, 0, +m_uy, -m_ux, +1, n);
+  generateConicSectionVertices2(m_selectedAxes, 0, 0, rW, rH, 0, 0, +m_ux, +m_uy, +1, n);
+  generateConicSectionVertices2(m_selectedAxes, 0, 0, rW, rH, 0, 0, -m_ux, -m_uy, +1, n);
+  generateConicSectionVertices2(m_selectedAxes, 0, 0, rW, rH, 0, 0, -m_uy, +m_ux, +1, n);
+  generateConicSectionVertices2(m_selectedAxes, 0, 0, rW, rH, 0, 0, +m_uy, -m_ux, +1, n);
 
   if (closed) {
-    generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_ux, +m_uy, -1, n);
-    generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, -m_ux, -m_uy, -1, n);
-    generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, -m_uy, +m_ux, -1, n);
-    generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_uy, -m_ux, -1, n);
+    //generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_ux, +m_uy, -1, n);
+    //generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, -m_ux, -m_uy, -1, n);
+    //generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, -m_uy, +m_ux, -1, n);
+    //generateConicSectionVertices(m_selectedAxesClosed, 0, rEq, 0, 0, +m_uy, -m_ux, -1, n);
+    generateConicSectionVertices2(m_selectedAxesClosed, 0, 0, rW, rH, 0, 0, +m_ux, +m_uy, -1, n);
+    generateConicSectionVertices2(m_selectedAxesClosed, 0, 0, rW, rH, 0, 0, -m_ux, -m_uy, -1, n);
+    generateConicSectionVertices2(m_selectedAxesClosed, 0, 0, rW, rH, 0, 0, -m_uy, +m_ux, -1, n);
+    generateConicSectionVertices2(m_selectedAxesClosed, 0, 0, rW, rH, 0, 0, +m_uy, -m_ux, -1, n);
   }
 }
   
@@ -311,18 +565,35 @@ ConicSurface::recalcGL()
   m_edges[1].clear();
   m_axes.clear();
 
-  generateConicCircle(m_vertices, m_radius, m_x0, m_y0);
-  generateConicCircle(m_edges[0], m_radius, m_x0, m_y0);
-
-  if (m_rHole > 0) {
-    generateConicCircle(m_holeVertices, m_rHole, m_x0, m_y0);
-    generateConicCircle(m_edges[1], m_rHole, m_x0, m_y0);
+  //generateConicCircle(m_vertices, m_radius, m_x0, m_y0);
+  //generateConicCircle(m_edges[0], m_radius, m_x0, m_y0);
+  if (m_apertureType == Elliptical) {
+    generateConicEllipse(m_vertices, m_apertureWidth, m_apertureHeight, m_x0, m_y0);
+    generateConicEllipse(m_edges[0], m_apertureWidth, m_apertureHeight, m_x0, m_y0);
+  } else if (m_apertureType == Rectangular) {
+    generateConicRectangle(m_vertices, m_apertureWidth, m_apertureHeight, m_x0, m_y0);
+    generateConicRectangle(m_edges[0], m_apertureWidth, m_apertureHeight, m_x0, m_y0);
   }
 
-  generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, +m_ux, +m_uy);
-  generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, -m_ux, -m_uy);
-  generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, -m_uy, +m_ux);
-  generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, +m_uy, -m_ux);
+  if (m_rHole > 0) { // EL HOLE ERA SIEMPRE CIRCULAR, NO??
+    generateConicCircle(m_holeVertices, m_rHole, m_x0, m_y0);
+    generateConicCircle(m_edges[1], m_rHole, m_x0, m_y0);
+    //if (m_apertureType == Elliptical) {
+    //  generateConicCircle(m_holeVertices, m_rHole, m_x0, m_y0);
+    //  generateConicCircle(m_edges[1], m_rHole, m_x0, m_y0);
+    //} else if (m_apertureType == Rectangular) {
+    //  generateConicCircle(m_edges[1], m_rHole, m_x0, m_y0);
+    //}
+  }
+
+  //generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, +m_ux, +m_uy);
+  //generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, -m_ux, -m_uy);
+  //generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, -m_uy, +m_ux);
+  //generateConicSectionVertices(m_axes, m_rHole, m_radius, m_x0, m_y0, +m_uy, -m_ux);
+  generateConicSectionVertices2(m_axes, m_rHole, m_rHole, m_apertureWidth, m_apertureHeight, m_x0, m_y0, +m_ux, +m_uy);
+  generateConicSectionVertices2(m_axes, m_rHole, m_rHole, m_apertureWidth, m_apertureHeight, m_x0, m_y0, -m_ux, -m_uy);
+  generateConicSectionVertices2(m_axes, m_rHole, m_rHole, m_apertureWidth, m_apertureHeight, m_x0, m_y0, -m_uy, +m_ux);
+  generateConicSectionVertices2(m_axes, m_rHole, m_rHole, m_apertureWidth, m_apertureHeight, m_x0, m_y0, +m_uy, -m_ux);
 
   //recalcSelectionGL();
 
@@ -399,7 +670,8 @@ ConicSurface::intercept(
             sigma * K1 * intercept.z + RDKD).normalized();
 
 
-  if (rho2 >= m_radius2 || rho2 < m_rHole2)
+  //if (rho2 >= m_radius2 || rho2 < m_rHole2)
+  if (!isWithinAperture(x, y) || rho2 < m_rHole2)
     return complementary();
 
   return !complementary();

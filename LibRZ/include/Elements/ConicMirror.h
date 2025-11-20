@@ -22,6 +22,7 @@
 #include <OpticalElement.h>
 #include <MediumBoundaries/ConicMirror.h>
 #include <GLHelpers.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
   class TranslatedFrame;
@@ -31,6 +32,8 @@ namespace RZ {
       GLCappedCylinder     m_cylinder;
       GLCappedCylinder     m_hole;
       GLConicCap       m_cap, m_rearCap;
+      GLEllipCap              m_ellipCap, m_rearEllipCap;
+      GLRectCap               m_rectCap, m_rearRectCap;
       TranslatedFrame *m_reflectiveSurfaceFrame  = nullptr;
       TranslatedFrame *m_aperturePort            = nullptr;
       TranslatedFrame *m_vertexPort              = nullptr;
@@ -43,6 +46,9 @@ namespace RZ {
       Real m_x0             = 0;
       Real m_y0             = 0;
       Real m_rHole          = 0;
+      Real m_apertureWidth  = 2.5e-2;
+      Real m_apertureHeight = 2.5e-2;
+      ApertureType m_apertureType = Elliptical;
 
       Real m_displacement   = 0;
       

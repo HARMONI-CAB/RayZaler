@@ -19,12 +19,13 @@
 #include <EMInterfaces/DielectricEMInterface.h>
 #include <MediumBoundaries/ConicLens.h>
 #include <Surfaces/Conic.h>
+#include <SurfaceShape.h> 
 
 using namespace RZ;
 
 ConicLensBoundary::ConicLensBoundary()
 {
-  setSurfaceShape(new ConicSurface(0.5, 1, 0));
+  setSurfaceShape(new ConicSurface(0.5, 1, 0, 0.5, 0.5));
   setEMInterface(new DielectricEMInterface);
   emInterface<DielectricEMInterface>()->setSurroundingMedium(nullptr);
 }
@@ -39,6 +40,27 @@ void
 ConicLensBoundary::setRadius(Real R)
 {
   surfaceShape<ConicSurface>()->setRadius(R);
+}
+
+void
+ConicLensBoundary::setApertureWidth(Real W)
+{
+  surfaceShape<ConicSurface>()->setApertureWidth(W);
+  surfaceShape()->setApertureWidth(W);
+}
+
+void
+ConicLensBoundary::setApertureHeight(Real H)
+{
+  surfaceShape<ConicSurface>()->setApertureHeight(H);
+  surfaceShape()->setApertureHeight(H);
+}
+
+void
+ConicLensBoundary::setApertureType(ApertureType AT)
+{
+  surfaceShape<ConicSurface>()->setApertureType(AT);
+  surfaceShape()->setApertureType(AT);
 }
 
 void

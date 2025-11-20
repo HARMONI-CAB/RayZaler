@@ -19,12 +19,13 @@
 #include <EMInterfaces/ReflectiveEMInterface.h>
 #include <MediumBoundaries/ConicMirror.h>
 #include <Surfaces/Conic.h>
+#include <SurfaceShape.h>
 
 using namespace RZ;
 
 ConicMirrorBoundary::ConicMirrorBoundary()
 {
-  setSurfaceShape(new ConicSurface(.5, 1, 0));
+  setSurfaceShape(new ConicSurface(.5, 1, 0, .5, .5));
   setEMInterface(new ReflectiveEMInterface);
 }
 
@@ -39,6 +40,28 @@ ConicMirrorBoundary::setRadius(Real R)
 {
   surfaceShape<ConicSurface>()->setRadius(R);
 }
+
+void
+ConicMirrorBoundary::setApertureWidth(Real W)
+{
+  surfaceShape<ConicSurface>()->setApertureWidth(W);
+  surfaceShape()->setApertureWidth(W);
+}
+
+void
+ConicMirrorBoundary::setApertureHeight(Real H)
+{
+  surfaceShape<ConicSurface>()->setApertureHeight(H);
+  surfaceShape()->setApertureHeight(H);
+}
+
+void
+ConicMirrorBoundary::setApertureType(ApertureType AT)
+{
+  surfaceShape<ConicSurface>()->setApertureType(AT);
+  surfaceShape()->setApertureType(AT);
+}
+
 
 void
 ConicMirrorBoundary::setCurvatureRadius(Real Rc)

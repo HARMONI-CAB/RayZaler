@@ -422,6 +422,131 @@ public:
       ~GLConicCap();
   };
 
+  class GLEllipCap : public GLAbstractCap {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+      std::vector<GLfloat> m_edge;
+
+      GLdouble m_rCurv   = 1;
+      GLdouble m_K       = 0;
+      bool     m_convex  = false;
+      GLdouble m_width  = .25;
+      GLdouble m_height  = .25;
+      GLdouble m_x0      = 0;
+      GLdouble m_y0      = 0;
+      GLdouble m_rHole   = 0;
+      GLint    m_sectors = 64;
+      GLint    m_stacks  = 8;
+      bool     m_invertNormals = false;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      fnum() const
+      {
+        return m_rCurv / 2;
+      }
+
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+      
+      void setCenterOffset(GLdouble, GLdouble);
+      void setConicConstant(GLdouble);
+      void setCurvatureRadius(GLdouble);
+      void setConvex(bool);
+
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+      void setHoleRadius(GLdouble);
+      void setSectors(GLint);
+      void setStacks(GLint);
+      void setInvertNormals(bool);
+
+      virtual const std::vector<GLfloat> *edge() const override;
+      virtual void requestRecalc() override;
+      virtual void display() override;
+      
+      GLEllipCap();
+      ~GLEllipCap();
+  };
+
+  class GLRectCap : public GLAbstractCap {
+      GLUquadric *m_quadric = nullptr;
+      bool m_dirty = true;
+      std::vector<GLfloat> m_vertices;
+      std::vector<GLfloat> m_normals;
+      std::vector<GLfloat> m_texCoords;
+      std::vector<GLint>   m_indices;
+      std::vector<GLfloat> m_edge;
+
+      GLdouble m_rCurv   = 1;
+      GLdouble m_K       = 0;
+      bool     m_convex  = false;
+      GLdouble m_width   = .25;
+      GLdouble m_height  = .25;
+      GLdouble m_x0      = 0;
+      GLdouble m_y0      = 0;
+      GLdouble m_rHole   = 0;
+      GLint    m_sectors = 64;
+      GLint    m_stacks  = 8;
+      bool     m_invertNormals = false;
+
+      void recalculate();
+
+    public:
+      GLdouble
+      fnum() const
+      {
+        return m_rCurv / 2;
+      }
+
+      GLdouble
+      width() const
+      {
+        return m_width;
+      }
+
+      GLdouble
+      height() const
+      {
+        return m_height;
+      }
+      
+      void setCenterOffset(GLdouble, GLdouble);
+      void setConicConstant(GLdouble);
+      void setCurvatureRadius(GLdouble);
+      void setConvex(bool);
+
+      void setWidth(GLdouble);
+      void setHeight(GLdouble);
+      void setHoleRadius(GLdouble);
+      void setSectors(GLint);
+      void setStacks(GLint);
+      void setInvertNormals(bool);
+
+      virtual const std::vector<GLfloat> *edge() const override;
+      virtual void requestRecalc() override;
+      virtual void display() override;
+      
+      GLRectCap();
+      ~GLRectCap();
+  };
+
+
   class GLPinHole : public GLPrimitive {
       GLUquadric *m_quadric = nullptr;
       bool m_dirty = true;

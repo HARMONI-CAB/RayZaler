@@ -30,7 +30,9 @@ namespace RZ {
 
   class ConicTriplet : public OpticalElement {
       GLCappedCylinder        m_cylinder;
-      GLConicCap              m_frontCap, m_middleCap1, m_middleCap2, m_backCap;
+      GLConicCap              m_frontCap, m_backCap;
+      GLEllipCap              m_frontEllipCap, m_backEllipCap;
+      GLRectCap               m_frontRectCap, m_backRectCap;
       EMMedium                m_glass1;
       EMMedium                m_glass2;
       EMMedium                m_glass3;
@@ -52,6 +54,9 @@ namespace RZ {
       Real m_radius         = 2.5e-2;
       Real m_x0             = 0;
       Real m_y0             = 0;
+      Real m_apertureWidth  = 2.5e-2;
+      Real m_apertureHeight  = 2.5e-2;
+      ApertureType m_apertureType = Elliptical;
 
       
       Real m_thickness1      = 3e-2;

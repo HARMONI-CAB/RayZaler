@@ -23,18 +23,61 @@
 #include "ReferenceFrame.h"
 #include <Random.h>
 #include <vector>
+#include <Logger.h>
 
 #define GENERIC_APERTURE_NUM_SEGMENTS     36
 #define GENERIC_APERTURE_NUM_GRIDLINES    13
 
 namespace RZ {
+
+  enum ApertureType{
+    Elliptical,
+    Rectangular,
+  };
+
   class SurfaceShape {
       ExprRandomState                m_state;
       std::vector<std::vector<Real>> m_emptyEdges;
       bool                           m_complementary = false;
+      int                            m_apertureType = ApertureType::Elliptical;
+      Real                           m_apertureHeight;
+      Real                           m_apertureWidth;
+      Real                           m_invApertureHeight2;
+      Real                           m_invApertureWidth2;
 
     public:
+
       virtual ~SurfaceShape();
+
+      inline void
+      setApertureType(ApertureType shape) {
+        m_apertureType = shape;
+      }
+
+      inline void
+      setApertureHeight(Real height) {
+        m_apertureHeight = height;
+        m_invApertureHeight2 = 1 / (m_apertureHeight * m_apertureHeight);
+      }
+
+      inline void
+      setApertureWidth(Real width) {
+        m_apertureWidth = width;
+        m_invApertureWidth2 = 1 / (m_apertureWidth * m_apertureWidth);
+      }
+
+      inline bool
+      isWithinAperture(Real x, Real y) const { // ver lo de m_x0 y m_y0, pero si lo hago así en realidad puedo usar los x e y que se definen en conic.h en los que se restan ya estas cantidades
+        if (m_apertureType == Elliptical) {
+          return x * x * m_invApertureWidth2 + y * y * m_invApertureHeight2 <= 1.0;
+        } else if (m_apertureType == Rectangular) {
+          return x * x <= m_apertureWidth * m_apertureWidth && y * y <= m_apertureHeight * m_apertureHeight;
+        } else {
+          RZError("Unsupported aperture type %d\n", m_apertureType);
+        }
+
+        return false;
+      }
       
       inline ExprRandomState &
       randState()

@@ -57,7 +57,13 @@ RZ_DESCRIBE_OPTICAL_ELEMENT(ConicTriplet, "Lens with surfaces given by conic cur
   
   property("vertexRelative",  false, "The element is placed with respect to a surface a vertex");
   property("referenceVertex",     0, "Surface index where the reference vertex is");
+
+  property("apertureType", "elliptical", "Shape of the conic triplet.");
+  property("apertureHeight", 2.5e-2, "Height of the conic triplet.");
+  property("apertureWidth",  2.5e-2, "Width of the conic triplet.");
 }
+
+GLAbstractCap *frontCapTriplet, *backCapTriplet;
 
 void
 ConicTriplet::recalcModel()
@@ -68,8 +74,13 @@ ConicTriplet::recalcModel()
   Real frontPlaneZ, middlePlane1Z, middlePlane2Z, backPlaneZ;
   
   // Calculate properties of the four surfaces.
-  for (auto i = 0; i < 4; ++i)
-    surf[i].setProperties(m_rCurv[i], m_K[i], m_radius, m_x0, m_y0);
+  for (auto i = 0; i < 4; ++i) {
+    if (m_apertureType == Elliptical) {
+      surf[i].setProperties(+m_rCurv[i], m_K[i], fmax(m_apertureHeight, m_apertureWidth), m_x0, m_y0);
+    } else if (m_apertureType == Rectangular) {
+      surf[i].setProperties(+m_rCurv[i], m_K[i], sqrt(m_apertureHeight * m_apertureHeight + m_apertureWidth * m_apertureWidth), m_x0, m_y0);
+    }
+  }  
   
   if (!adjustThickness(
     m_edgeThickness1,
@@ -141,14 +152,9 @@ ConicTriplet::recalcModel()
     m_inputBoundary->setConicConstant(m_K[0]);
     m_inputBoundary->setConvex(surf[0].convex);
     m_inputBoundary->setCenterOffset(m_x0, m_y0);
-
-    m_frontCap.setRadius(m_radius);
-    m_frontCap.setCurvatureRadius(surf[0].Rc);
-    m_frontCap.setConicConstant(m_K[0]);
-    m_frontCap.setConvex(surf[0].convex);
-    m_frontCap.setInvertNormals(false);
-    m_frontCap.setCenterOffset(m_x0, m_y0);
-    m_frontCap.requestRecalc();
+    m_inputBoundary->setApertureHeight(m_apertureHeight);
+    m_inputBoundary->setApertureWidth(m_apertureWidth);
+    m_inputBoundary->setApertureType(m_apertureType);
 
     // Second surface: first middle lens
 
@@ -158,14 +164,9 @@ ConicTriplet::recalcModel()
     m_middleBoundary1->setConicConstant(m_K[1]);
     m_middleBoundary1->setConvex(surf[1].convex);
     m_middleBoundary1->setCenterOffset(m_x0, m_y0);
-  
-    m_middleCap1.setRadius(m_radius);
-    m_middleCap1.setCurvatureRadius(surf[1].Rc);
-    m_middleCap1.setConicConstant(m_K[1]);
-    m_middleCap1.setConvex(surf[1].convex);
-    m_middleCap1.setInvertNormals(false); 
-    m_middleCap1.setCenterOffset(m_x0, m_y0);
-    m_middleCap1.requestRecalc();
+    m_middleBoundary1->setApertureHeight(m_apertureHeight);
+    m_middleBoundary1->setApertureWidth(m_apertureWidth);
+    m_middleBoundary1->setApertureType(m_apertureType);
   
     // Third surface plane: second middle lens
 
@@ -175,15 +176,9 @@ ConicTriplet::recalcModel()
     m_middleBoundary2->setConicConstant(m_K[2]);
     m_middleBoundary2->setConvex(surf[2].convex);
     m_middleBoundary2->setCenterOffset(m_x0, m_y0);
-  
-    m_middleCap2.setRadius(m_radius);
-    m_middleCap2.setCurvatureRadius(surf[2].Rc);
-    m_middleCap2.setConicConstant(m_K[2]);
-    m_middleCap2.setConvex(surf[2].convex);
-    m_middleCap2.setInvertNormals(false); 
-    m_middleCap2.setCenterOffset(m_x0, m_y0);
-    m_middleCap2.requestRecalc();
-
+    m_middleBoundary2->setApertureHeight(m_apertureHeight);
+    m_middleBoundary2->setApertureWidth(m_apertureWidth);
+    m_middleBoundary2->setApertureType(m_apertureType);
 
     // Output surface plane: opposite side
 
@@ -193,18 +188,55 @@ ConicTriplet::recalcModel()
     m_outputBoundary->setConicConstant(m_K[3]);
     m_outputBoundary->setConvex(surf[3].convex);
     m_outputBoundary->setCenterOffset(m_x0, m_y0);
+    m_outputBoundary->setApertureHeight(m_apertureHeight);
+    m_outputBoundary->setApertureWidth(m_apertureWidth);
+    m_outputBoundary->setApertureType(m_apertureType);
   
-    m_backCap.setRadius(m_radius);
-    m_backCap.setCurvatureRadius(surf[3].Rc);
-    m_backCap.setConicConstant(m_K[3]);
-    m_backCap.setConvex(surf[3].convex);
-    m_backCap.setInvertNormals(true);
-    m_backCap.setCenterOffset(m_x0, m_y0);
-    m_backCap.requestRecalc();
+    if (m_apertureType == Elliptical) {
+      m_frontEllipCap.setWidth(m_apertureWidth);
+      m_frontEllipCap.setHeight(m_apertureHeight);
+      m_frontEllipCap.setCurvatureRadius(surf[0].Rc);
+      m_frontEllipCap.setConicConstant(m_K[0]);
+      m_frontEllipCap.setConvex(surf[0].convex);
+      m_frontEllipCap.setInvertNormals(false);
+      m_frontEllipCap.setCenterOffset(m_x0, m_y0);
+      m_frontEllipCap.requestRecalc();
+
+      m_backEllipCap.setWidth(m_apertureWidth);
+      m_backEllipCap.setHeight(m_apertureHeight);
+      m_backEllipCap.setCurvatureRadius(surf[2].Rc);
+      m_backEllipCap.setConicConstant(m_K[2]);
+      m_backEllipCap.setConvex(surf[2].convex);
+      m_backEllipCap.setInvertNormals(true);
+      m_backEllipCap.setCenterOffset(m_x0, m_y0);
+      m_backEllipCap.requestRecalc();
+      frontCapTriplet = &m_frontEllipCap;
+      backCapTriplet = &m_backEllipCap;
+    } else if (m_apertureType == Rectangular) {
+      m_frontRectCap.setWidth(m_apertureWidth);
+      m_frontRectCap.setHeight(m_apertureHeight);
+      m_frontRectCap.setCurvatureRadius(surf[0].Rc);
+      m_frontRectCap.setConicConstant(m_K[0]);
+      m_frontRectCap.setConvex(surf[0].convex);
+      m_frontRectCap.setInvertNormals(false);
+      m_frontRectCap.setCenterOffset(m_x0, m_y0);
+      m_frontRectCap.requestRecalc();
+
+      m_backRectCap.setWidth(m_apertureWidth);
+      m_backRectCap.setHeight(m_apertureHeight);
+      m_backRectCap.setCurvatureRadius(surf[2].Rc);
+      m_backRectCap.setConicConstant(m_K[2]);
+      m_backRectCap.setConvex(surf[2].convex);
+      m_backRectCap.setInvertNormals(true);
+      m_backRectCap.setCenterOffset(m_x0, m_y0);
+      m_backRectCap.requestRecalc();
+      frontCapTriplet = &m_frontRectCap;
+      backCapTriplet = &m_backRectCap;
+    }
   
   
     m_cylinder.setHeight(m_edgeThickness1 + m_edgeThickness2 + m_edgeThickness3);
-    m_cylinder.setCaps(&m_frontCap, &m_backCap);
+    m_cylinder.setCaps(frontCapTriplet, backCapTriplet);
 
     m_inputFrame->setDistance(frontPlaneZ * Vec3::eZ());
     m_inputFrame->recalculate();
@@ -219,8 +251,8 @@ ConicTriplet::recalcModel()
     m_outputFrame->recalculate();
 
     setBoundingBox(
-      Vec3(-m_radius + m_x0, -m_radius + m_y0, backPlaneZ + zSupVal),
-      Vec3(+m_radius + m_x0, +m_radius + m_y0, frontPlaneZ + zInfVal)
+      Vec3(-m_apertureWidth + m_x0, -m_apertureHeight + m_y0, backPlaneZ + zSupVal),
+      Vec3(+m_apertureWidth + m_x0, +m_apertureHeight + m_y0, frontPlaneZ + zInfVal)
     );
 
     refreshFrames();
@@ -302,8 +334,22 @@ ConicTriplet::propertyChanged(
       RZError("%s: surface index %d out of bounds\n", name.c_str(), vtx);
       return false;
     }
-
     m_referenceVtx = vtx;
+  } else if (name == "apertureType") {
+    std::string type = std::get<std::string>(value);
+    
+    if (type == "elliptical") {
+      m_apertureType = Elliptical;
+    } else if (type == "rectangular") {
+      m_apertureType = Rectangular;
+    } else {
+      m_apertureType = Elliptical;
+      RZWarning("Only valid types are: elliptical and rectangular. Type has been set as elliptical as default.");
+    }
+  } else if (name == "apertureWidth") {
+    m_apertureWidth = value;
+  } else if (name == "apertureHeight") {
+    m_apertureHeight = value;
   } else {
     return Element::propertyChanged(name, value);
   }
@@ -389,11 +435,11 @@ ConicTriplet::renderOpenGL()
 
   glTranslatef(0, 0, locZ);
   material("input.lens");
-  m_frontCap.display();
+  frontCapTriplet->display();
 
   glTranslatef(0, 0, -fullThickness);
   material("output.lens");
-  m_backCap.display();
+  backCapTriplet->display();
   
   material("lens");
   m_cylinder.display();

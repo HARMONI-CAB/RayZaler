@@ -20,6 +20,7 @@
 #define _RAY_PROCESSORS_CONIC_LENS_H
 
 #include <RayTracingEngine.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
   class ReferenceFrame;
@@ -32,6 +33,9 @@ namespace RZ {
       ConicLensBoundary();
       virtual ~ConicLensBoundary() = default;
       void setRadius(Real);
+      void setApertureHeight(Real);
+      void setApertureWidth(Real);
+      void setApertureType(ApertureType);
       void setCenterOffset(Real, Real);
 
       void setCurvatureRadius(Real);

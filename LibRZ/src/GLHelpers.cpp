@@ -1226,6 +1226,502 @@ GLConicCap::display()
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
+//////////////////////////// GLEllipticalConicCap //////////////////////////////////
+GLEllipCap::GLEllipCap()
+{
+  m_quadric   = gluNewQuadric();
+  m_convex    = false;
+  m_rCurv     = 1;
+  m_K         = 0;
+  m_width     = 0.25;
+  m_height    = 0.25;
+  m_x0 = m_y0 = 0;
+  m_rHole     = 0;
+  m_sectors   = 64;
+  m_stacks    = 8;
+  m_invertNormals = false;
+  m_dirty     = true;
+}
+
+GLEllipCap::~GLEllipCap()
+{
+  gluDeleteQuadric(m_quadric);
+}
+
+//
+// Inspired in http://www.songho.ca/opengl/gl_sphere.html
+//
+void
+GLEllipCap::recalculate()
+{
+  GLint i, j, n    = 0, total;
+  GLfloat angDelta = 2 * M_PI / m_sectors;
+  GLfloat r0       = m_rHole;
+  GLfloat wDelta   = (m_width - (r0/sqrt(2))) / m_stacks;
+  GLfloat hDelta   = (m_height - (r0/sqrt(2))) / m_stacks;
+  GLfloat secDelta = 1.f / m_sectors;
+  GLfloat stDelta  = 1.f / m_stacks;
+  GLfloat R = fmax(m_width, m_height);
+  GLfloat R2       = R * R;
+  GLint k1, k2;
+  GLfloat sigma    = m_convex ? 1 : -1;
+  GLfloat D;
+  
+
+  auto K1 = m_K + 1;
+  auto invK1 = 1 / K1;
+  auto inv2R = .5 / m_rCurv;
+  bool parabola = isZero(K1);
+  auto Rc2 = m_rCurv * m_rCurv;
+  bool hasHole = m_rHole > 0;
+
+  if (parabola) {
+    D = .5 * R2 / m_rCurv;
+  } else {
+    D = (m_rCurv - sqrt(Rc2 - K1 * R2)) / K1;
+  }
+
+  auto RDKD = m_rCurv - D * (K1);
+
+  total = (m_stacks + 1) * (m_sectors + 1);
+  m_vertices.resize(3 * total);
+  m_normals.resize(3 * total);
+  m_texCoords.resize(2 * total);
+  m_edge.resize(3 * m_sectors);
+
+  // This loop traverses the radius
+  for (j = 0; j <= m_stacks; ++j) {
+    GLfloat w = wDelta * j + (r0/sqrt(2));
+    GLfloat h = hDelta * j + (r0/sqrt(2));
+
+    // And this other one, the angles
+    for (i = 0; i <= m_sectors; ++i) {
+      GLfloat ang = i * angDelta;
+      GLfloat x = w * cosf(ang) + m_x0;
+      GLfloat y = h * sinf(ang) + m_y0;
+      GLfloat rho2 = x * x + y * y;
+      
+      GLfloat z = parabola 
+        ? -sigma * (inv2R * rho2 - D)
+        : -sigma * (invK1 * (m_rCurv - sqrt(Rc2 - K1 * rho2)) - D);
+          GLfloat dFdz = K1 * z + sigma * RDKD;
+
+      GLfloat nInv = 1. / sqrt(rho2 + dFdz * dFdz);
+      if (m_invertNormals)
+        nInv = -nInv;
+
+      if (j == m_stacks && i < m_sectors) {
+        m_edge[3 * i + 0] = x;
+        m_edge[3 * i + 1] = y;
+        m_edge[3 * i + 2] = z;
+      }
+
+      m_vertices[3 * n + 0] = x;
+      m_vertices[3 * n + 1] = y;
+      m_vertices[3 * n + 2] = z;
+
+      m_normals[3 * n + 0] = sigma * x * nInv;
+      m_normals[3 * n + 1] = sigma * y * nInv;
+      m_normals[3 * n + 2] = sigma * dFdz * nInv;
+
+      m_texCoords[2 * n + 0] = i * secDelta;
+      m_texCoords[2 * n + 1] = j * stDelta;
+
+      ++n;
+    }
+  }
+
+  // Calculate indices
+  total = 2 * m_sectors * m_stacks - (hasHole ? 0 : m_sectors);
+  n     = 0;
+  m_indices.resize(6 * total);
+  int d1, d2;
+
+  d1 = m_invertNormals ? 2 : 1;
+  d2 = m_invertNormals ? 1 : 2;
+
+  for(i = 0; i < m_stacks; ++i) {
+    k1 = i * (m_sectors + 1);     // beginning of current stack
+    k2 = k1 + m_sectors + 1;      // beginning of next stack
+
+    for(j = 0; j < m_sectors; ++j, ++k1, ++k2) {
+      // 2 triangles per sector excluding first and last stacks
+      // k1 => k2 => k1+1
+      if (hasHole || i != 0) {
+        m_indices[3 * n +  0] = k1;
+        
+        m_indices[3 * n + d1] = k2;
+        m_indices[3 * n + d2] = k1 + 1;
+        ++n;
+      }
+
+      // k1+1 => k2 => k2+1
+      m_indices[3 * n +  0] = k1 + 1;
+      m_indices[3 * n + d1] = k2;
+      m_indices[3 * n + d2] = k2 + 1;
+      ++n;
+    }
+  }
+
+  m_dirty = false;
+}
+
+const std::vector<GLfloat> *
+GLEllipCap::edge() const
+{
+  return &m_edge;
+}
+
+void
+GLEllipCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
+GLEllipCap::setCenterOffset(GLdouble x, GLdouble y)
+{
+  m_x0 = x;
+  m_y0 = y;
+  m_dirty = true;
+}
+
+void
+GLEllipCap::setConicConstant(GLdouble K)
+{
+  m_K = K;
+  m_dirty = true;
+}
+
+void
+GLEllipCap::setCurvatureRadius(GLdouble Rc)
+{
+  m_rCurv = Rc;
+  m_dirty = true;
+}
+
+void
+GLEllipCap::setConvex(bool convex)
+{
+  m_convex = convex;
+  m_dirty  = true;
+}
+
+void
+GLEllipCap::setWidth(GLdouble width)
+{
+  m_width = width;
+  m_dirty  = true;
+}
+
+void
+GLEllipCap::setHeight(GLdouble height)
+{
+  m_height = height;
+  m_dirty  = true;
+}
+
+
+void
+GLEllipCap::setHoleRadius(GLdouble radius)
+{
+  m_rHole = radius;
+  m_dirty = true;
+}
+
+void
+GLEllipCap::setSectors(GLint slices)
+{
+  m_sectors = slices;
+  m_dirty   = true;
+}
+
+void
+GLEllipCap::setStacks(GLint stacks)
+{
+  m_stacks = stacks;
+  m_dirty  = true;
+}
+
+void
+GLEllipCap::setInvertNormals(bool inv)
+{
+  m_invertNormals = inv;
+  m_dirty         = true;
+}
+
+void
+GLEllipCap::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_vertices.data());
+  glNormalPointer(GL_FLOAT,      3 * sizeof(GLfloat), m_normals.data());
+  glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), m_texCoords.data());
+
+  glDrawElements(
+    GL_TRIANGLES,
+    (unsigned int) m_indices.size(),
+    GL_UNSIGNED_INT,
+    m_indices.data());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+//////////////////////////// GLRectangularConicCap //////////////////////////////////
+GLRectCap::GLRectCap()
+{
+  m_quadric   = gluNewQuadric();
+  m_convex    = false;
+  m_rCurv     = 1;
+  m_K         = 0;
+  m_width     = 0.25;
+  m_height    = 0.25;
+  m_x0 = m_y0 = 0;
+  m_rHole     = 0;
+  m_sectors   = 64;
+  m_stacks    = 8;
+  m_invertNormals = false;
+  m_dirty     = true;
+}
+
+GLRectCap::~GLRectCap()
+{
+  gluDeleteQuadric(m_quadric);
+}
+
+//
+// Inspired in http://www.songho.ca/opengl/gl_sphere.html
+//
+void
+GLRectCap::recalculate()
+{
+  GLint i, j, n    = 0, total;
+  GLfloat angDelta = 2 * M_PI / m_sectors;
+  GLfloat r0       = m_rHole;
+  GLfloat wDelta   = (m_width - (r0 / sqrt(2))) / m_stacks;
+  GLfloat hDelta   = (m_height - (r0 / sqrt(2))) / m_stacks;
+  GLfloat secDelta = 1.f / m_sectors;
+  GLfloat stDelta  = 1.f / m_stacks;
+  GLfloat R        = sqrt(m_height * m_height + m_width * m_width);
+  GLfloat R2       = R * R;
+  GLint k1, k2;
+  GLfloat sigma    = m_convex ? 1 : -1;
+  GLfloat D;
+  
+
+  auto K1 = m_K + 1;
+  auto invK1 = 1 / K1;
+  auto inv2R = .5 / m_rCurv;
+  bool parabola = isZero(K1);
+  auto Rc2 = m_rCurv * m_rCurv;
+  bool hasHole = m_rHole > 0;
+
+  if (parabola) {
+    D = .5 * R2 / m_rCurv;
+  } else {
+    D = (m_rCurv - sqrt(Rc2 - K1 * R2)) / K1;
+  }
+
+  auto RDKD = m_rCurv - D * (K1);
+
+  total = (m_stacks + 1) * (m_sectors + 1);
+  m_vertices.resize(3 * total);
+  m_normals.resize(3 * total);
+  m_texCoords.resize(2 * total);
+  m_edge.resize(3 * m_sectors);
+
+  // This loop traverses the radius
+  for (j = 0; j <= m_stacks; ++j) {
+    GLfloat w = wDelta * j + (r0 / sqrt(2));
+    GLfloat h = hDelta * j + (r0 / sqrt(2));
+
+    // And this other one, the angles
+    for (i = 0; i <= m_sectors; ++i) {
+      //GLfloat x = w + m_x0;
+      //GLfloat y = h + m_y0;
+      GLfloat x = -m_width  + (2 * m_width  / m_sectors) * i + m_x0;
+      GLfloat y = -m_height + (2 * m_height / m_stacks)  * j + m_y0;
+      GLfloat rho2 = x * x + y * y;
+      
+      GLfloat z = parabola 
+        ? -sigma * (inv2R * rho2 - D)
+        : -sigma * (invK1 * (m_rCurv - sqrt(Rc2 - K1 * rho2)) - D);
+          GLfloat dFdz = K1 * z + sigma * RDKD;
+
+      GLfloat nInv = 1. / sqrt(rho2 + dFdz * dFdz);
+      if (m_invertNormals)
+        nInv = -nInv;
+
+      if (j == m_stacks && i < m_sectors) {
+        m_edge[3 * i + 0] = x;
+        m_edge[3 * i + 1] = y;
+        m_edge[3 * i + 2] = z;
+      }
+
+      m_vertices[3 * n + 0] = x;
+      m_vertices[3 * n + 1] = y;
+      m_vertices[3 * n + 2] = z;
+
+      m_normals[3 * n + 0] = sigma * x * nInv;
+      m_normals[3 * n + 1] = sigma * y * nInv;
+      m_normals[3 * n + 2] = sigma * dFdz * nInv;
+
+      m_texCoords[2 * n + 0] = i * secDelta;
+      m_texCoords[2 * n + 1] = j * stDelta;
+
+      ++n;
+    }
+  }
+
+  // Calculate indices
+  total = 2 * m_sectors * m_stacks - (hasHole ? 0 : m_sectors);
+  n     = 0;
+  m_indices.resize(6 * total);
+  int d1, d2;
+
+  d1 = m_invertNormals ? 2 : 1;
+  d2 = m_invertNormals ? 1 : 2;
+
+  for(i = 0; i < m_stacks; ++i) {
+    k1 = i * (m_sectors + 1);     // beginning of current stack
+    k2 = k1 + m_sectors + 1;      // beginning of next stack
+
+    for(j = 0; j < m_sectors; ++j, ++k1, ++k2) {
+      // 2 triangles per sector excluding first and last stacks
+      
+      // k1+1 => k2 => k2+1
+      m_indices[3 * n +  0] = k1 + 1;
+      m_indices[3 * n + d2] = k2;
+      m_indices[3 * n + d1] = k2 + 1;
+      ++n;
+
+      // k1 => k2 => k1+1
+        m_indices[3 * n +  0] = k1;
+        
+        m_indices[3 * n + d2] = k2;
+        m_indices[3 * n + d1] = k1 + 1;
+        ++n;
+
+    }
+  }
+
+  m_dirty = false;
+}
+
+const std::vector<GLfloat> *
+GLRectCap::edge() const
+{
+  return &m_edge;
+}
+
+void
+GLRectCap::requestRecalc()
+{
+  recalculate();
+}
+
+void
+GLRectCap::setCenterOffset(GLdouble x, GLdouble y)
+{
+  m_x0 = x;
+  m_y0 = y;
+  m_dirty = true;
+}
+
+void
+GLRectCap::setConicConstant(GLdouble K)
+{
+  m_K = K;
+  m_dirty = true;
+}
+
+void
+GLRectCap::setCurvatureRadius(GLdouble Rc)
+{
+  m_rCurv = Rc;
+  m_dirty = true;
+}
+
+void
+GLRectCap::setConvex(bool convex)
+{
+  m_convex = convex;
+  m_dirty  = true;
+}
+
+void
+GLRectCap::setWidth(GLdouble width)
+{
+  m_width = width;
+  m_dirty  = true;
+}
+
+void
+GLRectCap::setHeight(GLdouble height)
+{
+  m_height = height;
+  m_dirty  = true;
+}
+
+void
+GLRectCap::setHoleRadius(GLdouble radius)
+{
+  m_rHole = radius;
+  m_dirty = true;
+}
+
+void
+GLRectCap::setSectors(GLint slices)
+{
+  m_sectors = slices;
+  m_dirty   = true;
+}
+
+void
+GLRectCap::setStacks(GLint stacks)
+{
+  m_stacks = stacks;
+  m_dirty  = true;
+}
+
+void
+GLRectCap::setInvertNormals(bool inv)
+{
+  m_invertNormals = inv;
+  m_dirty         = true;
+}
+
+void
+GLRectCap::display()
+{
+  if (m_dirty)
+    recalculate();
+
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glVertexPointer(3, GL_FLOAT,   3 * sizeof(GLfloat), m_vertices.data());
+  glNormalPointer(GL_FLOAT,      3 * sizeof(GLfloat), m_normals.data());
+  glTexCoordPointer(2, GL_FLOAT, 2 * sizeof(GLfloat), m_texCoords.data());
+
+  glDrawElements(
+    GL_TRIANGLES,
+    (unsigned int) m_indices.size(),
+    GL_UNSIGNED_INT,
+    m_indices.data());
+
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 ///////////////////////////// GLAbstractCap ////////////////////////////////////
 void
 GLAbstractCap::requestRecalc()
