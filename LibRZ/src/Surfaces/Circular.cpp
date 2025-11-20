@@ -177,6 +177,7 @@ CircularFlatSurface::intercept(
   n      = Vec3::eZ();
  
   if (coord.x * coord.x / m_a2 + coord.y * coord.y / m_b2 < m_radius2)
+  //if (!isWithinAperture(coord.x, coord.y))
     return !complementary();
 
   return complementary();

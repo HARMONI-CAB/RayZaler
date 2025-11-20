@@ -23,6 +23,7 @@
 #include <MediumBoundaries/ConicLens.h>
 #include <GLHelpers.h>
 #include <EMInterface.h>
+#include <SurfaceShape.h>
 
 namespace RZ {
   class TranslatedFrame;
@@ -30,6 +31,8 @@ namespace RZ {
   class ConicLens : public OpticalElement {
       GLCappedCylinder        m_cylinder;
       GLConicCap              m_frontCap, m_backCap;
+      GLEllipCap              m_frontEllipCap, m_backEllipCap;
+      GLRectCap               m_frontRectCap, m_backRectCap;
       EMMedium                m_glass;
       ConicLensBoundary      *m_inputBoundary    = nullptr;
       ConicLensBoundary      *m_outputBoundary   = nullptr;
@@ -52,6 +55,9 @@ namespace RZ {
       Real m_radius         = 2.5e-2;
       Real m_x0             = 0;
       Real m_y0             = 0;
+      Real m_apertureWidth  = 2.5e-2;
+      Real m_apertureHeight = 2.5e-2;
+      ApertureType m_apertureType = Elliptical;
       
       Real m_thickness      = 2e-2;
       Real m_edgeThickness  = 1e-2;

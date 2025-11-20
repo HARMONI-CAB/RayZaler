@@ -30,7 +30,7 @@ LensletArrayBoundary::LensletArrayBoundary()
 {
   setSurfaceShape(
     new SurfaceArray(
-      new ConicSurface(1e-2, m_rCurv, m_K)));
+      new ConicSurface(1e-2, m_rCurv, m_K, 1e-2, 1e-2), .5, .5));
 
   setEMInterface(new DielectricEMInterface);
   recalculateDimensions();

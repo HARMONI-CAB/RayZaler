@@ -32,6 +32,12 @@ namespace RZ {
     Real m_rHole   = 0;
     Real m_rHole2  = 0;
     Real m_K = 0;
+
+    Real m_apertureWidth = 1;
+    Real m_apertureWidth2 = 1;
+    Real m_apertureHeight = 1;
+    Real m_apertureHeight2 = 1;
+    ApertureType m_apertureType = Elliptical;
     
     Real m_x0 = 0;
     Real m_y0 = 0;
@@ -64,11 +70,38 @@ namespace RZ {
       Real x0 = 0, Real y0 = 0,
       Real sign = 1,
       unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
+
+    template<class T> void generateConicEllipse(
+      T &dest,
+      Real w,
+      Real h,
+      Real x0 = 0, Real y0 = 0,
+      Real sign = 1,
+      unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
+
+    template<class T> void generateConicRectangle(
+      T &dest,
+      Real w,
+      Real h,
+      Real x0 = 0, Real y0 = 0,
+      Real sign = 1,
+      unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
     
     void generateConicSectionVertices(
       std::vector<GLfloat> &dest,
       Real r0,
       Real rn,
+      Real x0, Real y0,
+      Real ux, Real uy,
+      Real sign = 1,
+      unsigned int segments = GENERIC_APERTURE_NUM_SEGMENTS);
+
+    void generateConicSectionVertices2(
+      std::vector<GLfloat> &dest,
+      Real w0,
+      Real h0,
+      Real wn,
+      Real hn,
       Real x0, Real y0,
       Real ux, Real uy,
       Real sign = 1,
@@ -221,7 +254,7 @@ namespace RZ {
       return Rmax;
     }
     
-    ConicSurface(Real radius, Real RCurv, Real K);
+    ConicSurface(Real radius, Real RCurv, Real K, Real width, Real height);
     virtual ~ConicSurface() = default;
     
     void setRadius(Real);
@@ -231,6 +264,10 @@ namespace RZ {
     void setHoleRadius(Real);
     void setConvex(bool);
     Real z(Real r) const;
+
+    void setApertureWidth(Real);
+    void setApertureHeight(Real);
+    void setApertureType(ApertureType);
 
     virtual bool intercept(
       Vec3 &hit,

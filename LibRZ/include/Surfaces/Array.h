@@ -78,7 +78,7 @@ namespace RZ {
     
     virtual std::vector<std::vector<Real>> const &edges() const override;
 
-    SurfaceArray(SurfaceShape *);
+    SurfaceArray(SurfaceShape *, Real width, Real Height);
     virtual ~SurfaceArray();
 
     void setWidth(Real);

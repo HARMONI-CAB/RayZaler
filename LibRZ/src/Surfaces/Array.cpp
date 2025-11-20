@@ -36,8 +36,11 @@ SurfaceArray::recalculateDimensions()
   }
 }
 
-SurfaceArray::SurfaceArray(SurfaceShape *ap)
+SurfaceArray::SurfaceArray(SurfaceShape *ap, Real W, Real H)
 {
+  setApertureHeight(H);
+  setApertureWidth(W);
+
   m_subAperture = ap;
   recalculateDimensions();
 }

@@ -72,6 +72,7 @@ RectangularFlatSurface::intercept(
   n     = Vec3::eZ();
   
   if (fabs(coord.x) < halfW && fabs(coord.y) < halfH)
+  //if (!isWithinAperture(coord.x, coord.y))
     return !complementary();
 
   return complementary();
